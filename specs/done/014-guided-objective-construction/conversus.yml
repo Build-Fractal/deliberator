@@ -1,0 +1,97 @@
+mode: cooperative
+output: specs/014-guided-objective-construction/conversus-output/
+rounds: 2
+stagnation: detect
+
+target:
+  - specs/014-guided-objective-construction/spec.md
+  - conversus/schemas/construction.py
+  - tests/test_construction.py
+
+prior:
+  - README.md
+
+agents:
+  - name: game-theorist
+    prompt: |
+      You are a game theory mathematician. Evaluate whether the construction
+      pipeline correctly bridges natural-language problem descriptions to
+      parameterized objective functions.
+
+      Check:
+      1. Does the decision type classification (SELECTION/INTEGRATION/SCOPING/STRESS_TEST)
+         correctly map to the template library's mode_compatibility?
+      2. Is the template selection logic sound? Does it prefer mode-specific over
+         general templates correctly?
+      3. Is the explicit parameter extraction conservative enough? Could it
+         produce false positives (extracting numbers that aren't parameters)?
+      4. Does the assembly stage correctly substitute values into symbolic forms?
+      5. Are function-type parameters (derived_from) handled correctly as deferred?
+      6. Is the gap-filling question generation adequate for each parameter type?
+    docs:
+      - schema/objective-functions/competitive-selection.yml
+      - schema/objective-functions/cooperative-consensus.yml
+      - schema/objective-functions/territory-claiming.yml
+      - schema/objective-functions/risk-adversarial.yml
+      - conversus/schemas/objectives.py
+
+  - name: schema-engineer
+    prompt: |
+      You are a Pydantic schema engineer. Evaluate the construction pipeline's
+      models, validation, and type safety.
+
+      Check:
+      1. Is AssembledObjective complete? Does it capture everything FR-020 requires?
+      2. Is the GapFiller protocol well-designed? Can it be extended for LLM use?
+      3. Are edge cases handled? Empty gap lists, no defaults, all deferred, etc.
+      4. Is the source provenance tracking (explicit/default/gap_filled/deferred) correct?
+      5. Does load_objective_templates() follow the same patterns as load_mode_mapping()?
+      6. Are there type safety issues? Unchecked dict access, unvalidated inputs?
+    docs:
+      - conversus/schemas/game_forms.py
+      - conversus/schemas/objectives.py
+
+  - name: functional-architect
+    prompt: |
+      You are a functional programming architect. Evaluate composability,
+      purity, and adherence to conversus coding patterns.
+
+      Check:
+      1. Are all functions pure (no hidden state, no global mutation)?
+      2. Is the pipeline composable — can stages be used independently?
+      3. Are there unnecessary dependencies between stages?
+      4. Does the code follow the patterns in game_forms.py and objectives.py?
+      5. Is error handling consistent (Pydantic validation vs manual checks)?
+      6. Are there any code smells — too-long functions, unclear names, dead code?
+      7. Is test coverage adequate? What edge cases are missing?
+    docs:
+      - conversus/schemas/game_forms.py
+
+  - name: spec-compliance
+    prompt: |
+      You are a spec compliance auditor. Verify that every FR (FR-001 through
+      FR-023) and SC (SC-001 through SC-005) is satisfied by the implementation.
+
+      For each requirement, state: MET, PARTIALLY MET, or NOT MET, with evidence
+      (cite specific function, line, or test). Pay special attention to:
+      - FR-012: Assembly determinism (same inputs = same output)
+      - FR-013: Integration with /conversus mode is opt-in
+      - FR-015: No import errors when conversus-schemas is not installed
+      - FR-021: Function-type parameters recorded as deferred
+      - FR-023: Non-interactive mode reports gaps as errors
+    docs:
+      - specs/014-guided-objective-construction/spec.md
+
+arbiter:
+  name: conversus-architect
+  prompt: |
+    You ARE the conversus system evaluating whether spec 014's implementation
+    is ready for acceptance. Your concern is whether this pipeline will serve
+    as a reliable bridge between /conversus mode and the plugin system.
+
+    Judge: Does construct_objective() reliably turn any problem.md into a valid
+    objective.yml? Are the edge cases covered? Will spec 019 (config optimizer)
+    be able to consume this output?
+  grounding: README.md
+  trigger: disputes_remain
+  influence: binding

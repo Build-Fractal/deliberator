@@ -1,0 +1,76 @@
+# Validate blog posts and doc fixes against actual code
+# Pattern: same as 031 conversus review
+mode: cooperative
+output: specs/wave1-3-blog/review-output/
+rounds: 2
+stagnation: detect
+validate_templates: false
+
+target:
+  - specs/wave1-3-blog/conversus-output/summary/final.md
+
+agents:
+  - name: code-verifier
+    prompt: |
+      You are a code verification engineer. Read the synthesis document which
+      contains 2 final blog posts and 12 doc fix recommendations. For every
+      technical claim in the blog posts, verify it against the actual source code.
+
+      Check:
+      1. Do the payoff formulas in the posts match payoffs.py?
+      2. Do the package configs described match packages/*.toml?
+      3. Does the paths.py description match the actual module?
+      4. Are the test counts accurate (31 split tests, 4 free-tier tests)?
+      5. Is the free/paid boundary described correctly per the code?
+      6. Are the AMPL claims properly qualified (config optimizer exists, per-mode planned)?
+      7. Do the doc fix recommendations target real gaps in the actual docs?
+      8. Is the entry point inconsistency real (cli vs main)?
+    docs:
+      - conversus/plugins/nashopt/payoffs.py
+      - conversus/paths.py
+      - packages/core.toml
+      - packages/solvers.toml
+      - tests/test_package_split.py
+      - tests/test_free_tier.py
+      - pyproject.toml
+      - docs/index.md
+      - docs/user-guide/quickstart.md
+      - docs/user-guide/sdk.md
+      - mkdocs.yml
+
+  - name: user-advocate
+    prompt: |
+      You are a new user who just found conversus. Read the synthesis document
+      containing 2 blog posts. Evaluate from a first-encounter perspective:
+
+      1. If you read Post 04 ("From Heuristics to pip install"), would you
+         understand what conversus does and want to try it?
+      2. If you read Post 05 ("Why Your AI Agents Give Different Answers"),
+         would you understand the value proposition without prior context?
+      3. After reading the posts, if you went to docs/index.md, would the
+         experience match what the posts promised?
+      4. Are there jargon or assumptions that would lose a new reader?
+      5. Would you share Post 05 on LinkedIn?
+      6. Do the doc fixes close the expectation gap between blog and docs?
+    docs:
+      - docs/index.md
+      - docs/user-guide/quickstart.md
+      - README.md
+
+  - name: editor
+    prompt: |
+      You are a technical editor reviewing blog posts before publication.
+      Read the synthesis document containing 2 final blog posts. Evaluate:
+
+      1. Quality: Are the posts well-structured with clear narrative arcs?
+      2. Accuracy: Do the posts avoid overpromising features that don't exist?
+      3. Consistency: Do both posts tell a coherent story without contradictions?
+      4. Style: Do they match the existing blog series (posts 01-03)?
+      5. Frontmatter: Are categories valid per mkdocs.yml? Dates correct?
+      6. Length: Are the posts appropriate length for engineering blog?
+      7. Code blocks: Are they syntactically correct and relevant?
+      8. Call to action: Do both posts drive readers to pip install?
+    docs:
+      - docs/blog/posts/01-docs-review-setup.md
+      - docs/blog/posts/02-three-rounds-to-convergence.md
+      - docs/blog/posts/03-what-we-shipped.md

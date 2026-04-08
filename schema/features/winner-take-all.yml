@@ -1,0 +1,64 @@
+# Feature schema for winner-take-all mode deliberation
+# Spec 015 — FR-005
+name: winner-take-all
+description: >
+  Feature schema for winner-take-all mode. Agents compete for selection.
+  Features capture ranking position, score differentials, and cross-review
+  support (attacks survived vs landed).
+
+features:
+  # Per-agent features
+  - name: ranking_position
+    type: scalar
+    source: phase_5_synthesis
+    extraction: >
+      Position in the verdict: winner=1, runner-up=2, remaining eliminated
+      agents numbered 3..N in order of appearance under '## Eliminated Competitors'.
+    description: "Final ranking position (1 = winner)"
+
+  - name: criterion_scores
+    type: vector
+    source: phase_5_synthesis
+    extraction: >
+      Extract per-criterion scores from the '| Criterion | Score (1-5) |'
+      table in each agent's Per-Agent Scorecard.
+    description: "Vector of criterion scores (1-5 scale)"
+
+  - name: attacks_received
+    type: scalar
+    source: phase_5_synthesis
+    extraction: "Count substantive attacks listed under 'Attacks Received' per agent"
+    description: "Number of attacks received during cross-review"
+
+  - name: attacks_rebutted
+    type: scalar
+    source: phase_3_revision
+    extraction: "Count '### Rebutted:' subsections in revision"
+    description: "Number of attacks successfully rebutted"
+
+  - name: attacks_conceded
+    type: scalar
+    source: phase_3_revision
+    extraction: "Count '### Conceded:' subsections in revision"
+    description: "Number of attacks conceded"
+
+  - name: cross_review_support
+    type: scalar
+    source: phase_2_cross_review
+    extraction: "Count of positive vs negative assessments per agent"
+    description: "Net support score from cross-review (positive - negative assessments)"
+
+  # Aggregate features
+  - name: dispute_count
+    type: scalar
+    source: phase_5_synthesis
+    extraction: >
+      Count entries between DISPUTES_BEGIN and DISPUTES_END markers.
+      If 'No remaining disputes' text found, count is 0.
+    description: "Number of remaining disputes in verdict"
+
+  - name: score_differential
+    type: scalar
+    source: phase_5_synthesis
+    extraction: "Difference between winner's total weighted score and runner-up's"
+    description: "Score gap between winner and runner-up"

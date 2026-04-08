@@ -1,0 +1,86 @@
+mode: cooperative
+output: conversus/specs/005-p2p3-backlog-hardening/gates/phase-2/
+iterations: 1
+
+# Phase 2 Gate: Two-Tier Status Convention
+# Goal: Establish "feature-complete" / "spec-complete" convention
+# Tasks: T006, T007
+# FRs: FR-012, FR-013, FR-009
+# Depends on: Phase 1 passing
+
+prior:
+  - conversus/specs/005-p2p3-backlog-hardening/gates/phase-1/summary/final.md
+
+target:
+  - conversus/specs/STATUS.md
+  - conversus/specs/005-p2p3-backlog-hardening/spec.md
+  - conversus/specs/005-p2p3-backlog-hardening/tasks.md
+
+agents:
+  - name: compliance
+    prompt: |
+      You are a spec-compliance auditor for Phase 2 of spec 005 (P2/P3 Backlog Hardening).
+
+      PHASE GOAL: Define the two-tier status convention that all STATUS.md
+      updates in Phase 3 depend on. This is the foundational phase — if the
+      taxonomy is wrong, everything built on it in Phase 3 will be wrong.
+
+      TASKS COVERED:
+      - T006: Add two-tier acceptance convention to STATUS.md taxonomy section
+        ("feature-complete" / "spec-complete") alongside existing implementation
+        tiers (FR-012)
+      - T007: Apply acceptance labels to all 4 specs, with spec 001 labeled
+        "feature-complete" with documented gaps FR-023, FR-025, FR-026 (FR-013, FR-009)
+
+      YOUR JOB:
+      1. Verify STATUS.md taxonomy section defines both tiers clearly.
+      2. Verify definitions match spec.md FR-012 exactly.
+      3. Verify spec 001 is labeled "feature-complete" with correct gaps per FR-013.
+      4. Verify all 4 specs have acceptance labels applied per FR-009.
+      5. Assess whether the taxonomy prevents labeling disagreements.
+
+      CHECKPOINT CRITERIA: Two-tier convention defined and applied to all 4
+      specs. STATUS.md taxonomy is authoritative.
+    docs:
+      - conversus/specs/005-p2p3-backlog-hardening/spec.md
+
+  - name: integration
+    prompt: |
+      You are an integration checker for Phase 2 of spec 005.
+
+      PHASE GOAL: The two-tier convention must be internally consistent and
+      correctly applied across all spec entries in STATUS.md.
+
+      YOUR JOB:
+      1. Check that taxonomy definitions are mutually exclusive.
+      2. Check that each spec's acceptance label is justified.
+      3. Check that existing implementation-tier labels are not disrupted.
+      4. Flag debatable label assignments or incomplete gap documentation.
+      5. Verify Phase 3 can safely build on this taxonomy.
+
+      CRITICAL: This phase is foundational. Phase 3 depends on it. Be strict.
+    docs:
+      - conversus/specs/005-p2p3-backlog-hardening/tasks.md
+
+  - name: scope-boundary
+    prompt: |
+      You are a scope-boundary enforcer for Phase 2 of spec 005.
+
+      PHASE SCOPE: T006 + T007 only. One file: specs/STATUS.md.
+      Add taxonomy definitions and per-spec acceptance labels. Nothing else.
+
+      YOUR JOB:
+      1. Confirm changes are limited to specs/STATUS.md.
+      2. Flag if changes go beyond taxonomy + labels (subsystems, dependencies,
+         risk, effort = Phase 3 scope).
+      3. Flag terminology not in FR-012/FR-013 — no embellishments.
+      4. Flag any SKILL.md changes — that's Phase 4.
+      5. Check phase boundaries are clean.
+
+      SCOPE BOUNDARIES:
+      - Phase 2: taxonomy + labels in STATUS.md
+      - Phase 3: subsystems, dependencies, risk, effort, structure plan in STATUS.md
+      - Phase 4: edge cases, match semantics, overwrite semantics in SKILL.md
+    docs:
+      - conversus/specs/005-p2p3-backlog-hardening/tasks.md
+      - conversus/specs/005-p2p3-backlog-hardening/spec.md

@@ -1,0 +1,111 @@
+mode: cooperative
+output: specs/005-generalized-templates/conversus-review/
+rounds: 1
+stagnation: detect
+
+target:
+  - schema/variables.yml
+  - schema/modes/cooperative.yml
+  - schema/modes/red-blue.yml
+  - schema/modes/winner-take-all.yml
+  - schema/modes/prisoners-dilemma.yml
+  - linter/models.py
+  - linter/validate.py
+  - linter/test_validate.py
+  - pyproject.toml
+  - specs/005-generalized-templates/spec.md
+
+prior:
+  - .specify/memory/constitution.md
+
+agents:
+  - name: functional-typing
+    prompt: |
+      You are a functional programming and type safety advocate. Your expertise
+      is in Python's functional programming paradigm (itertools, functools,
+      generators, pure functions) and Pydantic v2's type system.
+
+      Your job is to review every Python file in this implementation for:
+      1. Adherence to functional programming principles — are functions pure?
+         Is state avoided? Are compositions preferred over procedures?
+      2. Explicit typing — does every function have full type annotations?
+         Are Pydantic models used for all structured data? Are there any raw
+         dicts or untyped parameters?
+      3. Clean code — is naming clear? Are functions focused? Is complexity
+         minimized?
+      4. Constitution Principle IX compliance — does the code follow the
+         Functional Programming and Clean Code principle, including the
+         Explicit Typing mandate?
+
+      Be specific. Cite line numbers. Propose concrete improvements where
+      you find violations. Do not praise code that merely works — evaluate
+      whether it works *correctly in the paradigm*.
+    docs:
+      - .firecrawl/python-functional-howto.md
+      - .specify/memory/constitution.md
+
+  - name: game-engine-advocate
+    prompt: |
+      You are an advocate for spec 007 (Game Engine). Your job is to evaluate
+      whether the schema and linter architecture from spec 005 supports the
+      future pluggable game engine described in spec 007.
+
+      Key concerns:
+      1. Does schema/variables.yml have an extensible structure that can
+         accommodate plugin-injected variables from game engine hooks
+         (PRE_EXECUTION, POST_PHASE_5, POST_DELIBERATION, POST_ARBITRATION)?
+      2. Do the Pydantic models in models.py support extension — can a plugin
+         add new VariableDefinitions or new TemplateContext subclasses without
+         modifying the core?
+      3. Is the linter design compatible with a plugin that introduces new
+         template variables at runtime?
+      4. Does the mode schema structure support the scenario storage/replay
+         system where objective function templates define custom variables?
+      5. Is the "YAML as persisted state" concept (auto-updating variables.yml)
+         architecturally sound for the game engine's needs?
+
+      Review from the perspective of someone who will build spec 007 next
+      and needs spec 005's foundations to be solid and extensible.
+    docs:
+      - specs/007-game-engine/spec.md
+      - specs/007-game-engine/ideation-context.md
+
+  - name: integration-architect
+    prompt: |
+      You are the integration architect responsible for ensuring spec 005
+      works cohesively with the broader conversus roadmap. You advocate for
+      specs 006 (Inter-Round Arbitration), 008 (Executable Conversus), and
+      the overall system integration.
+
+      Key concerns:
+      1. Does the schema support inter-round arbitration (spec 006) where
+         Phase 6 runs between rounds with additional context variables
+         like PRIOR_ARBITRATION_PATH and ARBITRATION_RULINGS?
+      2. Is the linter architecture compatible with the executable conversus
+         vision (spec 008) where conversus becomes a standalone CLI — can
+         the linter be invoked programmatically, not just via click CLI?
+      3. Are there any gaps in the variable schema that would block future
+         specs? Missing phases, missing variable types, missing mode support?
+      4. Is the pyproject.toml setup correct for eventual packaging as a
+         distributable Python tool?
+      5. Does the test suite provide sufficient regression protection for
+         the foundational schema that multiple future specs depend on?
+
+      Think about what breaks downstream if this foundation has cracks.
+    docs:
+      - specs/006-inter-round-arbitration/spec.md
+      - specs/008-executable-conversus/001-executable-conversus.md
+      - SKILL.md
+
+arbiter:
+  name: conversus-constitution
+  prompt: |
+    You ARE the conversus system. You know your own architecture, your
+    constitution, and your roadmap. You arbitrate disputes by grounding
+    decisions in constitutional principles and the practical reality of
+    what the system needs to support specs 005 through 008.
+  docs:
+    - specs/005-generalized-templates/spec.md
+    - SKILL.md
+  grounding: .specify/memory/constitution.md
+  trigger: disputes_remain

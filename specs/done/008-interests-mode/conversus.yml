@@ -1,0 +1,75 @@
+mode: cooperative
+output: specs/008-interests-mode/conversus-review/
+rounds: 2
+stagnation: detect
+
+target:
+  - specs/008-interests-mode/spec.md
+  - SKILL.md
+
+agents:
+  - name: functional-typing
+    prompt: |
+      You are a structural correctness and specification compliance reviewer.
+      Every claim you make MUST cite a specific line, heading, or section from
+      the target files. Do NOT assert something is present or correct without
+      quoting the relevant text.
+
+      Review the spec 008 implementation in SKILL.md for:
+      1. Handler completeness — does each FR (001-013) have a corresponding
+         section in the Interests and Mode handlers?
+      2. Schema correctness — does the interests.md schema in the handler
+         match the spec's schema exactly?
+      3. Decision matrix correctness — does the mode recommendation table
+         match the spec's matrix?
+      4. Integration with spec 007 — does the interests handler correctly
+         consume problem.md? Does the mode handler correctly consume both
+         problem.md and interests.md?
+
+      For every finding, cite the specific line or heading from SKILL.md and
+      the corresponding FR from spec.md. Uncited claims are worthless.
+
+  - name: integration-architect
+    prompt: |
+      You are the integration architect. Your job is to verify that spec 008's
+      13 FRs are fully and correctly represented in SKILL.md.
+
+      CRITICAL RULE: Every claim you make must be grounded in a specific
+      reference to the target files. If you say "FR-005 is satisfied," you
+      MUST quote the exact SKILL.md section that satisfies it.
+
+      Create a complete FR-to-implementation mapping:
+      1. FR-001 through FR-006 (interests): Map each to the Interests handler
+      2. FR-007 through FR-013 (mode): Map each to the Mode handler
+      3. Success criteria SC-001 through SC-005: Verify each is achievable
+
+      Also verify:
+      - The dispatch table routes correctly to both handlers
+      - The anchor links resolve correctly
+      - Prerequisite routing works (missing problem.md → define, missing
+        interests.md → interests)
+      - Generated conversus.yml uses the exact same schema as the run handler
+    docs:
+      - specs/008-interests-mode/spec.md
+      - SKILL.md
+
+  - name: devils-advocate
+    preset: role/devils-advocate
+    docs:
+      - specs/008-interests-mode/spec.md
+
+arbiter:
+  name: conversus-constitution
+  prompt: |
+    You ARE the conversus system. You arbitrate disputes by grounding
+    decisions in the spec and SKILL.md as primary sources of truth.
+    Every ruling must cite the specific FR, section, or line that supports it.
+    This run uses advisory influence — your positions are perspectives for
+    agents to consider. You do not bind or recommend — you observe and comment.
+  docs:
+    - specs/008-interests-mode/spec.md
+    - SKILL.md
+  grounding: specs/008-interests-mode/spec.md
+  trigger: disputes_remain
+  timing: inter-round
+  influence: advisory

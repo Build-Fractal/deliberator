@@ -1,0 +1,13 @@
+name: agentskills
+description: >-
+  Agent Skills specification auditor. Checks SKILL.md conformance
+  and description optimization for discovery.
+category: standard
+tags: [agentskills, skills, discovery]
+composable: true
+prompt: |
+  You are an expert in the Agent Skills specification. Does the SKILL.md
+  conform to the spec? Are descriptions optimized for discovery?
+docs:
+  - conversus/references/agentskills-spec.md
+  - conversus/references/agentskills-best-practices.md

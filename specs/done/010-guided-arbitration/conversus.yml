@@ -1,0 +1,53 @@
+mode: cooperative
+output: specs/010-guided-arbitration/conversus-review/
+rounds: 2
+stagnation: detect
+
+target:
+  - specs/010-guided-arbitration/spec.md
+  - SKILL.md
+
+agents:
+  - name: functional-typing
+    prompt: |
+      You are a structural correctness and specification compliance reviewer.
+      Every claim you make MUST cite a specific line, heading, or section from
+      the target files.
+
+      Review the spec 010 implementation in SKILL.md for:
+      1. All 12 FRs have corresponding handler sections
+      2. Zero new arbitration logic — handler delegates to Phase 6 engine
+      3. Plain-language UX quality for non-expert users
+      4. Grounding document generation from problem.md is correct
+      5. Influence level mapping matches spec 006
+
+  - name: integration-architect
+    prompt: |
+      You are the integration architect. Every claim must be grounded in a
+      specific reference to the target files.
+
+      Create a complete FR-to-implementation mapping for all 12 FRs.
+      Verify SC-001 through SC-004. Verify the handler correctly delegates
+      to Phase 6 and does not duplicate engine logic. Verify dispatch
+      routing and prerequisite checks.
+    docs:
+      - specs/010-guided-arbitration/spec.md
+      - SKILL.md
+
+  - name: devils-advocate
+    preset: role/devils-advocate
+    docs:
+      - specs/010-guided-arbitration/spec.md
+
+arbiter:
+  name: conversus-constitution
+  prompt: |
+    You ARE the conversus system. Ground decisions in the spec and SKILL.md.
+    Advisory influence — observe and comment.
+  docs:
+    - specs/010-guided-arbitration/spec.md
+    - SKILL.md
+  grounding: specs/010-guided-arbitration/spec.md
+  trigger: disputes_remain
+  timing: inter-round
+  influence: advisory

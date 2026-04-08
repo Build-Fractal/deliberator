@@ -1,0 +1,115 @@
+mode: cooperative
+output: specs/meta-review/conversus-review/
+rounds: 1
+validate_templates: false
+
+target:
+  # All 7 synthesis outputs
+  - specs/done/021-nashopt-integration/conversus-review/summary/final.md
+  - specs/done/022-kalman-convergence/conversus-review/synthesis.md
+  - specs/done/023-ampl-config-optimizer/conversus-review/summary/final.md
+  - specs/025-game-form-expansion/conversus-review/summary/final.md
+  - specs/026-optimization-template-library/conversus-review/summary/final.md
+  - specs/029-code-review-domain/conversus-review/summary/final.md
+  - specs/030-domain-plugin-architecture/conversus-review/summary/final.md
+
+agents:
+  - name: consistency-auditor
+    prompt: |
+      You are the Cross-Spec Consistency Auditor. Read all 7 synthesis outputs
+      and check for contradictions between them.
+
+      Questions:
+      1. Do any P1 findings in one spec contradict findings in another?
+      2. Are priority levels consistent across specs? (Is P1 in 021 the same
+         severity as P1 in 029?)
+      3. Do the specs agree on shared interfaces? (e.g., PluginResult format,
+         FeatureSet schema, DomainStore protocol)
+      4. Are there findings that affect multiple specs but were only flagged in one?
+      5. Do the dependency chains make sense? (021 depends on 017, 022 on 021, etc.)
+    docs:
+      # Actual implementations to verify claims against
+      - conversus/plugins/nashopt/solver.py
+      - conversus/plugins/nashopt/kalman.py
+      - conversus/plugins/nashopt/scorer.py
+      - conversus/plugins/optimizer/ampl_model.py
+      - conversus/plugins/optimizer/optimizer.py
+      - conversus/schemas/game_forms.py
+      - conversus/schemas/solvers.py
+      - conversus/domains/base.py
+      - conversus/domains/code_review/domain.py
+
+  - name: implementation-verifier
+    prompt: |
+      You are the Implementation Verifier. Read all 7 syntheses AND the actual
+      code. Spot-check specific claims from the syntheses against the code.
+
+      For each synthesis, pick the top 3 claims and verify:
+      1. Does the code actually do what the synthesis says?
+      2. Are line numbers and function names cited correctly?
+      3. Are "MET" verdicts actually met in the code?
+      4. Are "NOT MET" items genuinely missing?
+
+      You have access to all the implementation files. Read them.
+    docs:
+      - conversus/plugins/nashopt/solver.py
+      - conversus/plugins/nashopt/kalman.py
+      - conversus/plugins/nashopt/convergence.py
+      - conversus/plugins/nashopt/predictor.py
+      - conversus/plugins/nashopt/payoffs.py
+      - conversus/plugins/optimizer/ampl_model.py
+      - conversus/plugins/optimizer/ampl_solver.py
+      - conversus/plugins/optimizer/search.py
+      - conversus/schemas/game_forms.py
+      - conversus/schemas/solvers.py
+      - conversus/schemas/construction.py
+      - conversus/schemas/extraction.py
+      - conversus/domains/base.py
+      - conversus/domains/store.py
+      - conversus/domains/api.py
+      - conversus/domains/code_review/domain.py
+      - conversus/domains/code_review/extractors.py
+
+  - name: dependency-auditor
+    prompt: |
+      You are the Cross-Spec Dependency Auditor. Verify that the dependency
+      chains declared in the specs actually hold in the code.
+
+      Check:
+      1. Does 021 (nashopt) actually use 017's heuristic as fallback?
+      2. Does 022 (Kalman) actually extend 018's convergence functions?
+      3. Does 023 (AMPL) actually extend 019's grid search?
+      4. Does 025 (game forms) actually extend 012's existing models?
+      5. Does 029 (code review) actually implement 030's DomainPlugin ABC?
+      6. Are import boundaries respected? (domains/ doesn't import engine/)
+      7. Do the plugins/ packages avoid importing from each other?
+    docs:
+      - conversus/plugins/nashopt/__init__.py
+      - conversus/plugins/optimizer/__init__.py
+      - conversus/plugins/scenarios/__init__.py
+      - conversus/schemas/__init__.py
+      - conversus/domains/__init__.py
+      - conversus/domains/code_review/__init__.py
+
+  - name: test-coverage-auditor
+    prompt: |
+      You are the Test Coverage Auditor. Read all 7 syntheses and the test files.
+      Verify that the tests actually test what the syntheses claim.
+
+      For each spec:
+      1. Do the claimed test counts match the actual test files?
+      2. Are the P1 findings from the syntheses covered by tests?
+      3. Are there blind spots — things the syntheses flagged but no test covers?
+      4. Are SC (success criteria) tests actually present?
+      5. What is the overall test confidence level?
+    docs:
+      - tests/test_solver.py
+      - tests/test_kalman.py
+      - tests/test_ampl.py
+      - tests/test_game_forms_expanded.py
+      - tests/test_templates_expanded.py
+      - tests/test_code_review.py
+      - tests/test_domains.py
+      - tests/test_nashopt.py
+      - tests/test_convergence.py
+      - tests/test_optimizer.py

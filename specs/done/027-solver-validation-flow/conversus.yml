@@ -1,0 +1,45 @@
+mode: cooperative
+output: specs/027-solver-validation-flow/conversus-review/
+rounds: 3
+stagnation: detect
+validate_templates: false
+
+target:
+  - specs/027-solver-validation-flow/spec.md
+  - conversus/schemas/validation.py
+  - tests/test_validation.py
+
+agents:
+  - name: devex-advocate
+    prompt: |
+      You are a developer experience advocate. Evaluate the validation flow:
+      1. Is generate_validation_config() intuitive? Would a developer understand the output?
+      2. Are the auto-generated agents useful? Do they ask the right questions?
+      3. Is the sensitivity analysis template actionable?
+      4. Is ValidationVerdict the right output model?
+      5. What's missing for a developer to actually use this end-to-end?
+
+  - name: optimization-engineer
+    prompt: |
+      You are an optimization engineer. Evaluate the validation from a solver perspective:
+      1. Are the sensitivity analysis instructions mathematically rigorous?
+      2. Can the constraint_additions in ValidationVerdict actually be fed back to AMPL?
+      3. Is the problem type → agent mapping correct?
+      4. Would this catch real solver issues (infeasibility, degeneracy, local optima)?
+
+  - name: spec-compliance
+    prompt: |
+      You are a spec compliance auditor. Check FR-001 through FR-012 and
+      SC-001 through SC-005. For each: MET, PARTIALLY MET, or NOT MET.
+    docs:
+      - specs/027-solver-validation-flow/spec.md
+
+arbiter:
+  name: validation-architect
+  prompt: |
+    You ARE the solver validation system. Judge whether this flow would
+    actually catch bad solutions in production. Is the multi-agent critique
+    worth the cost vs a simpler automated check?
+  grounding: README.md
+  trigger: disputes_remain
+  influence: binding

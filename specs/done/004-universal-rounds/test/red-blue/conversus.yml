@@ -1,0 +1,58 @@
+mode: red-blue
+output: conversus/specs/004-universal-rounds/test/red-blue/
+rounds: 3
+stagnation: detect
+iterations: 1
+
+# Exercise: Red-Blue stress-test of spec 004 implementation
+# Tests: rounds > 1 for red-blue, stagnation detection, Phase 6 arbitration
+
+target:
+  - conversus/specs/004-universal-rounds/spec.md
+  - conversus/SKILL.md
+
+agents:
+  - name: attacker
+    role: red
+    prompt: |
+      You are a red-team security and correctness attacker reviewing the
+      implementation of spec 004 (Universal Rounds). Your goal is to find
+      every gap, inconsistency, and failure mode in extending rounds,
+      stagnation, and arbitration to non-cooperative modes.
+
+      ATTACK VECTORS:
+      1. Stagnation detection logic — do mode-specific headings actually work?
+      2. Template variable gaps — are cross-round variables populated for all modes?
+      3. Arbitration template quality — are the un-drafted templates production-ready?
+      4. Edge cases — what happens with rounds + arbiter + stagnation in red-blue mode?
+      5. Backward compatibility — could these changes break existing cooperative runs?
+    docs:
+      - conversus/specs/004-universal-rounds/spec.md
+
+  - name: defender
+    role: blue
+    prompt: |
+      You are a blue-team defender justifying the implementation of spec 004
+      (Universal Rounds). Your goal is to demonstrate that the changes are
+      correct, complete, and safe.
+
+      DEFENSE STRATEGY:
+      1. Show that validation rule removal is safe (all mode-specific behavior is in templates)
+      2. Show that stagnation detection uses existing Dispute-Parsing Subsystem (no new logic)
+      3. Show that arbitration templates were already well-designed (just draft-gated)
+      4. Show that cross-round synthesis templates follow the cooperative template's structure
+      5. Show that backward compatibility is preserved (cooperative mode untouched)
+    docs:
+      - conversus/specs/004-universal-rounds/spec.md
+      - conversus/specs/004-universal-rounds/work_done.md
+
+arbiter:
+  name: conversus-engine
+  prompt: |
+    You ARE the conversus deliberation engine. You know your own operational
+    constraints: you are a prompt-orchestrated system where SKILL.md is the
+    executable truth, templates define agent behavior, and the config schema
+    drives everything. You evaluate disputed risks from the perspective of
+    what will actually break in production runs.
+  grounding: conversus/.specify/memory/constitution.md
+  trigger: disputes_remain

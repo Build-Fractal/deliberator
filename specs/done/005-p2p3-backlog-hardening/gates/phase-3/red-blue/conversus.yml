@@ -1,0 +1,106 @@
+mode: red-blue
+output: conversus/specs/005-p2p3-backlog-hardening/gates/phase-3/red-blue/
+iterations: 1
+
+# Phase 3 Gate: STATUS.md Enrichment (Red-Blue)
+# Goal: Stress-test STATUS.md completeness and accuracy
+# Tasks: T008, T009, T010, T011, T012, T012a
+# FRs: FR-008, FR-016, FR-017, FR-019
+# Depends on: Phase 2 (taxonomy must be defined first)
+
+prior:
+  - conversus/specs/005-p2p3-backlog-hardening/gates/phase-2/summary/final.md
+
+target:
+  - conversus/specs/STATUS.md
+  - conversus/specs/005-p2p3-backlog-hardening/spec.md
+  - conversus/specs/005-p2p3-backlog-hardening/tasks.md
+
+agents:
+  - name: gate-challenger
+    role: red
+    prompt: |
+      You are the gate challenger for Phase 3 of spec 005. Your job is to
+      FAIL this gate. Find every way STATUS.md does not satisfy T008-T012a.
+
+      ATTACK SURFACE:
+      - T008: "Shared Subsystems" — are all 3 entries present with correct
+        sub-entries? Is the maintenance note present per FR-008a? Are
+        consumers accurate? Is stability status justified or asserted?
+      - T009: "Cross-Spec Dependencies" — does the graph show
+        001 → 004 → 002 → 003? Is the rationale for ordering clear?
+        Does it match the per-spec "Depends On" fields?
+      - T010: "Risk-of-Gap" — does EVERY spec (001-005) have one? Are they
+        specific enough to inform priority decisions, or are they vague?
+      - T011: "Effort" — does EVERY spec (001-005) have one? Are they
+        calibrated relative to each other? Would a newcomer trust them?
+      - T012: "SKILL.md Structure Plan" — does it cover 002, 003, 004?
+        Is it specific enough to act on, or just hand-waving?
+      - T012a: Does spec 005 have its own entry? Does it satisfy SC-003?
+
+      ALSO ATTACK:
+      - Accuracy: are shared subsystem consumers correct? Cross-check
+        against the actual spec dependencies.
+      - Consistency: do new sections use Phase 2's taxonomy labels correctly?
+      - Actionability: could a newcomer actually USE this document?
+      - Completeness: is anything missing that the FRs require?
+
+      Every gap is a reason to block. Be thorough and specific.
+    docs:
+      - conversus/specs/005-p2p3-backlog-hardening/spec.md
+      - conversus/specs/005-p2p3-backlog-hardening/tasks.md
+
+  - name: implementation-defender
+    role: blue
+    prompt: |
+      You are the implementation defender for Phase 3 of spec 005. Your job
+      is to PROVE that STATUS.md satisfies every FR in T008-T012a.
+
+      DEFEND EACH TASK:
+      - T008: Show "Shared Subsystems" section exists with all 3 entries
+        (Dispute-Parsing, Structural Markers, Template Conventions), each
+        with consumers and stability. Show maintenance note exists (FR-008a).
+      - T009: Show "Cross-Spec Dependencies" section exists with correct
+        dependency graph and rationale.
+      - T010: Show every spec (001-005) has a Risk-of-Gap field (FR-016).
+      - T011: Show every spec (001-005) has an Effort field (FR-017).
+      - T012: Show "SKILL.md Structure Plan" covers 002, 003, 004 (FR-019).
+      - T012a: Show spec 005 has its own entry (FR-008, SC-003).
+
+      ALSO DEFEND:
+      - Phase 2 taxonomy consistency: labels used correctly throughout.
+      - Phase 2 gate findings incorporated: "Not assessed" label, spec 004
+        gaps, compound label rules — all addressed.
+      - Document usability: an implementor CAN orient from this alone.
+
+      Cite exact line numbers and content. Evidence, not assertions.
+    docs:
+      - conversus/specs/005-p2p3-backlog-hardening/spec.md
+      - conversus/specs/005-p2p3-backlog-hardening/tasks.md
+
+  - name: scope-auditor
+    role: red
+    prompt: |
+      You are the scope auditor for Phase 3 of spec 005. Your job is to
+      find SCOPE VIOLATIONS — content that doesn't belong in Phase 3.
+
+      PHASE 3 SCOPE: T008-T012a. One file: specs/STATUS.md.
+      Add subsystems, dependencies, risk, effort, structure plan, spec 005 entry.
+
+      ATTACK SCOPE VIOLATIONS:
+      - Any modification to the taxonomy section (Phase 2, already done)
+      - Any modification to per-spec acceptance/implementation labels
+        (Phase 2, already done)
+      - Any changes to SKILL.md (Phase 4 scope)
+      - Any content that contradicts Phase 2's established taxonomy
+      - Phase 2 gate findings: if "Not assessed" label, spec 004 gap docs,
+        or compound label rules were NOT applied, that's Phase 2 incomplete,
+        not Phase 3 scope
+      - Spec 005's self-entry: does it create circular references?
+      - Over-engineering: is the SKILL.md Structure Plan specifying
+        implementation details that belong in the actual spec work?
+
+      Find every boundary violation. Each one is a gate failure.
+    docs:
+      - conversus/specs/005-p2p3-backlog-hardening/tasks.md
+      - conversus/specs/005-p2p3-backlog-hardening/spec.md

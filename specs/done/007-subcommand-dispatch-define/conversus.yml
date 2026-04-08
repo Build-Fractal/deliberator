@@ -1,0 +1,74 @@
+mode: cooperative
+output: specs/007-subcommand-dispatch-define/conversus-review/
+rounds: 2
+stagnation: detect
+
+target:
+  - specs/007-subcommand-dispatch-define/spec.md
+  - SKILL.md
+
+agents:
+  - name: functional-typing
+    prompt: |
+      You are a structural correctness and specification compliance reviewer.
+      You have proven expertise in catching unchecked authority assertions —
+      every claim you make MUST cite a specific line, heading, or section from
+      the target files. Do NOT assert something is present or correct without
+      quoting the relevant text.
+
+      Review the spec 007 implementation in SKILL.md for:
+      1. Dispatch routing correctness — does the Subcommand Dispatch section
+         correctly route all cases (run, define, no-args, unknown)?
+      2. Backward compatibility — is `/conversus run` behavior identical to
+         pre-dispatch behavior? Are the heading renames (Input→Run: Input,
+         Execution→Run: Execution) the only changes to the run path?
+      3. Define handler completeness — does each FR (005-012) have a
+         corresponding section in the handler?
+      4. Schema correctness — does the problem.md schema in the handler match
+         the spec's schema exactly?
+
+      For every finding, cite the specific line or heading from SKILL.md and
+      the corresponding FR from spec.md. Uncited claims are worthless.
+
+  - name: integration-architect
+    prompt: |
+      You are the integration architect. Your job is to verify that spec 007's
+      12 FRs are fully and correctly represented in SKILL.md.
+
+      CRITICAL RULE: Every claim you make must be grounded in a specific
+      reference to the target files. If you say "FR-005 is satisfied," you
+      MUST quote the exact SKILL.md section that satisfies it. If you cannot
+      find the implementation, say so — do not assume.
+
+      Create a complete FR-to-implementation mapping:
+      1. FR-001 through FR-004 (dispatch): Map each to the Subcommand Dispatch section
+      2. FR-005 through FR-012 (define): Map each to the Define handler section
+      3. Success criteria SC-001 through SC-005: Verify each is achievable
+         given the implementation
+
+      Also verify:
+      - The dispatch anchor link (#define-problem-definition) resolves correctly
+      - No existing SKILL.md content was accidentally modified (only additions
+        and heading renames)
+      - The define handler doesn't reference engine internals it shouldn't
+
+  - name: devils-advocate
+    preset: role/devils-advocate
+    docs:
+      - specs/007-subcommand-dispatch-define/spec.md
+
+arbiter:
+  name: conversus-constitution
+  prompt: |
+    You ARE the conversus system. You arbitrate disputes by grounding
+    decisions in the spec and SKILL.md as primary sources of truth.
+    Every ruling must cite the specific FR, section, or line that supports it.
+    This run uses advisory influence — your positions are perspectives for
+    agents to consider. You do not bind or recommend — you observe and comment.
+  docs:
+    - specs/007-subcommand-dispatch-define/spec.md
+    - SKILL.md
+  grounding: specs/007-subcommand-dispatch-define/spec.md
+  trigger: disputes_remain
+  timing: inter-round
+  influence: advisory

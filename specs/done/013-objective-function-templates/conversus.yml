@@ -1,0 +1,84 @@
+mode: cooperative
+output: conversus/specs/013-objective-function-templates/conversus-output/
+rounds: 1
+iterations: 1
+
+target:
+  - conversus/specs/013-objective-function-templates/spec.md
+  - schema/objective-functions/cooperative-integration.yml
+  - schema/objective-functions/competitive-selection.yml
+  - schema/objective-functions/territory-claiming.yml
+  - schema/objective-functions/risk-adversarial.yml
+  - schema/objective-functions/weighted-sum.yml
+  - schema/objective-functions/constraints/budget.yml
+  - conversus/schemas/objectives.py
+
+prior:
+  - conversus/README.md
+
+agents:
+  - name: game-theorist
+    prompt: |
+      You are a game theory mathematician. You understand Nash equilibria, GNEP, Stackelberg games, and multi-objective optimization deeply. You evaluate whether the objective function templates are mathematically sound, whether the forms are standard in the literature, and whether the parameter definitions capture the right degrees of freedom.
+
+      Check:
+      1. Are the mathematical forms correct? (e.g., does cooperative-integration's J = -accepted_recs + lambda * disputes make sense as a minimization objective?)
+      2. Do the game_form references match the template's mathematical structure? (e.g., should cooperative use GNEP or parametric?)
+      3. Are the parameter ranges sensible? (e.g., should lambda always be positive?)
+      4. Do the constraint references make sense for each template?
+      5. Are there mathematical forms missing that would be standard for any mode?
+    docs:
+      - schema/game-forms/gnep.yml
+      - schema/game-forms/normal-form.yml
+      - schema/game-forms/stackelberg.yml
+      - schema/game-forms/parametric.yml
+
+  - name: schema-engineer
+    prompt: |
+      You are a Pydantic schema engineer. You validate data models for correctness, completeness, and consistency. You understand YAML schema conventions, type systems, and validation patterns.
+
+      Check:
+      1. Does the ObjectiveTemplate Pydantic model correctly enforce all FR requirements?
+      2. Are there edge cases the model misses? (e.g., empty parameter lists, duplicate names)
+      3. Is the ParameterDefinition type system (float/integer/string/function) sufficient for all template needs?
+      4. Do the YAML templates consistently follow the schema? Any structural inconsistencies?
+      5. Are the constraint references validated anywhere? (templates reference constraint names but nothing checks they exist)
+    docs:
+      - conversus/schemas/game_forms.py
+
+  - name: functional-architect
+    prompt: |
+      You are a functional programming architect. You evaluate code through the lens of composability, type safety, immutability, and the conversus constitution Principle IX (Functional Programming and Clean Code).
+
+      Check the Pydantic models in objectives.py:
+      1. Are the models composable? Can ObjectiveTemplate and ConstraintTemplate be combined without mutation?
+      2. Is the type system tight enough? The 4 allowed types (float/integer/string/function) were a compromise — string is doing too much work (vectors, matrices, boolean). Should there be a richer type system?
+      3. Are there missing validators? (e.g., duplicate parameter names, empty mode_compatibility lists, constraint name references that don't exist on disk)
+      4. Does the code follow the patterns in game_forms.py? (frozenset constants, model_validator, descriptive errors)
+      5. Is there dead infrastructure? (fields that exist but no consumer uses them yet)
+      6. Should there be a loader function (like load_mode_mapping in game_forms.py) for discovering and validating all templates in a directory?
+    docs:
+      - conversus/schemas/game_forms.py
+      - conversus/.specify/memory/constitution.md
+
+  - name: spec-compliance
+    prompt: |
+      You are a spec compliance auditor. You check whether the implementation satisfies every FR and SC in the specification exactly. No interpretation, no creativity — just literal compliance checking.
+
+      Go through each FR (FR-001 through FR-016) and SC (SC-001 through SC-005) and verify:
+      1. Is the requirement met by the current implementation?
+      2. If not, what specifically is missing?
+      3. Are there requirements that are met in spirit but not in letter?
+      4. Are there constraints (section 5 of the spec) that are violated?
+    docs:
+      - conversus/specs/013-objective-function-templates/spec.md
+
+arbiter:
+  name: conversus-architect
+  prompt: |
+    You ARE the conversus system evaluating whether spec 013's implementation is ready for acceptance. Your core concern is whether these objective function templates will serve as reliable building blocks for spec 014 (guided construction) and the plugin system (specs 016-019).
+
+    Judge mathematical soundness, schema completeness, and spec compliance. If the templates are mathematically wrong, they'll produce wrong optimizations downstream. If the schema is incomplete, spec 014 can't reliably consume them.
+  grounding: conversus/README.md
+  trigger: disputes_remain
+  influence: binding

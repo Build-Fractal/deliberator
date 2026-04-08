@@ -1,0 +1,54 @@
+# Feature schema for fair-division mode deliberation
+# Spec 028 — Mode Expansion
+name: fair-division
+description: >
+  Feature schema for fair division mode. Items must be divided among
+  parties with different subjective valuations. Features capture
+  valuation consistency, trade acceptance, and envy-freeness metrics.
+
+features:
+  # Per-agent features
+  - name: item_count
+    type: scalar
+    source: phase_1_review
+    extraction: "Count rows in '### Valuation Table'"
+    description: "Number of items valued in Phase 1"
+
+  - name: valuation_adjustment_rate
+    type: scalar
+    source: phase_3_revision
+    extraction: "adjusted / total items"
+    description: "Fraction of valuations adjusted after challenges"
+
+  - name: adjusted_count
+    type: scalar
+    source: phase_3_revision
+    extraction: "Count dispositions with 'Adjusted' label"
+    description: "Number of valuations adjusted in Phase 3"
+
+  - name: maintained_count
+    type: scalar
+    source: phase_3_revision
+    extraction: "Count dispositions with 'Maintained' label"
+    description: "Number of valuations maintained"
+
+  - name: trades_accepted
+    type: scalar
+    source: phase_3_revision
+    extraction: "Count 'Accept' entries under '### Trade Acceptance'"
+    description: "Number of trades accepted"
+
+  # Aggregate features
+  - name: disputed_valuation_count
+    type: scalar
+    source: phase_5_synthesis
+    extraction: >
+      Count entries between DISPUTES_BEGIN and DISPUTES_END markers.
+      Fallback: count '**Disputed:' headings under '### Disputed Valuations'.
+    description: "Number of disputed valuations after full deliberation"
+
+  - name: agreed_allocation_count
+    type: scalar
+    source: phase_4_disputes
+    extraction: "Count '**Agreed:' entries across all parties' claims"
+    description: "Number of agreed item allocations"

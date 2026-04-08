@@ -1,0 +1,111 @@
+mode: winner-take-all
+output: conversus/specs/005-p2p3-backlog-hardening/gates/phase-3/winner-take-all/
+iterations: 1
+
+# Phase 3 Gate: STATUS.md Enrichment (Winner-Take-All)
+# Question: Which review principle is most critical for this gate?
+# Three competing lenses — judge picks the one that matters most.
+# Tasks: T008, T009, T010, T011, T012, T012a
+# FRs: FR-008, FR-016, FR-017, FR-019
+
+prior:
+  - conversus/specs/005-p2p3-backlog-hardening/gates/phase-2/summary/final.md
+
+target:
+  - conversus/specs/STATUS.md
+  - conversus/specs/005-p2p3-backlog-hardening/spec.md
+  - conversus/specs/005-p2p3-backlog-hardening/tasks.md
+
+agents:
+  - name: completeness-advocate
+    prompt: |
+      You are competing to prove that COMPLETENESS is the most critical
+      review principle for Phase 3's STATUS.md enrichment gate.
+
+      YOUR THESIS: The gate should pass or fail based on whether every
+      FR-specified element is present and correct. Missing content is the
+      highest-risk failure mode — an implementor who trusts STATUS.md as
+      "the single-document reference" (SC-003) and finds gaps will lose
+      trust in the entire document.
+
+      ARGUE YOUR CASE by reviewing STATUS.md through a completeness lens:
+      - Are all 3 shared subsystem entries present with sub-entries? (T008)
+      - Does the dependency graph show 001 → 004 → 002 → 003? (T009)
+      - Does EVERY spec (001-005) have Risk-of-Gap? (T010)
+      - Does EVERY spec (001-005) have Effort? (T011)
+      - Does the Structure Plan cover 002, 003, 004? (T012)
+      - Does spec 005 have its own entry? (T012a)
+      - Is the maintenance note present? (FR-008a)
+
+      ATTACK COMPETITORS: Usability without completeness is polish on an
+      incomplete document. Boundary enforcement without completeness
+      ignores the actual deliverable.
+
+      HONEST WEAKNESS: Completeness can be satisfied by low-quality
+      content that technically exists but is useless.
+    docs:
+      - conversus/specs/005-p2p3-backlog-hardening/spec.md
+
+  - name: usability-advocate
+    prompt: |
+      You are competing to prove that USABILITY is the most critical
+      review principle for Phase 3's STATUS.md enrichment gate.
+
+      YOUR THESIS: The gate should pass or fail based on whether an
+      implementor new to conversus can orient themselves from STATUS.md
+      alone. SC-003 says "an implementor can determine the status of any
+      spec, shared subsystem, or cross-spec dependency by reading a single
+      document." The success criterion is about UNDERSTANDING, not checkbox
+      completion.
+
+      ARGUE YOUR CASE by reviewing STATUS.md through a usability lens:
+      - Are risk-of-gap statements specific enough to inform priority? (T010)
+      - Are effort estimates calibrated relative to each other? (T011)
+      - Is the SKILL.md Structure Plan actionable or hand-waving? (T012)
+      - Is the dependency graph rationale clear enough to trust? (T009)
+      - Do shared subsystem entries help an implementor know what's safe
+        to build on? (T008)
+      - Can a newcomer actually navigate and use this document?
+
+      ATTACK COMPETITORS: Completeness without usability produces a
+      checklist document nobody reads. Boundary enforcement optimizes
+      for process, not the user.
+
+      HONEST WEAKNESS: Usability is subjective and harder to verify
+      against FRs than a completeness checklist.
+    docs:
+      - conversus/specs/005-p2p3-backlog-hardening/tasks.md
+
+  - name: boundary-advocate
+    prompt: |
+      You are competing to prove that BOUNDARY ENFORCEMENT is the most
+      critical review principle for Phase 3's STATUS.md enrichment gate.
+
+      YOUR THESIS: The gate should pass or fail based on whether Phase 3
+      stayed in its lane. The phased delivery model (Phase 2 taxonomy →
+      Phase 3 enrichment → Phase 4 SKILL.md → Phase 5 polish) only works
+      if each phase respects its scope. A Phase 3 that modifies taxonomy
+      definitions, changes acceptance labels, or anticipates Phase 4
+      SKILL.md work undermines the entire dependency chain.
+
+      ARGUE YOUR CASE by reviewing STATUS.md through a boundary lens:
+      - Does new content stay within T008-T012a scope?
+      - Are Phase 2's taxonomy definitions untouched?
+      - Are per-spec acceptance/implementation labels unchanged?
+      - Is there any SKILL.md modification (Phase 4 scope)?
+      - Does the SKILL.md Structure Plan describe what's needed without
+        actually implementing it?
+      - Does spec 005's self-entry avoid circular references?
+      - Are Phase 2 gate findings (from prior) properly incorporated
+        without re-opening Phase 2 decisions?
+
+      ATTACK COMPETITORS: Completeness and usability are meaningless if
+      the phase model is broken. A complete, usable document built on
+      scope violations creates hidden dependencies that break Phase 4.
+
+      HONEST WEAKNESS: Strict boundary enforcement can produce a
+      technically correct document that defers too much to future phases,
+      leaving Phase 3's own deliverable thin.
+    docs:
+      - conversus/specs/005-p2p3-backlog-hardening/tasks.md
+      - conversus/specs/005-p2p3-backlog-hardening/spec.md

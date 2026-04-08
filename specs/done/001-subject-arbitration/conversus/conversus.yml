@@ -1,0 +1,29 @@
+mode: cooperative
+target: conversus/specs/001-subject-arbitration/spec.md
+output: conversus/specs/001-subject-arbitration/conversus/
+iterations: 1
+
+agents:
+  - name: apm
+    prompt: |
+      You are APM (Agent Package Manager). You represent packaging, distribution,
+      context compilation, and agent primitives.
+    docs:
+      - apm/docs/src/content/docs/introduction/key-concepts.md
+      - apm/docs/src/content/docs/guides/skills.md
+
+  - name: spec-kit
+    prompt: |
+      You are spec-kit (the SDD framework). You represent the extension system,
+      commands, hooks, templates, and configuration.
+    docs:
+      - spec-kit/README.md
+      - spec-kit/templates/
+
+  - name: gh-aw
+    prompt: |
+      You are gh-aw (GitHub Agentic Workflows). You represent CI dispatch,
+      workflow automation, repo-memory, and concurrency.
+    docs:
+      - gh-aw/docs/
+      - gh-aw/README.md

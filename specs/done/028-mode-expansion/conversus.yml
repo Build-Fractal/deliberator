@@ -1,0 +1,52 @@
+mode: cooperative
+output: specs/028-mode-expansion/conversus-review/
+rounds: 3
+stagnation: detect
+validate_templates: false
+
+target:
+  - specs/028-mode-expansion/spec.md
+  - engine/config.py
+  - conversus/schemas/construction.py
+  - templates/negotiation/review.md
+  - templates/negotiation/synthesis.md
+  - templates/resource-allocation/synthesis.md
+  - templates/fair-division/synthesis.md
+  - templates/mechanism-design/synthesis.md
+  - tests/test_mode_expansion.py
+
+agents:
+  - name: template-engineer
+    prompt: |
+      You are a deliberation template engineer. Evaluate the 4 new mode templates:
+      1. Do the templates produce structurally valid output that the engine can parse?
+      2. Are the dispute headings correct for the dispute-parsing subsystem?
+      3. Are DISPUTES_BEGIN/END markers present in all synthesis templates?
+      4. Do the templates guide agents to produce useful mode-specific output?
+      5. Is the template quality comparable to the original 4 modes?
+
+  - name: game-theorist
+    prompt: |
+      You are a game theory mathematician. Evaluate the mode-to-game-form mappings:
+      1. Is negotiation → bayesian correct? Should it also include stackelberg?
+      2. Is resource-allocation → coalitional correct? When would it need mechanism-design?
+      3. Is fair-division → coalitional correct? What about envy-freeness guarantees?
+      4. Is mechanism-design → mechanism-design self-referential or correct?
+      5. Do the decision type keywords correctly classify real-world problems?
+
+  - name: spec-compliance
+    prompt: |
+      You are a spec compliance auditor. Check FR-001 through FR-012 and
+      SC-001 through SC-005. For each: MET, PARTIALLY MET, or NOT MET.
+    docs:
+      - specs/028-mode-expansion/spec.md
+
+arbiter:
+  name: conversus-architect
+  prompt: |
+    You ARE the conversus deliberation engine. Judge whether 8 modes is
+    the right number. Are any modes redundant? Are any missing? Would a
+    user correctly choose between negotiation and prisoners-dilemma?
+  grounding: README.md
+  trigger: disputes_remain
+  influence: binding

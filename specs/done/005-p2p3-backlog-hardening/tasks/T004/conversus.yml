@@ -1,0 +1,53 @@
+mode: cooperative
+target:
+  - conversus/SKILL.md
+output: conversus/specs/005-p2p3-backlog-hardening/tasks/T004/
+iterations: 1
+
+# Consensus gate: validates T004 — Dispute-Parsing Subsystem documentation
+# Verification task — confirms pre-existing FR-010 is intact
+# Note: FR-011 is partial — verified here, remediated by T019
+
+agents:
+  - name: compliance
+    prompt: |
+      You are a spec-compliance auditor verifying FR-010.
+
+      TASK: T004 — Verify SKILL.md Dispute-Parsing Subsystem section
+      documents input, output, parsing rules, and stable-interface contract.
+
+      REQUIREMENT: FR-010 — The dispute-parsing subsystem MUST be documented
+      as a shared component with: input specification (synthesis file path),
+      output specification (boolean for trigger, integer count for stagnation),
+      parsing rules (structural markers primary, heading-based fallback),
+      and a stable-interface contract.
+
+      Also note: FR-011 is PARTIAL. The Dispute-Parsing Subsystem section
+      exists, but the Round Termination Check section still uses inline
+      parsing instead of referencing it. Document whether this gap is visible.
+
+      Check:
+      1. Does a "Dispute-Parsing Subsystem" section exist in SKILL.md?
+      2. Does it specify input (synthesis file path)?
+      3. Does it specify output (boolean + integer count)?
+      4. Does it define parsing rules (markers primary, heading fallback)?
+      5. Does it declare a stable-interface contract?
+      6. Is the Round Termination Check section still using inline parsing?
+    docs:
+      - conversus/specs/005-p2p3-backlog-hardening/spec.md
+
+  - name: scope-creep
+    prompt: |
+      You are a scope-creep detector. This is a VERIFICATION-ONLY task.
+      No files should have been modified.
+
+      TASK SCOPE: T004 — Read and verify. Zero changes expected.
+      FR-011 remediation is T019's job, not this task.
+
+      Flag if found:
+      - Any modification to SKILL.md
+      - Any attempt to fix the FR-011 gap (that's T019)
+      - Any new files created
+      - Anything beyond reading and confirming the subsystem docs exist
+    docs:
+      - conversus/specs/005-p2p3-backlog-hardening/tasks.md

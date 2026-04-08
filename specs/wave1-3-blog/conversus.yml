@@ -1,0 +1,104 @@
+# Generate blog posts and docs updates for Wave 1-3 work
+# Pattern: same as 031 conversus review, but target is the work output
+mode: cooperative
+output: specs/wave1-3-blog/conversus-output/
+rounds: 1
+stagnation: detect
+validate_templates: false
+
+target:
+  # What we shipped
+  - specs/EXECUTION-ORDER.md
+  - specs/done/038-solver-equilibrium-fixes/spec.md
+  - specs/done/039-new-mode-payoffs/spec.md
+  - specs/done/032-package-splitting/spec.md
+  - specs/done/033-monetization-partitioning/spec.md
+  # Key code changes
+  - conversus/plugins/nashopt/payoffs.py
+  - conversus/paths.py
+  - tests/test_package_split.py
+  - tests/test_free_tier.py
+  - packages/core.toml
+  - packages/solvers.toml
+  # Design system
+  - docs/stylesheets/fractal.css
+  # Existing blog posts (style reference)
+  - docs/blog/posts/01-docs-review-setup.md
+  - docs/blog/posts/02-three-rounds-to-convergence.md
+  - docs/blog/posts/03-what-we-shipped.md
+
+agents:
+  - name: technical-writer
+    prompt: |
+      You are a technical writer for the conversus engineering blog.
+      Your job is to write 2 blog posts about the Wave 1-3 work:
+
+      POST 1: "From Heuristics to pip install — How We Got Conversus Ready for Users"
+      Cover: Wave 1 (8-mode payoffs), Wave 2 (MIT-1 path fixes), Wave 3 (build-time
+      package splitting + free/paid tiers). Focus on the technical decisions — WHY
+      build-time splitting instead of physical extraction, WHY heuristics are paid,
+      HOW importlib.resources replaced Path(__file__).parent.
+
+      POST 2: "Natural Language Game Theory Enforced with Optimization Modeling"
+      Cover: The core thesis — AI agents are stochastic, formal optimization models
+      stabilize their output. Explain the three-tier fallback (heuristic → AMPL → nashopt).
+      Explain how game forms map to optimization problems. Explain tunability via parameters.
+      This is the thought-leadership piece for the paid tier.
+
+      Use mkdocs-material blog frontmatter. Read the existing posts for style reference.
+      Each post needs: title, date (2026-04-03), categories, authors, <!-- more --> cut.
+      Write both posts as complete markdown files.
+
+      Write Post 1 to: specs/wave1-3-blog/conversus-output/technical-writer/review.md
+    docs:
+      - docs/blog/posts/01-docs-review-setup.md
+      - docs/blog/posts/03-what-we-shipped.md
+      - README.md
+
+  - name: storyteller
+    prompt: |
+      You are a narrative writer who makes technical work compelling.
+      Your job is to write 2 blog posts about the Wave 1-3 work:
+
+      POST 1: "From Heuristics to pip install" — Tell the STORY. We started with
+      41 specs done, a monolith that only ran inside Claude Code, and 8 modes that
+      couldn't score themselves. In one session, 5 parallel agents found 8 path
+      BREAKS, we fixed them all, split the package at build-time (not by moving files),
+      and drew the line between free and paid. The narrative arc: monolith → portable → monetizable.
+
+      POST 2: "Why Your AI Agents Give Different Answers Every Time (And How to Fix It)"
+      This is the hook post. Open with the problem every AI user has — inconsistency.
+      Explain how optimization models create deterministic tuning knobs. Use conversus
+      as the example but make it general enough that it's useful to anyone building
+      with agents. This should be shareable on LinkedIn.
+
+      Use mkdocs-material blog frontmatter. Read existing posts for style.
+      Write both posts as complete markdown files.
+
+      Write Post 1 to: specs/wave1-3-blog/conversus-output/storyteller/review.md
+    docs:
+      - docs/blog/posts/02-three-rounds-to-convergence.md
+      - README.md
+
+  - name: docs-updater
+    prompt: |
+      You are a documentation engineer. Your job is to identify which existing
+      docs pages need updates based on the Wave 1-3 work, and write the updates.
+
+      Check each target file and identify gaps:
+      1. Does docs/index.md mention pip install? (should now)
+      2. Does docs/user-guide/quickstart.md reflect the new install experience?
+      3. Do any docs reference the old clariti-care org? (should be Build-Fractal)
+      4. Does the config-reference mention the free/paid boundary?
+      5. Are the new payoff functions documented in modes.md? (done in Wave 1)
+      6. Is the design system (fractal.css) mentioned anywhere?
+
+      For each gap, write the specific text change needed.
+      Do NOT rewrite entire files — just identify the delta.
+
+      Write your findings to: specs/wave1-3-blog/conversus-output/docs-updater/review.md
+    docs:
+      - docs/index.md
+      - docs/user-guide/quickstart.md
+      - docs/user-guide/config-reference.md
+      - mkdocs.yml

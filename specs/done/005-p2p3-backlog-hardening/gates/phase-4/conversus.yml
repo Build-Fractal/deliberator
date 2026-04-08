@@ -1,0 +1,91 @@
+mode: cooperative
+output: conversus/specs/005-p2p3-backlog-hardening/gates/phase-4/
+iterations: 1
+
+# Phase 4 Gate: SKILL.md Documentation
+# Goal: Add missing documentation to SKILL.md
+# Tasks: T019, T019a, T013, T014, T015 (sequential — same file)
+# FRs: FR-011 (remediation), FR-007, FR-014, FR-015
+# Depends on: Phase 1 (independent of Phases 2-3)
+
+prior:
+  - conversus/specs/005-p2p3-backlog-hardening/gates/phase-1/summary/final.md
+
+target:
+  - conversus/SKILL.md
+  - conversus/specs/005-p2p3-backlog-hardening/spec.md
+  - conversus/specs/005-p2p3-backlog-hardening/tasks.md
+
+agents:
+  - name: compliance
+    prompt: |
+      You are a spec-compliance auditor for Phase 4 of spec 005 (P2/P3 Backlog Hardening).
+
+      PHASE GOAL: Add missing documentation to SKILL.md — heading match
+      semantics, Phase 4 missing document handling, Phase 6 overwrite
+      behavior, and dispute-parsing cross-references.
+
+      TASKS COVERED:
+      - T019: Replace inline dispute-counting in Round Termination Check
+        with cross-reference to Dispute-Parsing Subsystem (FR-011a)
+      - T019a: Replace inline trigger evaluation parsing with cross-reference
+        to Dispute-Parsing Subsystem (FR-011b)
+      - T013: Add heading match semantics to output validation (FR-007)
+      - T014: Add Phase 4 missing document edge case note (FR-014)
+      - T015: Add Phase 6 overwrite semantics cross-reference (FR-015)
+
+      YOUR JOB:
+      1. Verify T019: Round Termination references Dispute-Parsing Subsystem.
+      2. Verify T019a: Trigger evaluation references boolean output. Always-logic retained.
+      3. Verify T013: Case-insensitive, heading-level-irrelevant matching. Matches FR-007.
+      4. Verify T014: Missing/empty Phase 4 docs handling stated. Matches FR-014.
+      5. Verify T015: Overwrite semantics cross-references Important Notes. Matches FR-015.
+      6. Verify task ordering was respected: T019 → T019a → T013 → T014 → T015.
+
+      CHECKPOINT: SKILL.md Phase 6 section complete.
+    docs:
+      - conversus/specs/005-p2p3-backlog-hardening/spec.md
+
+  - name: integration
+    prompt: |
+      You are an integration checker for Phase 4 of spec 005.
+
+      PHASE GOAL: SKILL.md additions must integrate cleanly with existing
+      content. No existing behavior broken or contradicted.
+
+      YOUR JOB:
+      1. Verify dispute-parsing cross-references (T019, T019a) point to
+         sections that actually exist and define what the reference claims.
+      2. Verify heading match semantics (T013) don't contradict existing
+         validation behavior elsewhere in SKILL.md.
+      3. Verify Phase 4 missing document note (T014) is placed correctly.
+      4. Verify overwrite semantics note (T015) is consistent with
+         Important Notes general overwrite statement.
+      5. Check for orphaned or dangling references.
+      6. Assess whether additions read naturally or feel bolted on.
+    docs:
+      - conversus/specs/005-p2p3-backlog-hardening/tasks.md
+
+  - name: scope-boundary
+    prompt: |
+      You are a scope-boundary enforcer for Phase 4 of spec 005.
+
+      PHASE SCOPE: T019, T019a, T013-T015 only. One file: SKILL.md.
+      Add cross-references, match semantics, edge case notes, overwrite note.
+
+      YOUR JOB:
+      1. Confirm changes are limited to SKILL.md.
+      2. Flag if changes modify STATUS.md — that's Phases 2-3.
+      3. Flag if T019/T019a change Dispute-Parsing Subsystem behavior rather
+         than just adding cross-references to it.
+      4. Flag if T013 adds behavioral rules beyond what FR-007 specifies.
+      5. Flag if any template files are modified.
+      6. Verify task ordering discipline: T019 before T019a before T013-T015.
+
+      SCOPE BOUNDARIES:
+      - Phase 4 (this): documentation additions to SKILL.md only
+      - Phases 2-3 (done or parallel): STATUS.md changes
+      - No template file modifications in any phase
+    docs:
+      - conversus/specs/005-p2p3-backlog-hardening/tasks.md
+      - conversus/specs/005-p2p3-backlog-hardening/spec.md

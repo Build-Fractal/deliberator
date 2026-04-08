@@ -1,0 +1,122 @@
+# Alignment deliberation: Does the engine implementation respect the 9 completed specs?
+# Mode: cooperative — find gaps and propose remediation
+
+mode: cooperative
+target:
+  - specs/011-adoption-harness/pr-review/alignment-check.md
+  - engine/__init__.py
+  - engine/config.py
+  - engine/phases.py
+  - engine/dispatch.py
+  - engine/templates.py
+  - engine/events.py
+  - engine/output.py
+  - engine/sdk.py
+  - engine/auth.py
+  - engine/run.py
+  - mcp_server.py
+  - SKILL.md
+output: specs/011-adoption-harness/pr-review/alignment-conversus/
+iterations: 1
+
+agents:
+  - name: guided-workflow-auditor
+    prompt: |
+      You are the Guided Workflow Auditor. Your job is to verify whether the
+      engine implementation supports the guided workflow commands defined in
+      specs 007-011 (now implemented in SKILL.md).
+
+      Core questions:
+      - Does the engine's run_pipeline() or any entry point support the
+        subcommand dispatch pattern from spec 007?
+      - Can the engine be invoked by /conversus define, interests, mode,
+        converge, arbitrate, gate — or only by /conversus run?
+      - Does the MCP server (mcp_server.py) expose tools for guided workflow?
+      - Are there code paths in the engine that would conflict with SKILL.md's
+        guided workflow handlers?
+
+      For each spec (007-011), classify the engine's relationship as:
+      - COMPATIBLE: Engine works alongside SKILL.md handlers without conflict
+      - UNAWARE: Engine doesn't know about this feature but doesn't conflict
+      - CONFLICTING: Engine assumes something that contradicts the spec
+      - PARTIALLY IMPLEMENTED: Engine has some but not all of the spec's requirements
+
+      The key insight is that SKILL.md commands (define, interests, mode, converge,
+      arbitrate, gate) execute in the main conversation — they don't launch the
+      Python engine. The engine is only invoked by /conversus run. So the question
+      is whether the SKILL.md handlers can delegate to the engine correctly.
+    docs:
+      - specs/done/007-subcommand-dispatch-define/
+      - specs/done/008-interests-mode/
+      - specs/done/009-guided-execution/
+      - specs/done/010-guided-arbitration/
+      - specs/done/011-phase-consensus-gates/
+
+  - name: arbitration-auditor
+    prompt: |
+      You are the Inter-Round Arbitration Auditor. Your job is to verify whether
+      the engine implementation supports spec 006's inter-round arbitration features.
+
+      Core questions:
+      - Does engine/config.py parse arbiter.timing (final | inter-round)?
+      - Does engine/config.py parse arbiter.influence (binding | recommended | advisory)?
+      - Does engine/phases.py support Phase 6 firing between rounds (not just after final)?
+      - Does the dispute-parsing subsystem in the engine handle influence-aware counting?
+      - Does the multi-round orchestrator adjust dispute counts based on influence level?
+
+      This is the most likely spec to have direct code conflicts because the engine
+      explicitly implements multi-round orchestration and arbitration. If the engine
+      was built before spec 006, it may have a simpler arbitration model.
+
+      Read engine/config.py, engine/phases.py, and engine/output.py carefully.
+      Compare against SKILL.md's Inter-Round Arbitration section.
+    docs:
+      - specs/done/006-inter-round-arbitration/
+
+  - name: schema-integration-auditor
+    prompt: |
+      You are the Schema Integration Auditor. Your job is to verify whether the
+      engine and the new schema packages (specs 012-013) coexist correctly.
+
+      Core questions:
+      - Do conversus/schemas/game_forms.py and conversus/schemas/objectives.py
+        have any import dependencies on the engine package?
+      - Does the engine have any awareness of or imports from conversus/schemas/?
+      - Are there type conflicts (e.g., mode enums defined in both packages)?
+      - Could the engine's config parser be extended to accept game form definitions?
+      - Does SKILL.md reference the schemas package?
+      - Are there test conflicts or shared fixtures?
+
+      Also check spec 011a (SKILL.md decomposition) — does the current SKILL.md
+      structure match what the engine's template loading expects?
+
+      The expected finding is that schemas are additive (no conflicts) but the
+      engine has no integration points for them yet. Confirm or disprove this.
+    docs:
+      - specs/done/012-game-form-schemas/
+      - specs/done/013-objective-function-templates/
+      - specs/done/011a-skill-breakdown/
+
+  - name: spec-compliance-auditor
+    prompt: |
+      You are the Spec Compliance Auditor. Your job is to check whether the
+      engine's implementation of spec 011 (adoption harness) is still valid
+      after merging the 9 specs from main.
+
+      Core questions:
+      - Does the merged SKILL.md (with specs 006-011 changes) still work with
+        the engine's template loading in engine/templates.py?
+      - Are there heading changes in SKILL.md that would break the engine's
+        template variable resolution?
+      - Does the engine's config validation accept configs generated by the
+        guided workflow (specs 007-010)?
+      - Has the dispute-parsing subsystem in the engine diverged from the
+        subsystem defined in SKILL.md?
+      - Are STATUS.md references in the engine or tests still valid after
+        the 9 specs moved to done/?
+
+      Focus on concrete incompatibilities that would cause runtime failures,
+      not stylistic differences.
+    docs:
+      - specs/011-adoption-harness/spec.md
+      - specs/011-adoption-harness/checklists/requirements.md

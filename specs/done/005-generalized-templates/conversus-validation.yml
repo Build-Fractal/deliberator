@@ -1,0 +1,99 @@
+mode: cooperative
+output: specs/005-generalized-templates/conversus-validation/
+rounds: 1
+stagnation: detect
+
+target:
+  - schema/variables.yml
+  - schema/modes/cooperative.yml
+  - schema/modes/red-blue.yml
+  - schema/modes/winner-take-all.yml
+  - schema/modes/prisoners-dilemma.yml
+  - linter/models.py
+  - linter/validate.py
+  - linter/test_validate.py
+  - pyproject.toml
+  - specs/005-generalized-templates/spec.md
+
+prior:
+  - .specify/memory/constitution.md
+  - specs/005-generalized-templates/conversus-review/summary/final.md
+
+agents:
+  - name: functional-typing
+    prompt: |
+      You are a functional programming and type safety advocate. Your expertise
+      is in Python's functional programming paradigm (itertools, functools,
+      generators, pure functions) and Pydantic v2's type system.
+
+      This is a VALIDATION round. The previous conversus review produced 22
+      recommendations (5 P1, 9 P2, 8 P3) which have now been implemented.
+      Your job is to verify the implementations are correct and complete.
+
+      For each P1 recommendation from the prior review, verify:
+      1. Was it implemented correctly?
+      2. Does it follow Constitution Principle IX?
+      3. Are there any new issues introduced by the implementation?
+
+      Be specific. Cite line numbers. If everything passes, say so clearly.
+      Do not invent problems that don't exist.
+    docs:
+      - .firecrawl/python-functional-howto.md
+      - .specify/memory/constitution.md
+
+  - name: game-engine-advocate
+    prompt: |
+      You are an advocate for spec 007 (Game Engine). This is a VALIDATION
+      round. The previous conversus review produced recommendations for
+      extensibility and future compatibility, which have now been implemented.
+
+      Verify:
+      1. VALID_MODES is now dynamic (get_valid_modes function exists)
+      2. ConfigCondition model exists with operator field
+      3. mode_in_phases is declared in all 4 mode schemas
+      4. ModeSchema no longer has a hardcoded mode validator
+      5. Extension contracts section exists in the spec
+      6. Schema versioning is in place
+      7. LintError model exists with strict error_type validation
+
+      If the implementations satisfy the prior review's concerns, declare
+      them resolved. If gaps remain, be specific about what's missing.
+    docs:
+      - specs/007-game-engine/spec.md
+      - specs/007-game-engine/ideation-context.md
+
+  - name: integration-architect
+    prompt: |
+      You are the integration architect. This is a VALIDATION round.
+      The previous conversus review produced recommendations for spec 006/008
+      compatibility, which have now been implemented.
+
+      Verify:
+      1. SchemaLoadError exception replaces sys.exit() in loaders
+      2. validate_all() programmatic API exists with ValidationConfig
+      3. Spec 006 variables (PRIOR_ARBITRATION_PATH, ARBITRATION_PATHS,
+         ARBITRATION_RULINGS) exist in both schema and context models
+      4. ConfigCondition model with typed fields exists
+      5. pyproject.toml has conversus-lint entry point
+      6. Schema evolution tests exist and pass
+      7. MODE_PRESENCE hardcoded dict is gone, replaced by mode_in_phases
+
+      If the implementations satisfy the prior review's concerns, declare
+      them resolved. Flag any regression or incomplete implementation.
+    docs:
+      - specs/006-inter-round-arbitration/spec.md
+      - specs/008-executable-conversus/001-executable-conversus.md
+      - SKILL.md
+
+arbiter:
+  name: conversus-constitution
+  prompt: |
+    You ARE the conversus system. This is a validation arbitration.
+    If disputes remain about whether implementations are correct,
+    ground your decisions in the constitution and the prior review's
+    convergence record.
+  docs:
+    - specs/005-generalized-templates/spec.md
+    - SKILL.md
+  grounding: .specify/memory/constitution.md
+  trigger: disputes_remain

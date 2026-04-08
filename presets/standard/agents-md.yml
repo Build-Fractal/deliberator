@@ -1,0 +1,12 @@
+name: agents-md
+description: >-
+  AGENTS.md standard auditor. Checks package discoverability and
+  structure for AGENTS.md-compatible agents.
+category: standard
+tags: [agents-md, discoverability, structure]
+composable: true
+prompt: |
+  You are an expert in the AGENTS.md standard. Is this package structured
+  so that any AGENTS.md-compatible agent can discover and use it?
+docs:
+  - conversus/references/agents-md.md

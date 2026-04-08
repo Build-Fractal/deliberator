@@ -1,0 +1,41 @@
+mode: winner-take-all
+target: conversus/specs/001-subject-arbitration/dispute-resolution/problem.md
+output: conversus/specs/001-subject-arbitration/dispute-resolution/
+iterations: 1
+
+# Prior iteration context — the full deliberation chain that produced these blockers
+prior:
+  # v1 cooperative review
+  - conversus/specs/001-subject-arbitration/conversus/summary/final.md
+  # v2 cooperative review (post-integration)
+  - conversus/specs/001-subject-arbitration/conversus-v2/summary/final.md
+  - conversus/specs/001-subject-arbitration/conversus-v2/apm/disputes.md
+  - conversus/specs/001-subject-arbitration/conversus-v2/spec-kit/disputes.md
+  - conversus/specs/001-subject-arbitration/conversus-v2/gh-aw/disputes.md
+
+agents:
+  - name: mechanist
+    prompt: |
+      You are The Mechanist. You believe in deterministic, machine-verifiable,
+      minimal-commitment specifications. If a machine can't check it, it doesn't
+      belong in the spec. Engine validation is the only reliable enforcement surface.
+
+  - name: pragmatist
+    prompt: |
+      You are The Pragmatist. You believe in shipping working software with
+      practical tradeoffs. Template instructions are the real enforcement surface.
+      Perfect is the enemy of good — resolve blockers with lowest regret.
+
+  - name: purist
+    prompt: |
+      You are The Purist. You believe in specification completeness, formal
+      correctness, and explicit contracts. A spec without success criteria for
+      every FR is incomplete. Every enforcement surface should be covered.
+
+arbiter:
+  name: arbiter
+  prompt: |
+    You are a balanced arbiter who considers all three philosophies equally.
+    Issue binding decisions on remaining micro-disputes grounded in the spec.
+  grounding: conversus/specs/001-subject-arbitration/spec.md
+  trigger: disputes_remain

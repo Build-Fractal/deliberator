@@ -1,0 +1,117 @@
+# Functional Decomposition Review — conversus SKILL.md Breakdown
+
+## Executive Summary
+
+The conversus SKILL.md is a 2216-line, ~31k-token monolithic specification that defines seven subcommands (`run`, `define`, `interests`, `mode`, `converge`, `arbitrate`, `gate`), a shared subsystem (Dispute-Parsing), cross-cutting validation logic, preset resolution, template variable expansion, and multi-round orchestration. Spec 011a proposes decomposing this into smaller units. From a functional decomposition perspective, the current SKILL.md violates the Single Responsibility Principle at every level: the file is simultaneously a dispatch table, an execution engine, a validation framework, an interactive UX guide, and a reference manual for output schemas. The agent runtime loads the entire body on activation, meaning every `/conversus define` invocation pays the context cost of the 700-line run engine, the 300-line gate specification, and the 200-line arbitration guide — none of which it uses.
+
+The spec (011a) correctly identifies this as a problem but provides only a one-line prompt ("look at for opportunities to offload some of the work") without proposing concrete decomposition boundaries, naming extracted units, or estimating token savings. This review provides that analysis. The SKILL.md already contains natural decomposition seams — each subcommand handler has a clear entry point, the Dispute-Parsing Subsystem has a declared stable interface, and the preset/template resolution logic is a pure function with well-defined inputs and outputs. Extracting these into `references/` files with conditional load instructions would reduce the active context by 60-75% for any given invocation while preserving the compositional integrity of the system.
+
+My most important recommendation: extract each subcommand handler into its own reference file, leaving only the dispatch table, shared subsystems, and the run engine core in `SKILL.md`, and use conditional `references/` loading so agents only pay the context cost of the subcommand they are actually executing.
+
+## Alignment
+
+- **Subcommand dispatch table** (SKILL.md L22-44): The dispatch table is a clean, thin routing layer with exact case-sensitive matching. This is textbook functional decomposition — a pure dispatch function that maps input to handler with no side effects. It aligns with the agentskills best practices principle of providing defaults, not menus [`agentskills-best-practices.md`, L203-226].
+
+- **Dispute-Parsing Subsystem as stable interface** (SKILL.md L750-778): The subsystem declares explicit inputs (path to synthesis file), outputs (boolean + integer), parsing rules in priority order, and a stable interface contract. This is a pure function with a well-defined contract — exactly the kind of unit that composes well across callers (Phase 6 trigger, round termination, gate verdict, converge post-report). The explicit marker-based primary path with heading-based fallback follows the plan-validate-execute pattern [`agentskills-best-practices.md`, L357-380].
+
+- **Template variable expansion as pure substitution** (SKILL.md L389-438): Template filling is a stateless operation: read template, substitute variables, return string. The variable contract is explicitly enumerated per phase. This separation of template content (in `templates/{mode}/`) from template filling logic (in SKILL.md) already implements progressive disclosure at the template level [`agentskills-spec.md`, L379-387].
+
+- **Preset resolution as self-contained function** (SKILL.md L126-200): Preset resolution has well-defined inputs (preset field from agent config), outputs (resolved name, prompt, docs), and failure modes (not found, ambiguous, non-composable). It operates as a pure function with no dependency on the current phase or mode. This makes it an ideal extraction candidate.
+
+- **Non-negotiable multi-agent rules as invariant block** (SKILL.md L324-336): These five rules are cross-cutting invariants that apply to all phases. They are already written as a self-contained block with clear "why this matters" justification. This is a gotchas section — the highest-value content type identified in the best practices [`agentskills-best-practices.md`, L255-279].
+
+## Missed Opportunities
+
+- **No progressive disclosure for subcommand handlers**: The SKILL.md loads all 2216 lines on every activation, regardless of which subcommand is invoked. The agentskills specification explicitly recommends keeping `SKILL.md` under 500 lines and 5,000 tokens, using `references/` for detailed content loaded on demand [`agentskills-spec.md`, L384-387]. The `define` handler (L781-930, ~150 lines) has zero dependency on the `gate` handler (L1881-2178, ~300 lines), yet both occupy the same context window on every invocation. Extracting the six non-core handlers into `references/` files would reduce the always-loaded content from ~2200 lines to ~800 lines. Impact: **high**.
+
+- **Dispute-Parsing Subsystem is inlined rather than referenced**: The subsystem (L750-778) is used by four different consumers (Phase 6 trigger, round termination, gate verdict parsing, converge post-report), yet its specification is embedded inline in the run engine section. A `references/dispute-parsing.md` file could be loaded on demand by any consumer. The best practices explicitly recommend telling the agent _when_ to load each reference file [`agentskills-best-practices.md`, L154-156]. The trigger is well-defined: "when you need to count disputes in a synthesis file, read `references/dispute-parsing.md`." Impact: **medium**.
+
+- **Validation logic is duplicated across handlers**: Config validation (L204-234), post-write validation for `problem.md` (L901-908), post-write validation for `interests.md` (L1073-1082), post-write validation for `conversus.yml` (L1288-1303), and gate result schema validation (L2007-2057) all implement heading checks, name pattern matching, and path existence verification. These could be factored into a `references/validation-rules.md` that defines the shared validation contract once. The agentskills best practices identify this pattern: "If you notice the agent independently reinventing the same logic each run — that's a signal to write a tested script once and bundle it" [`agentskills-best-practices.md`, L382-384]. Impact: **medium**.
+
+- **Preset resolution logic could be a reference file**: The preset resolution block (L126-200, ~75 lines) is a self-contained algorithm: single preset resolution, composition templates, inline override rules, caching semantics. It is referenced by the run engine, the mode handler (for preset matching), the interests handler, and the gate handler. Extracting to `references/preset-resolution.md` with conditional loading ("if a `preset` field is present on any agent, read `references/preset-resolution.md`") reduces core SKILL.md size and avoids loading preset composition templates when no presets are configured. Impact: **medium**.
+
+- **Interactive UX patterns are repeated across define/interests/mode/converge/arbitrate**: Each guided handler implements: existing file check, user confirmation, plain-language presentation, prerequisite chain validation, post-write validation, and a structured report. The pattern (check prerequisites -> ingest input -> validate -> present for confirmation -> write -> post-write validate -> report) is identical across all five guided handlers but spelled out independently in each. A `references/guided-handler-patterns.md` could define the shared workflow skeleton, with each handler specifying only its unique schema, validation rules, and generation logic. Impact: **medium**.
+
+- **Round loop orchestration is deeply nested in the run engine**: The multi-round logic (L346-610, ~265 lines) covers round directory management, retroactive Round 1 moves, stagnation detection, inter-round arbitration, cross-round synthesis, and termination checks. This is invoked only when `rounds > 1`, yet its full specification loads even for single-round runs (the common case). A `references/multi-round-orchestration.md` loaded conditionally ("if `rounds` in config exceeds 1, read `references/multi-round-orchestration.md`") would save ~265 lines of context for the majority of invocations. Impact: **medium**.
+
+- **Phase 6 arbitration specification could be extracted**: The Phase 6 block (L612-692, ~80 lines) plus inter-round arbitration (L519-540, ~22 lines) together form ~100 lines that only apply when `arbiter` is configured. An `references/arbitration-engine.md` loaded conditionally on arbiter presence would avoid polluting context for arbiterless runs. Impact: **low**.
+
+- **Gate specification is the most self-contained handler**: The gate handler (L1881-2178, ~300 lines) is entirely self-contained — it reads a `gates.yml`, generates a `conversus.yml`, delegates to the run engine, and writes a `gate-result.md`. It has no interactive prompts and no shared state with other guided handlers. It is the strongest candidate for full extraction to `references/gate-handler.md`. Impact: **high** (300 lines removed from always-loaded context).
+
+## Off-Base Assumptions
+
+- **The spec assumes all content must be in SKILL.md to be authoritative**: The current SKILL.md structure treats every subcommand, subsystem, and schema as requiring presence in the main file to ensure the agent follows it. The agentskills specification explicitly contradicts this: "Keep your main SKILL.md under 500 lines. Move detailed reference material to separate files" [`agentskills-spec.md`, L387]. Reference files in `references/` are first-class citizens of the skill specification — they are not second-class or less authoritative. The agent loads them on demand and treats their content identically to `SKILL.md` body content. The assumption that extraction reduces reliability is unfounded if the load triggers are well-specified.
+
+- **The spec assumes decomposition requires code or scripting changes**: Spec 011a references agentskills.io, apm, and openspec.dev as external tooling to "offload work." But the most impactful decomposition requires no tooling changes — it is purely structural, moving sections of SKILL.md into `references/` files and adding conditional load instructions. The agentskills `references/` directory is already part of the conversus skill structure (it exists at `conversus/references/` with five files). The decomposition is a content reorganization, not a technology migration.
+
+- **The spec treats the 31k token count as the primary problem metric**: While token count matters, the functional decomposition concern is about _conditional relevance_ — how much of the loaded content applies to the agent's current task. A 31k-token file where every token is relevant to every invocation would be fine. The problem is that a `/conversus define` invocation loads 31k tokens but uses ~2k. The metric that matters is the ratio of relevant tokens to loaded tokens per subcommand, not the absolute size.
+
+## Actionable Recommendations
+
+1. **Extract gate handler to references/** (Priority: P1)
+   - **Current state**: The gate handler (L1881-2178) is 298 lines embedded in SKILL.md. It is entirely self-contained with no interactive prompts and no shared state beyond the Dispute-Parsing Subsystem and run engine delegation.
+   - **Proposed change**: Move L1881-2178 to `references/gate-handler.md`. In SKILL.md, replace with: "When `/conversus gate` is invoked, read `references/gate-handler.md` for the complete gate specification." Retain the dispatch table entry.
+   - **Rationale**: The gate handler is the largest self-contained block (~300 lines, ~4k tokens). It is used only for `/conversus gate` invocations. Loading it on every `/conversus define` or `/conversus run` is pure waste. The agentskills spec explicitly recommends this pattern [`agentskills-spec.md`, L379-387].
+   - **Risk if ignored**: Every conversus invocation pays ~4k tokens of context for a CI/CD-focused handler that most interactive users never invoke.
+
+2. **Extract guided handlers (define, interests, mode, converge, arbitrate) to references/** (Priority: P1)
+   - **Current state**: The five guided handlers span L781-1879, approximately 1100 lines (~15k tokens). Each is invoked individually and has no cross-handler runtime dependency (they share artifacts on disk, not in-memory state).
+   - **Proposed change**: Extract each to its own reference file: `references/handler-define.md` (~150 lines), `references/handler-interests.md` (~175 lines), `references/handler-mode.md` (~220 lines), `references/handler-converge.md` (~210 lines), `references/handler-arbitrate.md` (~345 lines). SKILL.md dispatch table entries become: "When `/conversus define` is invoked, read `references/handler-define.md`."
+   - **Rationale**: These handlers are mutually exclusive at invocation time. Loading all five when only one is needed wastes ~80% of their combined context. Each handler's conditional load trigger is unambiguous — it matches exactly one dispatch table entry [`agentskills-best-practices.md`, L154-156].
+   - **Risk if ignored**: The SKILL.md remains 4.4x the recommended maximum size, degrading agent attention on every invocation.
+
+3. **Extract Dispute-Parsing Subsystem to a shared reference** (Priority: P1)
+   - **Current state**: The subsystem (L750-778) is embedded in the run engine section but used by four consumers: Phase 6 trigger, round termination, gate verdict, and converge post-report.
+   - **Proposed change**: Move to `references/dispute-parsing.md`. Each consumer's instructions include: "To count disputes, read `references/dispute-parsing.md` and apply its parsing rules." The stable interface contract (L777) already declares the markers and headings as stable — this just moves the declaration to its own addressable file.
+   - **Rationale**: The subsystem is a pure function with a stable interface contract. It is already identified as a cross-cutting concern in the SKILL.md text itself ("A stable interface for extracting dispute information from synthesis outputs. Used by Phase 6 trigger evaluation and round termination."). Making it a standalone reference makes the interface contract physically visible and independently loadable [`agentskills-best-practices.md`, L382-384].
+   - **Risk if ignored**: The subsystem specification is buried in the run engine section. Consumers in other handlers (gate, converge) must mentally navigate the run engine to find it, increasing the chance of drift between consumer implementations.
+
+4. **Extract multi-round orchestration to a conditional reference** (Priority: P2)
+   - **Current state**: Multi-round logic (L248-610, ~360 lines) covers round directory management, stagnation detection, inter-round arbitration, cross-round synthesis, and termination. It is only relevant when `rounds > 1`.
+   - **Proposed change**: Move to `references/multi-round-orchestration.md`. In the run engine, add: "If config `rounds` is greater than 1, read `references/multi-round-orchestration.md` before starting execution." Keep the single-round execution path (Phases 1-5, flat directories) in SKILL.md.
+   - **Rationale**: Single-round execution is the default and common case. Loading 360 lines of multi-round logic for single-round runs wastes context. The conditional trigger is clean and unambiguous — it depends on a single config field [`agentskills-best-practices.md`, L154-156].
+   - **Risk if ignored**: Single-round runs (the default) pay ~5k tokens of context cost for multi-round logic they never use.
+
+5. **Extract preset resolution to a conditional reference** (Priority: P2)
+   - **Current state**: Preset resolution (L126-200, ~75 lines) is embedded in the config parsing section. It is only relevant when any agent or arbiter uses `preset:`.
+   - **Proposed change**: Move to `references/preset-resolution.md`. Add conditional load: "If any agent entry (or arbiter entry) has a `preset` field, read `references/preset-resolution.md` and apply its resolution rules before validation."
+   - **Rationale**: Preset resolution is a pure function: input is a preset field value, output is resolved name/prompt/docs. Many conversus configs use inline prompts with no presets. Loading composition templates and ambiguity resolution rules for presetless configs wastes context [`agentskills-spec.md`, L379-387].
+   - **Risk if ignored**: Minor — 75 lines is modest. But the composition template blocks (L153-190) are particularly noisy for runs that do not use preset composition.
+
+6. **Create a shared validation contract reference** (Priority: P2)
+   - **Current state**: Five handlers implement overlapping validation: config validation (L204-234), problem.md post-write (L901-908), interests.md post-write (L1073-1082), conversus.yml post-write (L1288-1303), gate result schema (L2007-2057). Each re-specifies heading checks, name pattern matching (`[a-z0-9][a-z0-9-_]*`), and path existence verification.
+   - **Proposed change**: Create `references/validation-contract.md` defining: (a) the shared heading check algorithm (case-insensitive, any heading level), (b) the name pattern regex and error format, (c) the path existence check with error format, (d) the post-write validation pattern (write, validate, fix, re-write). Each handler references the shared contract and specifies only its unique schema (required headings, field names).
+   - **Rationale**: The validation logic is already identified as a "shared contract" in the SKILL.md itself (L908: "See this validation as a shared contract, not a handler-specific check"). The best practices explicitly recommend extracting repeated logic [`agentskills-best-practices.md`, L382-384]. Centralizing the contract eliminates drift between handler implementations.
+   - **Risk if ignored**: Validation drift — one handler implements heading checks case-sensitively while another does not. The SKILL.md already has a near-miss here: Phase 6 heading validation (L671) specifies case-insensitive matching, but this is restated rather than referenced from a single source.
+
+7. **Retain the run engine core (~400 lines) in SKILL.md** (Priority: P2)
+   - **Current state**: The run engine (L48-778) is approximately 730 lines. After extracting multi-round orchestration (~360 lines), preset resolution (~75 lines), and the Dispute-Parsing Subsystem (~30 lines), the remaining core is approximately 265 lines: config parsing, single-round directory creation, template loading, Phase 1-5 execution (single-round), step 5 report, and the non-negotiable multi-agent rules.
+   - **Proposed change**: Keep the ~265-line run engine core in SKILL.md. Combined with the dispatch table (~25 lines), shared notes (~35 lines), and frontmatter (~20 lines), the total SKILL.md would be approximately 345 lines — under the 500-line recommendation.
+   - **Rationale**: The run engine is the only subcommand that cannot be fully extracted — it is the core execution path that `/conversus converge` and `/conversus gate` both delegate to. Keeping it in SKILL.md ensures it is always loaded when needed [`agentskills-best-practices.md`, L146-148: "Skills scoped too narrowly force multiple skills to load for a single task"].
+   - **Risk if ignored**: Over-extraction would force `/conversus run` to load 3-4 reference files on every invocation, potentially causing the agent to miss critical orchestration rules.
+
+8. **Add explicit load-trigger instructions for each reference file** (Priority: P2)
+   - **Current state**: The SKILL.md has no conditional loading — everything is always loaded.
+   - **Proposed change**: For each extracted reference file, add a one-line conditional load instruction in the SKILL.md dispatch table or the relevant section. Example: "When `/conversus gate` is invoked, read `references/gate-handler.md` for the complete specification." For conditional subsystems: "If config `rounds` > 1, read `references/multi-round-orchestration.md` before execution."
+   - **Rationale**: The agentskills best practices explicitly warn against vague load instructions: "'Read references/api-errors.md if the API returns a non-200 status code' is more useful than a generic 'see references/ for details'" [`agentskills-best-practices.md`, L156]. Every reference file must have an unambiguous trigger condition.
+   - **Risk if ignored**: Without explicit triggers, agents may either load all reference files eagerly (negating the decomposition) or fail to load necessary references (causing incomplete execution).
+
+9. **Estimate and document the token budget per invocation path** (Priority: P3)
+   - **Current state**: The spec (011a) cites the total SKILL.md size (31k tokens) but does not analyze per-invocation cost.
+   - **Proposed change**: Add a "Context Budget" section to the decomposed SKILL.md that documents the expected token load per invocation path. Example: `/conversus define` loads SKILL.md core (~3k tokens) + `references/handler-define.md` (~2k tokens) = ~5k tokens. `/conversus run` with `rounds > 1` and `arbiter` loads core (~3k) + multi-round (~5k) + preset-resolution (~1k, if presets used) + arbitration-engine (~1.5k) = ~10.5k tokens.
+   - **Rationale**: The agentskills spec recommends keeping the activated body under 5,000 tokens [`agentskills-spec.md`, L384]. Documenting the token budget per path makes it possible to verify that the decomposition meets this target and to catch regressions when new content is added.
+   - **Risk if ignored**: No mechanism to prevent the decomposed files from individually growing back to the same problem — each reference file could bloat without visibility into the total per-invocation cost.
+
+10. **Preserve the "Important Notes" and "Baseline Features" sections in SKILL.md** (Priority: P3)
+    - **Current state**: "Important Notes" (L2181-2215) contains gotchas (overwrite semantics, agent count formulas, model selection) and "Baseline Features" (L2203-2215) lists organic pre-spec features.
+    - **Proposed change**: Keep both sections in SKILL.md. These are gotchas — the highest-value content type for skills. They apply to all invocation paths and should always be in context.
+    - **Rationale**: The agentskills best practices identify gotchas as "the highest-value content in many skills" and recommend keeping them in SKILL.md where agents read them before encountering the situation [`agentskills-best-practices.md`, L255-279]. Moving these to a reference file risks the agent not loading them when needed.
+    - **Risk if ignored**: Critical operational rules (e.g., "re-running conversus overwrites existing output files without warning") would be moved to a reference file that agents might not load, causing data loss.
+
+## Referenced Documentation
+
+- `conversus/SKILL.md` — sections/lines cited: L22-44, L48-778, L126-200, L204-234, L248-610, L324-336, L346-610, L389-438, L519-540, L612-692, L671, L750-778, L777, L781-930, L901-908, L933-1108, L1073-1082, L1111-1327, L1288-1303, L1329-1535, L1537-1879, L1881-2178, L2007-2057, L2181-2215, L2203-2215
+- `conversus/specs/011a-skill-breakdown/spec.md` — full file (11 lines)
+- `conversus/references/agentskills-best-practices.md` — sections/lines cited: L146-148, L154-156, L203-226, L255-279, L357-380, L382-384
+- `conversus/references/agentskills-spec.md` — sections/lines cited: L379-387, L384, L387
+- `conversus/README.md` — reviewed for architectural context (full file)

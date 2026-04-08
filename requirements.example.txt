@@ -1,0 +1,62 @@
+# External CLI agents for conversus execution providers
+#
+# These are NOT Python dependencies — they are standalone CLI tools that
+# conversus orchestrates via SubprocessProvider. Install whichever ones
+# you want to use as execution providers.
+#
+# None of these are required. conversus works with --provider mock out of
+# the box, and --provider anthropic only needs ANTHROPIC_API_KEY set.
+#
+# The SubprocessProvider base handles missing binaries gracefully:
+# if a CLI isn't installed, execute() returns a structured error
+# with category="subprocess" and message="binary not found".
+
+# ─── Agent Runtimes (supports_tool_use=True) ─────────────────────────
+# These agents can read files, write code, and use tools autonomously.
+
+# Claude Code — Anthropic's coding agent
+# https://github.com/anthropics/claude-code
+# npm install -g @anthropic-ai/claude-code
+# Auth: ANTHROPIC_API_KEY or `claude login`
+
+# Aider — AI pair programming
+# https://aider.chat/docs/install.html
+# pip install aider-chat
+# Auth: ANTHROPIC_API_KEY or OPENAI_API_KEY
+
+# OpenCode — Go-based coding agent
+# https://opencode.ai/
+# curl -fsSL https://opencode.ai/install | bash
+# Auth: configure via .opencode/config.toml
+
+# Codex — OpenAI's coding agent
+# https://github.com/openai/codex
+# npm install -g @openai/codex
+# Auth: OPENAI_API_KEY
+
+# Gemini CLI — Google's coding agent
+# npm install -g @google/gemini-cli
+# https://github.com/google-gemini/gemini-cli
+# Auth: GOOGLE_API_KEY or `gemini auth login`
+
+# GitHub Copilot CLI — via gh extension
+# https://github.com/features/copilot/cli
+# gh extension install github/gh-copilot
+# Auth: gh auth login (Copilot-enabled account required)
+
+# ─── Local Inference Servers (HTTP, supports_tool_use=False) ──────────
+# These serve models locally. No API keys needed, zero cost.
+
+# Ollama — local model server
+# https://ollama.com/download
+# Then: ollama pull qwen3:0.6b  (or any model)
+
+# llama.cpp — llama-server for GGUF models
+# https://github.com/ggml-org/llama.cpp
+# brew install llama.cpp
+# Then: llama-server -m model.gguf --port 8080
+
+# vLLM — GPU-accelerated inference server
+# https://docs.vllm.ai/
+# pip install vllm
+# Then: python -m vllm.entrypoints.openai.api_server --model <name>

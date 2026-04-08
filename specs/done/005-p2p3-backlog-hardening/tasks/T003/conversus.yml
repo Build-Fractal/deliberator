@@ -1,0 +1,48 @@
+mode: cooperative
+target:
+  - conversus/SKILL.md
+output: conversus/specs/005-p2p3-backlog-hardening/tasks/T003/
+iterations: 1
+
+# Consensus gate: validates T003 — Phase 6 output validation
+# Verification task — confirms pre-existing FR-004, FR-005, FR-006 are intact
+
+agents:
+  - name: compliance
+    prompt: |
+      You are a spec-compliance auditor verifying FR-004, FR-005, FR-006.
+
+      TASK: T003 — Verify SKILL.md Phase 6 output validation checks four
+      required section headings with non-blocking warning.
+
+      REQUIREMENTS:
+      - FR-004: After Phase 6 writes resolution.md, the engine MUST validate
+        that the file contains headings: "Process Note", "Decision Framework",
+        "Binding Decisions", "Summary of Changes Required".
+      - FR-005: If any required heading is missing, the engine MUST emit a
+        warning listing the missing headings.
+      - FR-006: Validation failure MUST NOT prevent the file from being written.
+        The warning is informational only.
+
+      Check:
+      1. Does the Phase 6 section contain output validation instructions?
+      2. Are all four required headings listed?
+      3. Is the validation described as non-blocking (warning, not failure)?
+      4. Is the warning format specified (listing missing headings)?
+    docs:
+      - conversus/specs/005-p2p3-backlog-hardening/spec.md
+
+  - name: scope-creep
+    prompt: |
+      You are a scope-creep detector. This is a VERIFICATION-ONLY task.
+      No files should have been modified.
+
+      TASK SCOPE: T003 — Read and verify SKILL.md Phase 6 output validation.
+      Zero changes expected.
+
+      Flag if found:
+      - Any modification to SKILL.md
+      - Any new files created
+      - Anything beyond reading and confirming the validation exists
+    docs:
+      - conversus/specs/005-p2p3-backlog-hardening/tasks.md

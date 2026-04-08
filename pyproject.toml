@@ -1,0 +1,99 @@
+# Dev config — installs everything for development.
+# For publishing separate packages, see packages/*.toml
+
+[project]
+name = "conversus"
+version = "0.1.0"
+description = "Multi-agent deliberation engine using game theory modes (cooperative, winner-take-all, prisoner's dilemma, red-blue) to drive structured adversarial review, convergence, and dispute resolution across LLM agents"
+requires-python = ">=3.12"
+dependencies = [
+    "anthropic>=0.40.0",
+    "click>=8.3.1",
+    "httpx>=0.25.0",
+    "openai>=2.0.0",
+    "pydantic>=2.12.5",
+    "pyyaml>=6.0.3",
+    "rich>=13.0",
+]
+
+[project.scripts]
+conversus = "engine.cli:cli"
+conversus-lint = "linter.validate:main"
+
+[project.optional-dependencies]
+web = [
+    "fastapi>=0.115.0",
+    "supabase>=2.0.0",
+    "uvicorn[standard]>=0.34.0",
+]
+mcp = [
+    "mcp[cli]>=1.0.0",
+]
+nashopt = [
+    "nashopt>=0.1.0",
+    "jax>=0.4.0",
+    "jaxlib>=0.4.0",
+]
+kalman = [
+    "scipy>=1.11.0",
+]
+ampl = [
+    "amplpy>=0.14.0",
+    "highspy>=1.7.0",
+]
+solvers = [
+    "conversus[nashopt,kalman,ampl]",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+    "pytest-asyncio>=0.24.0",
+    "pytest-cov>=6.0",
+]
+docs = [
+    "mkdocs-material>=9.5",
+    "mkdocstrings[python]>=0.24",
+    "mike>=2.0",
+    "mkdocs-swagger-ui-tag>=0.6",
+    "mkdocs-git-revision-date-localized-plugin>=1.2",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["engine", "linter", "web", "conversus"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"templates" = "conversus/templates"
+"presets" = "conversus/presets"
+"schema" = "conversus/schema"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+pythonpath = ["."]
+markers = [
+    "live: tests that spawn real subprocesses and may cost API credits (deselect with '-m not live')",
+]
+
+[tool.coverage.run]
+source = ["engine", "linter", "web", "conversus"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "scripts/*",
+    "conversus/plugins/nashopt/kalman.py",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+fail_under = 55
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "if __name__",
+    "@overload",
+]

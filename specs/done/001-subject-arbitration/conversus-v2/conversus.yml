@@ -1,0 +1,43 @@
+mode: cooperative
+target: conversus/specs/001-subject-arbitration/spec.md
+output: conversus/specs/001-subject-arbitration/conversus-v2/
+iterations: 1
+
+# Prior iteration context — all agents read these as background
+prior:
+  - conversus/specs/001-subject-arbitration/conversus/summary/final.md
+  - conversus/specs/001-subject-arbitration/conversus/apm/review.md
+  - conversus/specs/001-subject-arbitration/conversus/apm/revision.md
+  - conversus/specs/001-subject-arbitration/conversus/apm/disputes.md
+  - conversus/specs/001-subject-arbitration/conversus/spec-kit/review.md
+  - conversus/specs/001-subject-arbitration/conversus/spec-kit/revision.md
+  - conversus/specs/001-subject-arbitration/conversus/spec-kit/disputes.md
+  - conversus/specs/001-subject-arbitration/conversus/gh-aw/review.md
+  - conversus/specs/001-subject-arbitration/conversus/gh-aw/revision.md
+  - conversus/specs/001-subject-arbitration/conversus/gh-aw/disputes.md
+
+agents:
+  - name: apm
+    prompt: |
+      You are APM (Agent Package Manager). This is a v2 review — the spec has
+      already been through one conversus cycle with 17 changes applied.
+      Focus on: correct integration, new gaps, what remains unresolved.
+    docs:
+      - apm/docs/src/content/docs/introduction/key-concepts.md
+      - apm/docs/src/content/docs/guides/skills.md
+
+  - name: spec-kit
+    prompt: |
+      You are spec-kit (the SDD framework). This is a v2 review — focus on
+      whether the 17 applied changes are correctly integrated and what's missing.
+    docs:
+      - spec-kit/README.md
+      - spec-kit/templates/
+
+  - name: gh-aw
+    prompt: |
+      You are gh-aw (GitHub Agentic Workflows). This is a v2 review — focus on
+      correct integration of changes and remaining CI compatibility gaps.
+    docs:
+      - gh-aw/docs/
+      - gh-aw/README.md

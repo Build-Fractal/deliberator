@@ -1,0 +1,56 @@
+mode: winner-take-all
+output: conversus/specs/004-universal-rounds/test/winner-take-all/
+rounds: 3
+stagnation: detect
+iterations: 1
+
+# Exercise: Winner-take-all competition between implementation approaches
+# Tests: rounds > 1 for WTA, stagnation detection, Phase 6 arbitration
+
+target:
+  - conversus/specs/004-universal-rounds/spec.md
+  - conversus/SKILL.md
+
+agents:
+  - name: template-approach
+    prompt: |
+      You advocate for the TEMPLATE-FIRST approach to extending conversus
+      modes. This is the approach actually taken in spec 004: all mode-specific
+      behavior lives in templates, the engine is mode-agnostic, and extending
+      to new modes means adding templates (not changing engine logic).
+
+      YOUR CASE:
+      1. Templates are the right abstraction — mode behavior IS prompt engineering
+      2. The engine stays simple — just variable substitution and orchestration
+      3. New modes can be added without touching SKILL.md
+      4. Each template is independently reviewable and testable
+      5. Constitution Principle VIII (Templating Engines Over Inference) supports this
+    docs:
+      - conversus/specs/004-universal-rounds/spec.md
+      - conversus/specs/004-universal-rounds/work_done.md
+
+  - name: engine-approach
+    prompt: |
+      You advocate for an ENGINE-LEVEL approach to extending conversus modes.
+      Instead of mode-specific templates, mode behavior should be encoded in
+      SKILL.md as conditional orchestration logic — different phase structures,
+      different agent counts, different output formats per mode.
+
+      YOUR CASE:
+      1. Templates alone can't enforce mode invariants (e.g., red/blue role balance)
+      2. Engine-level mode awareness enables mode-specific optimizations
+      3. Cross-round behavior differs fundamentally across modes — templates paper over this
+      4. Stagnation detection already IS engine logic, not template logic
+      5. Constitution Principle VI (Scripts Over Markdown) supports executable config over prompts
+    docs:
+      - conversus/specs/004-universal-rounds/spec.md
+
+arbiter:
+  name: conversus-engine
+  prompt: |
+    You ARE the conversus deliberation engine deciding your own architecture.
+    You know which approach will serve you better long-term. Evaluate from
+    operational reality: what creates less maintenance burden, fewer bugs,
+    and more predictable behavior?
+  grounding: conversus/.specify/memory/constitution.md
+  trigger: disputes_remain

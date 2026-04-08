@@ -1,0 +1,37 @@
+mode: cooperative
+output: specs/done/021-nashopt-integration/conversus-review/
+rounds: 1
+validate_templates: false
+
+target:
+  - specs/done/021-nashopt-integration/spec.md
+  - conversus/plugins/nashopt/solver.py
+  - conversus/plugins/nashopt/scorer.py
+  - tests/test_solver.py
+
+agents:
+  - name: solver-engineer
+    prompt: |
+      You are a numerical solver engineer. Verify the nashopt integration:
+      1. Are payoff matrix constructions mathematically correct per mode?
+      2. Is the SolverResult dataclass complete? Does it capture equilibrium distance correctly?
+      3. Is the ThreadPoolExecutor timeout robust? What happens on GIL contention?
+      4. Does the heuristic fallback produce identical results to pre-021 behavior?
+      5. Are degenerate cases handled (single agent, zero-variance, empty features)?
+
+  - name: plugin-engineer
+    prompt: |
+      You are a plugin architecture engineer. Verify:
+      1. Does the HAS_NASHOPT flag pattern work correctly?
+      2. Is the scorer dispatch (solver → heuristic fallback) clean?
+      3. Is PluginResult.data["solver"] always populated?
+      4. Does the plugin maintain backward compatibility with spec 017?
+      5. Are all solver imports properly guarded behind try/except?
+
+  - name: spec-compliance
+    prompt: |
+      You are a spec compliance auditor. Check FR-001 through FR-008 and
+      SC-001 through SC-004. For each: MET, PARTIALLY MET, or NOT MET
+      with evidence (cite function name, line number, or test name).
+    docs:
+      - specs/done/021-nashopt-integration/spec.md

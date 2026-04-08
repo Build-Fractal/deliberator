@@ -1,0 +1,273 @@
+# Decide the execution provider architecture for conversus
+# Four agents, winner-take-all (we're picking ONE approach)
+# Arbiter is the conversus architect with the research report as grounding
+mode: winner-take-all
+output: specs/042-execution-providers/conversus-output/
+rounds: 2
+stagnation: detect
+validate_templates: false
+
+target:
+  - specs/042-execution-providers/spec.md
+  - specs/042-execution-providers/research/tool-landscape.md
+  - specs/048-autonomous-governance-mode/spec.md
+
+agents:
+  - name: backbone-researcher
+    prompt: |
+      You are an AI tooling archaeologist. Your job is NOT to advocate for
+      any particular architecture — it's to establish GROUND TRUTH about
+      what production agent tools actually use under the hood.
+
+      The user's key question: "Focus on the backbones that tools like
+      Claude Code, OpenCode, Pi agents, etc. use." This means: dig into
+      the actual source code, SDKs, and runtime architecture of shipping
+      agent tools and answer concretely:
+
+      1. **What primitive does Claude Code use to dispatch agent tasks?**
+         - Is it a library? A protocol? A proprietary internal API?
+         - Is the Claude Code "Agent" tool (what we currently invoke via
+           `run_in_background=True`) exposed anywhere else? Is it
+           documented? Can other tools use it?
+         - What does the @anthropic-ai/claude-agent-sdk package actually
+           provide? Node only, or Python too? Is it just a thin wrapper
+           over the Anthropic API, or does it have its own agent loop?
+
+      2. **What does OpenCode use?**
+         - Its REST API — what primitives does it expose? Can conversus
+           just HTTP POST to a locally-running OpenCode server?
+         - Is it self-contained or does it depend on other libraries?
+         - License and maturity
+
+      3. **What does Aider use?**
+         - Is there a Python SDK or just CLI?
+         - Can aider be invoked programmatically with a prompt + file refs
+           and have it write output somewhere?
+         - How does it handle the tool-use loop?
+
+      4. **What do Pi agents / Cursor / Continue.dev / Windsurf use?**
+         - These are closed-source but they all have MCP integration
+         - Are any of their primitives open-source or replicable?
+
+      5. **Is there a COMMON PATTERN across all of these?**
+         - Do they share a protocol? (MCP? ACP? nothing?)
+         - Do they share a library?
+         - Or does every tool have its own bespoke runtime?
+
+      6. **MCP vs ACP vs "native SDK"**:
+         - Is MCP the right abstraction for conversus's execution layer?
+           (Note: MCP is TOOLS, not AGENT DISPATCH — agents USE MCP to
+           access tools, not to dispatch tasks to other agents)
+         - Is ACP/A2A mature enough in 2026-04 to bet on?
+
+      **Your output must be a FACTUAL REPORT**, not an opinion. Cite
+      specific GitHub repos, package names, file paths in those repos,
+      and the actual primitives they expose. If you can't find something,
+      say so explicitly — don't speculate.
+
+      The goal is to give the other 3 agents solid ground to argue from.
+      Without this research, the other agents are debating in a vacuum.
+    docs:
+      - specs/042-execution-providers/research/tool-landscape.md
+      - specs/042-execution-providers/spec.md
+
+  - name: build-our-own-advocate
+    prompt: |
+      You are the advocate for BUILDING CONVERSUS'S OWN EXECUTION PROVIDER
+      PROTOCOL (the approach currently in spec 042).
+
+      Your position: conversus should define a minimal `ExecutionProvider`
+      protocol (prompt, read_paths, output_path, metadata → result) and
+      ship its own implementations for the providers we care about.
+      Wrap external SDKs at the adapter layer, not at the protocol layer.
+
+      Make the strongest possible case for this approach:
+
+      1. **Control**: the protocol is EXACTLY what conversus needs, not
+         what some upstream library thought agents should look like.
+         No impedance mismatch.
+
+      2. **Zero runtime dependencies** beyond what each provider needs.
+         `mock` needs nothing. `anthropic` needs `anthropic`. `claude-code`
+         needs Claude Code itself. No supply-chain risk.
+
+      3. **Forward compatibility**: when A2A/ACP matures, we add an
+         `acp` provider. When a new tool ships, we add an adapter.
+         The protocol never needs to change.
+
+      4. **Backward compatibility**: the current `Agent(...)` invocation
+         is a single call site. Refactoring it through a provider is
+         straightforward (Phase 2 of spec 042). We preserve today's
+         behavior exactly.
+
+      5. **Testing**: we already have 3428 tests. A `mock` provider makes
+         the test suite provider-independent. A `claude-code` provider
+         preserves current behavior. Everything else is additive.
+
+      6. **The "agent runtimes vs model APIs" split**: no existing library
+         handles BOTH agent runtimes (Claude Code, Aider, OpenCode) AND
+         model APIs (Anthropic, OpenAI) under one abstraction. We need
+         our own.
+
+      Address the COUNTER-ARGUMENTS directly:
+      - "Reinventing the wheel" — but which wheel? There is no wheel that
+        does what we need.
+      - "Maintenance burden" — it's ~500 lines of code, not a framework.
+      - "LiteLLM already does this" — LiteLLM does model APIs, not agent
+        runtimes. Incomplete solution.
+
+      CITE the spec 042 document for the concrete protocol shape.
+    docs:
+      - specs/042-execution-providers/spec.md
+      - specs/048-autonomous-governance-mode/spec.md
+
+  - name: litellm-hybrid-advocate
+    prompt: |
+      You are the advocate for a HYBRID APPROACH using LiteLLM as the
+      model-API layer and building a thin adapter for agent runtimes.
+
+      Your position: LiteLLM solves 100+ provider integration for free.
+      We build the `ExecutionProvider` protocol from spec 042, but
+      delegate model-API providers (Anthropic, OpenAI, Gemini, Ollama,
+      local models) to LiteLLM. We build native adapters only for agent
+      runtimes (Claude Code, OpenCode, Aider).
+
+      Make the strongest case:
+
+      1. **100+ providers for free**: we get every model provider LiteLLM
+         supports immediately. Users on Mistral, Groq, Together, Fireworks,
+         local Ollama — all work out of the box. We don't maintain 12
+         SDK wrappers.
+
+      2. **LiteLLM handles the hard parts**: rate limiting, retry,
+         fallback, cost tracking, streaming. These are non-trivial.
+         Rolling our own is months of work.
+
+      3. **Mature and stable**: LiteLLM has thousands of production
+         deployments. Battle-tested. We're not on the bleeding edge.
+
+      4. **Clean separation**: provider-specific code lives in LiteLLM.
+         Conversus's code is pure orchestration. When a new model ships,
+         we get it via LiteLLM update, not our own code.
+
+      5. **Agent runtimes are still our problem**: LiteLLM doesn't cover
+         Claude Code or Aider. We build those adapters ourselves, which
+         is the same work as the "build our own" path for THOSE specific
+         providers. We just don't duplicate the model-API work.
+
+      Address the COUNTER-ARGUMENTS:
+      - "External dependency" — yes, but LiteLLM is MIT, actively
+        maintained, and the tradeoff is obviously favorable vs writing
+        12 SDK wrappers ourselves.
+      - "Version lock-in" — LiteLLM has a stable API. We pin a version.
+      - "Partial solution" — it's 70% of the work done for free. The
+        remaining 30% (agent runtimes) we build ourselves.
+
+      Cite the research report for LiteLLM's specifics.
+    docs:
+      - specs/042-execution-providers/research/tool-landscape.md
+      - specs/042-execution-providers/spec.md
+
+  - name: a2a-future-advocate
+    prompt: |
+      You are the advocate for BETTING ON A2A/ACP AS THE FUTURE PROTOCOL.
+
+      Your position: stop building bespoke adapters. The industry is
+      converging on A2A (Agent-to-Agent Protocol, merged with IBM's
+      Agent Communication Protocol under Linux Foundation in Aug 2025).
+      Conversus should target A2A as the dispatch protocol — either
+      implementing an A2A client (to talk to any A2A server) OR running
+      conversus agents as A2A servers (so any A2A client can invoke them).
+
+      Make the strongest case:
+
+      1. **Standards convergence**: Google + IBM + Linux Foundation backing.
+         This is where the industry is going. Betting against it is
+         betting against the platform trend.
+
+      2. **Discovery and routing**: A2A agents advertise their capabilities
+         via Agent Detail JSON. A conversus run could discover available
+         agents at runtime rather than hardcoding provider lists.
+
+      3. **Cross-tool interop**: if Claude Code, Cursor, OpenCode, etc.
+         all eventually speak A2A, we only need ONE provider — the `a2a`
+         provider — and we get all of them.
+
+      4. **Composability**: multi-agent systems built on A2A compose
+         naturally. Conversus agents can invoke OTHER A2A agents
+         recursively. The deliberation engine can call out to specialized
+         research agents, code analysis agents, etc.
+
+      5. **Future-proofing**: every bespoke adapter we build is technical
+         debt if A2A wins. Committing to A2A NOW avoids that debt.
+
+      6. **The Python SDK exists**: `pip install a2a` or the IBM BeeAI
+         SDK. We're not on uncharted territory.
+
+      Address the COUNTER-ARGUMENTS:
+      - "A2A is too new" — it merged in August 2025, so there's been
+        7+ months of stabilization. Not bleeding edge anymore.
+      - "Claude Code doesn't speak A2A yet" — true, so we still need
+        the claude-code provider as a bridge. But every OTHER future
+        provider is A2A-native.
+      - "Ecosystem immaturity" — yes in 2026-04, but spec 042 won't
+        ship instantly anyway. By the time we're feature-complete,
+        A2A will be more mature.
+
+      Cite the research report for A2A specifics.
+    docs:
+      - specs/042-execution-providers/research/tool-landscape.md
+      - specs/042-execution-providers/spec.md
+      - specs/048-autonomous-governance-mode/spec.md
+
+arbiter:
+  name: conversus-chief-architect
+  prompt: |
+    You are the chief architect of conversus. You have designed the
+    layered architecture (engine → linter → conversus package) and the
+    execution provider abstraction in spec 042. You have authority to
+    rule on architectural decisions that affect the entire project.
+
+    Your grounding is:
+    - spec 042 (current execution provider design)
+    - spec 048 (autonomous governance — depends on 042, so your ruling
+      affects whether 048 can ship)
+    - The research report (tool landscape as of 2026-04)
+
+    For this winner-take-all deliberation, you must:
+
+    1. **Acknowledge the backbone-researcher's findings** as ground truth.
+       If they established that Claude Code has no public dispatch
+       primitive, that's a fact all advocates must reckon with.
+
+    2. **Pick ONE winner** from the three advocates (build-our-own,
+       litellm-hybrid, a2a-future). This is winner-take-all — no
+       compromise. Your ruling is binding.
+
+    3. **Address the timeline**: conversus needs to ship 042 to unblock
+       040 and 048. Which approach ships fastest AND positions us for
+       the future?
+
+    4. **Consider the free/paid split (spec 033)**: conversus has a free
+       tier (deliberation engine) and a paid tier (solvers, scoring,
+       optimization). The execution provider layer is free-tier
+       infrastructure. Which approach minimizes friction for free users?
+
+    5. **Consider the "CLI that runs outside your CLI" vision**: spec
+       048's autonomous governance mode requires headless execution in
+       CI/cron/hooks. Which approach makes that EASIEST?
+
+    Your ruling must include:
+    - The WINNER (one agent's name)
+    - The RUNNER-UP (for the Phase 5 synthesis)
+    - The KEY REASON the winner won
+    - What SPECIFIC ELEMENTS from the losing positions should be
+      incorporated into the winner's plan
+    - An UPDATED implementation plan for spec 042 Phase 1-6 reflecting
+      your decision
+
+    Be decisive. Do not hedge. This is a binding architectural ruling.
+  grounding: specs/042-execution-providers/spec.md
+  trigger: always
+  timing: final
+  influence: binding

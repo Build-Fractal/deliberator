@@ -1,0 +1,89 @@
+mode: cooperative
+output: conversus/specs/005-p2p3-backlog-hardening/gates/phase-3/cooperative/
+iterations: 1
+
+# Phase 3 Gate: STATUS.md Enrichment (Cooperative)
+# Goal: Complete STATUS.md as single-document cross-spec reference
+# Tasks: T008, T009, T010, T011, T012, T012a (sequential — same file)
+# FRs: FR-008, FR-016, FR-017, FR-019
+# Depends on: Phase 2 (taxonomy must be defined first)
+
+prior:
+  - conversus/specs/005-p2p3-backlog-hardening/gates/phase-2/summary/final.md
+
+target:
+  - conversus/specs/STATUS.md
+  - conversus/specs/005-p2p3-backlog-hardening/spec.md
+  - conversus/specs/005-p2p3-backlog-hardening/tasks.md
+
+agents:
+  - name: compliance
+    prompt: |
+      You are a spec-compliance auditor for Phase 3 of spec 005 (P2/P3 Backlog Hardening).
+
+      PHASE GOAL: Complete STATUS.md as the single-document cross-spec
+      reference. After this phase, an implementor can determine the status
+      of any spec, shared subsystem, or cross-spec dependency by reading
+      specs/STATUS.md alone.
+
+      TASKS COVERED:
+      - T008: "Shared Subsystems" section with 3 entries + maintenance note (FR-008)
+      - T009: "Cross-Spec Dependencies" section with dependency graph (FR-008)
+      - T010: "Risk-of-Gap" field per spec (FR-016)
+      - T011: "Effort" field per spec (FR-017)
+      - T012: "SKILL.md Structure Plan" section (FR-019)
+      - T012a: Spec 005 entry in STATUS.md (FR-008, SC-003)
+
+      YOUR JOB:
+      1. Verify each section exists with FR-specified content.
+      2. Verify shared subsystems has all 3 entries with sub-entries.
+      3. Verify cross-spec dependencies show 001 → 004 → 002 → 003.
+      4. Verify every spec (001-005) has Risk-of-Gap and Effort fields.
+      5. Verify SKILL.md Structure Plan covers specs 002, 003, 004.
+      6. Verify spec 005 has its own entry (SC-003).
+      7. Verify the maintenance note exists.
+
+      CHECKPOINT: STATUS.md is the complete cross-spec reference.
+    docs:
+      - conversus/specs/005-p2p3-backlog-hardening/spec.md
+
+  - name: integration
+    prompt: |
+      You are an integration checker for Phase 3 of spec 005.
+
+      PHASE GOAL: STATUS.md must be useful, not just present. Content must
+      be accurate, consistent with Phase 2's taxonomy, and actionable.
+
+      YOUR JOB:
+      1. Review risk-of-gap statements — are they meaningful and specific?
+      2. Review effort estimates — are they calibrated relative to each other?
+      3. Review SKILL.md Structure Plan — specific enough to act on?
+      4. Review shared subsystem entries — consumers accurate? Stability justified?
+      5. Check dependency ordering rationale is clear and correct.
+      6. Verify Phase 2's taxonomy labels are used consistently throughout.
+      7. Could an implementor new to conversus orient themselves from STATUS.md alone?
+    docs:
+      - conversus/specs/005-p2p3-backlog-hardening/tasks.md
+
+  - name: scope-boundary
+    prompt: |
+      You are a scope-boundary enforcer for Phase 3 of spec 005.
+
+      PHASE SCOPE: T008-T012a only. One file: specs/STATUS.md.
+      Add subsystems, dependencies, risk, effort, structure plan, spec 005 entry.
+
+      YOUR JOB:
+      1. Confirm changes are limited to specs/STATUS.md.
+      2. Flag if changes modify taxonomy definitions (Phase 2 scope, already done).
+      3. Flag if changes modify per-spec acceptance labels (Phase 2 scope).
+      4. Flag any SKILL.md changes — that's Phase 4.
+      5. Flag content that duplicates or contradicts Phase 2's taxonomy section.
+      6. Check that spec 005's self-entry doesn't create circular references.
+
+      SCOPE BOUNDARIES:
+      - Phase 2 (done): taxonomy + labels
+      - Phase 3 (this): subsystems, dependencies, risk, effort, structure plan
+      - Phase 4: SKILL.md documentation additions
+    docs:
+      - conversus/specs/005-p2p3-backlog-hardening/tasks.md
+      - conversus/specs/005-p2p3-backlog-hardening/spec.md

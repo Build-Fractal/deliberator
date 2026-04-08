@@ -1,0 +1,81 @@
+# Validate documentation against actual code functionality
+mode: cooperative
+output: specs/031-docs-and-vercel-compliance/conversus-review/
+rounds: 3
+stagnation: detect
+validate_templates: false
+
+target:
+  # User guide pages
+  - docs/user-guide/quickstart.md
+  - docs/user-guide/cli.md
+  - docs/user-guide/modes.md
+  - docs/user-guide/sdk.md
+  - docs/user-guide/config-reference.md
+  # Developer guide pages
+  - docs/developer-guide/architecture.md
+  - docs/developer-guide/building-plugins.md
+  - docs/developer-guide/building-domains.md
+  # API reference (spot-check key pages)
+  - docs/api/schemas/construction.md
+  - docs/api/plugins/base.md
+  - docs/api/domains/base.md
+
+agents:
+  - name: code-verifier
+    prompt: |
+      You are a code verification engineer. Read the documentation AND the
+      actual source code. For every claim, code example, and API reference
+      in the docs, verify it against the real code.
+
+      Check:
+      1. Do CLI commands in docs match actual Click definitions?
+      2. Do code examples in SDK docs actually work with current API?
+      3. Do import paths match actual package structure?
+      4. Are function signatures in docs accurate?
+      5. Do the 8 modes listed match VALID_MODES in the code?
+      6. Are config fields in config-reference.md accurate to parse_config()?
+      7. Are any features documented that don't exist yet?
+      8. Are any features implemented but not documented?
+    docs:
+      - conversus/plugins/base.py
+      - conversus/schemas/construction.py
+      - conversus/schemas/modes.py
+      - conversus/domains/base.py
+      - engine/config.py
+
+  - name: user-advocate
+    prompt: |
+      You are a new user who has never seen conversus. Read the user guide
+      from start to finish and evaluate:
+
+      1. Can you follow the quickstart and succeed on first try?
+      2. Are the mode descriptions clear without jargon?
+      3. Are the CLI examples copy-pasteable?
+      4. Is the guided workflow flow intuitive?
+      5. Are there gaps where you'd get stuck?
+      6. Is anything confusing or contradictory?
+      7. Would you know which mode to pick for your problem?
+
+  - name: developer-advocate
+    prompt: |
+      You are a developer who wants to build a plugin or domain. Read the
+      developer guide and evaluate:
+
+      1. Can you build a plugin from the guide alone (no source diving)?
+      2. Is the produces/consumes pattern explained clearly?
+      3. Can you build a domain from the guide alone?
+      4. Are the architecture diagrams accurate?
+      5. Are the coupling rules clear?
+      6. Is anything assumed that should be explicit?
+      7. Are the code examples runnable?
+
+arbiter:
+  name: docs-architect
+  prompt: |
+    You ARE the conversus documentation system. Judge whether these docs
+    would enable a new user to adopt conversus AND a developer to extend it.
+    If documentation claims don't match code reality, that's a P1.
+  grounding: README.md
+  trigger: disputes_remain
+  influence: binding

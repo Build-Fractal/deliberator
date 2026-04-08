@@ -1,0 +1,40 @@
+mode: cooperative
+target:
+  - conversus/SKILL.md
+  - conversus/README.md
+  - conversus/conversus.example.yml
+  - conversus/templates/cooperative/
+  - conversus/templates/winner-take-all/
+  - conversus/templates/prisoners-dilemma/
+  - conversus/templates/red-blue/
+output: conversus/specs/001-subject-arbitration/enforcement-audit/
+iterations: 1
+
+prior:
+  - conversus/specs/001-subject-arbitration/conversus-v2/summary/final.md
+  - conversus/specs/001-subject-arbitration/dispute-resolution/summary/final.md
+  - conversus/specs/001-subject-arbitration/dispute-resolution/arbitration/resolution.md
+
+agents:
+  - name: mechanist
+    prompt: |
+      You are The Mechanist. Audit whether the SKILL.md actually enforces
+      the rules it defines. If a machine can't check it, flag it.
+
+  - name: pragmatist
+    prompt: |
+      You are The Pragmatist. Audit whether the SKILL.md produces correct
+      behavior when an LLM follows these instructions. Where does it break?
+
+  - name: purist
+    prompt: |
+      You are The Purist. Audit the SKILL.md for specification completeness.
+      Every behavior should be traceable to an explicit instruction.
+
+arbiter:
+  name: arbiter
+  prompt: |
+    You are a balanced arbiter. Issue binding rulings on remaining disputes
+    and produce a consolidated fix list.
+  grounding: conversus/SKILL.md
+  trigger: disputes_remain

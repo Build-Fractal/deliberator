@@ -1,0 +1,97 @@
+mode: cooperative
+output: conversus/specs/010-antipattern-steering/verify/
+iterations: 1
+
+# Verification: Was spec 010 (Antipattern Steering) implemented correctly?
+# Agents compare spec requirements against actual implementation artifacts.
+
+target:
+  - conversus/specs/010-antipattern-steering/spec.md
+  - conversus/specs/010-antipattern-steering/data-model.md
+  - conversus/specs/010-antipattern-steering/contracts/catalog-format.md
+  - conversus/specs/010-antipattern-steering/tasks.md
+  - conversus/antipatterns/catalog.md
+  - conversus/SKILL.md
+  - conversus/.specify/memory/constitution.md
+
+agents:
+  - name: compliance
+    prompt: |
+      You are a spec-compliance auditor verifying that spec 010 (Agent Antipattern Steering) was fully implemented.
+
+      YOUR JOB:
+      1. Read the spec (spec.md) and extract every functional requirement (FR-001 through FR-010) and success criterion (SC-001 through SC-004).
+      2. Read the implementation artifacts: antipatterns/catalog.md, SKILL.md, constitution.md.
+      3. For EACH requirement, determine: implemented, partially implemented, or missing.
+      4. Verify the catalog entry (redundant-cache) has ALL required fields per data-model.md: Status, Observed, Summary, Symptoms (>=2), Root Cause, Example (real refs), Correction, When This Does NOT Apply (>=1 exclusion), Keywords (>=2 tags).
+      5. Verify the Summary Index table matches the entry data.
+      6. Verify tasks.md shows all tasks checked off.
+      7. Flag any requirement that is NOT fully satisfied with specific evidence.
+
+      REQUIREMENTS TO CHECK:
+      - FR-001: Catalog exists as structured document
+      - FR-002: Entry includes all required fields
+      - FR-003: Summary index at top
+      - FR-004: Entries self-contained
+      - FR-005: Agent prompts include antipattern check instruction
+      - FR-006: Check instruction references catalog location + specifies workflow
+      - FR-007: Keyword tags on entries
+      - FR-008: Retrieval mechanism exists
+      - FR-009: Deprecation mechanism defined
+      - FR-010: Append-only (no cross-entry modification required)
+      - SC-001: Agent can identify match and adjust
+      - SC-002: Check adds <30s overhead
+      - SC-003: Supports 50+ entries
+      - SC-004: 100% real examples
+    docs:
+      - conversus/specs/010-antipattern-steering/spec.md
+      - conversus/specs/010-antipattern-steering/checklists/requirements.md
+
+  - name: integration
+    prompt: |
+      You are an integration checker verifying that all cross-file references in the spec 010 implementation are consistent and functional.
+
+      YOUR JOB:
+      1. Verify SKILL.md Antipattern Check section references `antipatterns/catalog.md` correctly.
+      2. Verify constitution.md Known Antipatterns section references catalog location.
+      3. Verify catalog entry Example section references valid paths (specs/001-antipattern-steering/examples/redundant-cache/).
+      4. Verify the SKILL.md 4-step workflow matches the contract in contracts/catalog-format.md.
+      5. Verify keyword tags are consistent between the Summary Index table and the entry Keywords section.
+      6. Verify the Maintenance section documents the correct procedures (add, deprecate).
+      7. Check that all cross-references form a coherent system: an agent following SKILL.md instructions would successfully find and use the catalog.
+      8. Check that the constitution's Known Antipatterns section is consistent with SKILL.md instructions.
+      9. Verify the catalog format matches contracts/catalog-format.md exactly.
+
+      FOCUS: Does everything connect? Can an agent follow the chain from SKILL.md instruction -> catalog -> entry -> correction without breaking?
+    docs:
+      - conversus/specs/010-antipattern-steering/contracts/catalog-format.md
+      - conversus/specs/010-antipattern-steering/quickstart.md
+
+  - name: scope-boundary
+    prompt: |
+      You are a scope-boundary enforcer verifying that spec 010 implementation neither exceeds nor falls short of the specified scope.
+
+      YOUR JOB — UNDER-SCOPE (missing):
+      1. Check every acceptance scenario from spec.md User Stories 1-3 against implementation.
+      2. Verify all P1 features are implemented (Catalog Structure + Agent Integration).
+      3. Verify all P2 features are implemented (Contextual Retrieval + Catalog Maintenance).
+      4. Check if any user story acceptance scenario is NOT satisfied by the implementation.
+
+      YOUR JOB — OVER-SCOPE (excess):
+      1. Check if SKILL.md adds instructions beyond what spec 010 specifies.
+      2. Check if catalog.md includes fields not defined in data-model.md.
+      3. Check if constitution.md changes go beyond what the spec requires.
+      4. Flag any implementation that adds capabilities not in the spec.
+
+      YOUR JOB — BOUNDARY VERIFICATION:
+      1. The spec says initial seed is the "redundant-cache" antipattern only. Verify no extra entries.
+      2. The spec says SKILL.md additions are additive. Verify no existing behavior was changed.
+      3. The spec says catalog lives in conversus project directory. Verify location.
+      4. Verify the implementation matches the plan.md phases and tasks.md checkpoints.
+
+      SCOPE BOUNDARIES:
+      - IN SCOPE: catalog file, SKILL.md instruction, constitution reference, seed entry
+      - OUT OF SCOPE: template changes, phase execution changes, new agent behaviors
+    docs:
+      - conversus/specs/010-antipattern-steering/plan.md
+      - conversus/specs/010-antipattern-steering/tasks.md

@@ -1,0 +1,61 @@
+# Feature schema for mechanism-design mode deliberation
+# Spec 028 — Mode Expansion
+name: mechanism-design
+description: >
+  Feature schema for mechanism design mode. Roles analyze the rules of
+  a system to ensure incentive compatibility and resistance to gaming.
+  Features capture property assessments, vulnerability counts, and
+  recommendation dispositions.
+
+features:
+  # Per-agent features
+  - name: recommendation_count
+    type: scalar
+    source: phase_1_review
+    extraction: "Count numbered items under '### Recommendations'"
+    description: "Number of recommendations proposed in Phase 1"
+
+  - name: vulnerability_count
+    type: scalar
+    source: phase_1_review
+    extraction: "Count items under '### Vulnerability Assessment'"
+    description: "Number of vulnerabilities identified in Phase 1"
+
+  - name: concession_rate
+    type: scalar
+    source: phase_3_revision
+    extraction: "(withdrawn + modified) / total recommendations"
+    description: "Fraction of recommendations withdrawn or modified"
+
+  - name: withdrawn_count
+    type: scalar
+    source: phase_3_revision
+    extraction: "Count dispositions with 'Withdrawn' label"
+    description: "Number of recommendations withdrawn in Phase 3"
+
+  - name: modified_count
+    type: scalar
+    source: phase_3_revision
+    extraction: "Count dispositions with 'Modified' label"
+    description: "Number of recommendations modified in Phase 3"
+
+  - name: surviving_count
+    type: scalar
+    source: phase_3_revision
+    extraction: "Count dispositions with 'Surviving' label"
+    description: "Number of recommendations surviving unchanged"
+
+  # Aggregate features
+  - name: mechanism_vulnerability_count
+    type: scalar
+    source: phase_5_synthesis
+    extraction: >
+      Count entries between DISPUTES_BEGIN and DISPUTES_END markers.
+      Fallback: count '**Vulnerability:' headings under '### Mechanism Vulnerabilities'.
+    description: "Number of unresolved mechanism vulnerabilities"
+
+  - name: convergence_count
+    type: scalar
+    source: phase_4_disputes
+    extraction: "Count '**Converged:' entries across all roles' positions"
+    description: "Number of convergence points"

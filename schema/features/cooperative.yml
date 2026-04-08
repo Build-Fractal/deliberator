@@ -1,0 +1,76 @@
+# Feature schema for cooperative mode deliberation
+# Spec 015 — FR-005
+name: cooperative
+description: >
+  Feature schema for cooperative mode. Agents collaborate to produce shared
+  recommendations. Features capture position strength, willingness to concede,
+  dispute density, and pairwise agreement.
+
+features:
+  # Per-agent features
+  - name: recommendation_count
+    type: scalar
+    source: phase_1_review
+    extraction: "Count numbered items under '### Actionable Recommendations'"
+    description: "Number of recommendations proposed in Phase 1"
+
+  - name: position_vector
+    type: vector
+    source: phase_3_revision
+    extraction: >
+      Per recommendation: P1=3, P2=2, P3=1, Withdrawn=0.
+      Vector length = number of recommendations from Phase 1.
+    description: "Priority-weighted position vector per agent"
+
+  - name: concession_rate
+    type: scalar
+    source: phase_3_revision
+    extraction: "(withdrawn + modified) / total recommendations"
+    description: "Fraction of recommendations withdrawn or modified"
+
+  - name: withdrawn_count
+    type: scalar
+    source: phase_3_revision
+    extraction: "Count dispositions with 'Withdrawn' label"
+    description: "Number of recommendations withdrawn in Phase 3"
+
+  - name: modified_count
+    type: scalar
+    source: phase_3_revision
+    extraction: "Count dispositions with 'Modified' label"
+    description: "Number of recommendations modified in Phase 3"
+
+  - name: surviving_count
+    type: scalar
+    source: phase_3_revision
+    extraction: "Count dispositions with 'Surviving' label"
+    description: "Number of recommendations surviving unchanged"
+
+  - name: new_recommendation_count
+    type: scalar
+    source: phase_3_revision
+    extraction: "Count items under '### New Recommendations'"
+    description: "Number of new recommendations added in Phase 3"
+
+  # Aggregate features
+  - name: dispute_count
+    type: scalar
+    source: phase_5_synthesis
+    extraction: >
+      Count entries between DISPUTES_BEGIN and DISPUTES_END markers.
+      Fallback: count '**Dispute:' headings under '### Remaining Disputes'.
+    description: "Number of remaining disputes after full deliberation"
+
+  - name: convergence_count
+    type: scalar
+    source: phase_4_disputes
+    extraction: "Count '**Converged:' entries across all agents' dispute documents"
+    description: "Number of convergence points identified"
+
+  - name: agreement_matrix
+    type: matrix
+    source: phase_2_cross_review
+    extraction: >
+      Pairwise binary matrix: 1 if reviewer listed the item under
+      '### Safe Agreements', 0 otherwise. Rows = reviewer, cols = reviewed.
+    description: "Pairwise agreement matrix from cross-review"

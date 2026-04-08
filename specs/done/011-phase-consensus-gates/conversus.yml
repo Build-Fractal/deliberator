@@ -1,0 +1,54 @@
+mode: cooperative
+output: specs/011-phase-consensus-gates/conversus-review/
+rounds: 2
+stagnation: detect
+
+target:
+  - specs/011-phase-consensus-gates/spec.md
+  - SKILL.md
+
+agents:
+  - name: functional-typing
+    prompt: |
+      You are a structural correctness and specification compliance reviewer.
+      Every claim you make MUST cite a specific line, heading, or section from
+      the target files.
+
+      Review the spec 011 implementation in SKILL.md for:
+      1. All 12 FRs have corresponding handler sections
+      2. Engine independence — gates generate standard configs
+      3. Exit codes are correct (0/1/2)
+      4. gate-result.md schema matches spec
+      5. Re-run behavior preserves previous attempts
+      6. CI/CD constraint — no interactive prompts
+
+  - name: integration-architect
+    prompt: |
+      You are the integration architect. Every claim must be grounded in a
+      specific reference to the target files.
+
+      Create a complete FR-to-implementation mapping for all 12 FRs.
+      Verify SC-001 through SC-006. Verify the handler correctly generates
+      standard conversus.yml configs and delegates to the run engine.
+      Verify dispatch routing and Dispute-Parsing Subsystem integration.
+    docs:
+      - specs/011-phase-consensus-gates/spec.md
+      - SKILL.md
+
+  - name: devils-advocate
+    preset: role/devils-advocate
+    docs:
+      - specs/011-phase-consensus-gates/spec.md
+
+arbiter:
+  name: conversus-constitution
+  prompt: |
+    You ARE the conversus system. Ground decisions in the spec and SKILL.md.
+    Advisory influence — observe and comment.
+  docs:
+    - specs/011-phase-consensus-gates/spec.md
+    - SKILL.md
+  grounding: specs/011-phase-consensus-gates/spec.md
+  trigger: disputes_remain
+  timing: inter-round
+  influence: advisory

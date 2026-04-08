@@ -1,0 +1,54 @@
+# Feature schema for resource-allocation mode deliberation
+# Spec 028 — Mode Expansion
+name: resource-allocation
+description: >
+  Feature schema for resource allocation mode. A fixed pool of resources
+  must be distributed among competing demands. Features capture demand
+  quantities, allocation efficiency, and Shapley fairness scores.
+
+features:
+  # Per-agent features
+  - name: demand_count
+    type: scalar
+    source: phase_1_review
+    extraction: "Count resource items under '### Resource Demand'"
+    description: "Number of distinct resource demands in Phase 1"
+
+  - name: concession_rate
+    type: scalar
+    source: phase_3_revision
+    extraction: "(reduced + modified) / total demands"
+    description: "Fraction of demands reduced or modified"
+
+  - name: reduced_count
+    type: scalar
+    source: phase_3_revision
+    extraction: "Count dispositions with 'Reduced' label"
+    description: "Number of demands reduced in Phase 3"
+
+  - name: modified_count
+    type: scalar
+    source: phase_3_revision
+    extraction: "Count dispositions with 'Modified' label"
+    description: "Number of demands modified in Phase 3"
+
+  - name: maintained_count
+    type: scalar
+    source: phase_3_revision
+    extraction: "Count dispositions with 'Maintained' label"
+    description: "Number of demands maintained"
+
+  # Aggregate features
+  - name: contested_allocation_count
+    type: scalar
+    source: phase_5_synthesis
+    extraction: >
+      Count entries between DISPUTES_BEGIN and DISPUTES_END markers.
+      Fallback: count '**Contested:' headings under '### Contested Allocations'.
+    description: "Number of contested allocations after full deliberation"
+
+  - name: agreed_allocation_count
+    type: scalar
+    source: phase_4_disputes
+    extraction: "Count '**Agreed:' entries across all agents' claims"
+    description: "Number of agreed allocations"

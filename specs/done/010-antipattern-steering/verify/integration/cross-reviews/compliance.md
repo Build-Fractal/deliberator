@@ -1,0 +1,81 @@
+# Cross-Review of compliance's Review
+
+**Cross-reviewer**: integration
+**Date**: 2026-03-20
+**Subject**: compliance's Phase 1 review of spec 010-antipattern-steering
+
+---
+
+### Dangerous Contradictions
+
+- **T011 failure severity and remediation approach**
+  - **compliance claims**: T011 should have its validation requirement tightened -- "Add an explicit validation step: 'For each path referenced in Example sections, verify the path exists by listing the directory. Record the verification result.'" (Actionable Recommendations, item 3). Compliance frames this as a process fix: make T011's acceptance criteria stricter so future validations catch broken paths.
+  - **integration claims**: T011 should be marked incomplete (`[ ]`) immediately -- "Uncheck T011 until the example path issue is resolved" (Actionable Recommendations, item 6). Integration frames this as a data integrity fix: the task tracking system is currently lying about completion status.
+  - **Why this is dangerous**: If compliance's recommendation is implemented first (tighten T011 wording) without integration's recommendation (uncheck the box), the task remains marked complete against its new, stricter criteria -- a worse state than before. Conversely, if integration's recommendation is applied first (uncheck) without compliance's (tighten wording), T011 could be re-checked by simply re-reading the broken path without actually verifying it exists, since the current wording allows that interpretation.
+  - **Suggested resolution**: Apply both in sequence. First uncheck T011 (integration's recommendation), then amend the task description to require filesystem verification (compliance's recommendation), then re-execute validation and only check the box when the path resolves. Both reviews agree the path is broken -- the disagreement is only about which fix comes first.
+
+- **Contract "exact wording" divergence: severity assessment**
+  - **compliance claims**: Does not flag the SKILL.md step 2 divergence from the contract's "Exact wording" label (catalog-format.md L91). The compliance review lists FR-005/FR-006 as "Implemented" (Verification Matrix) without noting the contract mismatch, and the Task Completion table marks T005 as "Pass."
+  - **integration claims**: The step 2 divergence is a missed opportunity at medium impact -- "SKILL.md step 2 diverges from contract without contract update" (Missed Opportunities). The contract says "Exact wording" (L91) but the actual SKILL.md step 2 (L205) includes keyword retrieval guidance not present in the contract (L100). Integration recommends updating the contract (Actionable Recommendations, item 3).
+  - **Why this is dangerous**: Compliance's verification matrix certifies FR-005 and T005 as fully implemented while the contract's own "Exact wording" constraint is violated. If a future implementer regenerates SKILL.md from the contract (as the contract's L109 versioning rule envisions), they will produce a step 2 without keyword retrieval guidance, silently regressing the T008 enhancement. A compliance audit that marks this as passing creates a false sense of contract fidelity.
+  - **Suggested resolution**: Compliance should acknowledge the divergence even if it considers FR-005/FR-006 satisfied at the functional level. The contract should be updated to either reflect the current SKILL.md wording or relabel the section from "Exact wording" to "Minimum wording" to accommodate extensions. Both reviews should align on whether the contract or the SKILL.md is the authoritative source when they diverge.
+
+- **Maintenance section as structural risk vs. undocumented feature**
+  - **compliance claims**: The Maintenance section is reviewed positively -- "Maintenance procedures: The Maintenance section documents both add and deprecate workflows correctly" (Alignment section). Compliance validates FR-009 and FR-010 against the Maintenance section without noting any structural concern.
+  - **integration claims**: The Maintenance section creates two integration risks: (1) it uses H2 heading level identical to entry sections, so an agent parsing H2 headings would misidentify it as an entry (Missed Opportunities: "No validation that Maintenance section is positioned correctly"); (2) the contract template (catalog-format.md L12-59) does not include the Maintenance section at all, making it an undocumented structural addition (Actionable Recommendations, item 4).
+  - **Why this is dangerous**: Compliance certifying the Maintenance section as correct while integration flags it as structurally ambiguous and contractually absent means a future catalog parser built to compliance's verification results would not account for the Maintenance heading. When the catalog grows and retrieval becomes keyword-based (FR-008), terms like "Deprecated," "Status," and "modify" in the Maintenance section could produce false matches.
+  - **Suggested resolution**: Both reviews should converge on a recommendation to add the Maintenance section to the contract template. Compliance's validation is correct that the content is functionally complete; integration's concern is correct that the structure is contractually unspecified. Adding it to the contract resolves both.
+
+### Tensions
+
+- **Constitution Principle IV: amendment scope**
+  - **compliance's position**: Recommends amending Principle IV to "remove or qualify the STATUS.md mandate" and provides specific replacement language: "Cross-spec status is derived from speckit artifacts..." (Actionable Recommendations, item 2). Compliance also recommends a process change -- a "constitution consistency gate" requiring reconciliation before adding entries that contradict principles (Missed Opportunities).
+  - **integration's position**: Recommends amending Principle IV with three options: remove the bullet, replace the mandate, or add a supersession note. Also flags that the amendment would require a version bump from 1.1.0 to 1.2.0 per the constitution's own governance rules (Actionable Recommendations, items 2 and 8).
+  - **Nature of tension**: Both agree the contradiction must be resolved, but compliance pushes toward a broader process solution (consistency gates for all future entries) while integration focuses on the immediate fix plus version governance. Compliance's consistency gate would add ongoing process overhead to every new catalog entry; integration's version bump requirement adds bureaucratic rigor to the amendment itself. These pull in different directions: compliance wants preventive process, integration wants correct state tracking.
+  - **Coordination needed**: The immediate fix (amend Principle IV) should come first -- both agree on this. The question of whether to add a standing consistency gate (compliance) or simply track amendments via versioning (integration) should be resolved as a separate decision, since the gate introduces a new workflow requirement not present in the current spec.
+
+- **SC-001 measurability: aspirational vs. defined**
+  - **compliance's position**: Flags SC-001 as "Not measurable" (Verification Matrix) and recommends defining a measurement mechanism: "post-deliberation review: if any deliberation output proposes an artifact matching a cataloged antipattern's symptoms, SC-001 is violated" (Actionable Recommendations, item 5).
+  - **integration's position**: Does not explicitly flag SC-001 as unmeasurable. Integration's review focuses on cross-file reference consistency and does not address success criteria measurement.
+  - **Nature of tension**: Compliance identifies a gap that integration does not cover. If compliance's recommendation is implemented (add a post-deliberation review check), it introduces a new cross-file integration point: the deliberation output must now be compared against catalog symptoms. Integration's scope (cross-file reference consistency) would need to expand to cover this new integration surface.
+  - **Coordination needed**: Integration should acknowledge this gap in a final reconciliation. If SC-001 measurement is added, integration should verify that the measurement mechanism's references to catalog symptoms are consistent with the catalog's actual symptom format and keyword structure.
+
+- **Broken path: scope of affected files**
+  - **compliance's position**: Identifies the broken path in catalog.md L33 and tasks.md L38, L64, L77 (Actionable Recommendations, item 1; Off-Base Assumptions). Does not mention quickstart.md or conversus.yml as affected files.
+  - **integration's position**: Identifies six affected files: catalog.md L33, tasks.md L38, tasks.md L77, quickstart.md L15, quickstart.md L47, and plan.md L63 (Actionable Recommendations, item 1; Missed Opportunities: dead example path).
+  - **Nature of tension**: Compliance's narrower scope means its fix would leave broken references in quickstart.md and plan.md. Integration's broader scope captures the full blast radius. This is not a disagreement on the fix -- both say update the path -- but on how many files need updating.
+  - **Coordination needed**: The fix should use integration's file list as the authoritative scope. Compliance should verify its recommendation covers all files integration identified. A grep for `001-antipattern-steering` across the conversus directory would produce the definitive list.
+
+- **Entry validation: checklist artifact vs. contract amendment**
+  - **compliance's position**: Recommends adding a "field-count validation" checklist to the catalog Maintenance section (Actionable Recommendations, item 7, P3) -- a structured checklist enumerating required fields with validation constraints.
+  - **integration's position**: Recommends adding the Maintenance section to the contract template (Actionable Recommendations, item 4, P2) -- formalizing the Maintenance section as a contractual structural requirement.
+  - **Nature of tension**: Compliance wants to add validation rules to the catalog itself (the runtime artifact agents read). Integration wants to add structural requirements to the contract (the governance artifact that defines format). If both are implemented independently, validation rules exist in two places (catalog Maintenance section and contract) with no defined precedence when they diverge.
+  - **Coordination needed**: The contract should be the single source of truth for structural and validation rules. The catalog's Maintenance section should reference the contract for validation constraints rather than duplicating them. Both recommendations can coexist if the catalog Maintenance section explicitly defers to the contract for field validation rules.
+
+- **SC-003 "performance" interpretation**
+  - **compliance's position**: Recommends redefining "performance" in SC-003 to mean "agent context window consumption" rather than computation speed, with specific rewording (Actionable Recommendations, item 6, P2).
+  - **integration's position**: Does not address SC-003 interpretation. Integration treats the 50-entry threshold as a design assumption without questioning the term "performance."
+  - **Nature of tension**: Compliance's reinterpretation would change what SC-003 actually measures, which could affect integration's assessment of whether the retrieval mechanism (FR-008) adequately addresses the criterion. If "performance" means context window budget, the keyword filtering in SKILL.md step 2 becomes a context management strategy rather than a speed optimization -- changing the rationale for why it exists.
+  - **Coordination needed**: If compliance's reinterpretation is adopted, integration should revisit whether the SKILL.md step 2 keyword filtering guidance adequately addresses context window management (e.g., does it specify how many full entries to load, or just which ones to select?).
+
+### Safe Agreements
+
+- **Broken example path is a P1 blocking defect**
+  - **Shared position**: Both reviews identify `specs/001-antipattern-steering/examples/redundant-cache/` as a non-existent path that must be fixed before the spec is complete. Compliance: "the catalog's Example section references a non-existent path" (Executive Summary); "Fix broken example path -- Priority: P1" (Actionable Recommendations, item 1). Integration: "the example path referenced in the catalog entry does not exist on disk -- it is a dead link" (Executive Summary); "Fix example path references -- Priority: P1" (Actionable Recommendations, item 1).
+  - **Combined evidence**: Compliance verified the path against SC-004 (spec.md L102) and the data-model validation rule (L56). Integration verified the filesystem (no `001-antipattern-steering` directory exists; only `009-antipattern-steering` and `010-antipattern-steering`) and traced the broken reference across six files. Compliance caught propagation into tasks.md L38, L64, L77. Integration additionally caught quickstart.md L15, L47 and plan.md L63. Together, the full blast radius is documented.
+  - **Confidence level**: high.
+
+- **Constitution Principle IV contradicts the redundant-cache antipattern and must be resolved**
+  - **Shared position**: Both reviews identify the STATUS.md mandate in Principle IV (constitution.md L73-75) as directly contradicting the first catalog entry. Compliance: "constitution.md Principle IV still mandates STATUS.md as 'the authoritative cross-spec reference' -- directly contradicting the `redundant-cache` antipattern" (Executive Summary). Integration: "the constitution's Principle IV still mandates STATUS.md maintenance as the 'authoritative cross-spec reference,' which directly contradicts the antipattern catalog's first entry" (Executive Summary). Both cite the governance precedence clause (constitution.md L196-199) as the mechanism that makes this contradiction dangerous.
+  - **Combined evidence**: Compliance demonstrates the contradiction creates conflicting MUST-level instructions and notes that the constitution's governance clause means agents will follow Principle IV over the catalog, "defeating the purpose of the antipattern entry" (Actionable Recommendations, item 2). Integration demonstrates the same governance precedence problem and adds the version governance angle -- the constitution was modified (Known Antipatterns section added) without the required MINOR version bump (Actionable Recommendations, item 8). Together, both the semantic contradiction and the governance process violation are documented.
+  - **Confidence level**: high.
+
+- **Keyword synchronization between index and entry body is correct**
+  - **Shared position**: Both reviews confirm that the Summary Index Keywords column exactly matches the entry's Keywords section for the `redundant-cache` entry. Compliance: "Entry has 8 keyword tags; index Keywords column matches" in the FR-007 row of the Verification Matrix, and the Summary Index Consistency Check table shows "Keywords match entry Keywords: Pass." Integration: "The Summary Index Keywords column exactly matches the entry's Keywords section" (Alignment: Keyword synchronization), citing both catalog.md L10 and L53, and data-model.md L72-73.
+  - **Combined evidence**: Compliance validated from the requirements side (FR-007 satisfied, bidirectional sync verified). Integration validated from the cross-file reference side (same tags, same order, matching format). Both perspectives confirm the implementation is correct.
+  - **Confidence level**: high.
+
+- **Catalog entry format conforms to the contract**
+  - **Shared position**: Both reviews confirm the `redundant-cache` entry follows the contract's field order and contains all required fields (with the exception of the broken example path). Compliance: detailed field-by-field validation in the "Catalog Entry Field Validation" table, with all fields marked Present and Valid except Example. Integration: "The redundant-cache entry follows the contract's field order exactly" (Alignment: Entry format conformance), citing catalog.md L14-53 against catalog-format.md L26-59.
+  - **Combined evidence**: Compliance provides granular field-level validation (9 fields checked, 8 valid). Integration provides structural ordering validation (field sequence matches contract template). Together, both content and structure are confirmed.
+  - **Confidence level**: high.

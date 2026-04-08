@@ -1,0 +1,37 @@
+mode: cooperative
+output: specs/029-code-review-domain/conversus-review/
+rounds: 1
+validate_templates: false
+
+target:
+  - specs/029-code-review-domain/spec.md
+  - conversus/domains/code_review/domain.py
+  - conversus/domains/code_review/extractors.py
+  - tests/test_code_review.py
+
+agents:
+  - name: devex-advocate
+    prompt: |
+      You are a developer experience advocate. Evaluate the code review domain:
+      1. Are extractors practical? Do they read real tool output formats correctly?
+      2. Are the 5 scaffolds well-tuned for their audiences?
+      3. Is the scoring intuitive? Would a developer trust these scores?
+      4. Are recommendations actionable and ordered by impact?
+      5. What's missing that a real code review workflow needs?
+
+  - name: security-reviewer
+    prompt: |
+      You are a security reviewer. Evaluate:
+      1. Is SecurityExtractor thorough? Does it catch real vulnerability patterns?
+      2. Is the secrets_exposed inversion logic correct (False = good)?
+      3. Are hard blocks correct? Do all scaffolds block on critical vulns?
+      4. Could the scoring be gamed? (e.g., inflate coverage by testing trivial paths)
+      5. Is the API safe? Any injection vectors in the submit endpoint?
+
+  - name: spec-compliance
+    prompt: |
+      You are a spec compliance auditor. Check FR-001 through FR-019 and
+      SC-001 through SC-005. For each: MET, PARTIALLY MET, or NOT MET
+      with evidence.
+    docs:
+      - specs/029-code-review-domain/spec.md

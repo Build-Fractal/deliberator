@@ -1,0 +1,321 @@
+"""Tests for engine.dispatch — single-agent and multi-agent concurrent dispatch."""
+
+from __future__ import annotations
+
+import asyncio
+from collections.abc import AsyncIterator
+
+import pytest
+
+from engine.dispatch import DEFAULT_MAX_TOKENS, DEFAULT_MODEL, dispatch_agent, dispatch_phase
+from engine.events import (
+    AgentCompleted,
+    AgentDispatched,
+    CallbackEmitter,
+    EngineEvent,
+    NullEmitter,
+)
+from engine.providers import MockProvider
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+class FailingProvider:
+    """Provider that raises for a specific agent name."""
+
+    def __init__(self, fail_for: str) -> None:
+        self.fail_for = fail_for
+
+    async def complete(self, prompt: str, model: str, max_tokens: int) -> str:
+        if self.fail_for in prompt:
+            raise RuntimeError(f"Simulated failure for {self.fail_for}")
+        return f"Success for {model}"
+
+    async def stream(self, prompt: str, model: str, max_tokens: int) -> AsyncIterator[str]:
+        yield "not used"
+
+
+# ---------------------------------------------------------------------------
+# dispatch_agent
+# ---------------------------------------------------------------------------
+
+class TestDispatchAgent:
+    """dispatch_agent calls the provider and emits events."""
+
+    @pytest.mark.asyncio
+    async def test_returns_response_text(
+        self,
+        mock_provider: MockProvider,
+        event_collector: tuple[CallbackEmitter, list[EngineEvent]],
+    ) -> None:
+        emitter, events = event_collector
+        text, error = await dispatch_agent(
+            prompt="Review this spec.",
+            agent_name="agent-a",
+            model=DEFAULT_MODEL,
+            max_tokens=DEFAULT_MAX_TOKENS,
+            provider=mock_provider,
+            emitter=emitter,
+        )
+        assert error is None
+        assert "Mock review response" in text
+
+    @pytest.mark.asyncio
+    async def test_emits_dispatched_and_completed(
+        self,
+        mock_provider: MockProvider,
+        event_collector: tuple[CallbackEmitter, list[EngineEvent]],
+    ) -> None:
+        emitter, events = event_collector
+        await dispatch_agent(
+            prompt="Review this.",
+            agent_name="agent-a",
+            model=DEFAULT_MODEL,
+            max_tokens=DEFAULT_MAX_TOKENS,
+            provider=mock_provider,
+            emitter=emitter,
+        )
+        assert len(events) == 2
+        assert isinstance(events[0], AgentDispatched)
+        assert isinstance(events[1], AgentCompleted)
+        assert events[1].success is True
+        assert events[1].error is None
+
+    @pytest.mark.asyncio
+    async def test_captures_provider_error(
+        self,
+        event_collector: tuple[CallbackEmitter, list[EngineEvent]],
+    ) -> None:
+        emitter, events = event_collector
+        failing = FailingProvider(fail_for="agent-a")
+        text, error = await dispatch_agent(
+            prompt="agent-a review",
+            agent_name="agent-a",
+            model=DEFAULT_MODEL,
+            max_tokens=DEFAULT_MAX_TOKENS,
+            provider=failing,
+            emitter=emitter,
+        )
+        assert text == ""
+        assert error is not None
+        assert "Simulated failure" in error
+        # AgentCompleted should show failure
+        completed = [e for e in events if isinstance(e, AgentCompleted)]
+        assert len(completed) == 1
+        assert completed[0].success is False
+
+    @pytest.mark.asyncio
+    async def test_records_call_on_mock(self, mock_provider: MockProvider) -> None:
+        emitter = NullEmitter()
+        await dispatch_agent(
+            prompt="test prompt",
+            agent_name="agent-a",
+            model="test-model",
+            max_tokens=1024,
+            provider=mock_provider,
+            emitter=emitter,
+        )
+        assert len(mock_provider.calls) == 1
+        assert mock_provider.calls[0].prompt == "test prompt"
+        assert mock_provider.calls[0].model == "test-model"
+
+
+# ---------------------------------------------------------------------------
+# dispatch_phase
+# ---------------------------------------------------------------------------
+
+class TestDispatchPhase:
+    """dispatch_phase dispatches all agents concurrently."""
+
+    @pytest.mark.asyncio
+    async def test_three_agents_all_succeed(
+        self,
+        mock_provider: MockProvider,
+        event_collector: tuple[CallbackEmitter, list[EngineEvent]],
+    ) -> None:
+        emitter, events = event_collector
+        agents = [
+            ("agent-a", "Prompt A"),
+            ("agent-b", "Prompt B"),
+            ("agent-c", "Prompt C"),
+        ]
+        results = await dispatch_phase(
+            agents=agents,
+            model=DEFAULT_MODEL,
+            max_tokens=DEFAULT_MAX_TOKENS,
+            provider=mock_provider,
+            emitter=emitter,
+        )
+        assert len(results) == 3
+        for name, text, error in results:
+            assert error is None
+            assert len(text) > 0
+
+    @pytest.mark.asyncio
+    async def test_error_isolation(
+        self,
+        event_collector: tuple[CallbackEmitter, list[EngineEvent]],
+    ) -> None:
+        """One failing agent doesn't crash others."""
+        emitter, events = event_collector
+        failing = FailingProvider(fail_for="agent-b")
+        agents = [
+            ("agent-a", "Prompt A"),
+            ("agent-b", "agent-b review"),
+            ("agent-c", "Prompt C"),
+        ]
+        results = await dispatch_phase(
+            agents=agents,
+            model=DEFAULT_MODEL,
+            max_tokens=DEFAULT_MAX_TOKENS,
+            provider=failing,
+            emitter=emitter,
+        )
+        # agent-a and agent-c succeed, agent-b fails
+        successes = [(n, t, e) for n, t, e in results if e is None]
+        failures = [(n, t, e) for n, t, e in results if e is not None]
+        assert len(successes) == 2
+        assert len(failures) == 1
+        assert failures[0][0] == "agent-b"
+
+    @pytest.mark.asyncio
+    async def test_concurrent_execution(
+        self,
+        event_collector: tuple[CallbackEmitter, list[EngineEvent]],
+    ) -> None:
+        """Verify agents are dispatched concurrently (not sequentially)."""
+
+        class SlowProvider:
+            async def complete(self, prompt: str, model: str, max_tokens: int) -> str:
+                await asyncio.sleep(0.05)
+                return "done"
+
+            async def stream(self, prompt: str, model: str, max_tokens: int) -> AsyncIterator[str]:
+                yield "done"
+
+        emitter, events = event_collector
+        agents = [("a", "P"), ("b", "P"), ("c", "P")]
+
+        import time
+        start = time.monotonic()
+        await dispatch_phase(
+            agents=agents,
+            model="test",
+            max_tokens=100,
+            provider=SlowProvider(),
+            emitter=emitter,
+        )
+        elapsed = time.monotonic() - start
+
+        # 3 agents × 50ms each = 150ms sequential; should be ~50ms concurrent
+        assert elapsed < 0.15, f"Took {elapsed:.3f}s — agents may not be concurrent"
+
+
+# ---------------------------------------------------------------------------
+# dispatch_agent — streaming mode
+# ---------------------------------------------------------------------------
+
+class TestDispatchAgentStreaming:
+    """dispatch_agent with streaming=True uses provider.stream()."""
+
+    @pytest.mark.asyncio
+    async def test_streaming_calls_stream_method(
+        self,
+        mock_provider: MockProvider,
+        event_collector: tuple[CallbackEmitter, list[EngineEvent]],
+    ) -> None:
+        """When streaming=True with a callback, provider.stream() is used."""
+        emitter, events = event_collector
+        chunks_received: list[str] = []
+
+        text, error = await dispatch_agent(
+            prompt="Review this spec.",
+            agent_name="agent-a",
+            model=DEFAULT_MODEL,
+            max_tokens=DEFAULT_MAX_TOKENS,
+            provider=mock_provider,
+            emitter=emitter,
+            streaming=True,
+            stream_callback=lambda c: chunks_received.append(c),
+        )
+
+        assert error is None
+        assert len(text) > 0
+        # MockProvider.stream() splits by whitespace and appends a space
+        assert len(chunks_received) > 0
+        assert "".join(chunks_received) == text
+        # Verify stream method was called (not complete)
+        assert mock_provider.calls[-1].method == "stream"
+
+    @pytest.mark.asyncio
+    async def test_streaming_emits_response_text(
+        self,
+        mock_provider: MockProvider,
+        event_collector: tuple[CallbackEmitter, list[EngineEvent]],
+    ) -> None:
+        """AgentCompleted event includes response_text when streaming."""
+        emitter, events = event_collector
+
+        await dispatch_agent(
+            prompt="Review this.",
+            agent_name="agent-a",
+            model=DEFAULT_MODEL,
+            max_tokens=DEFAULT_MAX_TOKENS,
+            provider=mock_provider,
+            emitter=emitter,
+            streaming=True,
+            stream_callback=lambda c: None,
+        )
+
+        completed = [e for e in events if isinstance(e, AgentCompleted)]
+        assert len(completed) == 1
+        assert completed[0].response_text is not None
+        assert len(completed[0].response_text) > 0
+
+    @pytest.mark.asyncio
+    async def test_non_streaming_also_populates_response_text(
+        self,
+        mock_provider: MockProvider,
+        event_collector: tuple[CallbackEmitter, list[EngineEvent]],
+    ) -> None:
+        """AgentCompleted event includes response_text even without streaming."""
+        emitter, events = event_collector
+
+        await dispatch_agent(
+            prompt="Review this.",
+            agent_name="agent-a",
+            model=DEFAULT_MODEL,
+            max_tokens=DEFAULT_MAX_TOKENS,
+            provider=mock_provider,
+            emitter=emitter,
+        )
+
+        completed = [e for e in events if isinstance(e, AgentCompleted)]
+        assert len(completed) == 1
+        assert completed[0].response_text is not None
+
+    @pytest.mark.asyncio
+    async def test_streaming_without_callback_uses_complete(
+        self,
+        mock_provider: MockProvider,
+        event_collector: tuple[CallbackEmitter, list[EngineEvent]],
+    ) -> None:
+        """streaming=True without stream_callback falls back to complete()."""
+        emitter, events = event_collector
+
+        text, error = await dispatch_agent(
+            prompt="Review.",
+            agent_name="agent-a",
+            model=DEFAULT_MODEL,
+            max_tokens=DEFAULT_MAX_TOKENS,
+            provider=mock_provider,
+            emitter=emitter,
+            streaming=True,
+            stream_callback=None,
+        )
+
+        assert error is None
+        assert len(text) > 0
+        assert mock_provider.calls[-1].method == "complete"

@@ -1,0 +1,78 @@
+mode: cooperative
+target:
+  - conversus/specs/STATUS.md
+output: conversus/specs/005-p2p3-backlog-hardening/tasks/T006/
+iterations: 1
+
+# Consensus gate: validates T006 implementation against FR-012
+# Run AFTER task execution to verify work was done correctly
+
+agents:
+  - name: compliance
+    prompt: |
+      You are a spec-compliance auditor. Your job is to determine whether
+      the implementation satisfies the functional requirement.
+
+      TASK: T006 — Update taxonomy section in specs/STATUS.md to add
+      two-tier acceptance convention: "feature-complete" (all major
+      capabilities present, AC gaps remain) and "spec-complete" (all
+      acceptance criteria met) alongside existing implementation tiers.
+
+      REQUIREMENT: FR-012 — The project MUST establish and document a
+      two-tier status convention: "feature-complete" (all major capabilities
+      present, acceptance criteria gaps remain) and "spec-complete" (all
+      acceptance criteria met).
+
+      Check:
+      1. Does STATUS.md contain a taxonomy section with both tiers?
+      2. Are the definitions clear and match the spec wording?
+      3. Is the existing implementation-tier taxonomy preserved (not replaced)?
+      4. Is the relationship between the two tiers explained?
+    docs:
+      - conversus/specs/005-p2p3-backlog-hardening/spec.md
+      - conversus/specs/005-p2p3-backlog-hardening/data-model.md
+
+  - name: integration
+    prompt: |
+      You are an integration reviewer. Your job is to verify the change
+      fits correctly within the existing document and doesn't break
+      anything.
+
+      TASK: T006 — Add two-tier acceptance convention to STATUS.md taxonomy.
+
+      Check:
+      1. Does the new taxonomy section integrate with the existing content
+         structure of STATUS.md?
+      2. Are existing spec entries (001-004) still valid under the updated
+         taxonomy?
+      3. Is the taxonomy positioned so that subsequent tasks (T007-T012a)
+         can build on it?
+      4. Does the wording avoid the semantic overlap issue identified in
+         the conversus deliberation (implementation-complete vs spec-complete)?
+    docs:
+      - conversus/specs/005-p2p3-backlog-hardening/plan.md
+      - conversus/specs/005-p2p3-backlog-hardening/tasks.md
+
+  - name: scope-creep
+    prompt: |
+      You are a scope-creep detector. Your ONLY job is to identify changes
+      that go beyond the task's stated scope. Anything the task didn't ask
+      for is a finding — even if the extra work is "good" or "helpful."
+
+      TASK SCOPE: T006 — Update the taxonomy section ONLY. Add two-tier
+      acceptance convention alongside existing implementation tiers.
+
+      What is IN scope:
+      - Adding "feature-complete" and "spec-complete" definitions
+      - Adding a note explaining the relationship between tiers
+      - Preserving existing taxonomy entries
+
+      What is OUT of scope (flag if found):
+      - Modifying spec entries (001-004) — that's T007
+      - Adding shared subsystem sections — that's T008
+      - Adding risk-of-gap or effort fields — that's T010/T011
+      - Renaming or redefining existing taxonomy labels
+      - Any changes outside the taxonomy section of STATUS.md
+      - Any changes to files other than STATUS.md
+    docs:
+      - conversus/specs/005-p2p3-backlog-hardening/tasks.md

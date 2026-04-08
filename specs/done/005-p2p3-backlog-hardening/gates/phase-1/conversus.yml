@@ -1,0 +1,65 @@
+mode: cooperative
+output: conversus/specs/005-p2p3-backlog-hardening/gates/phase-1/
+iterations: 1
+
+# Phase 1 Gate: Verify Pre-Existing FRs
+# Goal: Confirm 10 fully-implemented FRs and 1 partial (FR-011) are still correct
+# Tasks: T001-T005 (all parallel, verification only)
+# FRs: FR-001, FR-002, FR-003, FR-004, FR-005, FR-006, FR-010, FR-011 (partial), FR-018
+
+target:
+  - conversus/templates/winner-take-all/arbitration.md
+  - conversus/templates/red-blue/arbitration.md
+  - conversus/templates/prisoners-dilemma/arbitration.md
+  - conversus/templates/cooperative/arbitration.md
+  - conversus/specs/005-p2p3-backlog-hardening/spec.md
+  - conversus/specs/005-p2p3-backlog-hardening/tasks.md
+
+agents:
+  - name: compliance
+    prompt: |
+      You are a spec-compliance auditor for Phase 1 of spec 005 (P2/P3 Backlog Hardening).
+
+      PHASE GOAL: Confirm that 10 fully-implemented FRs and 1 partial (FR-011)
+      are still correct before building on them.
+
+      TASKS COVERED:
+      - T001: Verify draft markers on 3 non-cooperative arbitration templates (FR-001)
+      - T002: Verify SKILL.md Step 3 draft marker check (FR-002, FR-003)
+      - T003: Verify SKILL.md Phase 6 output validation (FR-004, FR-005, FR-006)
+      - T004: Verify Dispute-Parsing Subsystem documentation (FR-010, FR-011 partial)
+      - T005: Verify Baseline Features section (FR-018)
+
+      YOUR JOB: For each task, verify the FR is satisfied by reading the
+      actual files. Report PASS/FAIL per FR. Flag any FR that is not fully
+      satisfied. Note that FR-011 is expected to be partial — Round Termination
+      Check still uses inline parsing.
+
+      CHECKPOINT CRITERIA: 10 pre-existing FRs verified, 1 partial (FR-011).
+      Remaining 9 FRs ready for implementation.
+    docs:
+      - conversus/specs/005-p2p3-backlog-hardening/spec.md
+
+  - name: scope-boundary
+    prompt: |
+      You are a scope-boundary enforcer for Phase 1 of spec 005.
+
+      PHASE GOAL: Verification only — confirm pre-existing FRs are intact.
+      Zero changes expected. Zero new files created. Zero modifications.
+
+      YOUR JOB:
+      1. Confirm that Phase 1 is pure verification — no task requires
+         modifying any file.
+      2. Flag if any task description implies changes beyond reading and
+         confirming.
+      3. Verify the phase checkpoint is achievable: can all 10 FRs + 1 partial
+         be verified by reading existing files?
+      4. Check that phase boundaries are clean — no Phase 1 task encroaches
+         on Phase 2-4 scope (STATUS.md changes, SKILL.md additions).
+
+      SCOPE BOUNDARIES:
+      - Phase 1 reads only, Phases 2-4 write
+      - FR-011 is partial by design — do not flag as a failure
+      - T001-T005 are all [P] (parallel) — verify no hidden dependencies
+    docs:
+      - conversus/specs/005-p2p3-backlog-hardening/tasks.md

@@ -1,0 +1,45 @@
+mode: cooperative
+target:
+  - conversus/SKILL.md
+output: conversus/specs/005-p2p3-backlog-hardening/tasks/T002/
+iterations: 1
+
+# Consensus gate: validates T002 — SKILL.md Step 3 draft check
+# Verification task — confirms pre-existing FR-002, FR-003 are intact
+
+agents:
+  - name: compliance
+    prompt: |
+      You are a spec-compliance auditor verifying FR-002 and FR-003.
+
+      TASK: T002 — Verify SKILL.md Step 3 contains the draft marker check
+      with correct error message.
+
+      REQUIREMENTS:
+      - FR-002: SKILL.md Step 3 MUST check loaded templates for the draft
+        marker. If present, execution MUST fail with: "Template {path} is
+        marked as draft and cannot be used in production runs."
+      - FR-003: The draft marker check MUST occur before any variable
+        substitution or other template processing.
+
+      Check:
+      1. Does Step 3 (template loading) contain the draft marker check?
+      2. Is the error message format correct?
+      3. Does the check occur in Step 3, before Step 4 (variable substitution)?
+      4. Is the check described as happening at load time, not later?
+    docs:
+      - conversus/specs/005-p2p3-backlog-hardening/spec.md
+
+  - name: scope-creep
+    prompt: |
+      You are a scope-creep detector. This is a VERIFICATION-ONLY task.
+      No files should have been modified.
+
+      TASK SCOPE: T002 — Read and verify SKILL.md Step 3. Zero changes expected.
+
+      Flag if found:
+      - Any modification to SKILL.md
+      - Any new files created
+      - Anything beyond reading and confirming the check exists
+    docs:
+      - conversus/specs/005-p2p3-backlog-hardening/tasks.md

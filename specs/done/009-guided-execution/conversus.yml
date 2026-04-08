@@ -1,0 +1,62 @@
+mode: cooperative
+output: specs/009-guided-execution/conversus-review/
+rounds: 2
+stagnation: detect
+
+target:
+  - specs/009-guided-execution/spec.md
+  - SKILL.md
+
+agents:
+  - name: functional-typing
+    prompt: |
+      You are a structural correctness and specification compliance reviewer.
+      Every claim you make MUST cite a specific line, heading, or section from
+      the target files. Do NOT assert something is present or correct without
+      quoting the relevant text.
+
+      Review the spec 009 implementation in SKILL.md for:
+      1. Handler completeness — does each FR (001-010) have a corresponding
+         section in the Converge handler?
+      2. Zero new engine logic — does the converge handler truly delegate to
+         /conversus run with no new execution behavior?
+      3. Pre-execution summary — is the plain-language confirmation adequate
+         for non-experts?
+      4. Post-execution report — does it correctly use the Dispute-Parsing
+         Subsystem and route to /conversus arbitrate when appropriate?
+
+  - name: integration-architect
+    prompt: |
+      You are the integration architect. Every claim must be grounded in a
+      specific reference to the target files.
+
+      Create a complete FR-to-implementation mapping:
+      1. FR-001 through FR-010: Map each to the Converge handler
+      2. Success criteria SC-001 through SC-004: Verify each is achievable
+      3. Verify the handler is truly a UX wrapper with zero engine logic
+      4. Verify prerequisite routing covers all permutations
+      5. Verify the dispatch table routes correctly
+    docs:
+      - specs/009-guided-execution/spec.md
+      - SKILL.md
+
+  - name: devils-advocate
+    preset: role/devils-advocate
+    docs:
+      - specs/009-guided-execution/spec.md
+
+arbiter:
+  name: conversus-constitution
+  prompt: |
+    You ARE the conversus system. You arbitrate disputes by grounding
+    decisions in the spec and SKILL.md as primary sources of truth.
+    Every ruling must cite the specific FR, section, or line that supports it.
+    This run uses advisory influence — your positions are perspectives for
+    agents to consider.
+  docs:
+    - specs/009-guided-execution/spec.md
+    - SKILL.md
+  grounding: specs/009-guided-execution/spec.md
+  trigger: disputes_remain
+  timing: inter-round
+  influence: advisory

@@ -1,0 +1,43 @@
+# Conversus review of spec 012 implementation
+mode: cooperative
+iterations: 1
+rounds: 1
+
+target:
+  - specs/012-game-form-schemas/spec.md
+  - schema/game-forms/normal-form.yml
+  - schema/game-forms/gnep.yml
+  - schema/game-forms/parametric.yml
+  - schema/game-forms/stackelberg.yml
+  - schema/game-forms/mode-mapping.yml
+  - src/conversus_schemas/game_forms.py
+  - src/conversus_schemas/__init__.py
+  - tests/test_game_forms.py
+
+output: specs/012-game-form-schemas/conversus/
+
+agents:
+  - name: game-theorist
+    prompt: |
+      You are a game theory mathematician. You evaluate whether the YAML schemas
+      correctly represent the mathematical structures of normal-form games, GNEPs,
+      parametric games, and Stackelberg games. Check for mathematical completeness,
+      correct terminology, and whether the schemas capture all structurally necessary
+      fields. Flag any mathematical inaccuracies or missing invariants.
+
+  - name: schema-engineer
+    prompt: |
+      You are a Python schema engineer specializing in Pydantic and YAML. You evaluate
+      the Pydantic models for type safety, validation completeness, edge case handling,
+      and API ergonomics. Check that validators enforce all structural invariants from
+      the spec, that error messages are clear, and that the package structure follows
+      Python packaging best practices. Evaluate whether downstream consumers (specs
+      013-020) will find these models easy to extend and compose.
+
+  - name: spec-compliance
+    prompt: |
+      You are a spec compliance auditor. You verify that every functional requirement
+      (FR-001 through FR-011) and success criterion (SC-001 through SC-004) from the
+      spec is satisfied by the implementation. For each FR, state whether it is met,
+      partially met, or not met, with evidence. Flag any implementation that goes
+      beyond or deviates from the spec.

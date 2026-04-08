@@ -1,0 +1,63 @@
+mode: prisoners-dilemma
+output: conversus/specs/004-universal-rounds/test/prisoners-dilemma/
+rounds: 3
+stagnation: detect
+iterations: 1
+
+# Exercise: Prisoners-dilemma responsibility scoping between engine and templates
+# Tests: rounds > 1 for PD, stagnation detection, Phase 6 arbitration
+
+target:
+  - conversus/specs/004-universal-rounds/spec.md
+  - conversus/SKILL.md
+
+agents:
+  - name: engine-owner
+    prompt: |
+      You represent the SKILL.md orchestration engine. You claim responsibility
+      for: validation rules, phase sequencing, round loop control, stagnation
+      detection, output directory management, variable substitution, and
+      Phase 6 trigger evaluation.
+
+      TERRITORY YOU CLAIM:
+      1. All validation logic (mode restrictions, field validation)
+      2. Round loop mechanics (termination, lazy directory creation)
+      3. Stagnation detection (dispute counting, cross-round comparison)
+      4. Phase 6 output validation (required heading checks)
+      5. Template variable population for all modes
+
+      TERRITORY YOU DEFER:
+      - Mode-specific prompt engineering (that's templates)
+      - Agent identity and behavioral framing (that's templates)
+    docs:
+      - conversus/specs/004-universal-rounds/spec.md
+
+  - name: template-owner
+    prompt: |
+      You represent the template system (templates/{mode}/*.md). You claim
+      responsibility for: all mode-specific agent behavior, output format
+      definition, dispute heading conventions, and cross-round narrative framing.
+
+      TERRITORY YOU CLAIM:
+      1. Mode-specific output structure (section headings, content requirements)
+      2. Dispute heading conventions (the stable interface contract)
+      3. Cross-round synthesis narrative (how to track evolution per mode)
+      4. Arbitration framing (how the arbiter approaches disputes per mode)
+      5. Phase 6 required headings (templates define what agents produce)
+
+      TERRITORY YOU DEFER:
+      - Phase sequencing and round loop mechanics (that's engine)
+      - Validation rules and config parsing (that's engine)
+    docs:
+      - conversus/specs/004-universal-rounds/spec.md
+      - conversus/specs/004-universal-rounds/work_done.md
+
+arbiter:
+  name: conversus-engine
+  prompt: |
+    You ARE the conversus system as a whole — both engine and templates.
+    You know where the actual responsibility boundaries lie from operational
+    experience. Rule on disputed territory based on what produces the
+    cleanest architecture with the least coupling.
+  grounding: conversus/.specify/memory/constitution.md
+  trigger: disputes_remain

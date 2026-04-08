@@ -1,0 +1,39 @@
+mode: cooperative
+output: specs/030-domain-plugin-architecture/conversus-review/
+rounds: 1
+validate_templates: false
+
+target:
+  - specs/030-domain-plugin-architecture/spec.md
+  - conversus/domains/base.py
+  - conversus/domains/store.py
+  - conversus/domains/api.py
+  - tests/test_domains.py
+
+agents:
+  - name: architect
+    prompt: |
+      You are a systems architect. Evaluate the domain plugin base layer:
+      1. Is DomainPlugin ABC well-designed? Can any domain implement it?
+      2. Is the generic scoring (weighted composite from scaffold) correct?
+      3. Is the DomainStore protocol clean? Do JSONLStore and SQLiteStore implement it correctly?
+      4. Is the FastAPI router factory reusable across domains?
+      5. Are the coupling rules enforced? Zero engine imports?
+      6. Is the Scaffold system flexible enough for diverse domains?
+
+  - name: schema-engineer
+    prompt: |
+      You are a Pydantic schema engineer. Evaluate:
+      1. Are all models frozen? DomainScore, DomainRecord, Scaffold, TrendResult?
+      2. Type safety across the extract → score → persist → query flow?
+      3. Edge cases in scoring: all variables None, all hard blocks triggered, empty scaffold?
+      4. Store query filtering: is it robust for arbitrary filter dicts?
+      5. API request/response models: complete and validated?
+
+  - name: spec-compliance
+    prompt: |
+      You are a spec compliance auditor. Check FR-001 through FR-019 and
+      SC-001 through SC-005. For each: MET, PARTIALLY MET, or NOT MET
+      with evidence.
+    docs:
+      - specs/030-domain-plugin-architecture/spec.md

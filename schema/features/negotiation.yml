@@ -1,0 +1,60 @@
+# Feature schema for negotiation mode deliberation
+# Spec 028 — Mode Expansion
+name: negotiation
+description: >
+  Feature schema for negotiation mode. Parties have conflicting interests
+  and must reach a mutually acceptable agreement. Features capture interest
+  declarations, term dispositions, ZOPA mapping, and deal convergence.
+
+features:
+  # Per-agent features
+  - name: interest_count
+    type: scalar
+    source: phase_1_review
+    extraction: "Count items under '### Interests Declaration'"
+    description: "Number of interests declared in Phase 1"
+
+  - name: term_count
+    type: scalar
+    source: phase_1_review
+    extraction: "Count specific terms under '### Opening Offer'"
+    description: "Number of terms proposed in Phase 1"
+
+  - name: concession_rate
+    type: scalar
+    source: phase_3_revision
+    extraction: "(conceded + modified) / total terms"
+    description: "Fraction of terms conceded or modified"
+
+  - name: conceded_count
+    type: scalar
+    source: phase_3_revision
+    extraction: "Count dispositions with 'Conceded' label"
+    description: "Number of terms conceded in Phase 3"
+
+  - name: modified_count
+    type: scalar
+    source: phase_3_revision
+    extraction: "Count dispositions with 'Modified' label"
+    description: "Number of terms modified in Phase 3"
+
+  - name: firm_count
+    type: scalar
+    source: phase_3_revision
+    extraction: "Count dispositions with 'Firm' label"
+    description: "Number of terms held firm"
+
+  # Aggregate features
+  - name: unresolved_term_count
+    type: scalar
+    source: phase_5_synthesis
+    extraction: >
+      Count entries between DISPUTES_BEGIN and DISPUTES_END markers.
+      Fallback: count '**Term:' headings under '### Unresolved Terms'.
+    description: "Number of unresolved terms after full negotiation"
+
+  - name: agreed_term_count
+    type: scalar
+    source: phase_4_disputes
+    extraction: "Count '**Agreed:' entries across all parties' final positions"
+    description: "Number of agreed terms"

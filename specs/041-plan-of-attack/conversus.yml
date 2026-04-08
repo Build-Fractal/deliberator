@@ -1,0 +1,56 @@
+subject: "Plan of Attack: Layer-by-Layer Build Order for Conversus"
+question: |
+  Review this plan of attack for building conversus layer-by-layer. The plan proposes 8 phases (0-7) building bottom-up: package splitting → engine standalone → free schema tier → data layer (Memgraph + pgvector) → project layer → VS Code co-pilot → chat interface → command center dashboard.
+
+  Evaluate:
+  1. Does the build order make sense given the dependency graph across specs 032, 033, 034-039, and 040?
+  2. Are there missing phases or steps that would block later work?
+  3. Is the free schema tier (without engine) viable for community adoption?
+  4. Is the Memgraph + pgvector split right for the all-AWS constraint?
+  5. Should VS Code plugin come before or after the chat interface?
+  6. Are cross-cutting concerns (dogfooding, blog posts, conversus-on-conversus) realistic or will they slow execution?
+  7. What are the highest-risk phases and what would de-risk them?
+
+mode: red-blue
+iterations: 2
+
+target:
+  - plan-of-attack.md
+  - ../040-command-center/spec.md
+  - ../032-package-splitting/spec.md
+  - ../033-monetization-partitioning/spec.md
+
+output: conversus/
+
+agents:
+  - name: strategist
+    role: red
+    prompt: |
+      You are a startup strategy advisor and technical architect. Your job is to STRESS TEST this plan of attack. Find gaps, challenge assumptions, identify risks, and question the build order. You care about: time to first revenue, dependency risks, team capacity constraints, and whether the phases are ordered to minimize waste. Be ruthless about anything that looks like premature optimization or scope creep. Challenge the Memgraph choice, the free tier strategy, and the VS Code plugin timing. If a phase could be cut or reordered, say so.
+    docs:
+      - ../033-monetization-partitioning/spec.md
+      - ../../.specify/memory/constitution.md
+
+  - name: architect
+    role: red
+    prompt: |
+      You are a systems architect focused on technical feasibility. Your job is to find TECHNICAL RISKS in this plan. Challenge: Can the monolith split really be mechanical? Will the schema layer work standalone without the engine? Is Memgraph the right choice vs Apache AGE (Postgres extension) or Amazon Neptune? What happens when the data layer and engine need to talk? Are there circular dependencies hiding in the plan? What infrastructure complexity is being underestimated? Look at the coupling rules in spec 032 and verify the plan respects them.
+    docs:
+      - ../032-package-splitting/spec.md
+      - ../../SKILL.md
+
+  - name: builder
+    role: blue
+    prompt: |
+      You are the lead engineer who wrote this plan and the specs it builds on. DEFEND the build order. Explain why bottom-up is correct, why the schema layer standalone is viable, why Memgraph + pgvector is the right split, and why the VS Code plugin comes before the chat interface. You have deep context on the coupling rules already enforced, the existing plugin/domain infrastructure, and the construction pipeline. Show how each phase builds on the last. Address every red team concern with specific technical evidence from the specs.
+    docs:
+      - plan-of-attack.md
+      - ../040-command-center/spec.md
+
+  - name: product
+    role: blue
+    prompt: |
+      You are the product owner defending the go-to-market strategy. DEFEND the free-tier-to-paid-engine funnel, the dogfooding mandate, and the blog-at-every-phase approach. Explain why schemas-without-engine is a viable community hook, why developers (VS Code) come before non-developers (chat), and why the command center dashboard comes last. Show how each phase creates a shippable, monetizable artifact. Address concerns about scope creep and time-to-revenue with evidence from the monetization spec (033).
+    docs:
+      - ../033-monetization-partitioning/spec.md
+      - plan-of-attack.md

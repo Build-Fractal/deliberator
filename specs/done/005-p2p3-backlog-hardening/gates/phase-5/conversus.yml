@@ -1,0 +1,99 @@
+mode: cooperative
+output: conversus/specs/005-p2p3-backlog-hardening/gates/phase-5/
+iterations: 1
+
+# Phase 5 Gate: Polish & Cross-Cutting Concerns
+# Goal: Final verification that all 19 FRs are satisfied
+# Tasks: T016, T017, T018
+# Depends on: Phases 3 AND 4 both complete
+
+prior:
+  - conversus/specs/005-p2p3-backlog-hardening/gates/phase-3/summary/final.md
+  - conversus/specs/005-p2p3-backlog-hardening/gates/phase-4/summary/final.md
+
+target:
+  - conversus/specs/STATUS.md
+  - conversus/SKILL.md
+  - conversus/templates/winner-take-all/arbitration.md
+  - conversus/templates/red-blue/arbitration.md
+  - conversus/templates/prisoners-dilemma/arbitration.md
+  - conversus/templates/cooperative/arbitration.md
+  - conversus/specs/005-p2p3-backlog-hardening/spec.md
+  - conversus/specs/005-p2p3-backlog-hardening/tasks.md
+
+agents:
+  - name: compliance
+    prompt: |
+      You are the final spec-compliance auditor for spec 005 (P2/P3 Backlog Hardening).
+
+      PHASE GOAL: Verify ALL 19 functional requirements are satisfied.
+      This is the last gate before the spec is considered complete.
+
+      ALL 19 FRs TO VERIFY:
+      FR-001: Draft markers on 3 non-cooperative templates
+      FR-002: SKILL.md Step 3 draft marker check
+      FR-003: Draft check before variable substitution
+      FR-004: Phase 6 output validation (4 headings)
+      FR-005: Warning for missing headings
+      FR-006: Non-blocking validation
+      FR-007: Case-insensitive heading matching
+      FR-008: STATUS.md with per-spec status, subsystems, dependencies
+      FR-009: Status labels use two-tier convention
+      FR-010: Dispute-parsing documented as shared component
+      FR-011: Specs 001/002 reference shared dispute-parsing (was partial)
+      FR-012: Two-tier convention defined
+      FR-013: Spec 001 labeled "feature-complete" with gaps
+      FR-014: Phase 4 missing document edge case
+      FR-015: Phase 6 overwrite semantics
+      FR-016: Risk-of-gap per spec in STATUS.md
+      FR-017: Effort estimate per spec in STATUS.md
+      FR-018: Baseline features documented
+      FR-019: SKILL.md structure plan in STATUS.md
+
+      YOUR JOB: Read each target file and verify each FR. Report a
+      per-FR PASS/FAIL table. Also verify SC-001 through SC-006.
+    docs:
+      - conversus/specs/005-p2p3-backlog-hardening/spec.md
+
+  - name: integration
+    prompt: |
+      You are a cross-phase integration checker for the final gate of spec 005.
+
+      PHASE GOAL: Verify work across Phases 1-4 integrates correctly.
+
+      YOUR JOB:
+      1. Verify STATUS.md ↔ SKILL.md consistency: references point to
+         real sections, subsystem entries match actual sections.
+      2. Verify cross-phase consistency: Phase 2 labels used in Phase 3,
+         Phase 4 cross-references point to verified sections,
+         FR-011 remediation resolves the partial status from Phase 1.
+      3. Verify completeness: spec 005 self-tracks (SC-003), maintenance
+         note present (FR-008), all 5 specs have all required fields.
+      4. Assess overall: does the work achieve "P2/P3 backlog hardened"?
+    docs:
+      - conversus/specs/005-p2p3-backlog-hardening/tasks.md
+
+  - name: scope-boundary
+    prompt: |
+      You are a scope-boundary enforcer for the final gate of spec 005.
+
+      PHASE SCOPE: T016-T018 only. Verification and polish — no new
+      content creation beyond timestamp updates.
+
+      YOUR JOB:
+      1. Confirm T016 is verification-only (no file modifications).
+      2. Confirm T017 only updates the timestamp and verifies the
+         maintenance note — no new content added.
+      3. Confirm T018 is verification-only (quickstart checklist).
+      4. Flag any content added during Phase 5 that should have been
+         in Phases 2-4.
+      5. Check that the final state of STATUS.md and SKILL.md contains
+         ONLY what the spec asked for — no gold-plating, no bonus sections.
+
+      SCOPE BOUNDARIES:
+      - Phase 5 (this): verification + timestamp only
+      - All content creation should be complete from Phases 2-4
+      - The spec asked for 19 FRs — not 20, not 18
+    docs:
+      - conversus/specs/005-p2p3-backlog-hardening/tasks.md
+      - conversus/specs/005-p2p3-backlog-hardening/spec.md

@@ -1,0 +1,91 @@
+# Feature schema for red-blue mode deliberation
+# Spec 015 — FR-005
+name: red-blue
+description: >
+  Feature schema for red-blue mode. Red team attacks, blue team defends.
+  Features capture severity vectors, mitigation rates, and risk coverage.
+
+features:
+  # Per-agent features (Red team)
+  - name: severity_vector
+    type: vector
+    source: phase_1_review
+    extraction: >
+      Per finding in Threat Catalog: critical=4, high=3, medium=2, low=1.
+      Vector length = number of threats identified.
+    description: "Severity-encoded vector of identified threats (Red team)"
+
+  - name: threat_count
+    type: scalar
+    source: phase_1_review
+    extraction: "Count items in '### Threat Catalog' with severity labels"
+    description: "Total number of threats identified (Red team)"
+
+  - name: cascading_failure_count
+    type: scalar
+    source: phase_1_review
+    extraction: "Count scenarios under '### Cascading Failures'"
+    description: "Number of cascading failure scenarios identified"
+
+  # Per-agent features (Blue team)
+  - name: safeguard_count
+    type: scalar
+    source: phase_1_review
+    extraction: "Count items under '### Safeguards in Place'"
+    description: "Number of safeguards cataloged (Blue team)"
+
+  - name: acknowledged_limitation_count
+    type: scalar
+    source: phase_1_review
+    extraction: "Count items under '### Acknowledged Limitations'"
+    description: "Number of limitations preemptively acknowledged (Blue team)"
+
+  # Revision features
+  - name: mitigation_rate
+    type: scalar
+    source: phase_3_revision
+    extraction: >
+      Blue: conceded_count / total_threats_received.
+      Red: withdrawn_count / total_threats_raised.
+    description: "Fraction of threats mitigated (Blue) or withdrawn (Red)"
+
+  - name: confirmed_count
+    type: scalar
+    source: phase_4_disputes
+    extraction: "Count of findings confirmed as valid after adversarial challenge"
+    description: "Threats surviving full adversarial process"
+
+  # Aggregate features
+  - name: landed_attack_count
+    type: scalar
+    source: phase_5_synthesis
+    extraction: "Count items under '### Landed Attacks'"
+    description: "Unmitigated risks in final synthesis"
+
+  - name: mitigated_attack_count
+    type: scalar
+    source: phase_5_synthesis
+    extraction: "Count items under '### Mitigated Attacks'"
+    description: "Successfully defended risks"
+
+  - name: accepted_risk_count
+    type: scalar
+    source: phase_5_synthesis
+    extraction: "Count items under '### Accepted Risks'"
+    description: "Risks tolerated by design"
+
+  - name: coverage_score
+    type: scalar
+    source: phase_5_synthesis
+    extraction: >
+      mitigated_attack_count / (landed + mitigated + accepted).
+      Proportion of attack surface addressed.
+    description: "Proportion of total risk surface addressed"
+
+  - name: dispute_count
+    type: scalar
+    source: phase_5_synthesis
+    extraction: >
+      Count entries between DISPUTES_BEGIN and DISPUTES_END markers
+      (### Disputed Risks section).
+    description: "Number of unresolved risk disputes"

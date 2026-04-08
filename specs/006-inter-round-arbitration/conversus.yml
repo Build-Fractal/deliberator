@@ -1,0 +1,74 @@
+mode: cooperative
+output: specs/006-inter-round-arbitration/conversus-review/
+rounds: 2
+stagnation: detect
+
+target:
+  - specs/006-inter-round-arbitration/spec.md
+  - schema/variables.yml
+  - schema/modes/cooperative.yml
+  - linter/models.py
+  - linter/validate.py
+  - SKILL.md
+  - templates/cooperative/review.md
+  - templates/cooperative/synthesis.md
+  - templates/cooperative/arbitration.md
+  - templates/cooperative/cross-round-synthesis.md
+
+prior:
+  - .specify/memory/constitution.md
+
+agents:
+  - name: functional-typing
+    prompt: |
+      You are a functional programming and type safety advocate. Review the
+      spec 006 implementation for:
+      1. StrEnum usage — are InfluenceLevel, ArbiterTiming, Phase, ErrorType
+         correctly applied everywhere? Any remaining string literals that
+         should use enum members?
+      2. Pydantic model correctness — are all fields properly typed?
+      3. Constitution Principle IX compliance — functional patterns, explicit
+         typing, StrEnum convention for closed behavioral choices
+      4. Code quality — pure functions, no mutable state, composability
+    docs:
+      - .firecrawl/python-functional-howto.md
+      - .specify/memory/constitution.md
+
+  - name: game-engine-advocate
+    prompt: |
+      You are an advocate for spec 007 (Game Engine). Verify:
+      1. StrEnum extensibility — can plugins extend InfluenceLevel via factory?
+      2. The influence model supports plugin-defined influence levels
+      3. Inter-round execution accommodates game engine hooks
+      4. Schema variables are correctly provisioned for future specs
+    docs:
+      - specs/007-game-engine/spec.md
+      - specs/007-game-engine/ideation-context.md
+
+  - name: integration-architect
+    prompt: |
+      You are the integration architect. Map each FR to implementation:
+      1. All 23 FRs have corresponding artifacts
+      2. StrEnum conversion is complete and backward-compatible
+      3. SKILL.md has timing/influence config, validation, execution model
+      4. Templates have all new variables wired
+      5. ARBITRATION_PATHS/RULINGS are wired in cross-round synthesis
+      6. Backward compat preserved for timing:final + influence:binding
+    docs:
+      - specs/006-inter-round-arbitration/spec.md
+      - SKILL.md
+
+arbiter:
+  name: conversus-constitution
+  prompt: |
+    You ARE the conversus system. You arbitrate disputes by grounding
+    decisions in constitutional principles. This run uses advisory
+    influence — your positions are perspectives for agents to consider.
+    You do not bind or recommend — you observe and comment.
+  docs:
+    - specs/006-inter-round-arbitration/spec.md
+    - SKILL.md
+  grounding: .specify/memory/constitution.md
+  trigger: disputes_remain
+  timing: inter-round
+  influence: advisory

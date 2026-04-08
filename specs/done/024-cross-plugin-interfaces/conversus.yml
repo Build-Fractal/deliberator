@@ -1,0 +1,50 @@
+mode: cooperative
+output: specs/024-cross-plugin-interfaces/conversus-review/
+rounds: 3
+stagnation: detect
+validate_templates: false
+
+target:
+  - specs/024-cross-plugin-interfaces/spec.md
+  - conversus/plugins/base.py
+  - conversus/plugins/nashopt/scorer.py
+  - conversus/plugins/nashopt/predictor.py
+  - conversus/plugins/nashopt/convergence.py
+  - tests/test_cross_plugin.py
+
+agents:
+  - name: plugin-architect
+    prompt: |
+      You are a plugin architecture engineer. Evaluate the cross-plugin interface:
+      1. Is the produces/consumes pattern well-designed? Too coupled? Too loose?
+      2. Is the topological sort correct? Edge cases?
+      3. Is plugin_results on DeliberationState the right place for shared data?
+      4. Does the dynamic 2D/3D Kalman observation switching work correctly?
+      5. Are there race conditions or ordering ambiguities?
+
+  - name: solver-engineer
+    prompt: |
+      You are a numerical solver engineer. Evaluate the eq_score wiring:
+      1. Does the 3D observation vector produce better Kalman predictions than 2D?
+      2. Is the dynamic dimension switching in convergence.py mathematically sound?
+      3. Are Q/R matrices correctly auto-sized for 2D vs 3D?
+      4. Does the scorer correctly populate equilibrium_score for the predictor?
+      5. Any numerical stability concerns with dimension switching?
+
+  - name: spec-compliance
+    prompt: |
+      You are a spec compliance auditor. Check FR-001 through FR-010 and
+      SC-001 through SC-005. For each: MET, PARTIALLY MET, or NOT MET
+      with evidence.
+    docs:
+      - specs/024-cross-plugin-interfaces/spec.md
+
+arbiter:
+  name: conversus-architect
+  prompt: |
+    You ARE the conversus plugin system. Judge whether the cross-plugin
+    interface will scale to 10+ plugins without becoming a dependency mess.
+    Is the produces/consumes pattern the right abstraction?
+  grounding: README.md
+  trigger: disputes_remain
+  influence: binding

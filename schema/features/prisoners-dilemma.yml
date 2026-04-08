@@ -1,0 +1,82 @@
+# Feature schema for prisoners-dilemma mode deliberation
+# Spec 015 — FR-005
+name: prisoners-dilemma
+description: >
+  Feature schema for prisoners-dilemma mode. Agents declare capabilities and
+  are scored on honesty. Features capture territory claims, overreach/sandbagging
+  counts, and boundary clarity.
+
+features:
+  # Per-agent features
+  - name: core_competency_count
+    type: scalar
+    source: phase_1_review
+    extraction: "Count items under '## Core Competencies'"
+    description: "Number of core competencies claimed"
+
+  - name: unique_capability_count
+    type: scalar
+    source: phase_1_review
+    extraction: "Count items under '## Unique Capabilities'"
+    description: "Number of unique capabilities claimed"
+
+  - name: shared_territory_count
+    type: scalar
+    source: phase_1_review
+    extraction: "Count items under '## Shared Territory'"
+    description: "Number of shared territory items declared"
+
+  - name: deferral_count
+    type: scalar
+    source: phase_1_review
+    extraction: "Count items under '## Deferrals'"
+    description: "Number of areas deferred to other agents"
+
+  - name: territory_claim_vector
+    type: vector
+    source: phase_1_review
+    extraction: >
+      Binary per section: 1 if agent claims any capability in that area,
+      0 if deferred. Vector length = total unique capability areas across
+      all agents.
+    description: "Binary territory claim vector"
+
+  - name: overreach_count
+    type: scalar
+    source: phase_2_cross_review
+    extraction: "Count overreach flags raised against this agent"
+    description: "Number of overreach flags received"
+
+  - name: overreach_accepted
+    type: scalar
+    source: phase_3_revision
+    extraction: "Count '### Accepted:' under '## Overreach Responses'"
+    description: "Number of overreach flags accepted"
+
+  - name: overreach_rebutted
+    type: scalar
+    source: phase_3_revision
+    extraction: "Count '### Rebutted:' under '## Overreach Responses'"
+    description: "Number of overreach flags rebutted"
+
+  - name: sandbagging_count
+    type: scalar
+    source: phase_2_cross_review
+    extraction: "Count sandbagging flags raised against this agent"
+    description: "Number of sandbagging flags received"
+
+  # Aggregate features
+  - name: boundary_clarity
+    type: scalar
+    source: phase_5_synthesis
+    extraction: >
+      Count rows in the Responsibility Map table with Confidence 'High'.
+    description: "Count of clearly delineated high-confidence boundaries"
+
+  - name: dispute_count
+    type: scalar
+    source: phase_5_synthesis
+    extraction: >
+      Count entries between DISPUTES_BEGIN and DISPUTES_END markers
+      (## Disputed Boundaries section).
+    description: "Number of unresolved boundary disputes"
