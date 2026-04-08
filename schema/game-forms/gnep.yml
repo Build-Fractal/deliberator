@@ -1,0 +1,78 @@
+# ==============================================================================
+# Game Form Schema: Generalized Nash Equilibrium Problem (GNEP)
+# ==============================================================================
+#
+# Players optimize individual objectives subject to local constraints and
+# shared (coupled) constraints. The standard form for most conversus modes.
+#
+# Use case: cooperative, prisoners-dilemma, and red-blue modes. Most real
+# deliberations have coupled constraints (shared target document, budget,
+# timeline).
+# ==============================================================================
+
+form: gnep
+
+description: >
+  Generalized Nash Equilibrium Problem. Each player optimizes an individual
+  objective function J_i(x_i, x_{-i}) subject to local constraints
+  g_i(x_i) <= 0 and shared coupled constraints h(x_1, ..., x_N) <= 0.
+
+fields:
+  - name: players
+    type: list[string]
+    required: true
+    description: >
+      Finite set of named players.
+
+  - name: decision_variables
+    type: map[string, list[string]]
+    required: true
+    description: >
+      Per-player decision variable names. A mapping from player name to
+      list of variable identifiers representing the continuous vector x_i.
+
+  - name: objectives
+    type: map[string, string]
+    required: true
+    description: >
+      Per-player objective functions. A mapping from player name to a
+      symbolic expression or reference for J_i(x_i, x_{-i}).
+      Must have exactly one objective per player.
+
+  - name: local_constraints
+    type: constraint_map
+    required: false
+    description: >
+      Per-player local constraints g_i(x_i) <= 0. A mapping from player
+      name to a list of constraint expressions. Each player's constraints
+      are scoped to that player's decision variables only.
+
+  - name: coupled_constraints
+    type: constraint_list
+    required: false
+    description: >
+      Shared constraints h(x_1, ..., x_N) <= 0 that couple all players'
+      decisions. A flat list of constraint expressions involving variables
+      from multiple players.
+
+example:
+  form: gnep
+  players:
+    - agent_1
+    - agent_2
+  decision_variables:
+    agent_1:
+      - x1
+      - x2
+    agent_2:
+      - y1
+  objectives:
+    agent_1: "minimize x1^2 + x2^2 - y1"
+    agent_2: "minimize y1^2 - x1"
+  local_constraints:
+    agent_1:
+      - "x1 + x2 <= 10"
+    agent_2:
+      - "y1 >= 0"
+  coupled_constraints:
+    - "x1 + y1 <= 15"

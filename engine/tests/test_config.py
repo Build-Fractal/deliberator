@@ -73,7 +73,7 @@ class TestParseExampleConfig:
 
     def test_agent_names(self, sample_engine_config: EngineConfig) -> None:
         names = [a.name for a in sample_engine_config.agents]
-        assert names == ["apm", "spec-kit", "gh-aw"]
+        assert names == ["clarity-reviewer", "technical-reviewer", "adoption-reviewer"]
 
     def test_target_files(self, sample_engine_config: EngineConfig) -> None:
         assert len(sample_engine_config.target_files) >= 1

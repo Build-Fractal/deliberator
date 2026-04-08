@@ -1,0 +1,54 @@
+# Mode schema: prisoners-dilemma
+# Defines mode-specific template requirements for prisoner's dilemma (responsibility scoping) deliberation.
+
+mode: prisoners-dilemma
+
+# Mode-specific variables (required in addition to universal variables from variables.yml)
+# Prisoner's dilemma mode has NO mode-specific variables beyond the universal set.
+variables: []
+
+# Phases where {MODE} variable appears in this mode's templates
+mode_in_phases:
+  - arbitration
+  - cross-round-synthesis
+
+# Templates expected for this mode
+templates:
+  - review
+  - cross-review
+  - revision
+  - disputes
+  - synthesis
+  - arbitration
+  - cross-round-synthesis
+
+# Dispute-Parsing Subsystem interface
+# PD uses H2-level dispute heading with subsection entries.
+disputes:
+  synthesis_heading: "## Disputed Boundaries"
+  entry_pattern: "### ["
+  structural_markers: true
+
+# Phase 6 output validation
+arbitration:
+  required_headings:
+    - Process Note
+    - Decision Framework
+    - Binding Decisions
+    - Revised Responsibility Map
+  influence_headings:
+    recommended:
+      - Process Note
+      - Decision Framework
+      - Recommended Resolutions
+      - Revised Responsibility Map
+    advisory:
+      - Process Note
+      - Decision Framework
+      - Advisory Opinions
+      - Revised Responsibility Map
+
+# Cross-round synthesis requirements
+cross_round_synthesis:
+  structural_markers: true
+  dispute_heading: "## Disputed Boundaries"

@@ -1,0 +1,86 @@
+# ==============================================================================
+# Game Form Schema: Parametric Game
+# ==============================================================================
+#
+# A GNEP where objectives and constraints depend on external parameters.
+# Used for config optimization — the parameters are config values (rounds,
+# agent count, mode).
+#
+# Use case: config optimizer plugin (spec 019), where rounds and agent count
+# are parameters and the optimizer finds parameter values that minimize cost
+# subject to quality thresholds.
+# ==============================================================================
+
+form: parametric
+
+description: >
+  Parametric game extending GNEP. Objectives and constraints depend on an
+  external parameter vector p that is not optimized by any player.
+  J_i(x_i, x_{-i}; p) and g(x; p) <= 0.
+
+fields:
+  - name: players
+    type: list[string]
+    required: true
+    description: >
+      Finite set of named players (inherited from GNEP).
+
+  - name: decision_variables
+    type: map[string, list[string]]
+    required: true
+    description: >
+      Per-player decision variable names (inherited from GNEP).
+
+  - name: objectives
+    type: map[string, string]
+    required: true
+    description: >
+      Per-player parametric objective functions J_i(x_i, x_{-i}; p).
+      Must have exactly one objective per player.
+
+  - name: parameters
+    type: list[string]
+    required: true
+    description: >
+      External parameter vector p. A list of parameter names that appear
+      in objectives and constraints but are not optimized by any player.
+
+  - name: local_constraints
+    type: constraint_map
+    required: false
+    description: >
+      Per-player local constraints, possibly depending on parameters p.
+      Each player's constraints are scoped to that player's decision
+      variables only.
+
+  - name: coupled_constraints
+    type: constraint_list
+    required: false
+    description: >
+      Shared coupled constraints, possibly depending on parameters p.
+      A flat list of constraint expressions involving variables from
+      multiple players.
+
+example:
+  form: parametric
+  players:
+    - agent_1
+    - agent_2
+  decision_variables:
+    agent_1:
+      - x1
+    agent_2:
+      - y1
+  parameters:
+    - rounds
+    - agent_count
+  objectives:
+    agent_1: "minimize x1^2 + rounds * x1"
+    agent_2: "minimize y1^2 - agent_count * y1"
+  local_constraints:
+    agent_1:
+      - "x1 >= 0"
+    agent_2:
+      - "y1 >= 0"
+  coupled_constraints:
+    - "x1 + y1 <= rounds * 10"

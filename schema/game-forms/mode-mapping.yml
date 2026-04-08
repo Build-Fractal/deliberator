@@ -1,0 +1,112 @@
+# ==============================================================================
+# Mode-to-Form Mapping
+# ==============================================================================
+#
+# Maps each conversus deliberation mode to its default game theory form.
+# Downstream specs (013-020) use this mapping to select the appropriate
+# schema for a given mode.
+# ==============================================================================
+
+mappings:
+  cooperative:
+    form: gnep
+    solver: nashopt
+    note: >
+      Cooperative deliberation maps to GNEP because agents optimize
+      individual review quality (objectives) subject to shared constraints
+      (convergence on a single target document). The coupled constraints
+      enforce that all agents' outputs must be reconcilable.
+
+  winner-take-all:
+    form: normal-form
+    solver: nashopt
+    note: >
+      Winner-take-all maps to normal form because agents are alternatives
+      competing for selection. Each agent's strategy is its review output,
+      and the payoff is binary (selected or not). Override: if scoring is
+      continuous rather than binary, GNEP may be more appropriate.
+
+  prisoners-dilemma:
+    form: gnep
+    solver: nashopt
+    note: >
+      Prisoner's dilemma maps to GNEP because agents face individual
+      incentives (defect for short-term gain) constrained by shared
+      outcomes (mutual cooperation is globally optimal). The coupled
+      constraints capture the interdependence of payoffs.
+
+  red-blue:
+    form: stackelberg
+    solver: nashopt
+    note: >
+      Red-blue (adversarial) deliberation maps to Stackelberg because
+      one team (red) moves first as leader, the other (blue) responds
+      as follower. The sequential commitment structure captures the
+      adversarial asymmetry better than simultaneous-move GNEP.
+
+  coalition-attribution:
+    form: coalitional
+    solver: nashopt
+    note: >
+      Coalition attribution mode maps to coalitional game for fair
+      value distribution via Shapley values. Used post-deliberation
+      to determine how much each agent contributed to the outcome.
+
+  resource-sharing:
+    form: congestion
+    solver: nashopt
+    note: >
+      Resource sharing maps to congestion game because agents select
+      subsets of shared resources with costs that increase under
+      contention. Convergence is guaranteed (Rosenthal potential).
+
+  negotiation:
+    form: bayesian
+    solver: nashopt
+    note: >
+      Negotiation with private information maps to Bayesian game.
+      Agents have private types (hidden preferences) drawn from known
+      distributions. Solved via Harsanyi transformation.
+
+  multi-round:
+    form: repeated
+    solver: nashopt
+    note: >
+      Multi-round deliberation maps to repeated game. The Folk Theorem
+      explains why cooperation emerges when agents are sufficiently
+      patient (high discount factor).
+
+  mechanism:
+    form: mechanism-design
+    solver: nashopt
+    note: >
+      Mechanism design mode maps to VCG or auction-based mechanisms.
+      The arbiter designs incentive-compatible rules that elicit
+      truthful preference revelation from agents.
+
+  resource-allocation:
+    form: coalitional
+    solver: nashopt
+    note: >
+      Resource allocation maps to coalitional game because a fixed pool
+      of resources must be distributed among competing demands. Shapley
+      values provide a fairness baseline for allocation, and VCG ensures
+      truthful demand revelation.
+
+  fair-division:
+    form: coalitional
+    solver: nashopt
+    note: >
+      Fair division maps to coalitional game because the focus is on
+      subjective valuations and envy-free allocations. The core and
+      nucleolus provide stability guarantees while Shapley values
+      establish a fairness reference point.
+
+  mechanism-design:
+    form: mechanism-design
+    solver: nashopt
+    note: >
+      Mechanism design deliberation mode designs the rules themselves
+      rather than playing within fixed rules. Maps to the mechanism-design
+      game form using VCG or auction-based mechanisms to ensure incentive
+      compatibility and truthful preference revelation.

@@ -1,0 +1,44 @@
+# ==============================================================================
+# Game Form Schema: Repeated Game
+# ==============================================================================
+#
+# Multi-round cooperation dynamics. A stage game is played repeatedly;
+# agents can condition current actions on past play history. The discount
+# factor determines how much agents value future rounds.
+#
+# The Folk Theorem establishes that cooperative outcomes are supportable
+# as equilibria when agents are sufficiently patient (high discount factor).
+#
+# Use case: multi-round deliberation where cooperation emerges from
+# repeated interaction and reputation effects.
+# ==============================================================================
+
+form: repeated
+
+description: >
+  Repeated game. A stage game G (any normal-form game) is played for
+  potentially infinite rounds. Agents discount future payoffs by a factor
+  delta in (0, 1). The Folk Theorem guarantees that any feasible,
+  individually rational payoff vector is supportable as a subgame perfect
+  equilibrium for delta sufficiently close to 1.
+
+fields:
+  - name: stage_game
+    type: string
+    required: true
+    description: >
+      Reference to the stage game (a normal-form game identifier or
+      inline definition). This game is played each round.
+
+  - name: discount_factor
+    type: float
+    required: true
+    description: >
+      Discount factor delta in (0, 1). Controls how much agents value
+      future payoffs relative to present ones. Higher values mean more
+      patient agents who are more likely to cooperate.
+
+example:
+  form: repeated
+  stage_game: prisoners-dilemma-2x2
+  discount_factor: 0.9

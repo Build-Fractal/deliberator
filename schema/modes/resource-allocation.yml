@@ -1,0 +1,59 @@
+# Mode schema: resource-allocation
+# Defines mode-specific template requirements for resource allocation deliberation.
+# A fixed pool of resources must be distributed among competing demands.
+
+mode: resource-allocation
+
+# Mode-specific variables (required in addition to universal variables from variables.yml)
+# Resource allocation mode has NO mode-specific variables beyond the universal set.
+variables: []
+
+# Phases where {MODE} variable appears in this mode's templates
+mode_in_phases:
+  - review
+  - cross-review
+  - revision
+  - disputes
+  - synthesis
+  - arbitration
+  - cross-round-synthesis
+
+# Templates expected for this mode
+templates:
+  - review
+  - cross-review
+  - revision
+  - disputes
+  - synthesis
+  - arbitration
+  - cross-round-synthesis
+
+# Dispute-Parsing Subsystem interface
+disputes:
+  synthesis_heading: "### Contested Allocations"
+  entry_pattern: "**Contested:"
+  structural_markers: true  # DISPUTES_BEGIN/DISPUTES_END required in synthesis + cross-round-synthesis
+
+# Phase 6 output validation
+arbitration:
+  required_headings:
+    - Process Note
+    - Decision Framework
+    - Binding Decisions
+    - Final Allocation Table
+  influence_headings:
+    recommended:
+      - Process Note
+      - Decision Framework
+      - Recommended Resolutions
+      - Suggested Allocation Table
+    advisory:
+      - Process Note
+      - Decision Framework
+      - Advisory Opinions
+      - Allocation Considerations
+
+# Cross-round synthesis requirements
+cross_round_synthesis:
+  structural_markers: true
+  dispute_heading: "### Contested Allocations"

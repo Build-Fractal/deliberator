@@ -1,0 +1,100 @@
+# ==============================================================================
+# Game Form Schema: Stackelberg Game
+# ==============================================================================
+#
+# Leader-follower hierarchy. The leader commits to a strategy first;
+# followers respond optimally. The leader anticipates follower responses
+# when choosing.
+#
+# Use case: arbiter-as-leader scenarios where the arbiter sets binding
+# rulings and agents respond. Also models the conversus operator (human)
+# as leader choosing config, agents as followers.
+# ==============================================================================
+
+form: stackelberg
+
+description: >
+  Stackelberg (leader-follower) game. The leader commits to a strategy
+  first, then followers observe and respond optimally. The leader
+  anticipates follower best-responses when choosing its strategy.
+
+fields:
+  - name: leader
+    type: string
+    required: true
+    description: >
+      The name of the leader player who moves first.
+
+  - name: followers
+    type: list[string]
+    required: true
+    description: >
+      List of follower player names who respond to the leader's choice.
+
+  - name: leader_variables
+    type: list[string]
+    required: true
+    description: >
+      Decision variables controlled by the leader.
+
+  - name: follower_variables
+    type: map[string, list[string]]
+    required: true
+    description: >
+      Per-follower decision variables. A mapping from follower name to
+      list of variable identifiers.
+
+  - name: leader_objective
+    type: function
+    required: true
+    description: >
+      Leader's objective function J_leader(x_leader, x_followers*(x_leader)),
+      which accounts for followers' best-response.
+
+  - name: follower_objectives
+    type: map[string, string]
+    required: true
+    description: >
+      Per-follower objective functions. A mapping from follower name to
+      the objective each follower minimizes given the leader's choice.
+      Must have exactly one objective per follower.
+
+  - name: leader_constraints
+    type: constraint_list
+    required: false
+    description: >
+      Constraints on the leader's decision variables. A flat list of
+      constraint expressions.
+
+  - name: follower_constraints
+    type: constraint_map
+    required: false
+    description: >
+      Per-follower constraints. A mapping from follower name to a list of
+      constraint expressions. Each follower's constraints are scoped to
+      that follower's decision variables only.
+
+example:
+  form: stackelberg
+  leader: arbiter
+  followers:
+    - agent_1
+    - agent_2
+  leader_variables:
+    - ruling_weight
+  follower_variables:
+    agent_1:
+      - x1
+    agent_2:
+      - y1
+  leader_objective: "minimize (x1 - y1)^2 + ruling_weight^2"
+  follower_objectives:
+    agent_1: "minimize x1^2 - ruling_weight * x1"
+    agent_2: "minimize y1^2 - ruling_weight * y1"
+  leader_constraints:
+    - "0 <= ruling_weight <= 1"
+  follower_constraints:
+    agent_1:
+      - "x1 >= 0"
+    agent_2:
+      - "y1 >= 0"

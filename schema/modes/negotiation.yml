@@ -1,0 +1,59 @@
+# Mode schema: negotiation
+# Defines mode-specific template requirements for negotiation deliberation.
+# Parties have conflicting interests and must reach a mutually acceptable agreement.
+
+mode: negotiation
+
+# Mode-specific variables (required in addition to universal variables from variables.yml)
+# Negotiation mode has NO mode-specific variables beyond the universal set.
+variables: []
+
+# Phases where {MODE} variable appears in this mode's templates
+mode_in_phases:
+  - review
+  - cross-review
+  - revision
+  - disputes
+  - synthesis
+  - arbitration
+  - cross-round-synthesis
+
+# Templates expected for this mode
+templates:
+  - review
+  - cross-review
+  - revision
+  - disputes
+  - synthesis
+  - arbitration
+  - cross-round-synthesis
+
+# Dispute-Parsing Subsystem interface
+disputes:
+  synthesis_heading: "### Unresolved Terms"
+  entry_pattern: "**Term:"
+  structural_markers: true  # DISPUTES_BEGIN/DISPUTES_END required in synthesis + cross-round-synthesis
+
+# Phase 6 output validation
+arbitration:
+  required_headings:
+    - Process Note
+    - Decision Framework
+    - Binding Decisions
+    - Summary of Required Terms
+  influence_headings:
+    recommended:
+      - Process Note
+      - Decision Framework
+      - Recommended Resolutions
+      - Suggested Terms
+    advisory:
+      - Process Note
+      - Decision Framework
+      - Advisory Opinions
+      - Considerations for Next Round
+
+# Cross-round synthesis requirements
+cross_round_synthesis:
+  structural_markers: true
+  dispute_heading: "### Unresolved Terms"

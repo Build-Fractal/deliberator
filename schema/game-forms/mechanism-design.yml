@@ -1,0 +1,43 @@
+# ==============================================================================
+# Game Form Schema: Mechanism Design
+# ==============================================================================
+#
+# Incentive-compatible rule design for truthful preference revelation.
+# The mechanism designer (principal) sets rules; agents (players) report
+# preferences. Well-designed mechanisms (e.g. VCG) ensure truthful
+# reporting is a dominant strategy.
+#
+# Use case: arbiter rule design — "Design the arbiter as a VCG mechanism
+# so agents report true preferences, allocation is optimal, and payments
+# ensure truthfulness."
+# ==============================================================================
+
+form: mechanism-design
+
+description: >
+  Mechanism design game. A principal designs an allocation rule f(theta)
+  and payment rule p(theta) where theta is agents' reported preferences.
+  VCG mechanisms maximize social welfare W(theta) = sum v_i(f(theta), theta_i)
+  with payments that make truthful reporting a dominant strategy.
+
+fields:
+  - name: mechanism_type
+    type: string
+    required: true
+    description: >
+      Type of mechanism. One of: "vcg" (Vickrey-Clarke-Groves, truthful
+      and efficient), "first_price" (highest bidder pays bid),
+      "second_price" (highest bidder pays second-highest bid, truthful).
+
+  - name: valuation_type
+    type: string
+    required: true
+    description: >
+      Structure of agent valuations. One of: "additive" (value of a
+      bundle is sum of item values), "submodular" (diminishing returns
+      on bundle extensions).
+
+example:
+  form: mechanism-design
+  mechanism_type: vcg
+  valuation_type: additive

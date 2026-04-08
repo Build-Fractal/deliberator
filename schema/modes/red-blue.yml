@@ -1,0 +1,59 @@
+# Mode schema: red-blue
+# Defines mode-specific template requirements for red-blue (adversarial attack/defend) deliberation.
+
+mode: red-blue
+
+# Mode-specific variables (required in addition to universal variables from variables.yml)
+# Red-blue mode uses role-based variables for team assignment.
+variables:
+  - AGENT_ROLE      # red or blue team assignment (phases: review, revision, disputes)
+  - REVIEWER_ROLE   # reviewer's team role (phase: cross-review)
+  - REVIEWED_ROLE   # reviewed agent's team role (phase: cross-review)
+
+# Phases where {MODE} variable appears in this mode's templates
+mode_in_phases:
+  - review
+  - cross-review
+  - synthesis
+  - arbitration
+  - cross-round-synthesis
+
+# Templates expected for this mode
+templates:
+  - review
+  - cross-review
+  - revision
+  - disputes
+  - synthesis
+  - arbitration
+  - cross-round-synthesis
+
+# Dispute-Parsing Subsystem interface
+disputes:
+  synthesis_heading: "### Disputed Risks"
+  entry_pattern: "**[RISK-ID]:"
+  structural_markers: true
+
+# Phase 6 output validation
+arbitration:
+  required_headings:
+    - Process Note
+    - Decision Framework
+    - Binding Decisions
+    - Updated Risk Register
+  influence_headings:
+    recommended:
+      - Process Note
+      - Decision Framework
+      - Recommended Resolutions
+      - Updated Risk Register
+    advisory:
+      - Process Note
+      - Decision Framework
+      - Advisory Opinions
+      - Updated Risk Register
+
+# Cross-round synthesis requirements
+cross_round_synthesis:
+  structural_markers: true
+  dispute_heading: "### Disputed Risks"

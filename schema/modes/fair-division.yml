@@ -1,0 +1,59 @@
+# Mode schema: fair-division
+# Defines mode-specific template requirements for fair division deliberation.
+# Something must be divided among parties who have different valuations.
+
+mode: fair-division
+
+# Mode-specific variables (required in addition to universal variables from variables.yml)
+# Fair division mode has NO mode-specific variables beyond the universal set.
+variables: []
+
+# Phases where {MODE} variable appears in this mode's templates
+mode_in_phases:
+  - review
+  - cross-review
+  - revision
+  - disputes
+  - synthesis
+  - arbitration
+  - cross-round-synthesis
+
+# Templates expected for this mode
+templates:
+  - review
+  - cross-review
+  - revision
+  - disputes
+  - synthesis
+  - arbitration
+  - cross-round-synthesis
+
+# Dispute-Parsing Subsystem interface
+disputes:
+  synthesis_heading: "### Disputed Valuations"
+  entry_pattern: "**Disputed:"
+  structural_markers: true  # DISPUTES_BEGIN/DISPUTES_END required in synthesis + cross-round-synthesis
+
+# Phase 6 output validation
+arbitration:
+  required_headings:
+    - Process Note
+    - Decision Framework
+    - Binding Decisions
+    - Final Allocation
+  influence_headings:
+    recommended:
+      - Process Note
+      - Decision Framework
+      - Recommended Resolutions
+      - Suggested Allocation
+    advisory:
+      - Process Note
+      - Decision Framework
+      - Advisory Opinions
+      - Allocation Considerations
+
+# Cross-round synthesis requirements
+cross_round_synthesis:
+  structural_markers: true
+  dispute_heading: "### Disputed Valuations"

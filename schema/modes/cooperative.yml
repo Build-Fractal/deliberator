@@ -1,0 +1,60 @@
+# Mode schema: cooperative
+# Defines mode-specific template requirements for cooperative deliberation.
+
+mode: cooperative
+
+# Mode-specific variables (required in addition to universal variables from variables.yml)
+# Cooperative mode has NO mode-specific variables beyond the universal set.
+variables: []
+
+# Phases where {MODE} variable appears in this mode's templates
+mode_in_phases:
+  - review
+  - cross-review
+  - revision
+  - disputes
+  - synthesis
+  - arbitration
+  - cross-round-synthesis
+
+# Templates expected for this mode
+templates:
+  - review
+  - cross-review
+  - revision
+  - disputes
+  - synthesis
+  - arbitration
+  - cross-round-synthesis
+
+# Dispute-Parsing Subsystem interface
+# These define the stable interface contract for extracting disputes from synthesis output.
+disputes:
+  synthesis_heading: "### Remaining Disputes"
+  entry_pattern: "**Dispute:"
+  structural_markers: true  # DISPUTES_BEGIN/DISPUTES_END required in synthesis + cross-round-synthesis
+
+# Phase 6 output validation
+# Required section headings in arbitration output (validated by orchestrator after Phase 6)
+arbitration:
+  required_headings:
+    - Process Note
+    - Decision Framework
+    - Binding Decisions
+    - Summary of Changes Required
+  influence_headings:
+    recommended:
+      - Process Note
+      - Decision Framework
+      - Recommended Resolutions
+      - Suggested Changes
+    advisory:
+      - Process Note
+      - Decision Framework
+      - Advisory Opinions
+      - Considerations for Next Round
+
+# Cross-round synthesis requirements
+cross_round_synthesis:
+  structural_markers: true  # DISPUTES_BEGIN/DISPUTES_END required
+  dispute_heading: "### Remaining Disputes"

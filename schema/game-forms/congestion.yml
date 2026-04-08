@@ -1,0 +1,62 @@
+# ==============================================================================
+# Game Form Schema: Congestion Game
+# ==============================================================================
+#
+# Shared resources with diminishing returns. Multiple agents claim subsets
+# of shared resources; the cost of each resource increases with the number
+# of agents using it.
+#
+# Special property: every congestion game is a potential game (Rosenthal
+# potential), so convergence to Nash equilibrium is guaranteed.
+#
+# Use case: territory/scoping modes where agents claim overlapping review
+# scopes with diminishing returns from redundancy.
+# ==============================================================================
+
+form: congestion
+
+description: >
+  Congestion game. A set of resources R is shared among agents. Each agent
+  selects a subset of resources (its strategy). The cost of each resource
+  depends on how many agents use it: c_r(n_r). Agent i's total cost is
+  sum of c_r(n_r) over resources in its strategy. Always admits a
+  potential function (Rosenthal 1973).
+
+fields:
+  - name: resources
+    type: list[string]
+    required: true
+    description: >
+      The set of shared resources available to agents.
+
+  - name: cost_type
+    type: string
+    required: true
+    description: >
+      Cost function family. One of: "linear" (c(n) = a*n + b),
+      "polynomial" (c(n) = a*n^k), "step" (c(n) = threshold-based).
+
+  - name: agent_strategies
+    type: map[string, list[string]]
+    required: true
+    description: >
+      Maps each agent to the list of resources it uses. Every resource
+      must be in the resources list.
+
+example:
+  form: congestion
+  resources:
+    - network_a
+    - network_b
+    - network_c
+  cost_type: linear
+  agent_strategies:
+    agent_1:
+      - network_a
+      - network_b
+    agent_2:
+      - network_b
+      - network_c
+    agent_3:
+      - network_a
+      - network_c

@@ -1,0 +1,60 @@
+# ==============================================================================
+# Game Form Schema: Coalitional Game
+# ==============================================================================
+#
+# Cooperative game theory form for fair value attribution. Given a
+# characteristic function v: 2^N -> R mapping coalitions to values, compute
+# how to fairly distribute the grand coalition's value across players.
+#
+# Use case: post-deliberation attribution — "Agent X contributed 35% of
+# converged recommendations, Agent Y contributed 22%."
+# ==============================================================================
+
+form: coalitional
+
+description: >
+  Coalitional (cooperative) game. A characteristic function v maps every
+  coalition S (subset of players) to a real-valued worth v(S). Solution
+  concepts (Shapley values, core, nucleolus) determine a fair distribution
+  of the grand coalition's value v(N) across individual players.
+
+fields:
+  - name: players
+    type: list[string]
+    required: true
+    description: >
+      Finite set of named players participating in the game.
+
+  - name: characteristic_function
+    type: map[string, float]
+    required: true
+    description: >
+      Maps coalition keys to values. Each key is a sorted comma-joined
+      string of player names (e.g. "alice,bob"). The empty coalition
+      maps to 0. Must include the grand coalition key.
+
+  - name: solution_concept
+    type: string
+    required: true
+    description: >
+      Solution concept to apply. One of: "shapley" (marginal
+      contribution weighted by arrival order), "core" (stable allocations
+      no coalition can improve upon), "nucleolus" (lexicographic min of
+      maximum excess).
+
+example:
+  form: coalitional
+  players:
+    - alice
+    - bob
+    - carol
+  characteristic_function:
+    "": 0
+    "alice": 6
+    "bob": 12
+    "carol": 42
+    "alice,bob": 12
+    "alice,carol": 42
+    "bob,carol": 42
+    "alice,bob,carol": 60
+  solution_concept: shapley

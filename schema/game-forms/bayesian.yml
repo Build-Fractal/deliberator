@@ -1,0 +1,53 @@
+# ==============================================================================
+# Game Form Schema: Bayesian Game
+# ==============================================================================
+#
+# Games with private information (incomplete information). Each agent has a
+# type drawn from a known prior distribution, but other agents only know
+# the distribution, not the realized type.
+#
+# Solved via Harsanyi transformation: expand type profiles into an
+# equivalent normal-form game, then compute Bayesian Nash equilibrium.
+#
+# Use case: negotiation modes where agents have private documents or
+# preferences that inform their positions.
+# ==============================================================================
+
+form: bayesian
+
+description: >
+  Bayesian (incomplete information) game. Each player i has a type space
+  T_i. Nature draws a type profile t = (t_1, ..., t_N) from a known
+  prior distribution p(t). Players observe their own type but not others'.
+  Strategies map types to actions: sigma_i: T_i -> A_i.
+
+fields:
+  - name: type_spaces
+    type: map[string, list[string]]
+    required: true
+    description: >
+      Per-player type spaces. Maps each player name to a list of possible
+      types (e.g. "high_value", "low_value").
+
+  - name: prior
+    type: map[string, float]
+    required: true
+    description: >
+      Prior probability distribution over type profiles. Keys are
+      comma-joined type profile strings (e.g. "high_value,low_value"),
+      values are probabilities that must sum to 1.0.
+
+example:
+  form: bayesian
+  type_spaces:
+    bidder_1:
+      - high_value
+      - low_value
+    bidder_2:
+      - high_value
+      - low_value
+  prior:
+    "high_value,high_value": 0.25
+    "high_value,low_value": 0.25
+    "low_value,high_value": 0.25
+    "low_value,low_value": 0.25

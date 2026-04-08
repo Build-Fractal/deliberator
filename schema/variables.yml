@@ -1,0 +1,489 @@
+# ==============================================================================
+# Conversus Template Variable Schema
+# ==============================================================================
+#
+# Single source of truth for ALL template variables used by the conversus
+# orchestrator. The linter validates templates against this schema.
+#
+# Variable namespace: Core variables defined here carry orchestrator and config
+# data. Plugin-contributed variables are namespaced separately (mechanism defined
+# by spec 007). Do not add plugin-specific variables to this file.
+#
+# Structure:
+#   VARIABLE_NAME:
+#     type:        string | integer | path | path-list | conditional-block | extracted-content
+#     description: Brief description
+#     phases:      List of phases where this variable appears in templates
+#     required:    Whether templates MUST contain this variable for listed phases
+#     modes:       (optional) Only include if the variable is mode-specific
+#     condition:   (optional) Human-readable condition for conditional requirements
+#
+# Phases (in execution order):
+#   review, cross-review, revision, disputes, synthesis, arbitration, cross-round-synthesis
+#
+# Modes:
+#   cooperative, red-blue, winner-take-all, prisoners-dilemma
+#
+# ==============================================================================
+
+# Schema version — increment when adding/removing/modifying variable definitions
+schema_version: "1.0.0"
+
+variables:
+
+  # ============================================================================
+  # Universal variables — present across many phases and all modes
+  # ============================================================================
+
+  OUTPUT_PATH:
+    type: path
+    description: >
+      File path where the agent must write its output for the current phase.
+    phases: [review, cross-review, revision, disputes, synthesis, arbitration, cross-round-synthesis]
+    required: true
+
+  TARGET_FILES:
+    type: path-list
+    description: >
+      Newline-separated list of target file paths under deliberation.
+      Used in all phases except synthesis (which uses TARGET_PATH instead).
+    phases: [review, cross-review, revision, disputes, arbitration, cross-round-synthesis]
+    required: true
+
+  AGENT_DOCS:
+    type: path-list
+    description: >
+      Documentation content for the agent, extracted from the agent's configured
+      docs paths. Provides domain context for the agent's review.
+    phases: [review, cross-review, revision, disputes]
+    required: true
+
+  MODE:
+    type: string
+    description: >
+      The deliberation mode (cooperative, red-blue, winner-take-all, prisoners-dilemma).
+      Not every phase uses it in every mode — see per-phase notes below.
+      Review and cross-review use it in cooperative and red-blue only.
+      Revision and disputes use it in cooperative only.
+      Synthesis, arbitration, and cross-round-synthesis use it in all modes.
+    phases: [review, cross-review, revision, disputes, synthesis, arbitration, cross-round-synthesis]
+    required: true
+    condition: >
+      Required in synthesis, arbitration, and cross-round-synthesis for all modes.
+      Required in review and cross-review for cooperative and red-blue only.
+      Required in revision and disputes for cooperative only.
+
+  # ============================================================================
+  # Round-aware variables — available for multi-round deliberations
+  # ============================================================================
+  # These variables are populated by the orchestrator and available in Phase 1-5
+  # templates. However, templates typically consume them indirectly through
+  # PRIOR_ROUND_SECTION (a conditional block the orchestrator pre-populates).
+  # They are marked required: false because templates are not required to
+  # reference them directly.
+  # ============================================================================
+
+  ROUND:
+    type: integer
+    description: >
+      Current round number (1-indexed). Available in all Phase 1-5 templates.
+      Typically consumed indirectly via PRIOR_ROUND_SECTION rather than
+      referenced directly in template text.
+    phases: [review, cross-review, revision, disputes, synthesis]
+    required: false
+    config_conditions:
+      - field: rounds
+        value: "> 1"
+
+  MAX_ROUNDS:
+    type: integer
+    description: >
+      Maximum number of rounds configured for the deliberation. Available in
+      Phase 1-5 templates. Also used directly in cross-round-synthesis.
+    phases: [review, cross-review, revision, disputes, synthesis, cross-round-synthesis]
+    required: false
+    condition: >
+      Required in cross-round-synthesis (used directly in template text).
+      Available but not required in phases 1-5.
+    config_conditions:
+      - field: rounds
+        value: "> 1"
+
+  PRIOR_SYNTHESIS_PATH:
+    type: path
+    description: >
+      Path to the prior round's synthesis output. Available in Phase 1-5
+      templates for multi-round deliberations. Typically consumed by the
+      orchestrator to populate PRIOR_ROUND_SECTION.
+    phases: [review, cross-review, revision, disputes, synthesis]
+    required: false
+    config_conditions:
+      - field: rounds
+        value: "> 1"
+
+  PRIOR_ROUND_DIR:
+    type: path
+    description: >
+      Path to the prior round's output directory. Available in Phase 1-5
+      templates for multi-round deliberations. Typically consumed by the
+      orchestrator to populate PRIOR_ROUND_SECTION.
+    phases: [review, cross-review, revision, disputes, synthesis]
+    required: false
+    config_conditions:
+      - field: rounds
+        value: "> 1"
+
+  PRIOR_ARBITRATION_PATH:
+    type: path
+    description: >
+      Path to the prior round's arbitration resolution. Available in Phase 1-5
+      templates when inter-round arbitration is configured (spec 006).
+    phases: [review, cross-review, revision, disputes, synthesis]
+    required: false
+    config_conditions:
+      - field: arbiter.timing
+        value: "inter-round"
+
+  ARBITRATION_PATHS:
+    type: path-list
+    description: >
+      Newline-separated list of all arbitration resolution paths from previous
+      rounds. Used in cross-round synthesis to attribute dispute resolutions.
+    phases: [cross-round-synthesis]
+    required: false
+    config_conditions:
+      - field: arbiter.timing
+        value: "inter-round"
+
+  ARBITRATION_RULINGS:
+    type: extracted-content
+    description: >
+      Extracted content from arbitration resolutions, formatted by the
+      orchestrator for cross-round comparison and attribution.
+    phases: [cross-round-synthesis]
+    required: false
+    config_conditions:
+      - field: arbiter.timing
+        value: "inter-round"
+
+  PRIOR_ARBITRATION_SECTION:
+    type: conditional-block
+    description: >
+      Multi-line block containing influence-aware context about prior round
+      arbitration. Pre-populated by the orchestrator from PRIOR_ARBITRATION_PATH
+      and the arbiter's influence level. Empty string when no prior-round
+      arbitration exists or when timing is 'final'.
+    phases: [review]
+    required: true
+    config_conditions:
+      - field: arbiter.timing
+        operator: "=="
+        value: "inter-round"
+
+  INFLUENCE_LEVEL:
+    type: string
+    description: >
+      The arbiter's influence level ('binding', 'recommended', or 'advisory').
+      Controls output headings and template language in arbitration output.
+    phases: [arbitration]
+    required: true
+
+  # ============================================================================
+  # Phase 1: review
+  # ============================================================================
+
+  AGENT_NAME:
+    type: string
+    description: >
+      Display name of the agent performing the review, revision, or disputes phase.
+    phases: [review, revision, disputes]
+    required: true
+
+  AGENT_PROMPT:
+    type: string
+    description: >
+      The agent's system prompt or persona description, injected verbatim
+      into the template.
+    phases: [review, revision, disputes]
+    required: true
+
+  PRIOR_FILES_SECTION:
+    type: conditional-block
+    description: >
+      Multi-line block containing prior file content from previous deliberation
+      outputs. May be empty string if no prior files exist (first round or
+      no relevant prior context).
+    phases: [review]
+    required: true
+
+  PRIOR_ROUND_SECTION:
+    type: conditional-block
+    description: >
+      Multi-line block summarizing prior round results. Pre-populated by the
+      orchestrator from ROUND, MAX_ROUNDS, PRIOR_SYNTHESIS_PATH, and
+      PRIOR_ROUND_DIR. Empty string on first round.
+    phases: [review]
+    required: true
+
+  # ============================================================================
+  # Phase 2: cross-review
+  # ============================================================================
+
+  REVIEWER_NAME:
+    type: string
+    description: >
+      Display name of the agent performing the cross-review.
+    phases: [cross-review]
+    required: true
+
+  REVIEWER_PROMPT:
+    type: string
+    description: >
+      The reviewing agent's system prompt or persona description, injected
+      verbatim into the cross-review template.
+    phases: [cross-review]
+    required: true
+
+  REVIEWED_NAME:
+    type: string
+    description: >
+      Display name of the agent whose review is being cross-reviewed.
+    phases: [cross-review]
+    required: true
+
+  REVIEWED_REVIEW_PATH:
+    type: path
+    description: >
+      File path to the reviewed agent's Phase 1 review output.
+    phases: [cross-review]
+    required: true
+
+  REVIEWER_REVIEW_PATH:
+    type: path
+    description: >
+      File path to the reviewing agent's own Phase 1 review output,
+      provided for reference during cross-review.
+    phases: [cross-review]
+    required: true
+
+  # ============================================================================
+  # Phase 3: revision
+  # ============================================================================
+
+  MY_REVIEW_PATH:
+    type: path
+    description: >
+      File path to the agent's own Phase 1 review, provided as input
+      for revision.
+    phases: [revision]
+    required: true
+
+  CROSS_REVIEWS_OF_ME:
+    type: path-list
+    description: >
+      Newline-separated list of file paths to cross-reviews written about
+      this agent's review by other agents.
+    phases: [revision]
+    required: true
+
+  MY_CROSS_REVIEWS:
+    type: path-list
+    description: >
+      Newline-separated list of file paths to cross-reviews this agent
+      wrote about other agents' reviews.
+    phases: [revision]
+    required: true
+
+  ITERATION:
+    type: integer
+    description: >
+      The current revision iteration number within a single round.
+      Used to inform the agent which revision pass this is.
+    phases: [revision]
+    required: true
+
+  # ============================================================================
+  # Phase 4: disputes
+  # ============================================================================
+
+  ALL_REVISION_PATHS:
+    type: path-list
+    description: >
+      Newline-separated list of file paths to all agents' Phase 3 revision
+      outputs. Used in disputes to read all agents' revised positions.
+    phases: [disputes]
+    required: true
+
+  MY_REVISION_PATH:
+    type: path
+    description: >
+      File path to this agent's own Phase 3 revision output.
+    phases: [disputes]
+    required: true
+
+  # ============================================================================
+  # Phase 5: synthesis
+  # ============================================================================
+
+  AGENT_NAMES:
+    type: string
+    description: >
+      Comma-separated or formatted list of all agent display names that
+      participated in the deliberation.
+    phases: [synthesis, arbitration, cross-round-synthesis]
+    required: true
+
+  ALL_REVIEWS:
+    type: path-list
+    description: >
+      Newline-separated list of file paths to all agents' Phase 1 review outputs.
+    phases: [synthesis]
+    required: true
+
+  ALL_CROSS_REVIEWS:
+    type: path-list
+    description: >
+      Newline-separated list of file paths to all Phase 2 cross-review outputs.
+    phases: [synthesis]
+    required: true
+
+  ALL_REVISIONS:
+    type: path-list
+    description: >
+      Newline-separated list of file paths to all agents' Phase 3 revision outputs.
+    phases: [synthesis]
+    required: true
+
+  ALL_DISPUTES:
+    type: path-list
+    description: >
+      Newline-separated list of file paths to all agents' Phase 4 disputes outputs.
+      Also used in arbitration to provide full dispute context.
+    phases: [synthesis, arbitration]
+    required: true
+
+  TARGET_PATH:
+    type: path
+    description: >
+      Single file path to the target specification under deliberation.
+      Used in synthesis and cross-round-synthesis instead of TARGET_FILES.
+    phases: [synthesis, cross-round-synthesis]
+    required: true
+
+  # ============================================================================
+  # Phase 6: arbitration
+  # ============================================================================
+
+  ARBITER_NAME:
+    type: string
+    description: >
+      Display name of the arbiter — the subject of the deliberation who
+      resolves remaining disputes from a position of operational authority.
+    phases: [arbitration]
+    required: true
+
+  ARBITER_PROMPT:
+    type: string
+    description: >
+      The arbiter's system prompt or persona description, injected verbatim.
+    phases: [arbitration]
+    required: true
+
+  ARBITER_DOCS:
+    type: extracted-content
+    description: >
+      Documentation content for the arbiter, extracted from configured docs
+      paths. Provides domain context for arbitration decisions.
+    phases: [arbitration]
+    required: true
+
+  GROUNDING_PATH:
+    type: path
+    description: >
+      File path to the arbiter's grounding document — the authoritative
+      source of principles and constraints used to resolve disputes.
+    phases: [arbitration]
+    required: true
+
+  SYNTHESIS_PATH:
+    type: path
+    description: >
+      File path to the Phase 5 synthesis output that the arbiter reviews
+      alongside dispute documents.
+    phases: [arbitration]
+    required: true
+
+  TRIGGER:
+    type: string
+    description: >
+      Human-readable description of what triggered arbitration (e.g.,
+      dispute threshold exceeded, consensus not reached).
+    phases: [arbitration]
+    required: true
+
+  REMAINING_DISPUTES:
+    type: extracted-content
+    description: >
+      Extracted content listing the specific unresolved disputes that
+      require arbitration. Pre-formatted by the orchestrator.
+    phases: [arbitration]
+    required: true
+
+  # ============================================================================
+  # Phase 7: cross-round-synthesis
+  # ============================================================================
+
+  ROUNDS_COMPLETED:
+    type: integer
+    description: >
+      Total number of rounds that were completed before cross-round synthesis.
+    phases: [cross-round-synthesis]
+    required: true
+
+  ROUND_SYNTHESES:
+    type: extracted-content
+    description: >
+      Extracted content from each round's synthesis output, formatted by
+      the orchestrator for cross-round comparison.
+    phases: [cross-round-synthesis]
+    required: true
+
+  TERMINATION_REASON:
+    type: string
+    description: >
+      Human-readable explanation of why the multi-round deliberation ended
+      (e.g., consensus reached, max rounds exceeded, convergence detected).
+    phases: [cross-round-synthesis]
+    required: true
+
+  # ============================================================================
+  # Mode-specific variables — only required for specific deliberation modes
+  # ============================================================================
+
+  AGENT_ROLE:
+    type: string
+    description: >
+      The agent's team assignment in red-blue mode ("red" or "blue").
+      Determines whether the agent attacks or defends the proposal.
+    phases: [review, revision, disputes]
+    required: true
+    modes: [red-blue]
+
+  REVIEWER_ROLE:
+    type: string
+    description: >
+      The reviewing agent's team assignment in red-blue mode ("red" or "blue").
+      Used in cross-review to determine the review strategy based on
+      same-team vs cross-team dynamics.
+    phases: [cross-review]
+    required: true
+    modes: [red-blue]
+
+  REVIEWED_ROLE:
+    type: string
+    description: >
+      The reviewed agent's team assignment in red-blue mode ("red" or "blue").
+      Used alongside REVIEWER_ROLE to determine cross-review behavior.
+    phases: [cross-review]
+    required: true
+    modes: [red-blue]

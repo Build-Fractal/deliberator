@@ -1,0 +1,57 @@
+# Mode schema: winner-take-all
+# Defines mode-specific template requirements for winner-take-all (competitive selection) deliberation.
+
+mode: winner-take-all
+
+# Mode-specific variables (required in addition to universal variables from variables.yml)
+# Winner-take-all mode has NO mode-specific variables beyond the universal set.
+variables: []
+
+# Phases where {MODE} variable appears in this mode's templates
+mode_in_phases:
+  - synthesis
+  - arbitration
+  - cross-round-synthesis
+
+# Templates expected for this mode
+templates:
+  - review
+  - cross-review
+  - revision
+  - disputes
+  - synthesis
+  - arbitration
+  - cross-round-synthesis
+
+# Dispute-Parsing Subsystem interface
+# WTA uses "## Runner-Up" presence as the dispute indicator (contested decision)
+# and "### Remaining Disputes" for explicit dispute entries.
+disputes:
+  synthesis_heading: "### Remaining Disputes"
+  entry_pattern: "**Dispute:"
+  structural_markers: true
+
+# Phase 6 output validation
+# WTA arbitration has different headings — "Verdict Review" and singular "Binding Decision"
+arbitration:
+  required_headings:
+    - Process Note
+    - Decision Framework
+    - Verdict Review
+    - Binding Decision
+  influence_headings:
+    recommended:
+      - Process Note
+      - Decision Framework
+      - Verdict Review
+      - Recommended Decision
+    advisory:
+      - Process Note
+      - Decision Framework
+      - Verdict Review
+      - Advisory Opinion
+
+# Cross-round synthesis requirements
+cross_round_synthesis:
+  structural_markers: true
+  dispute_heading: "### Remaining Disputes"

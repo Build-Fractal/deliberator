@@ -1,0 +1,57 @@
+# ==============================================================================
+# Game Form Schema: Normal Form
+# ==============================================================================
+#
+# The simplest game representation. Players choose strategies simultaneously;
+# payoffs are determined by the joint strategy profile.
+#
+# Use case: winner-take-all mode, where agents are alternatives competing
+# for selection.
+# ==============================================================================
+
+form: normal-form
+
+description: >
+  Normal form game. Players choose strategies simultaneously from finite
+  strategy sets. Payoffs are determined by the joint strategy profile via
+  a payoff matrix (tensor of per-player payoffs).
+
+fields:
+  - name: players
+    type: list[string]
+    required: true
+    description: >
+      Finite set of named players participating in the game.
+
+  - name: strategies
+    type: map[string, list[string]]
+    required: true
+    description: >
+      Per-player strategy sets. A mapping from player name to list of
+      available strategy labels. Each player must have at least one strategy.
+
+  - name: payoff_matrix
+    type: matrix
+    required: true
+    description: >
+      Payoff tensor indexed by the joint strategy profile. Dimensions must
+      match the cardinalities of the strategy sets (|S_1| x |S_2| x ... x |S_N|).
+      Each cell contains a list of per-player payoffs.
+
+example:
+  form: normal-form
+  players:
+    - Alice
+    - Bob
+  strategies:
+    Alice:
+      - cooperate
+      - defect
+    Bob:
+      - cooperate
+      - defect
+  payoff_matrix:
+    - - [3, 3]
+      - [0, 5]
+    - - [5, 0]
+      - [1, 1]
