@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 220" width="200" height="220">
+  <!--
+    Build Fractal "F" — flat-color version of the isometric 3D block letter.
+    Three tonal values per the design system:
+      Light face (top):   #7ae4de  (teal highlight — light catching top)
+      Front face:         #53dad2  (primary teal)
+      Side/shadow face:   #1fb8b1  (primary container — darker teal)
+      Edge accent:        #e8a54a  (copper, subtle)
+  -->
+
+  <!-- === TOP HORIZONTAL BAR === -->
+  <!-- Front face -->
+  <polygon points="30,40 170,40 170,70 30,70" fill="#53dad2"/>
+  <!-- Top face (angled isometric) -->
+  <polygon points="30,40 45,25 185,25 170,40" fill="#7ae4de"/>
+  <!-- Right side face -->
+  <polygon points="170,40 185,25 185,55 170,70" fill="#1fb8b1"/>
+
+  <!-- === VERTICAL LEFT BAR === -->
+  <!-- Front face -->
+  <polygon points="30,40 65,40 65,210 30,210" fill="#53dad2"/>
+  <!-- Right side face -->
+  <polygon points="65,40 80,25 80,195 65,210" fill="#1fb8b1"/>
+
+  <!-- === MIDDLE HORIZONTAL BAR === -->
+  <!-- Front face -->
+  <polygon points="65,115 145,115 145,145 65,145" fill="#53dad2"/>
+  <!-- Top face (angled isometric) -->
+  <polygon points="65,115 80,100 160,100 145,115" fill="#7ae4de"/>
+  <!-- Right side face -->
+  <polygon points="145,115 160,100 160,130 145,145" fill="#1fb8b1"/>
+
+  <!-- Copper accent — small mark top-left corner per "Fractal Module" design rule -->
+  <polygon points="30,40 45,25 50,25 35,40" fill="#e8a54a" opacity="0.7"/>
+</svg>

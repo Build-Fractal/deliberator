@@ -569,6 +569,70 @@ def context(as_json: bool) -> None:
 
 
 # ---------------------------------------------------------------------------
+# mcp
+# ---------------------------------------------------------------------------
+
+
+@cli.command(
+    epilog="""\b
+Examples:
+  # Start the MCP server (stdio transport, for use with Claude Code / Cursor)
+  conversus mcp
+
+  # Add to Claude Code via CLI
+  claude mcp add conversus -- conversus mcp
+""",
+)
+def mcp() -> None:
+    """Start the Conversus MCP server (stdio transport).
+
+    Launches an MCP-compatible server that exposes conversus deliberation
+    tools to editors such as Claude Code, Cursor, and Windsurf.
+
+    Requires the mcp extras: pip install conversus[mcp]
+
+    Tools exposed:
+      conversus_validate — validate a YAML config and estimate cost
+      conversus_run      — validate config and parse/run a deliberation
+      conversus_decide   — run an ad-hoc deliberation on a question
+
+    Transport: stdio (launched by the editor process, not by the user)
+    """
+    try:
+        from mcp.server.fastmcp import FastMCP  # noqa: F401 — presence check only
+    except ImportError:
+        click.echo(
+            "Error: MCP dependencies are not installed.\n"
+            "Install them with: pip install conversus[mcp]",
+            err=True,
+        )
+        sys.exit(1)
+
+    # Import the pre-built FastMCP instance from mcp_server.py.
+    # We resolve the path relative to this file so it works regardless of CWD.
+    import importlib.util as _ilu
+
+    _server_path = Path(__file__).parent.parent.parent / "mcp_server.py"
+    if not _server_path.exists():
+        # Installed package layout: mcp_server.py ships as a top-level module.
+        try:
+            import mcp_server as _mcp_mod
+        except ImportError:
+            click.echo(
+                "Error: mcp_server.py not found. "
+                "Re-install the package or run from the repo root.",
+                err=True,
+            )
+            sys.exit(1)
+    else:
+        _spec = _ilu.spec_from_file_location("mcp_server", _server_path)
+        _mcp_mod = _ilu.module_from_spec(_spec)  # type: ignore[arg-type]
+        _spec.loader.exec_module(_mcp_mod)  # type: ignore[union-attr]
+
+    _mcp_mod.mcp.run(transport="stdio")
+
+
+# ---------------------------------------------------------------------------
 # init
 # ---------------------------------------------------------------------------
 

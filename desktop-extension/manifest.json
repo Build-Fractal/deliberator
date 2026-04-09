@@ -1,0 +1,59 @@
+{
+  "manifest_version": "0.3",
+  "name": "conversus",
+  "display_name": "Conversus",
+  "version": "0.1.0",
+  "description": "Multi-agent deliberation engine — run competitive reviews, red-team proposals, and build consensus",
+  "long_description": "Conversus is an open-source multi-agent deliberation engine that uses game theory modes (cooperative, winner-take-all, prisoner's dilemma, red-blue) to drive structured adversarial review, convergence, and dispute resolution across LLM agents. Use it to run competitive reviews, red-team proposals, evaluate decisions, and synthesize consensus from multiple AI perspectives.",
+  "author": {
+    "name": "Build Fractal",
+    "email": "hello@buildfractal.com",
+    "url": "https://buildfractal.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/build-fractal/conversus-oss.git"
+  },
+  "homepage": "https://github.com/build-fractal/conversus-oss",
+  "documentation": "https://github.com/build-fractal/conversus-oss#readme",
+  "support": "https://github.com/build-fractal/conversus-oss/issues",
+  "license": "Apache-2.0",
+  "keywords": [
+    "deliberation",
+    "multi-agent",
+    "consensus",
+    "red-team",
+    "game-theory",
+    "adversarial",
+    "decision-making"
+  ],
+  "compatibility": {
+    "platforms": ["darwin", "win32", "linux"],
+    "runtimes": {
+      "python": ">=3.12"
+    }
+  },
+  "server": {
+    "type": "python",
+    "entry_point": "conversus mcp",
+    "mcp_config": {
+      "command": "conversus",
+      "args": ["mcp"]
+    }
+  },
+  "tools_generated": false,
+  "tools": [
+    {
+      "name": "conversus_validate",
+      "description": "Validate a conversus YAML configuration without executing"
+    },
+    {
+      "name": "conversus_run",
+      "description": "Validate a config and optionally run a deliberation or parse existing output"
+    },
+    {
+      "name": "conversus_decide",
+      "description": "Run an ad-hoc deliberation on a natural-language question using game theory modes"
+    }
+  ]
+}

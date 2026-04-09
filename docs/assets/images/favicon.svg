@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- Isometric F favicon — same geometry as logo, scaled to 32x32 -->
+  <!-- Top bar -->
+  <polygon points="4,7 27,7 27,11 4,11" fill="#53dad2"/>
+  <polygon points="4,7 6,5 29,5 27,7" fill="#7ae4de"/>
+  <polygon points="27,7 29,5 29,9 27,11" fill="#1fb8b1"/>
+  <!-- Vertical bar -->
+  <polygon points="4,7 10,7 10,30 4,30" fill="#53dad2"/>
+  <polygon points="10,7 12,5 12,28 10,30" fill="#1fb8b1"/>
+  <!-- Middle bar -->
+  <polygon points="10,17 23,17 23,21 10,21" fill="#53dad2"/>
+  <polygon points="10,17 12,15 25,15 23,17" fill="#7ae4de"/>
+  <polygon points="23,17 25,15 25,19 23,21" fill="#1fb8b1"/>
+</svg>

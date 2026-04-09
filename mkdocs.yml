@@ -1,0 +1,111 @@
+site_name: Conversus
+site_description: Multi-agent deliberation engine with game theory optimization
+site_url: https://docs.conversus.dev/
+repo_url: https://github.com/Build-Fractal/conversus
+repo_name: Build-Fractal/conversus
+
+theme:
+  name: material
+  custom_dir: docs/overrides
+  logo: assets/images/logo-original.png
+  favicon: assets/images/favicon.svg
+  palette:
+    - scheme: slate
+      primary: custom
+      accent: custom
+  font: false
+  features:
+    - content.code.copy
+    - content.code.annotate
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - navigation.expand
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - search.suggest
+    - search.highlight
+    - toc.follow
+    - header.autohide
+
+extra_css:
+  - stylesheets/fractal.css
+
+plugins:
+  - search
+  - autorefs:
+      resolve_closest: true
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          options:
+            show_source: true
+            show_root_heading: true
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            members_order: source
+            merge_init_into_class: true
+            show_if_no_docstring: false
+            annotations_path: brief
+            separate_signature: true
+            signature_crossrefs: true
+            docstring_style: google
+  - git-revision-date-localized:
+      enable_creation_date: true
+      enable_git_follow: false
+      fallback_to_build_date: true
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - admonition
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - User Guide:
+    - Quickstart: user-guide/quickstart.md
+    - CLI Reference: user-guide/cli.md
+    - Guided Workflow: user-guide/guided-workflow.md
+    - Modes: user-guide/modes.md
+    - Config Reference: user-guide/config-reference.md
+    - MCP Setup: user-guide/mcp-setup.md
+    - Python SDK: user-guide/sdk.md
+  - Developer Guide:
+    - Architecture: developer-guide/architecture.md
+    - Building Plugins: developer-guide/building-plugins.md
+    - Building Domains: developer-guide/building-domains.md
+    - Building Templates: developer-guide/building-templates.md
+    - Game Forms: developer-guide/game-forms.md
+    - Testing: developer-guide/testing.md
+    - Contributing: developer-guide/contributing.md
+  - API Reference:
+    - Overview: api/index.md
+    - Schemas:
+      - Construction: api/schemas/construction.md
+      - Extraction: api/schemas/extraction.md
+      - Features: api/schemas/features.md
+      - Objectives: api/schemas/objectives.md
+      - Game Forms: api/schemas/game-forms.md
+      - Solvers: api/schemas/solvers.md
+      - Validation: api/schemas/validation.md
+      - Modes: api/schemas/modes.md
+    - Plugins:
+      - Base: api/plugins/base.md
+    - Domains:
+      - Base: api/domains/base.md
+      - Store: api/domains/store.md
+      - API Router: api/domains/api.md
