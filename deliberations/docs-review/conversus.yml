@@ -1,0 +1,111 @@
+# OSS Documentation Review — Mergeability with Paid Docs
+#
+# Adapted from spec 031 deliberation (private repo).
+# Evaluates: accuracy, completeness, style consistency, and mergeability
+# with the paid/private documentation.
+#
+# Run:
+#   conversus run deliberations/docs-review/conversus.yml --provider claude-code
+
+mode: cooperative
+output: output/
+rounds: 2
+stagnation: detect
+validate_templates: false
+
+target:
+  # Landing + README
+  - ../../README.md
+  - ../../docs/index.md
+  # User guide
+  - ../../docs/user-guide/quickstart.md
+  - ../../docs/user-guide/cli.md
+  - ../../docs/user-guide/modes.md
+  - ../../docs/user-guide/config-reference.md
+  - ../../docs/user-guide/mcp-setup.md
+  - ../../docs/user-guide/sdk.md
+  # Developer guide
+  - ../../docs/developer-guide/architecture.md
+  - ../../docs/developer-guide/building-plugins.md
+  - ../../docs/developer-guide/contributing.md
+  # API reference (spot-check)
+  - ../../docs/api/schemas/construction.md
+  - ../../docs/api/plugins/base.md
+
+agents:
+  - name: code-verifier
+    prompt: |
+      You are a code verification engineer. Read the documentation AND the
+      actual source code in the repo. For every claim, code example, and
+      API reference, verify it against the real code.
+
+      Check:
+      1. Do CLI commands in docs match actual Click definitions in engine/cli/?
+      2. Do code examples actually work with the current API?
+      3. Do import paths match the actual package structure?
+      4. Are function signatures in docs accurate?
+      5. Are the 8 modes listed matching VALID_MODES in the code?
+      6. Are config fields in config-reference accurate to parse_config()?
+      7. Are any features documented that don't exist in the OSS repo?
+      8. Are any features implemented but not documented?
+      9. Does `pip install conversus` work as described?
+      10. Does `conversus mcp` work as described in mcp-setup.md?
+
+      Critical: flag any documentation that references PAID or INTERNAL
+      features that aren't in the open-source release.
+
+  - name: new-user
+    prompt: |
+      You are a developer who has never seen conversus. You just found
+      this project on GitHub. Read the docs from start to finish:
+
+      1. Can you follow the quickstart and get a result in under 60 seconds?
+      2. Are the mode descriptions clear without game theory jargon?
+      3. Are CLI examples copy-pasteable?
+      4. Is the MCP setup guide clear enough to add to your editor?
+      5. Where do you get stuck or confused?
+      6. Is anything contradictory between README and the docs site?
+      7. Would you star this repo? What would make you try it immediately?
+      8. Is the docs site navigable — can you find what you need?
+
+  - name: mergeability-auditor
+    prompt: |
+      You are a documentation architect. This OSS documentation must be
+      a CLEAN SUBSET of a larger paid documentation set. Your job is to
+      evaluate whether these docs can seamlessly merge with paid/enterprise
+      docs without conflicts.
+
+      Check:
+      1. STYLE: Is the writing tone, heading structure, formatting
+         consistent across all pages? MkDocs Material conventions followed?
+      2. STRUCTURE: Do directory paths follow the convention
+         (user-guide/, developer-guide/, api/) that would allow paid docs
+         to add pages without restructuring?
+      3. NAVIGATION: Is the mkdocs.yml nav structured so paid sections
+         (e.g., enterprise/, advanced/, billing/) could be added without
+         breaking existing URLs?
+      4. CROSS-REFERENCES: Do internal links use relative paths that would
+         survive a merge into a larger site?
+      5. API BOUNDARIES: Are auto-generated API docs scoped to public
+         modules only? No internal/private APIs leaking?
+      6. BRANDING: Is there any reference to specific company names,
+         internal tools, or paid features that would conflict?
+      7. EXTENSIBILITY: Could a developer-guide/enterprise-plugins.md be
+         added without touching existing files?
+      8. VERSION ISOLATION: Is the content version-neutral enough that
+         paid docs at v2.0 won't conflict with OSS docs at v1.0?
+
+      Flag any structural decisions that would make merging painful later.
+
+arbiter:
+  name: docs-architect
+  prompt: |
+    You are the documentation system architect. Judge whether these docs
+    would enable: (a) a new user to adopt conversus, (b) a developer to
+    extend it, and (c) a future merge with paid/enterprise docs. If
+    documentation claims don't match code reality, that's P1. If structural
+    decisions would make merging painful, that's P1. Style inconsistencies
+    are P2.
+  grounding: ../../README.md
+  trigger: disputes_remain
+  influence: binding

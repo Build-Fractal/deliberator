@@ -78,6 +78,7 @@ nav:
   - Home: index.md
   - User Guide:
     - Quickstart: user-guide/quickstart.md
+    - Your First Deliberation: user-guide/first-deliberation.md
     - CLI Reference: user-guide/cli.md
     - Guided Workflow: user-guide/guided-workflow.md
     - Modes: user-guide/modes.md
@@ -92,6 +93,7 @@ nav:
     - Game Forms: developer-guide/game-forms.md
     - Testing: developer-guide/testing.md
     - Contributing: developer-guide/contributing.md
+    - Specs & Deliberations: developer-guide/specs-and-deliberations.md
   - API Reference:
     - Overview: api/index.md
     - Schemas:

@@ -2,6 +2,11 @@
 
 Conversus is organized into three layers with strict coupling rules.
 
+!!! info "Design history"
+    The architecture below is the result of specs and deliberations in the repo.
+    See [Specs & Deliberations](specs-and-deliberations.md) for the decision record,
+    including the packaging strategy deliberation that produced the three-layer model.
+
 ## Three layers
 
 ```

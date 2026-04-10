@@ -176,23 +176,43 @@ Requires the MCP extras: `pip install "conversus[mcp] @ git+https://github.com/B
 
 ## `conversus init`
 
-Initialize a `.conversus/` directory with runtime permissions for the current project.
+Configure the current project so conversus agents can run **without permission prompts**. Conversus dispatches parallel sub-agents through your chosen runtime — `init` writes the settings file each runtime needs to auto-approve those dispatches so deliberations run end-to-end unattended.
 
 ```bash
-conversus init                             # Default: claude-code runtime
-conversus init --runtime opencode          # Configure for opencode
-conversus init --provider anthropic        # Pre-set provider
-conversus init --force                     # Overwrite existing config
+conversus init                                           # Default: claude-code
+conversus init --runtime opencode                        # Configure opencode
+conversus init --runtime claude-code --runtime gemini    # Multiple runtimes
+conversus init --provider anthropic --model opus         # Pre-set defaults
+conversus init --force                                   # Overwrite existing
 ```
+
+### What it creates
+
+Each runtime gets its own settings file with auto-approval granted for the tools conversus needs (Agent dispatch, file I/O, Bash for sub-process invocation):
+
+| Runtime | File written | Purpose |
+|---------|-------------|---------|
+| `claude-code` | `.claude/settings.json` | Permission grants for Agent, Read, Write, Bash |
+| `opencode` | `.opencode/config.toml` | `auto_approve` for tool use |
+| `copilot` | `.github/copilot-settings.json` | Copilot agent permissions |
+| `gemini` | `.gemini/settings.json` | Gemini CLI tool permissions |
+| `codex` | `.codex/settings.json` | Codex tool grants |
+| `aider` | `.aider.conf.yml` | `yes-always`, `no-auto-commits` |
+
+### Why you need it
+
+Without `init`, conversus deliberations stop at every agent dispatch waiting for interactive approval. In a 29-launch pipeline (review → cross-review → revision → disputes → synthesis), that's 29 interruptions. `init` grants the tool permissions once so the pipeline runs unattended.
+
+**Run it once per project.** You can re-run with `--force` to update settings later.
 
 **Options:**
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `--runtime` | `claude-code` | Agent runtime (`claude-code`, `opencode`, `copilot`, `gemini`, `codex`, `aider`) |
-| `--provider` | none | Pre-configure a default provider |
-| `--model` | none | Pre-configure a default model |
-| `--force` | `false` | Overwrite existing `.conversus/` directory |
+| `--runtime` | `claude-code` | Runtimes to configure (repeatable) |
+| `--provider` | none | Pre-configure a default execution provider |
+| `--model` | none | Pre-configure a default model identifier |
+| `--force` | `false` | Overwrite existing settings files |
 
 ## `conversus context`
 

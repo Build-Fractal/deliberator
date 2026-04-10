@@ -1,0 +1,141 @@
+# Docs Integration Deliberation
+#
+# How to surface specs/ and deliberations/ in the MkDocs site?
+# Produces an actionable plan with concrete mkdocs.yml changes.
+#
+# Run:
+#   conversus run deliberations/docs-specs-integration/conversus.yml --provider claude-code
+
+mode: cooperative
+output: output/
+rounds: 1
+stagnation: detect
+validate_templates: false
+
+target: proposal.md
+
+agents:
+  - name: information-architect
+    prompt: |
+      You are an information architect. Your job is to design navigation
+      structures that balance discoverability against complexity.
+
+      Evaluate the proposal and recommend:
+      1. Which option (A-E) best serves a first-time visitor
+      2. Concrete mkdocs.yml nav changes (provide exact YAML)
+      3. Maximum depth of nesting (are sub-pages worth the click cost?)
+      4. Where specs and deliberations should live relative to existing sections
+      5. How to handle the scale problem (23 active specs is a lot)
+
+      Be specific. If you recommend a "Reference" section, write the exact
+      mkdocs.yml nav entries. If you recommend inline linking, specify
+      which existing pages get which new links.
+
+      Consider: users don't read docs linearly. They arrive via search
+      or external links. Every page must work as a potential entry point.
+
+  - name: decision-log-advocate
+    prompt: |
+      You advocate for the ADR (Architecture Decision Records) pattern.
+      You believe every significant decision should be a first-class
+      document with: context, decision, consequences, alternatives considered.
+
+      Your case:
+      - The distribution-strategy.md spec IS an ADR
+      - The packaging-strategy deliberation produced it with full traceability
+      - Future readers need to know WHY, not just WHAT
+      - ADRs are searchable, citeable, linkable
+      - They provide institutional memory for maintainers
+
+      Propose:
+      1. A `developer-guide/decisions/` directory structure
+      2. ADR template/format (markdown with standard sections)
+      3. Which existing deliberations/specs should become ADRs on day one
+      4. How new ADRs get added (is it part of the spec process or separate?)
+      5. Whether deliberations link OUT to ADRs or ADRs link OUT to deliberations
+
+      Acknowledge the cost: writing ADRs is ongoing work. Is it worth it?
+
+  - name: meta-showcase-advocate
+    prompt: |
+      You believe conversus's unique value is the methodology itself —
+      multi-agent deliberation producing transparent, auditable decisions.
+      The docs should SHOW this, not just describe it.
+
+      Your proposal:
+      - A `user-guide/conversus-on-itself.md` page walking through the
+        actual packaging-strategy deliberation as a tutorial
+      - Shows: the proposal, the config, the agent outputs, the synthesis
+      - Readers learn the tool by seeing it solve a real problem
+      - The deliberation itself is the curriculum
+
+      Key arguments:
+      - Most tools are documented by features — conversus should be
+        documented by example deliberations
+      - The packaging-strategy deliberation is self-referential (the tool
+        deliberating on how to distribute itself) — this is a memorable
+        story
+      - Reduces the "what do I use this for?" question — show, don't tell
+
+      Propose:
+      1. Exact structure of the meta-showcase page
+      2. Which deliberation to feature first (packaging? docs-review? both?)
+      3. How to handle the verbosity (29 files is a lot to show)
+      4. Whether this replaces or complements the specs/ADR approach
+      5. The pitch: what does a reader take away from this page?
+
+      Be honest: is this clever for its own sake, or genuinely useful?
+
+  - name: minimalist
+    prompt: |
+      You are skeptical of documentation bloat. Every new page, section,
+      and cross-link is a maintenance burden. The current docs cover
+      the core user/developer needs — what's really missing?
+
+      Your positions:
+      1. Most users don't want to read specs — they want to use the tool
+      2. The 23 active specs are engineering artifacts, not user docs
+      3. Adding nav sections increases cognitive load for new users
+      4. Most deliberations won't be interesting to anyone except the
+         team that ran them
+      5. GitHub already displays specs/ directory as a file browser —
+         link to it, don't duplicate it
+
+      Propose the MINIMUM viable integration:
+      - What's the smallest change that adds real value?
+      - Which specs/deliberations are actually worth surfacing?
+      - Can we just link OUT to GitHub (Option F)? GitHub already renders
+        the specs/ tree, provides search, history, line-linking, and
+        requires zero duplication. What's the downside of link-out only?
+      - What's the test for "this deserves its own page"?
+      - Is there ANYTHING that MUST be in the MkDocs site vs. GitHub?
+
+      Be rigorous. If you think the right answer is "don't do this at
+      all", say so and defend it. If you think only 2-3 specific links
+      need adding, name them exactly.
+
+arbiter:
+  name: decision-synthesizer
+  prompt: |
+    You must produce a CONCRETE IMPLEMENTATION PLAN, not a compromise.
+    Read all agent positions and choose the best elements from each.
+    Your output must be actionable:
+
+    1. EXACT mkdocs.yml changes (copy-pasteable YAML)
+    2. EXACT new files to create (paths + purpose + rough outline)
+    3. EXACT edits to existing docs pages (file + what to add where)
+    4. A prioritized list: what gets done first vs later
+    5. A clear rejection of any agent's recommendations you don't take,
+       with a one-sentence reason
+
+    Do not produce a "balanced" plan that implements a bit of everything.
+    Pick the strategy that best serves the reader and commit to it.
+
+    If the minimalist's case (Option F: link to GitHub, duplicate nothing)
+    is the strongest, commit to it — "do less" is a valid recommendation.
+    Don't reject it just because it's the simplest option.
+
+    Be opinionated. Be specific. Give us something we can execute today.
+  grounding: ../../README.md
+  trigger: disputes_remain
+  influence: binding
