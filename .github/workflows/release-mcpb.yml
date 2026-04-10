@@ -29,10 +29,6 @@ jobs:
             bundle_name: conversus-darwin-arm64.mcpb
             platform: darwin
             arch: arm64
-          - runner: macos-13
-            bundle_name: conversus-darwin-x86_64.mcpb
-            platform: darwin
-            arch: x86_64
           - runner: ubuntu-latest
             bundle_name: conversus-linux-x86_64.mcpb
             platform: linux
@@ -88,13 +84,15 @@ jobs:
         shell: bash
         run: |
           cd desktop-extension
-          python -c "
+          BUNDLE="${{ matrix.bundle_name }}"
+          BASE="${BUNDLE%.mcpb}"
+          python - <<PY
           import shutil
-          shutil.make_archive('../${{ matrix.bundle_name }}'.rstrip('.mcpb'), 'zip', '.', '.')
-          "
+          shutil.make_archive("../${BASE}", "zip", ".")
+          PY
           # make_archive writes .zip; rename to .mcpb
-          mv "../${{ matrix.bundle_name }}.zip" "../${{ matrix.bundle_name }}"
-          ls -lh "../${{ matrix.bundle_name }}"
+          mv "../${BASE}.zip" "../${BUNDLE}"
+          ls -lh "../${BUNDLE}"
 
       - name: Upload as workflow artifact
         uses: actions/upload-artifact@v4
@@ -141,7 +139,6 @@ jobs:
           generate_release_notes: true
           files: |
             conversus-darwin-arm64.mcpb
-            conversus-darwin-x86_64.mcpb
             conversus-linux-x86_64.mcpb
             conversus-win-x86_64.mcpb
           body: |
@@ -152,9 +149,10 @@ jobs:
             | Platform | File |
             |---|---|
             | macOS (Apple Silicon) | `conversus-darwin-arm64.mcpb` |
-            | macOS (Intel) | `conversus-darwin-x86_64.mcpb` |
             | Linux (x86_64) | `conversus-linux-x86_64.mcpb` |
             | Windows (x86_64) | `conversus-win-x86_64.mcpb` |
+
+            **Intel Mac users**: install via `pip install git+https://github.com/Build-Fractal/conversus.git` — GitHub has deprecated free Intel Mac CI runners. Let us know if you need a signed Intel Mac build.
 
             ## Install
 
