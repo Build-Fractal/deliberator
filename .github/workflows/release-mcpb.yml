@@ -117,7 +117,10 @@ jobs:
 
       - name: Flatten artifact directory
         run: |
-          find bundles -name '*.mcpb' -exec mv {} . \;
+          # download-artifact@v4 creates bundles/<artifact-name>/<file>.
+          # Our artifact names match the file names, so -type f is critical
+          # to avoid matching (and moving) the wrapper directories.
+          find bundles -type f -name '*.mcpb' -exec mv {} . \;
           ls -lh *.mcpb
 
       - name: Determine tag name
