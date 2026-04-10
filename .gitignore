@@ -25,3 +25,7 @@ coverage.xml
 
 .DS_Store
 Thumbs.db
+
+# Desktop Extension build artifacts
+conversus*.mcpb
+site/

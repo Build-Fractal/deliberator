@@ -1,0 +1,13 @@
+# Build artifacts installed by build.sh or CI — never commit.
+# server/lib/ contains vendored Python dependencies (~90MB on macOS arm64,
+# and is platform-specific). Each CI runner re-installs it from scratch.
+server/lib/
+
+# mcp_server.py is copied from the repo root during the build so the
+# bundle is self-contained. The source of truth lives at the repo root.
+server/mcp_server.py
+
+# Python cache
+server/__pycache__/
+**/__pycache__/
+*.pyc

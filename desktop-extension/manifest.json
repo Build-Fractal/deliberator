@@ -4,7 +4,7 @@
   "display_name": "Conversus",
   "version": "0.1.0",
   "description": "Multi-agent deliberation engine — run competitive reviews, red-team proposals, and build consensus",
-  "long_description": "Conversus is an open-source multi-agent deliberation engine that uses game theory modes (cooperative, winner-take-all, prisoner's dilemma, red-blue) to drive structured adversarial review, convergence, and dispute resolution across LLM agents. Use it to run competitive reviews, red-team proposals, evaluate decisions, and synthesize consensus from multiple AI perspectives.",
+  "long_description": "Conversus is an open-source multi-agent deliberation engine that uses game theory modes (cooperative, winner-take-all, prisoner's dilemma, red-blue) to drive structured adversarial review, convergence, and dispute resolution across LLM agents. Use it to run competitive reviews, red-team proposals, evaluate decisions, and synthesize consensus from multiple AI perspectives. This bundle is self-contained — no separate Python or pip install required.",
   "author": {
     "name": "Build Fractal",
     "email": "hello@buildfractal.com",
@@ -28,17 +28,21 @@
     "decision-making"
   ],
   "compatibility": {
-    "platforms": ["darwin", "win32", "linux"],
+    "claude_desktop": ">=0.10.0",
+    "platforms": ["darwin"],
     "runtimes": {
       "python": ">=3.12"
     }
   },
   "server": {
     "type": "python",
-    "entry_point": "conversus mcp",
+    "entry_point": "server/main.py",
     "mcp_config": {
-      "command": "conversus",
-      "args": ["mcp"]
+      "command": "python",
+      "args": ["${__dirname}/server/main.py"],
+      "env": {
+        "PYTHONPATH": "${__dirname}/server/lib"
+      }
     }
   },
   "tools_generated": false,

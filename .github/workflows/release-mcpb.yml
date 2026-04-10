@@ -1,0 +1,169 @@
+name: Build and release .mcpb bundles
+
+# Triggers on tag push (e.g., `v0.1.0`) OR manual dispatch for testing.
+# Produces a platform-specific .mcpb for each native runner and attaches
+# them to a GitHub Release named after the tag.
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Release tag (e.g., v0.1.0-rc1). Required for manual runs.'
+        required: true
+        type: string
+
+permissions:
+  contents: write  # needed to create releases and upload assets
+
+jobs:
+  build:
+    name: Build ${{ matrix.bundle_name }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-latest
+            bundle_name: conversus-darwin-arm64.mcpb
+            platform: darwin
+            arch: arm64
+          - runner: macos-13
+            bundle_name: conversus-darwin-x86_64.mcpb
+            platform: darwin
+            arch: x86_64
+          - runner: ubuntu-latest
+            bundle_name: conversus-linux-x86_64.mcpb
+            platform: linux
+            arch: x86_64
+          - runner: windows-latest
+            bundle_name: conversus-win-x86_64.mcpb
+            platform: win32
+            arch: x86_64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install conversus + dependencies into bundle
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install \
+            --target desktop-extension/server/lib \
+            --upgrade \
+            "." \
+            "mcp[cli]>=1.0.0"
+
+      - name: Copy mcp_server.py into bundle
+        shell: bash
+        run: |
+          cp mcp_server.py desktop-extension/server/mcp_server.py
+
+      - name: Update manifest with platform-specific compatibility
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          path = Path("desktop-extension/manifest.json")
+          manifest = json.loads(path.read_text())
+          manifest["compatibility"]["platforms"] = ["${{ matrix.platform }}"]
+          path.write_text(json.dumps(manifest, indent=2) + "\n")
+          PY
+
+      - name: Prune __pycache__ from bundle
+        shell: bash
+        run: |
+          find desktop-extension/server -type d -name '__pycache__' -exec rm -rf {} + 2>/dev/null || true
+          find desktop-extension/server -type f -name '*.pyc' -delete 2>/dev/null || true
+
+      - name: Build .mcpb archive
+        shell: bash
+        run: |
+          cd desktop-extension
+          python -c "
+          import shutil
+          shutil.make_archive('../${{ matrix.bundle_name }}'.rstrip('.mcpb'), 'zip', '.', '.')
+          "
+          # make_archive writes .zip; rename to .mcpb
+          mv "../${{ matrix.bundle_name }}.zip" "../${{ matrix.bundle_name }}"
+          ls -lh "../${{ matrix.bundle_name }}"
+
+      - name: Upload as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.bundle_name }}
+          path: ${{ matrix.bundle_name }}
+          retention-days: 7
+
+  release:
+    name: Publish GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Download all bundle artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: bundles
+
+      - name: Flatten artifact directory
+        run: |
+          find bundles -name '*.mcpb' -exec mv {} . \;
+          ls -lh *.mcpb
+
+      - name: Determine tag name
+        id: tag
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "tag=${{ inputs.tag_name }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create or update GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: Conversus ${{ steps.tag.outputs.tag }}
+          draft: false
+          prerelease: ${{ contains(steps.tag.outputs.tag, '-') }}
+          generate_release_notes: true
+          files: |
+            conversus-darwin-arm64.mcpb
+            conversus-darwin-x86_64.mcpb
+            conversus-linux-x86_64.mcpb
+            conversus-win-x86_64.mcpb
+          body: |
+            ## Desktop Extensions
+
+            Self-contained `.mcpb` bundles for Claude Desktop. Download the one for your platform and double-click to install — no separate Python or `pip install` required.
+
+            | Platform | File |
+            |---|---|
+            | macOS (Apple Silicon) | `conversus-darwin-arm64.mcpb` |
+            | macOS (Intel) | `conversus-darwin-x86_64.mcpb` |
+            | Linux (x86_64) | `conversus-linux-x86_64.mcpb` |
+            | Windows (x86_64) | `conversus-win-x86_64.mcpb` |
+
+            ## Install
+
+            1. Download the bundle for your OS
+            2. Double-click the file, or drag it into Claude Desktop → Settings → Extensions → Install from file
+            3. The `conversus_validate`, `conversus_run`, and `conversus_decide` tools appear in Claude Desktop
+
+            ## Other install methods
+
+            - **Python CLI**: `pip install git+https://github.com/Build-Fractal/conversus.git`
+            - **Claude Code plugin**: `/plugin install https://github.com/Build-Fractal/conversus-oss`
+            - **MCP server** (any MCP-compatible editor): `claude mcp add conversus -- conversus mcp`
