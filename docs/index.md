@@ -47,6 +47,13 @@ pip install -e .          # editable install
     pip install "conversus[mcp] @ git+https://github.com/Build-Fractal/conversus-oss.git"
     ```
 
+!!! tip "Claude Code / Cowork plugin"
+    Install the conversus plugin to get the `/conversus:design` guided config wizard and the full CLI as slash commands:
+    ```
+    /plugin marketplace add Build-Fractal/conversus-oss
+    /plugin install conversus@conversus
+    ```
+
 See the [Quickstart](user-guide/quickstart.md) for prerequisites and first-run instructions.
 
 !!! tip "Reading these docs"
@@ -64,7 +71,7 @@ See the [Quickstart](user-guide/quickstart.md) for prerequisites and first-run i
 
 -   :material-console: **[CLI Reference](user-guide/cli.md)**
 
-    All 6 commands, config files, presets, auth, JSON output.
+    All 9 commands, config files, presets, auth, JSON output.
 
 -   :material-language-python: **[Python SDK](user-guide/sdk.md)**
 

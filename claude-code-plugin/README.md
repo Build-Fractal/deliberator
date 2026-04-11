@@ -1,68 +1,66 @@
-# Conversus — Claude Code Plugin
+# Conversus — Claude Code / Cowork Plugin
 
-A Claude Code plugin that gives you a `/conversus` slash command for running competitive multi-agent deliberation directly from your editor.
+A plugin for **Claude Code** and **Cowork** that adds a `/conversus` command for running competitive multi-agent deliberation directly from your editor or desktop agent.
 
 ## Install
 
-```
-/plugin install https://github.com/build-fractal/conversus-oss
+The `conversus-oss` repo IS its own plugin marketplace. Two steps:
+
+```shell
+/plugin marketplace add Build-Fractal/conversus-oss
+/plugin install conversus@conversus
 ```
 
-Or install the CLI first:
+After install, try:
+
+```shell
+/conversus:design                         # guided config wizard
+/conversus:decide "Postgres or MongoDB?"  # ad-hoc deliberation
+```
+
+## Prerequisites
+
+The plugin wraps the conversus CLI, so you need the Python package installed too:
 
 ```bash
 pip install git+https://github.com/Build-Fractal/conversus-oss.git
 ```
 
-## Usage
+The plugin will prompt you with the install command if it can't find `conversus` on your PATH.
 
-```
-/conversus run conversus.yml --provider anthropic
-/conversus decide "Should we use Postgres or MongoDB?" --provider anthropic
-/conversus validate conversus.yml
-/conversus init
-/conversus status
-```
+## What you get
 
-## Subcommands
-
-| Command | Description |
+| Command | What it does |
 |---|---|
-| `run <config>` | Full deliberation from a `conversus.yml` config file |
-| `decide "<question>"` | Ad-hoc deliberation on a natural-language question |
-| `validate <config>` | Check config validity and print cost estimate |
-| `init` | Initialize project runtime permissions |
-| `status` | Show provider authentication status |
-| `login <provider>` | Authenticate with a model provider |
-| `logout <provider>` | Remove stored credentials |
+| `/conversus:design` | **Guided config builder** — walks you through creating a `conversus.yml` interactively. No YAML knowledge needed. |
+| `/conversus:run <config>` | Run a full deliberation from a config file |
+| `/conversus:decide "<question>"` | Ad-hoc deliberation on a natural-language question |
+| `/conversus:validate <config>` | Validate a config and show cost estimate |
+| `/conversus:init` | Set up runtime permissions for this project |
+| `/conversus:status` | Show provider authentication status |
+| `/conversus:login <provider>` | Authenticate with a model provider |
+
+All commands are namespaced with `conversus:` to avoid conflicts with other plugins.
 
 ## Providers
 
-`anthropic`, `openai`, `claude-code`, `ollama`, `gemini`, and more. Default is `mock` (no API key needed, for testing).
+`anthropic`, `openai`, `claude-code`, `ollama`, `gemini`, `codex`, `copilot`, `aider`, `opencode`, and `mock` (no API key, for testing).
 
-## Example config
+## Example
 
-```yaml
-mode: cooperative
-target: spec.md
-output: deliberations/
+```shell
+# Start with the guided flow
+/conversus:design
 
-agents:
-  - name: pragmatist
-    prompt: |
-      You evaluate proposals for practical feasibility and real-world tradeoffs.
-  - name: devils-advocate
-    prompt: |
-      You challenge assumptions and surface risks the team may have missed.
-```
+# Or ask a question directly
+/conversus:decide "Should we split the auth service out of the monolith?" --provider claude-code
 
-Run it:
-
-```
-/conversus run conversus.yml --provider anthropic
+# Or run a prebuilt config
+/conversus:run deliberations/my-review/conversus.yml --provider claude-code
 ```
 
 ## Links
 
-- [Full documentation](https://github.com/build-fractal/conversus-oss)
-- [Config reference](https://github.com/build-fractal/conversus-oss/blob/main/conversus.example.yml)
+- [Full documentation](https://github.com/Build-Fractal/conversus-oss)
+- [Building a config guide](https://github.com/Build-Fractal/conversus-oss/blob/main/docs/user-guide/building-a-config.md)
+- [Example configs](https://github.com/Build-Fractal/conversus-oss/tree/main/deliberations)
