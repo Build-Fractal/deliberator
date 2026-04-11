@@ -30,7 +30,9 @@ The plugin will prompt you with the install command if it can't find `conversus`
 
 ## What you get
 
-Four slash commands, each namespaced with `conversus:` to avoid conflicts with other plugins:
+Eight slash commands, each namespaced with `conversus:` to avoid conflicts with other plugins:
+
+### Core deliberation
 
 | Command | What it does |
 |---|---|
@@ -39,26 +41,42 @@ Four slash commands, each namespaced with `conversus:` to avoid conflicts with o
 | `/conversus:run` | Run a full deliberation from a config file |
 | `/conversus:validate` | Validate a config and show cost estimate before running |
 
-Operational tasks like `init`, `status`, `login`, and `mcp` are run from the terminal directly with the `conversus` CLI — they don't need a slash command wrapper.
+### Setup and auth
+
+| Command | What it does |
+|---|---|
+| `/conversus:init` | **Run this once per project** — sets up runtime permissions so deliberations can dispatch sub-agents without interactive approval prompts |
+| `/conversus:status` | Show authentication status for all model providers |
+| `/conversus:login` | Authenticate with a provider via OAuth (anthropic, openai, …) |
+| `/conversus:logout` | Remove stored credentials for a provider |
+
+The `conversus mcp` subcommand (MCP server) is not exposed as a slash command because it's a stdio server invoked by editors, not by users.
 
 ## Providers
 
 `anthropic`, `openai`, `claude-code`, `ollama`, `gemini`, `codex`, `copilot`, `aider`, `opencode`, and `mock` (no API key, for testing).
 
-## Example
+## Example — first-time user flow
 
 ```shell
-# Start with the guided flow — no YAML needed
+# 1. One-time project setup (grants runtime permissions)
+/conversus:init
+
+# 2. Check which providers you're logged into
+/conversus:status
+
+# 3. Log in if needed
+/conversus:login anthropic
+
+# 4. Start with the guided flow — no YAML needed
 /conversus:design
 
 # Or ask a question directly
 /conversus:decide "Should we split the auth service out of the monolith?" --provider claude-code
 
-# Or run a prebuilt config
-/conversus:run deliberations/my-review/conversus.yml --provider claude-code
-
-# Check cost before a real run
+# Or run a prebuilt config (after validating cost)
 /conversus:validate deliberations/my-review/conversus.yml
+/conversus:run deliberations/my-review/conversus.yml --provider claude-code
 ```
 
 ## Links
