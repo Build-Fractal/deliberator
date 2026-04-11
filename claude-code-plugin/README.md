@@ -11,7 +11,7 @@ A Claude Code plugin that gives you a `/conversus` slash command for running com
 Or install the CLI first:
 
 ```bash
-pip install git+https://github.com/Build-Fractal/conversus.git
+pip install git+https://github.com/Build-Fractal/conversus-oss.git
 ```
 
 ## Usage

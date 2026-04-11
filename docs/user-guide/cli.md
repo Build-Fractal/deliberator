@@ -172,7 +172,7 @@ conversus mcp
 claude mcp add conversus -- conversus mcp
 ```
 
-Requires the MCP extras: `pip install "conversus[mcp] @ git+https://github.com/Build-Fractal/conversus.git"`
+Requires the MCP extras: `pip install "conversus[mcp] @ git+https://github.com/Build-Fractal/conversus-oss.git"`
 
 ## `conversus init`
 

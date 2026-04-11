@@ -5,7 +5,7 @@ A 5-minute walkthrough that installs conversus, runs a real deliberation, and ex
 ## Step 1: Install
 
 ```bash
-pip install git+https://github.com/Build-Fractal/conversus.git
+pip install git+https://github.com/Build-Fractal/conversus-oss.git
 ```
 
 **What this does**: installs the `conversus` Python package and its dependencies directly from GitHub. No PyPI account needed, no separate sdist download. Pip fetches the current `main` branch, builds a wheel, and installs it into your active Python environment.

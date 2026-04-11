@@ -7,7 +7,7 @@
 ## Install
 
 ```bash
-pip install git+https://github.com/Build-Fractal/conversus.git
+pip install git+https://github.com/Build-Fractal/conversus-oss.git
 ```
 
 This installs the engine with all 8 deliberation modes, templates, presets, CLI, and MCP server.
@@ -15,7 +15,7 @@ This installs the engine with all 8 deliberation modes, templates, presets, CLI,
 For local development:
 
 ```bash
-git clone https://github.com/Build-Fractal/conversus.git && cd conversus
+git clone https://github.com/Build-Fractal/conversus-oss.git && cd conversus
 pip install -e .          # editable install
 # or: uv sync            # if using uv
 ```

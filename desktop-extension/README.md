@@ -7,7 +7,7 @@ One-click install for Claude Desktop. Wraps the `conversus mcp` stdio server.
 Install conversus with MCP extras:
 
 ```bash
-pip install "conversus[mcp] @ git+https://github.com/Build-Fractal/conversus.git"
+pip install "conversus[mcp] @ git+https://github.com/Build-Fractal/conversus-oss.git"
 ```
 
 Verify the CLI is on your PATH:

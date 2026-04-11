@@ -155,7 +155,7 @@ jobs:
             | Linux (x86_64) | `conversus-linux-x86_64.mcpb` |
             | Windows (x86_64) | `conversus-win-x86_64.mcpb` |
 
-            **Intel Mac users**: install via `pip install git+https://github.com/Build-Fractal/conversus.git` — GitHub has deprecated free Intel Mac CI runners. Let us know if you need a signed Intel Mac build.
+            **Intel Mac users**: install via `pip install git+https://github.com/Build-Fractal/conversus-oss.git` — GitHub has deprecated free Intel Mac CI runners. Let us know if you need a signed Intel Mac build.
 
             ## Install
 
@@ -165,6 +165,6 @@ jobs:
 
             ## Other install methods
 
-            - **Python CLI**: `pip install git+https://github.com/Build-Fractal/conversus.git`
+            - **Python CLI**: `pip install git+https://github.com/Build-Fractal/conversus-oss.git`
             - **Claude Code plugin**: `/plugin install https://github.com/Build-Fractal/conversus-oss`
             - **MCP server** (any MCP-compatible editor): `claude mcp add conversus -- conversus mcp`

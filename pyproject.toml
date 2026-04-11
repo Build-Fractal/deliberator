@@ -48,9 +48,9 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/Build-Fractal/conversus"
-Repository = "https://github.com/Build-Fractal/conversus"
-"Bug Tracker" = "https://github.com/Build-Fractal/conversus/issues"
+Homepage = "https://github.com/Build-Fractal/conversus-oss"
+Repository = "https://github.com/Build-Fractal/conversus-oss"
+"Bug Tracker" = "https://github.com/Build-Fractal/conversus-oss/issues"
 
 [project.scripts]
 conversus = "engine.cli:cli"

@@ -7,8 +7,8 @@ hide:
 
 Competitive multi-agent deliberation framework. Multiple AI agents with different perspectives compete under game-theory-informed rules to surface the strongest arguments, expose hidden contradictions, and produce battle-tested decisions.
 
-[![Tests](https://img.shields.io/badge/tests-1%2C302%20passed-brightgreen)](https://github.com/Build-Fractal/conversus)
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue)](https://github.com/Build-Fractal/conversus/blob/main/LICENSE)
+[![Tests](https://img.shields.io/badge/tests-1%2C302%20passed-brightgreen)](https://github.com/Build-Fractal/conversus-oss)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue)](https://github.com/Build-Fractal/conversus-oss/blob/main/LICENSE)
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue)](https://www.python.org)
 
 ---
@@ -30,13 +30,13 @@ Competitive multi-agent deliberation framework. Multiple AI agents with differen
 
 ```bash
 # Install directly from GitHub (Python 3.12+)
-pip install git+https://github.com/Build-Fractal/conversus.git
+pip install git+https://github.com/Build-Fractal/conversus-oss.git
 ```
 
 Or for local development:
 
 ```bash
-git clone https://github.com/Build-Fractal/conversus.git && cd conversus
+git clone https://github.com/Build-Fractal/conversus-oss.git && cd conversus
 pip install -e .          # editable install
 # or: uv sync            # if using uv
 ```
@@ -44,7 +44,7 @@ pip install -e .          # editable install
 !!! tip "MCP extras"
     To use conversus as an MCP server with Claude Code, Cursor, etc.:
     ```bash
-    pip install "conversus[mcp] @ git+https://github.com/Build-Fractal/conversus.git"
+    pip install "conversus[mcp] @ git+https://github.com/Build-Fractal/conversus-oss.git"
     ```
 
 See the [Quickstart](user-guide/quickstart.md) for prerequisites and first-run instructions.

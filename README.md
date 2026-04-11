@@ -3,7 +3,7 @@
 Multi-agent deliberation engine. Pit AI agents against each other in structured adversarial review using game theory modes.
 
 ```bash
-pip install git+https://github.com/Build-Fractal/conversus.git
+pip install git+https://github.com/Build-Fractal/conversus-oss.git
 conversus decide "Should we use Postgres or MongoDB?" --provider ollama
 ```
 
@@ -15,7 +15,7 @@ Conversus orchestrates multiple AI agents in structured debates. Each agent revi
 
 ```bash
 # Install from GitHub
-pip install git+https://github.com/Build-Fractal/conversus.git
+pip install git+https://github.com/Build-Fractal/conversus-oss.git
 
 # Zero-cost local deliberation (requires ollama)
 ollama pull qwen3:0.6b
@@ -156,7 +156,7 @@ Apache-2.0. See [LICENSE](LICENSE) for details.
 ## Contributing
 
 ```bash
-git clone https://github.com/Build-Fractal/conversus.git
+git clone https://github.com/Build-Fractal/conversus-oss.git
 cd conversus
 pip install -e ".[dev]"
 pytest -m "not live"  # No API keys needed

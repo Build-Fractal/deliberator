@@ -23,7 +23,7 @@ claude mcp add conversus -- conversus mcp
 Requires MCP extras:
 
 ```bash
-pip install "conversus[mcp] @ git+https://github.com/Build-Fractal/conversus.git"
+pip install "conversus[mcp] @ git+https://github.com/Build-Fractal/conversus-oss.git"
 ```
 
 **Verify:** Open Claude Code in the conversus directory and ask it to validate a config. The `conversus_validate` tool should appear in the tool list.
