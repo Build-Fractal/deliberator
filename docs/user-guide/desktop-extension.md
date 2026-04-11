@@ -44,13 +44,58 @@ Double-click the downloaded `.mcpb` file. Claude Desktop opens an install dialog
 3. Click **Install from file**
 4. Select the downloaded `.mcpb`
 
-### Step 3: Verify it's working
+### Step 3: Use it
 
-After install, ask Claude Desktop something like:
+Once installed, the extension works through **natural language**, not slash commands or menus. Claude Desktop reads the three tool descriptions from the manifest and picks the right one when your request matches.
 
-> Can you validate the conversus config at `~/my-deliberation/conversus.yml` and tell me how much it'll cost to run?
+!!! tip "There's no walkthrough or help screen — the tool descriptions are the help"
+    Unlike plugins with slash commands, MCP extensions don't have a "getting started" button after install. You just open a new chat and describe what you want. Claude figures out which tool to call based on the phrasing.
 
-Claude should invoke the `conversus_validate` tool automatically and return the parsed config + LLM launch estimate.
+## Example prompts
+
+Copy-paste these into a new Claude Desktop chat to see each tool in action:
+
+### For an ad-hoc decision (`conversus_decide`)
+
+> Use conversus to deliberate on whether we should use Postgres or MongoDB for a user profile service. Use the cooperative mode.
+
+> Run `conversus_decide` on this question: "Should a 3-person team start with microservices or a monolith?" — use red-blue mode.
+
+> I need to pick between Redis and Memcached for session caching. Can you run a quick conversus deliberation on it?
+
+### For a full deliberation from a config file (`conversus_run`)
+
+> Run the conversus deliberation at `/path/to/my-review/conversus.yml` using the anthropic provider.
+
+> Parse the existing conversus output at `/path/to/deliberations/auth-review/output/` and summarize the verdict.
+
+### For cost estimation before committing (`conversus_validate`)
+
+> Validate the conversus config at `/path/to/my-deliberation/conversus.yml` and tell me how many LLM launches it'll take.
+
+> Check if this config is valid and show me the cost: `/path/to/conversus.yml`
+
+## How Claude picks which tool to call
+
+When you send a message in Claude Desktop, it matches your intent against the tool descriptions in the manifest:
+
+| If you say... | Claude calls... |
+|---|---|
+| "Deliberate on...", "decide between...", "which should we pick..." (with a question, no config file) | `conversus_decide` |
+| "Run the conversus config at...", "parse this output..." (with a file path) | `conversus_run` |
+| "Validate this config", "check the cost", "how many launches..." | `conversus_validate` |
+
+You can also **explicitly name the tool**: "Use `conversus_decide` to …" bypasses the routing and forces Claude to call that specific tool.
+
+## Troubleshooting: "nothing happens after install"
+
+If you install the extension, ask Claude a question, and nothing happens:
+
+1. **Restart Claude Desktop.** Extensions load at startup — a new install may not take effect until you close and reopen the app.
+2. **Check the extensions panel.** Settings → Extensions — conversus should appear with a green "Installed" indicator. If it shows an error, the bundle failed to load (usually a Python version mismatch or missing compiled dependency).
+3. **Verify the tools are registered.** Start a new chat and ask: "What MCP tools do you have access to?" Claude should list `conversus_decide`, `conversus_run`, and `conversus_validate`. If it doesn't, the MCP server failed to start.
+4. **Check the logs.** Claude Desktop writes MCP server output to its logs — look for errors from the conversus server. On macOS: `~/Library/Logs/Claude/mcp.log` (or similar).
+5. **Test with an explicit tool call.** Try: "Call the `conversus_decide` tool with the question 'Postgres or MongoDB?' and the provider 'mock'". If this works but natural language doesn't, it's a phrasing problem — match the verbs in the tool descriptions more closely.
 
 ## What's inside the bundle
 
