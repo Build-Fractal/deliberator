@@ -3,8 +3,8 @@
   "name": "conversus",
   "display_name": "Conversus",
   "version": "0.1.0",
-  "description": "Multi-agent deliberation engine — run competitive reviews, red-team proposals, and build consensus",
-  "long_description": "Conversus is an open-source multi-agent deliberation engine that uses game theory modes (cooperative, winner-take-all, prisoner's dilemma, red-blue) to drive structured adversarial review, convergence, and dispute resolution across LLM agents. Use it to run competitive reviews, red-team proposals, evaluate decisions, and synthesize consensus from multiple AI perspectives. This bundle is self-contained — no separate Python or pip install required.",
+  "description": "Run competitive multi-agent deliberations — structured adversarial reviews, red-team proposals, and consensus building with game theory modes",
+  "long_description": "Make better decisions by pitting AI agents against each other in structured debate. Ask a question like \"Should we use Postgres or MongoDB?\" and conversus runs a 5-phase pipeline (review → cross-review → revision → disputes → synthesis) where multiple agents with different perspectives argue, critique each other, and converge on a grounded verdict. Unlike single-LLM answers that sound confident even when they're wrong, conversus surfaces the adversarial record so you can see HOW the answer was produced.\n\nThree tools ship in this bundle:\n\n• conversus_decide — ask an ad-hoc question, get a deliberated answer. No config needed.\n• conversus_run — run a full deliberation from a YAML config with your own agents and target documents.\n• conversus_validate — estimate the LLM launch cost of a config before committing to a real run.\n\nSupports 8 game theory modes: cooperative, winner-take-all, prisoner's dilemma, red-blue, negotiation, resource-allocation, fair-division, and mechanism-design. Works with anthropic, openai, claude-code, ollama, gemini, and 5 more providers. This bundle is self-contained — no separate Python or pip install required.",
   "author": {
     "name": "Build Fractal",
     "email": "hello@buildfractal.com",
@@ -12,11 +12,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/build-fractal/conversus-oss.git"
+    "url": "https://github.com/Build-Fractal/conversus-oss.git"
   },
-  "homepage": "https://github.com/build-fractal/conversus-oss",
-  "documentation": "https://github.com/build-fractal/conversus-oss#readme",
-  "support": "https://github.com/build-fractal/conversus-oss/issues",
+  "homepage": "https://github.com/Build-Fractal/conversus-oss",
+  "documentation": "https://github.com/Build-Fractal/conversus-oss/blob/main/docs/user-guide/desktop-extension.md",
+  "support": "https://github.com/Build-Fractal/conversus-oss/issues",
   "license": "Apache-2.0",
   "keywords": [
     "deliberation",
@@ -48,16 +48,16 @@
   "tools_generated": false,
   "tools": [
     {
-      "name": "conversus_validate",
-      "description": "Validate a conversus YAML configuration without executing"
+      "name": "conversus_decide",
+      "description": "Run an ad-hoc deliberation on a natural-language question using the built-in pragmatist + devil's advocate agents. Best for quick decisions — no config file needed. Accepts a mode parameter (cooperative, red-blue, winner-take-all, prisoners-dilemma)."
     },
     {
       "name": "conversus_run",
-      "description": "Validate a config and optionally run a deliberation or parse existing output"
+      "description": "Run or parse a full multi-agent deliberation from a YAML config file. Supports all 8 game theory modes, custom agents, target documents, and optional arbiters. Use this when you want reproducible deliberations with your own stakeholder personas."
     },
     {
-      "name": "conversus_decide",
-      "description": "Run an ad-hoc deliberation on a natural-language question using game theory modes"
+      "name": "conversus_validate",
+      "description": "Validate a conversus YAML config and estimate the total LLM launch count BEFORE running. Catches schema errors, missing target files, and invalid mode names. Always run this before a real deliberation to know the cost."
     }
   ]
 }

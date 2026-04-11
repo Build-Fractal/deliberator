@@ -85,6 +85,7 @@ nav:
     - Modes: user-guide/modes.md
     - Config Reference: user-guide/config-reference.md
     - MCP Setup: user-guide/mcp-setup.md
+    - Desktop Extension: user-guide/desktop-extension.md
     - Python SDK: user-guide/sdk.md
   - Developer Guide:
     - Architecture: developer-guide/architecture.md
