@@ -30,17 +30,16 @@ The plugin will prompt you with the install command if it can't find `conversus`
 
 ## What you get
 
+Four slash commands, each namespaced with `conversus:` to avoid conflicts with other plugins:
+
 | Command | What it does |
 |---|---|
 | `/conversus:design` | **Guided config builder** — walks you through creating a `conversus.yml` interactively. No YAML knowledge needed. |
-| `/conversus:run <config>` | Run a full deliberation from a config file |
-| `/conversus:decide "<question>"` | Ad-hoc deliberation on a natural-language question |
-| `/conversus:validate <config>` | Validate a config and show cost estimate |
-| `/conversus:init` | Set up runtime permissions for this project |
-| `/conversus:status` | Show provider authentication status |
-| `/conversus:login <provider>` | Authenticate with a model provider |
+| `/conversus:decide` | Ad-hoc deliberation on a natural-language question (no config file needed) |
+| `/conversus:run` | Run a full deliberation from a config file |
+| `/conversus:validate` | Validate a config and show cost estimate before running |
 
-All commands are namespaced with `conversus:` to avoid conflicts with other plugins.
+Operational tasks like `init`, `status`, `login`, and `mcp` are run from the terminal directly with the `conversus` CLI — they don't need a slash command wrapper.
 
 ## Providers
 
@@ -49,7 +48,7 @@ All commands are namespaced with `conversus:` to avoid conflicts with other plug
 ## Example
 
 ```shell
-# Start with the guided flow
+# Start with the guided flow — no YAML needed
 /conversus:design
 
 # Or ask a question directly
@@ -57,6 +56,9 @@ All commands are namespaced with `conversus:` to avoid conflicts with other plug
 
 # Or run a prebuilt config
 /conversus:run deliberations/my-review/conversus.yml --provider claude-code
+
+# Check cost before a real run
+/conversus:validate deliberations/my-review/conversus.yml
 ```
 
 ## Links
