@@ -79,6 +79,7 @@ nav:
   - User Guide:
     - Quickstart: user-guide/quickstart.md
     - Your First Deliberation: user-guide/first-deliberation.md
+    - Building a Config: user-guide/building-a-config.md
     - CLI Reference: user-guide/cli.md
     - Guided Workflow: user-guide/guided-workflow.md
     - Modes: user-guide/modes.md

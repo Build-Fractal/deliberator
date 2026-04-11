@@ -165,8 +165,19 @@ Browse the per-agent reviews, the cross-reviews, and the final synthesis. That's
 
 ## Next steps
 
-- **[Modes](modes.md)** — 8 deliberation modes: cooperative, winner-take-all, red-blue, prisoner's dilemma, negotiation, resource-allocation, fair-division, mechanism-design. Pick the one that matches your decision type.
-- **[Config files](config-reference.md)** — for reproducible deliberations with custom agents, targets, and modes.
-- **[CLI reference](cli.md)** — every command and flag.
-- **[MCP setup](mcp-setup.md)** — use conversus directly from Claude Code, Cursor, or Windsurf without leaving your editor.
-- **[Specs & Deliberations](../developer-guide/specs-and-deliberations.md)** — real case studies of conversus in action.
+You've run a quick `decide`. The next step is custom deliberations with your own agents and target documents — that's where the tool gets interesting.
+
+Two paths:
+
+!!! tip "Guided path — recommended"
+    Install the [Claude Code plugin](mcp-setup.md) and run `/conversus design`. It walks you through building a `conversus.yml` interactively — question, mode, agents, target — and writes the file for you. Zero YAML knowledge required.
+
+**Manual path** — read [Building a Config](building-a-config.md) for the 6-step walkthrough. You'll write the YAML yourself but learn every field and option along the way.
+
+### More reading
+
+- **[Modes](modes.md)** — deep dive on all 8 deliberation modes (cooperative, winner-take-all, red-blue, prisoner's dilemma, negotiation, resource-allocation, fair-division, mechanism-design)
+- **[Config reference](config-reference.md)** — full YAML schema reference
+- **[CLI reference](cli.md)** — every command and flag
+- **[MCP setup](mcp-setup.md)** — use conversus directly from Claude Code, Cursor, or Windsurf without leaving your editor
+- **[Specs & Deliberations](../developer-guide/specs-and-deliberations.md)** — real case studies of conversus in action
