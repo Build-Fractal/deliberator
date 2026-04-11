@@ -1,0 +1,154 @@
+# Capability Exposure Follow-Up — Binding Q6 Decision
+#
+# Forces a binding answer on registry+adapters vs alternatives.
+# Reads the previous deliberation's output as grounding.
+#
+# Run:
+#   conversus run deliberations/capability-exposure-followup/conversus.yml --provider claude-code
+
+mode: winner-take-all
+output: output/
+rounds: 1
+stagnation: detect
+validate_templates: false
+
+target:
+  - proposal.md
+  - ../capability-exposure/proposal.md
+  - ../capability-exposure/output/architecture-purist/revision.md
+  - ../capability-exposure/output/non-tech-user-advocate/revision.md
+  - ../capability-exposure/output/developer-power-user/revision.md
+  - ../capability-exposure/output/pragmatist-maintainer/revision.md
+  - ../capability-exposure/output/summary/final.md
+
+agents:
+  - name: pro-adapter-pattern
+    prompt: |
+      You believe the registry + per-surface adapters pattern (Option A in
+      this proposal, Q6 in the original) is the right answer for conversus
+      RIGHT NOW, not "eventually". Defend it concretely.
+
+      Your case:
+
+      1. **Drift is already happening.** Look at the previous deliberation's
+         findings: 12 capabilities × 4 surfaces with hand-written
+         duplication, and the synthesis explicitly named "implementation
+         duplication elimination through shared metadata" as a unanimous
+         convergence. The team agrees duplication is bad — they just don't
+         agree on the mechanism. The registry IS the mechanism.
+
+      2. **3-4 days is cheap.** Compared to the lifetime cost of maintaining
+         drift across 4 surfaces (which compounds with every new capability),
+         3-4 days of upfront framework work pays back in weeks, not years.
+
+      3. **Adapters dissolve the false dichotomy.** The "purpose-built per
+         surface" position from the developer-power-user agent and the
+         "shared metadata" position from the architecture-purist are both
+         right. Adapters give you both. The default adapter handles 80%
+         with no work; the explicit override handles the 20% that need
+         per-surface UX.
+
+      4. **The CLI-as-canonical convergence already implies a registry.**
+         If the CLI is the canonical source and other surfaces are
+         "projections", you already need a way to project. The registry
+         formalizes what's currently informal — the projection logic
+         lives in a build script instead of being copy-pasted by hand.
+
+      Concrete asks for the deliberation:
+
+      - **Implementation plan**: build the registry framework in week 1,
+        migrate existing capabilities in week 2, ship as v0.2.0
+      - **First capability to migrate**: `decide` — it's the most-used,
+        has clear semantics, and exists on all 4 surfaces
+      - **Validation**: the migrated `decide` must produce byte-identical
+        output on all 4 surfaces compared to the hand-written versions
+
+      Argue for Option A. Reject Options B and C. Be specific about what
+      you'd build in the first week.
+
+  - name: anti-framework-skeptic
+    prompt: |
+      You believe building a registry framework right now is premature
+      engineering. Conversus has 12 capabilities and 1-2 active
+      maintainers. A framework is the WRONG investment at this scale.
+
+      Your case:
+
+      1. **Frameworks have ongoing costs.** Every framework you build is
+         code you have to maintain, debug, and document. The registry +
+         adapter classes + projector + build script is 1000+ lines of
+         infrastructure code that doesn't ship features.
+
+      2. **The "drift problem" is mostly theoretical.** Yes, hand-written
+         surfaces can diverge. But at 12 capabilities, the actual drift
+         we've observed is small (a few description-text mismatches). The
+         cost of fixing those by hand is much less than the cost of
+         building infrastructure to make them impossible.
+
+      3. **Surface formats evolve unpredictably.** When MCPB v0.4 ships
+         with new manifest fields, when Claude Code plugins gain a new
+         capability type, when the CLI adds a new option syntax — every
+         change requires updating the projector. A hand-written surface
+         just needs the new code added in one place.
+
+      4. **The team's bandwidth is the real constraint.** Spending 3-4
+         days on framework work means 3-4 days NOT shipping features that
+         users actually see. At pre-1.0, pre-public, zero-paid-users
+         scale, the right move is to ship the features and accept some
+         drift as a cost of business.
+
+      5. **YAGNI applies.** Build the registry when you have 25+
+         capabilities and the drift is causing real bug reports. Not
+         before. Premature abstraction is the root of all technical debt.
+
+      Concrete asks for the deliberation:
+
+      - **Discipline rule**: when adding a new capability, edit all 4
+        surfaces in a single commit and use a checklist to verify
+        consistency. That's the discipline. It's free.
+      - **Trigger to revisit**: if conversus reaches 25 capabilities OR
+        if drift causes 3+ user-reported bugs in a single quarter, THEN
+        build the registry. Until then, hand-write.
+      - **What to do INSTEAD with the 3-4 days**: ship a real feature.
+        Add web UI, add a new mode, add a new provider. Anything that
+        users actually see.
+
+      Argue for Option B (or even C). Reject Option A as premature.
+
+arbiter:
+  name: timeline-architect
+  prompt: |
+    You must pick ONE option and commit. This is winner-take-all mode —
+    no compromise, no "balanced trade-offs". The previous deliberation
+    failed because it deferred this decision; you cannot.
+
+    Your output MUST include:
+
+    1. **The chosen option** — A, B, or C. State it in the first line.
+
+    2. **A first-week implementation plan** — concrete, day-by-day. What
+       to build, what to test, what to commit. If you chose Option A,
+       this is the framework + first migration. If you chose Option B,
+       this is the discipline checklist + cleanup of existing drift. If
+       you chose Option C, this is "do nothing, here's why".
+
+    3. **The trigger to revisit** — under what concrete condition would
+       a future deliberation overturn your decision? (e.g., "when we hit
+       25 capabilities", "when drift causes a user-reported bug", "when
+       a new contributor asks how to add a capability and the answer
+       takes more than 5 minutes to explain")
+
+    4. **A NO list** — 3-5 things explicitly NOT to do under the chosen
+       option. (e.g., if Option A, "don't try to auto-generate the design
+       wizard skill body — keep it hand-written"; if Option B, "don't
+       create shared metadata files that look like a registry")
+
+    5. **The thing you DISLIKE about your own choice** — every decision
+       has a downside. Name the biggest one and explain why you accepted
+       it anyway.
+
+    Do not produce a "depends on the situation" answer. Pick one.
+    Commit.
+  grounding: ../../README.md
+  trigger: always
+  influence: binding
