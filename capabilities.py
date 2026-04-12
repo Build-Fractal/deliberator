@@ -122,6 +122,30 @@ class ValidateMCPBAdapter(DefaultMCPBAdapter):
         return entry
 
 
+class ListDeliberationsMCPBAdapter(DefaultMCPBAdapter):
+    def render(self, capability: "Capability") -> dict:
+        entry = super().render(capability)
+        entry["description"] = (
+            "List past deliberations stored in the project's "
+            ".conversus/deliberations/ directory. Returns deliberation "
+            "names, timestamps, and summary metadata. Use this to browse "
+            "deliberation history before reading individual files."
+        )
+        return entry
+
+
+class ShowDeliberationMCPBAdapter(DefaultMCPBAdapter):
+    def render(self, capability: "Capability") -> dict:
+        entry = super().render(capability)
+        entry["description"] = (
+            "Read a specific file from a past deliberation's output "
+            "directory. Use after list-deliberations to inspect summaries, "
+            "individual agent reviews, synthesis documents, or any other "
+            "artifact produced during a deliberation."
+        )
+        return entry
+
+
 decide = Capability(
     name="decide",
     summary="Run an ad-hoc deliberation on a natural-language question",
@@ -569,6 +593,89 @@ design = Capability(
 
 
 # ---------------------------------------------------------------------------
+# list-deliberations — list past deliberations from .conversus/deliberations/
+# ---------------------------------------------------------------------------
+
+list_deliberations = Capability(
+    name="list-deliberations",
+    summary="List past deliberations from the project's .conversus/deliberations/ directory",
+    long_description=(
+        "Scans the project's .conversus/deliberations/ directory and returns "
+        "a listing of all persisted deliberation runs. Each entry includes "
+        "the deliberation directory name (which encodes the timestamp and "
+        "slug), creation time, and available artifact files. On the CLI "
+        "surface, renders a human-readable table by default or machine-"
+        "readable JSON with --as-json. On the MCP surface, always returns "
+        "structured JSON for programmatic consumption."
+    ),
+    surfaces=[Surface.CLI, Surface.MCP, Surface.PLUGIN, Surface.MCPB],
+    params=[
+        # CLI-only: JSON output flag.
+        Param(
+            name="as_json",
+            type=bool,
+            default=False,
+            help="Output as machine-readable JSON.",
+            surfaces=[Surface.CLI],
+        ),
+        # MCP-only: explicit project root (CLI uses cwd).
+        Param(
+            name="project_root",
+            type=str,
+            default="",
+            help="Project root path. Empty string means current directory.",
+            surfaces=[Surface.MCP],
+        ),
+    ],
+    handler="engine.handlers:list_deliberations_cli",
+    handlers={Surface.MCP: "engine.handlers:list_deliberations_mcp"},
+    mcpb_adapter=ListDeliberationsMCPBAdapter(),
+)
+
+
+# ---------------------------------------------------------------------------
+# show-deliberation — read a file from a past deliberation
+# ---------------------------------------------------------------------------
+
+show_deliberation = Capability(
+    name="show-deliberation",
+    summary="Read a file from a past deliberation",
+    long_description=(
+        "Reads and returns the contents of a specific file from a persisted "
+        "deliberation in .conversus/deliberations/. Accepts a deliberation "
+        "directory path and a relative file path within it (e.g. "
+        "summary/final.md, pragmatist/review.md). Use list-deliberations "
+        "first to discover available deliberations and their contents, then "
+        "this command to read individual artifacts."
+    ),
+    surfaces=[Surface.CLI, Surface.MCP, Surface.PLUGIN, Surface.MCPB],
+    params=[
+        Param(
+            name="deliberation_path",
+            type=str,
+            required=True,
+            help=(
+                "Path to the deliberation directory "
+                "(e.g. .conversus/deliberations/20260412T173000-timber/)."
+            ),
+        ),
+        Param(
+            name="file_path",
+            type=str,
+            required=True,
+            help=(
+                "Relative file path within the deliberation "
+                "(e.g. summary/final.md, pragmatist/review.md)."
+            ),
+        ),
+    ],
+    handler="engine.handlers:show_deliberation_cli",
+    handlers={Surface.MCP: "engine.handlers:show_deliberation_mcp"},
+    mcpb_adapter=ShowDeliberationMCPBAdapter(),
+)
+
+
+# ---------------------------------------------------------------------------
 # The capability list — what the projector walks
 # ---------------------------------------------------------------------------
 
@@ -587,4 +694,6 @@ CAPABILITIES: list[Capability] = [
     mcp,
     init,
     design,
+    list_deliberations,
+    show_deliberation,
 ]

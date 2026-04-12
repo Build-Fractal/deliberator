@@ -49,10 +49,18 @@ from engine.config import ConfigError, parse_config
 from engine.events import CallbackEmitter, NullEmitter
 from engine.phases import PipelineError, run_pipeline
 from engine.providers import ProviderError
+from engine.persistence import (
+    persist_deliberation,
+    cleanup_old_deliberations,
+    list_deliberations as _list_deliberations,
+    read_deliberation_file,
+)
 from engine.results import (
     CostEstimate,
     DecideResult,
+    ListResult,
     RunResult,
+    ShowResult,
     ValidateResult,
     _estimate_cost,
 )
@@ -186,6 +194,19 @@ def run_decide_mcp(
         synthesis_text = synthesis_path.read_text(encoding="utf-8")
         parsed = parse_synthesis(synthesis_text, mode=mode)
 
+        persisted_path: str | None = None
+        try:
+            persisted = persist_deliberation(
+                source_dir=result.output_dir,
+                project_root=Path.cwd(),
+                question=question,
+                config_path=config_path,
+            )
+            persisted_path = str(persisted)
+            cleanup_old_deliberations(Path.cwd())
+        except Exception:
+            logger.warning("Failed to persist deliberation output", exc_info=True)
+
         return DecideResult(
             sufficient=True,
             classification=classification,
@@ -193,6 +214,7 @@ def run_decide_mcp(
             cost_estimate=cost_estimate,
             rounds_completed=result.rounds_completed,
             termination_reason=result.termination_reason,
+            output_path=persisted_path,
         )
 
     except ConfigError as exc:
@@ -323,6 +345,18 @@ def run_decide_cli(
 
             render_result(result)
 
+        try:
+            persisted = persist_deliberation(
+                source_dir=effective_output,
+                project_root=Path.cwd(),
+                question=question,
+                config_path=config_path,
+            )
+            click.echo(f"\nOutput saved to: {persisted}")
+            cleanup_old_deliberations(Path.cwd())
+        except Exception:
+            logger.warning("Failed to persist deliberation output", exc_info=True)
+
     finally:
         if use_temp_output and tmp_dir.exists():
             shutil.rmtree(tmp_dir, ignore_errors=True)
@@ -450,6 +484,22 @@ def _run_in_process(
         mode_name = engine_config.mode
         parsed = parse_synthesis(synthesis_text, mode=mode_name)
 
+        persisted_path: str | None = None
+        try:
+            question = ""
+            if engine_config and hasattr(engine_config, "question"):
+                question = getattr(engine_config, "question", "")
+            persisted = persist_deliberation(
+                source_dir=result.output_dir,
+                project_root=Path.cwd(),
+                question=question,
+                config_path=tmp_path,
+            )
+            persisted_path = str(persisted)
+            cleanup_old_deliberations(Path.cwd())
+        except Exception:
+            logger.warning("Failed to persist deliberation output", exc_info=True)
+
         return RunResult(
             mode="in_process",
             validated=validated,
@@ -458,6 +508,7 @@ def _run_in_process(
             output=parsed.model_dump(),
             rounds_completed=result.rounds_completed,
             termination_reason=result.termination_reason,
+            output_path=persisted_path,
         )
 
     except ConfigError as exc:
@@ -708,6 +759,31 @@ def run_cli(
     for p in written_paths:
         click.echo(str(p))
 
+    try:
+        # Derive output directory from written paths; fall back to config sibling
+        if written_paths:
+            output_dir = Path(written_paths[0]).resolve().parent
+            # Walk up to the root output directory (above phase subdirectories)
+            config_parent = Path(config_path).resolve().parent
+            while output_dir != config_parent and output_dir.parent != output_dir:
+                if output_dir.parent == config_parent:
+                    break
+                output_dir = output_dir.parent
+        else:
+            output_dir = Path(config_path).resolve().parent / "output"
+
+        if output_dir.is_dir():
+            persisted = persist_deliberation(
+                source_dir=output_dir,
+                project_root=Path.cwd(),
+                question="",
+                config_path=Path(config_path),
+            )
+            click.echo(f"\nOutput saved to: {persisted}")
+            cleanup_old_deliberations(Path.cwd())
+    except Exception:
+        logger.warning("Failed to persist deliberation output", exc_info=True)
+
 
 # ---------------------------------------------------------------------------
 # login / logout — CLI-only auth commands
@@ -946,3 +1022,88 @@ def init_cli(
     click.echo(f"Runtimes configured: {', '.join(runtime_list)}")
     click.echo(f"Default provider: {default_provider}")
     click.echo(f"Default model: {default_model}")
+
+
+# ---------------------------------------------------------------------------
+# list / show deliberations — MCP and CLI surface handlers (spec 056)
+# ---------------------------------------------------------------------------
+
+
+def list_deliberations_mcp(project_root: str = "") -> ListResult:
+    """List past deliberations for the MCP surface."""
+    root: Path = Path(project_root) if project_root else Path.cwd()
+    deliberations: list[dict[str, Any]] = _list_deliberations(root)
+    return ListResult(
+        deliberations=deliberations,
+        count=len(deliberations),
+        project_root=str(root),
+    )
+
+
+def list_deliberations_cli(as_json: bool = False) -> None:
+    """List past deliberations for the CLI surface."""
+    root: Path = Path.cwd()
+    deliberations: list[dict[str, Any]] = _list_deliberations(root)
+
+    if as_json:
+        import json as _json
+
+        click.echo(_json.dumps(deliberations, indent=2, default=str))
+        return
+
+    if not deliberations:
+        click.echo("No deliberations found in .conversus/deliberations/")
+        return
+
+    from rich.console import Console
+    from rich.table import Table
+
+    console = Console()
+    table = Table(title=f"Deliberations ({len(deliberations)})")
+    table.add_column("Date", style="cyan")
+    table.add_column("Question", style="white", max_width=50)
+    table.add_column("Mode", style="yellow")
+    table.add_column("Synthesis", style="green")
+
+    for d in deliberations:
+        table.add_row(
+            d.get("timestamp", "?"),
+            d.get("question", "?")[:50],
+            d.get("mode", "?"),
+            "yes" if d.get("has_synthesis") else "no",
+        )
+
+    console.print(table)
+
+
+def show_deliberation_mcp(deliberation_path: str, file_path: str) -> ShowResult:
+    """Read a file from a past deliberation for the MCP surface."""
+    root: Path = Path.cwd()
+    try:
+        content: str = read_deliberation_file(root, deliberation_path, file_path)
+        return ShowResult(
+            content=content,
+            deliberation_path=deliberation_path,
+            file_path=file_path,
+        )
+    except (ValueError, FileNotFoundError) as exc:
+        return ShowResult(
+            content="",
+            deliberation_path=deliberation_path,
+            file_path=file_path,
+            errors=[str(exc)],
+        )
+
+
+def show_deliberation_cli(deliberation_path: str, file_path: str) -> None:
+    """Read a file from a past deliberation for the CLI surface."""
+    root: Path = Path.cwd()
+    try:
+        content: str = read_deliberation_file(root, deliberation_path, file_path)
+        click.echo(content)
+    except ValueError as exc:
+        click.echo(f"Error: {exc}", err=True)
+        sys.exit(1)
+    except FileNotFoundError as exc:
+        click.echo(f"Error: {exc}", err=True)
+        sys.exit(1)

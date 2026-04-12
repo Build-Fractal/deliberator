@@ -61,6 +61,12 @@ class DecideResult(BaseModel):
     errors: list[str] = []
     rounds_completed: int | None = None
     termination_reason: str | None = None
+    output_path: str | None = None
+    """Path where the deliberation was persisted (spec 056).
+
+    Example: ``.conversus/deliberations/20260412T173000-postgres-vs-mongodb/``.
+    ``None`` when persistence is disabled or the run failed before persistence.
+    """
 
 
 class ValidateResult(BaseModel):
@@ -99,6 +105,29 @@ class RunResult(BaseModel):
     output: dict[str, Any] | None = None
     rounds_completed: int | None = None
     termination_reason: str | None = None
+    output_path: str | None = None
+    """Path where the deliberation was persisted (spec 056).
+
+    Example: ``.conversus/deliberations/20260412T173000-postgres-vs-mongodb/``.
+    ``None`` when persistence is disabled or the run failed before persistence.
+    """
+
+
+class ListResult(BaseModel):
+    """Result of listing past deliberations from .conversus/deliberations/."""
+
+    deliberations: list[dict[str, Any]]
+    count: int
+    project_root: str
+
+
+class ShowResult(BaseModel):
+    """Result of reading a file from a past deliberation."""
+
+    content: str
+    deliberation_path: str
+    file_path: str
+    errors: list[str] = []
 
 
 def _estimate_cost(config: dict[str, Any]) -> CostEstimate:
