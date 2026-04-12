@@ -90,16 +90,16 @@ def load_capabilities() -> list[Capability]:
     return list(caps)
 
 
-def write_cli(caps: list[Capability], output_dir: Path, *, dry_run: bool) -> None:
+def write_cli(caps: list[Capability], output_dir: Path, *, dry_run: bool) -> bool:
     source = project_to_cli(caps)
     target = output_dir / CLI_PATH
-    _write(target, source, dry_run=dry_run, label="CLI")
+    return _write(target, source, dry_run=dry_run, label="CLI", validate_python=True)
 
 
-def write_mcp(caps: list[Capability], output_dir: Path, *, dry_run: bool) -> None:
+def write_mcp(caps: list[Capability], output_dir: Path, *, dry_run: bool) -> bool:
     source = project_to_mcp(caps)
     target = output_dir / MCP_PATH
-    _write(target, source, dry_run=dry_run, label="MCP")
+    return _write(target, source, dry_run=dry_run, label="MCP", validate_python=True)
 
 
 def write_plugin_skills(
@@ -137,13 +137,64 @@ def patch_mcpb_manifest(
     _write(target, new_text, dry_run=dry_run, label="MCPB manifest")
 
 
-def _write(target: Path, content: str, *, dry_run: bool, label: str) -> None:
+def _validate_python(content: str, label: str) -> bool:
+    """Compile-check generated Python before writing.
+
+    Returns True if the generated source compiles cleanly, False otherwise.
+    This is the P1 fallback mechanism from the spec 055 deliberation:
+    the registry is a single point of failure — if ``capabilities.py``
+    has a bug, the projector emits broken Python, and without this guard
+    the broken file would overwrite the last-known-good generated version,
+    leaving the CLI or MCP server unable to start.
+
+    The check uses ``compile()`` (not ``exec()``) because exec would
+    trigger import-time side effects like registering Click commands or
+    starting the FastMCP server. Compile-only catches syntax errors and
+    malformed literals — the two failure modes the projector is most
+    likely to produce.
+    """
+    try:
+        compile(content, f"<generated-{label}>", "exec")
+        return True
+    except SyntaxError as exc:
+        print(
+            f"VALIDATION FAILED for {label}: {exc}\n"
+            f"  Refusing to overwrite the existing file.\n"
+            f"  Fix capabilities.py or the adapter, then re-run.",
+            file=sys.stderr,
+        )
+        return False
+
+
+def _write(
+    target: Path,
+    content: str,
+    *,
+    dry_run: bool,
+    label: str,
+    validate_python: bool = False,
+) -> bool:
+    """Write ``content`` to ``target``, optionally validating first.
+
+    Returns True if the write succeeded (or was skipped in dry-run mode),
+    False if validation failed and the write was refused.
+    """
     if dry_run:
         print(f"[dry-run] would write {label}: {target} ({len(content)} bytes)")
-        return
+        return True
+
+    if validate_python and not _validate_python(content, label):
+        if target.exists():
+            print(
+                f"  Kept existing {target} ({target.stat().st_size} bytes) as fallback.",
+                file=sys.stderr,
+            )
+        return False
+
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(content)
     print(f"wrote {label}: {target} ({len(content)} bytes)")
+    return True
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -165,10 +216,19 @@ def main(argv: list[str] | None = None) -> int:
 
     caps = load_capabilities()
 
-    write_cli(caps, args.output_dir, dry_run=args.dry_run)
-    write_mcp(caps, args.output_dir, dry_run=args.dry_run)
+    ok = True
+    ok = write_cli(caps, args.output_dir, dry_run=args.dry_run) and ok
+    ok = write_mcp(caps, args.output_dir, dry_run=args.dry_run) and ok
     write_plugin_skills(caps, args.output_dir, dry_run=args.dry_run)
     patch_mcpb_manifest(caps, args.output_dir, dry_run=args.dry_run)
+
+    if not ok:
+        print(
+            "ERROR: one or more Python surface files failed validation. "
+            "The existing files were NOT overwritten — see errors above.",
+            file=sys.stderr,
+        )
+        return 1
 
     print(f"done — {len(caps)} capability(ies) projected.")
     return 0
