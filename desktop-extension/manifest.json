@@ -3,8 +3,8 @@
   "name": "conversus",
   "display_name": "Conversus",
   "version": "0.1.0",
-  "description": "Run competitive multi-agent deliberations — structured adversarial reviews, red-team proposals, and consensus building with game theory modes",
-  "long_description": "**Make better decisions by pitting AI agents against each other in structured debate.**\n\nInstead of one LLM giving you a confident but unchallenged answer, conversus runs multiple agents with different perspectives through a 5-phase pipeline: review → cross-review → revision → disputes → synthesis. Weak arguments get exposed, disagreements get surfaced explicitly, and the final verdict is grounded in the full adversarial record.\n\n## Try it after installing\n\nOpen a new Claude Desktop chat and paste one of these:\n\n- *\"Use conversus to decide: should we use Postgres or MongoDB for user profiles?\"*\n- *\"Run conversus_decide on whether microservices or a monolith is right for a 3-person team. Use red-blue mode.\"*\n- *\"Validate the conversus config at `~/my-review/conversus.yml` and tell me the cost.\"*\n\n## What's included\n\n- **8 game theory modes** — cooperative, winner-take-all, prisoner's dilemma, red-blue, negotiation, resource-allocation, fair-division, mechanism-design\n- **10+ LLM providers** — Anthropic, OpenAI, Ollama, Gemini, Claude Code, and more\n- **Self-contained** — no separate Python or pip install required. Claude Desktop's bundled runtime handles everything.\n\nFull documentation: [docs/user-guide/desktop-extension.md](https://github.com/Build-Fractal/conversus-oss/blob/main/docs/user-guide/desktop-extension.md)",
+  "description": "Run competitive multi-agent deliberations \u2014 structured adversarial reviews, red-team proposals, and consensus building with game theory modes",
+  "long_description": "**Make better decisions by pitting AI agents against each other in structured debate.**\n\nInstead of one LLM giving you a confident but unchallenged answer, conversus runs multiple agents with different perspectives through a 5-phase pipeline: review \u2192 cross-review \u2192 revision \u2192 disputes \u2192 synthesis. Weak arguments get exposed, disagreements get surfaced explicitly, and the final verdict is grounded in the full adversarial record.\n\n## Try it after installing\n\nOpen a new Claude Desktop chat and paste one of these:\n\n- *\"Use conversus to decide: should we use Postgres or MongoDB for user profiles?\"*\n- *\"Run conversus_decide on whether microservices or a monolith is right for a 3-person team. Use red-blue mode.\"*\n- *\"Validate the conversus config at `~/my-review/conversus.yml` and tell me the cost.\"*\n\n## What's included\n\n- **8 game theory modes** \u2014 cooperative, winner-take-all, prisoner's dilemma, red-blue, negotiation, resource-allocation, fair-division, mechanism-design\n- **10+ LLM providers** \u2014 Anthropic, OpenAI, Ollama, Gemini, Claude Code, and more\n- **Self-contained** \u2014 no separate Python or pip install required. Claude Desktop's bundled runtime handles everything.\n\nFull documentation: [docs/user-guide/desktop-extension.md](https://github.com/Build-Fractal/conversus-oss/blob/main/docs/user-guide/desktop-extension.md)",
   "author": {
     "name": "Build Fractal",
     "email": "hello@buildfractal.com",
@@ -29,7 +29,9 @@
   ],
   "compatibility": {
     "claude_desktop": ">=0.10.0",
-    "platforms": ["darwin"],
+    "platforms": [
+      "darwin"
+    ],
     "runtimes": {
       "python": ">=3.12"
     }
@@ -39,7 +41,9 @@
     "entry_point": "server/main.py",
     "mcp_config": {
       "command": "python",
-      "args": ["${__dirname}/server/main.py"],
+      "args": [
+        "${__dirname}/server/main.py"
+      ],
       "env": {
         "PYTHONPATH": "${__dirname}/server/lib"
       }
@@ -49,15 +53,15 @@
   "tools": [
     {
       "name": "conversus_decide",
-      "description": "Run an ad-hoc deliberation on a natural-language question using the built-in pragmatist + devil's advocate agents. Best for quick decisions — no config file needed. Accepts a mode parameter (cooperative, red-blue, winner-take-all, prisoners-dilemma)."
+      "description": "Quick deliberation without needing a config file. Uses the built-in pragmatist + devils-advocate agents and runs the full 5-phase pipeline. Insufficient questions are rejected before execution via the R020 quality gate."
     },
     {
       "name": "conversus_run",
-      "description": "Run or parse a full multi-agent deliberation from a YAML config file. Supports all 8 game theory modes, custom agents, target documents, and optional arbiters. Use this when you want reproducible deliberations with your own stakeholder personas."
+      "description": "Executes the full 5-phase deliberation pipeline from a conversus YAML config. On the CLI surface, takes a path to a config file and runs with Rich progress display. On the MCP surface, takes the config YAML inline and operates in one of three modes: validate-only (returns cost estimate), parsed-output (parses an existing synthesis file), or in-process (runs the full pipeline and returns structured output)."
     },
     {
       "name": "conversus_validate",
-      "description": "Validate a conversus YAML config and estimate the total LLM launch count BEFORE running. Catches schema errors, missing target files, and invalid mode names. Always run this before a real deliberation to know the cost."
+      "description": "Parses and validates a conversus YAML configuration, runs template validation, optionally classifies a deliberation question for sufficiency, and computes a cost estimate (number of LLM launches required). Returns before any pipeline execution \u2014 always run this before a real deliberation to know the cost."
     }
   ]
 }

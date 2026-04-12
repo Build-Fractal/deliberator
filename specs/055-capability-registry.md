@@ -2,9 +2,21 @@
 
 **Feature ID**: `055-capability-registry`
 **Created**: 2026-04-11
-**Status**: Approved (binding deliberation outcome)
+**Status**: Approved (binding deliberation outcome) — Day 1-4 complete, constitution-aligned
 **Depends On**: `distribution-strategy.md`, existing CLI/MCP/plugin/`.mcpb` implementations
 **Decided by**: `deliberations/capability-exposure-followup/output/arbiter/resolution.md`
+**Governed by**: `CONSTITUTION.md` (principles IX, XI, XII, XIV)
+
+> **Amendment 2026-04-11** — After Day 1-4 implementation and before Day 5,
+> `CONSTITUTION.md` was copied over from the conversus repo and adopted as
+> governing for conversus-oss. Day 1-4 was reworked in place to satisfy
+> principle IX (no module-level mutable state; Pydantic models for data
+> structures; StrEnum for closed behavioral choices; no `Any` on public
+> signatures). Section 3 code examples and the Day 5 bullets below
+> reflect the post-rework implementation, per principle XIV
+> (Spec-Implementation Parity). The binding decision (Option A: registry
+> + per-surface adapters) is unchanged — only the implementation shape
+> was adjusted to fit the constitution.
 
 ---
 
@@ -46,39 +58,46 @@ The arbiter's framing is critical: this is not infrastructure optimization for f
 
 ### 3.1 The registry
 
-A single source of truth (`capabilities.py` at the repo root, or a `conversus/capabilities/` directory if it grows large) declares each capability via the `@capability` decorator with metadata:
+A single source of truth — `capabilities.py` at the repo root — declares each capability as a `Capability` Pydantic model and exports an explicit `CAPABILITIES` list that the projector walks:
 
 ```python
 # capabilities.py
-from conversus.registry import capability, Param, Surface
+from conversus.registry import Capability, Param, Surface
 
-@capability(
+decide = Capability(
     name="decide",
     summary="Run an ad-hoc deliberation on a natural-language question",
-    long_description="""
-    Quick deliberation without needing a config file. Uses the built-in
-    pragmatist + devils-advocate agents and runs the full 5-phase pipeline.
-    """,
+    long_description=(
+        "Quick deliberation without needing a config file. Uses the "
+        "built-in pragmatist + devils-advocate agents and runs the full "
+        "5-phase pipeline."
+    ),
     surfaces=[Surface.CLI, Surface.MCP, Surface.PLUGIN, Surface.MCPB],
     params=[
-        Param("question", str, required=True,
+        Param(name="question", type=str, required=True,
               help="The decision to deliberate. Be specific."),
-        Param("provider", str, default="mock",
+        Param(name="provider", type=str, default="mock",
               choices=["mock", "anthropic", "openai", "claude-code", "ollama"],
               help="LLM provider to use."),
-        Param("mode", str, default="cooperative",
+        Param(name="mode", type=str, default="cooperative",
               choices=["cooperative", "winner-take-all", "prisoners-dilemma", "red-blue"],
               help="Deliberation mode."),
-        Param("max_launches", int, default=20,
-              help="Safety cap on LLM launches."),
+        Param(name="max_launches", type=int, default=20,
+              help="Safety cap on LLM launches.",
+              surfaces=[Surface.MCP]),  # MCP-only; CLI uses its own flow
     ],
-    handler="conversus.engine.adhoc:run_decide",
+    handler="engine.handlers:run_decide_cli",
+    handlers={Surface.MCP: "engine.handlers:run_decide_mcp"},
 )
-class DecideCapability:
-    """Default adapters cover all 4 surfaces — no override needed."""
+
+CAPABILITIES: list[Capability] = [decide]
 ```
 
-The `handler` field is a Python import string (`module:function`) that points to the canonical implementation. The registry never duplicates logic — it points to it.
+**Why direct construction, not a decorator**: `CONSTITUTION.md` principle IX forbids mutable module-level state. A `@capability(...)` decorator that appends to a module-level `REGISTRY` list is exactly the pattern the principle prohibits. The explicit `CAPABILITIES = [...]` export is the constitution-compliant replacement — the projector reads it directly, and there is no hidden registration via import-time side effects.
+
+**Why two handlers**: `decide` has intrinsic surface-specific behavior (CLI prints + exits; MCP returns structured data). The `handlers` dict is an optional per-surface override; most capabilities use a single `handler` across all surfaces and leave `handlers` unset. See principle XIV (spec-implementation parity) for why this was added during Day 5 migration rather than scaffolded speculatively on Day 1-2.
+
+The `handler` field is a Python import string (`module.path:func_name`) that points to the canonical implementation. The registry never duplicates logic — it points to it.
 
 ### 3.2 Default adapters
 
@@ -119,24 +138,31 @@ class DefaultMCPBAdapter(MCPBAdapter):
 
 ### 3.3 Per-surface override adapters
 
-Capabilities that need surface-specific UX provide explicit adapter classes attached to the capability:
+Capabilities that need surface-specific UX instantiate adapter subclasses and pass them to the `Capability(...)` constructor via the `cli_adapter` / `mcp_adapter` / `plugin_adapter` / `mcpb_adapter` kwargs:
 
 ```python
-# Example: decide needs richer MCP description for Claude's tool selection
-@DecideCapability.mcp_adapter
-class DecideMCPAdapter(MCPAdapter):
+# Example: decide needs a richer MCP description for Claude's tool selection
+from conversus.registry import DefaultMCPAdapter
+
+class DecideMCPAdapter(DefaultMCPAdapter):
     description = """
     Run an ad-hoc deliberation. Use this when the user describes a
     decision they're facing (e.g. "Postgres or MongoDB?"). Don't use
     for vague questions — the sufficiency classifier rejects them.
     """
 
-# Example: decide CLI uses Rich tables for output
-@DecideCapability.cli_adapter
-class DecideCLIAdapter(CLIAdapter):
-    def render_result(self, result):
-        return rich_table_from(result)
+decide = Capability(
+    name="decide",
+    # ... other fields ...
+    mcp_adapter=DecideMCPAdapter(),
+)
 ```
+
+**Why constructor kwargs, not class decorators**: the `@DecideCapability.mcp_adapter` syntax required a module-level mutable Capability instance that the decorator could attach to — another violation of principle IX. The constructor-kwarg pattern is a pure function call with no side effects.
+
+Post-construction assignment also works (`decide.mcp_adapter = DecideMCPAdapter()`) because `Capability` has `model_config = ConfigDict(validate_assignment=True)` — this gives capability authors flexibility when an adapter depends on state computed after the initial `Capability(...)` call.
+
+**Subclass `Default<Surface>Adapter`, not the bare ABC**: override adapters should extend the default implementation so they inherit rendering and only need to change the attribute that differs (usually `description`). Subclass the bare ABC only when you want to replace the full `render()` method.
 
 Resolution order at projection time:
 
@@ -252,17 +278,38 @@ The arbiter's binding day-by-day plan:
 
 **Goal**: `decide` works end-to-end via the registry, byte-identical (or functionally equivalent) to the hand-written version.
 
-- Define `DecideCapability` in `capabilities.py`
-- Provide explicit `mcp_adapter` if needed for richer tool description
-- Run `make build-surfaces`
-- Diff the generated `engine/cli/__init__.py decide` block against the existing hand-written version
-- Diff the generated `mcp_server.py conversus_decide` function against the existing
-- Adjust the adapter or default until functionally equivalent
+**Pre-work — extract shared result types** (principle XI, single source of truth):
+
+- Move `CostEstimate`, `DecideResult`, and `_estimate_cost` out of `mcp_server.py` into a neutral module (`engine/results.py`). Do NOT duplicate them into `engine/handlers.py` — the first draft of Day 5 planned "temporary duplication to unblock migration", but principle XI forbids writing the same fact in two places even temporarily.
+- Re-export the moved names from `mcp_server.py` for backward compatibility with existing test imports (`linter/test_mcp_server.py`, `engine/tests/test_integration.py`).
+
+**Handler extraction**:
+
+- Create `engine/handlers.py` with `run_decide_cli(question, provider, mode, output_dir, output_format) -> None` and `run_decide_mcp(question, provider, mode, max_launches) -> DecideResult`. Both functions import the result types from `engine.results`, not from `mcp_server`.
+- `run_decide_cli` body mirrors the existing `decide` Click callback in `engine/cli/__init__.py` (validation + classification + config + pipeline + parse + render + exit).
+- `run_decide_mcp` body mirrors the existing `mcp_server._decide` function.
+
+**Capability declaration**:
+
+- Create `capabilities.py` at the repo root.
+- Define `decide = Capability(...)` directly — no decorator. Use `handler="engine.handlers:run_decide_cli"` as the default, with `handlers={Surface.MCP: "engine.handlers:run_decide_mcp"}` for the per-surface override.
+- Attach a `DecideMCPAdapter(DefaultMCPAdapter)` subclass with a richer `description` via the `mcp_adapter=` constructor kwarg.
+- Use `Param.surfaces=[Surface.MCP]` to scope `max_launches` to MCP only, and `Param.surfaces=[Surface.CLI]` to scope `output_dir` / `output_format` to CLI only.
+- Export `CAPABILITIES: list[Capability] = [decide]` at the bottom of the file — the projector reads this explicit list, not a module-level registry.
+
+**Projection and diff**:
+
+- Run `make build-surfaces-dry-run` to preview changes without writing files.
+- Run `python scripts/build-surfaces.py --output-dir /tmp/surfaces-day5` to write to a sandbox.
+- Diff the generated `engine/cli/__init__.py decide` block against the existing hand-written version.
+- Diff the generated `mcp_server.py conversus_decide` function against the existing.
+- Adjust the adapter or default until functionally equivalent.
 
 **Validation**:
 - `conversus decide "test question" --provider mock` produces identical output via generated vs hand-written
 - The generated MCP tool has the same signature as the hand-written one
 - All existing tests for `decide` still pass against the generated code
+- The constitution's principle XII check: no "dead infrastructure" — every field on the new `Capability` must be consumed by at least one adapter, every adapter class added must be consumed by at least one capability.
 
 ### Day 6: Migrate `run` and `validate` (proof migrations #2 and #3)
 
@@ -275,22 +322,52 @@ Per the arbiter's NO list rule #4: **don't build the framework before migrating 
 - Both should work with the default adapters (no overrides needed)
 
 **Validation**:
-- 977 existing tests pass against the regenerated `engine/cli/__init__.py` and `mcp_server.py`
+- All existing engine + linter tests pass (1104 total at Day 7 end; 4 pre-existing fixture-missing failures unchanged from baseline)
 - `mcp_server.py` regenerated from the registry produces the same 3 tools with the same JSON schemas (Claude Desktop's existing `.mcpb` install continues to work without re-registration)
+- Principle XI: ``mcp_server._run_config is engine.handlers.run_mcp``, ``mcp_server._validate_config is engine.handlers.validate_mcp``, ``mcp_server._run_in_process is engine.handlers._run_in_process`` — all verified by identity tests in ``test_day6_run_validate_migration.py``
 
 ### Day 7: Migrate remaining capabilities + full validation
 
-**Goal**: all 12 existing capabilities migrated, plus the new ones from previous deliberations.
+**Goal**: all existing capabilities migrated; registry is the single source of truth.
 
-- Migrate `init`, `status`, `login`, `logout` (auth/setup capabilities)
-- Migrate `mcp` and `context` (operational)
-- Define `design` capability with `surfaces=[Surface.PLUGIN]` only (it's a conversational wizard — keep the existing hand-written SKILL.md body, but register the metadata)
-- Add the previously-pending discovery capabilities: `list_modes`, `list_providers`, `list_presets`, `list_examples`, `show_docs`
-- Run all 977 tests against the regenerated surface files
-- Manual smoke test of each surface:
-  - `conversus --help` shows all expected commands
-  - Plugin slash commands work in Claude Code
-  - `.mcpb` rebuild + reinstall + tool list verification
+> **Amendment 2026-04-11**: The original spec planned 12+ capabilities
+> including discovery tools (`list_modes`, `list_providers`,
+> `list_presets`, `list_examples`, `show_docs`). Day 7 migrated the 9
+> hand-written CLI commands + the `design` plugin wizard = **10
+> capabilities total**. Discovery tools are deferred to a follow-up
+> spec — they don't exist yet and adding them is a new feature, not a
+> migration. The `init` command has a known divergence: the hand-written
+> CLI accepts repeatable ``--runtime a --runtime b`` flags via Click's
+> ``multiple=True``; the generated version accepts a comma-separated
+> string ``--runtimes "a,b"`` because the registry ``Param`` model does
+> not yet support ``multiple=True``. This is tracked as a framework
+> polish item (``Param.multiple`` support).
+
+**Completed**:
+
+- Migrated `login`, `logout`, `status` (auth/setup — CLI + Plugin surfaces)
+- Migrated `init` (project initialization — CLI + Plugin, comma-separated runtimes divergence noted above)
+- Migrated `context` (debug context detection — CLI-only)
+- Migrated `mcp` (stdio server launcher — CLI-only meta-command)
+- Defined `design` capability with `surfaces=[Surface.PLUGIN]` only. Uses a `DesignPluginAdapter` override that reads the existing 153-line hand-written SKILL.md verbatim from `claude-code-plugin/skills/design/SKILL.md`. The projector writes it back unchanged — NO list rule #1 satisfied.
+- Patched `desktop-extension/manifest.json` tools[] from the registry (still 3 tools: decide/run/validate — the other capabilities don't opt into MCPB)
+
+**Handler extraction**: all 6 new CLI handlers (`login_cli`, `logout_cli`, `status_cli`, `context_cli`, `mcp_cli`, `init_cli`) added to `engine/handlers.py`. These are CLI-only — no MCP variants because the capabilities don't project to MCP.
+
+**Validation**:
+- 1104 engine + linter tests pass (4 pre-existing fixture-missing failures unchanged from baseline)
+- Generated CLI has 9 commands matching the hand-written set exactly: `context`, `decide`, `init`, `login`, `logout`, `mcp`, `run`, `status`, `validate`
+- Generated MCP server has 3 tools matching the hand-written set: `conversus_decide`, `conversus_run`, `conversus_validate`
+- Plugin projection produces 9 SKILL.md files (8 generated + 1 hand-written `design` via override adapter)
+- MCPB manifest tools[] array has 3 entries (only the MCP-opted capabilities)
+- All principle XI single-source-of-truth proofs remain green
+
+**Not completed (deferred)**:
+- Discovery capabilities (`list_modes`, `list_providers`, `list_presets`, `list_examples`, `show_docs`) — new features, not migrations. Belong in a follow-up spec.
+- `Param.multiple` support for repeatable Click options — framework polish item.
+- `Param.flag` override for custom flag names (`--format` instead of `--output-format`).
+- `Capability.epilog` for Click command usage examples.
+- MCP adapter return type (`-> str` instead of `-> DecideResult`) — cosmetic.
 
 ---
 
@@ -396,7 +473,7 @@ These need resolution during implementation but don't block the spec being appro
 
 3. **Versioning of generated files**: should generated files have a header comment with the registry hash, or just a timestamp, or just "auto-generated"? Hash gives perfect change detection but adds noise to diffs. **Default: no hash, just a static comment. Revisit if drift occurs.**
 
-4. **Adapter discovery mechanism**: should adapters be attached via decorator (`@CapName.mcp_adapter`) or via a separate adapter module that imports the capability and registers? Decorator is more compact; separate module is more discoverable for newcomers. **Default: decorator, with a `conversus/registry/adapters/overrides/` directory for explicit override modules to live in.**
+4. ~~**Adapter discovery mechanism**: should adapters be attached via decorator (`@CapName.mcp_adapter`) or via a separate adapter module that imports the capability and registers?~~ **Resolved 2026-04-11 by constitutional adoption.** Adapters are attached via constructor kwargs (`Capability(..., mcp_adapter=DecideMCPAdapter())`) or post-construction assignment (`decide.mcp_adapter = DecideMCPAdapter()`). The class-decorator form was dropped because it required the mutable module-level Capability instance that principle IX forbids.
 
 5. **What happens to existing `claude-code-plugin/skills/conversus/SKILL.md`?** That's the old monolithic skill we already deleted. Confirm it stays deleted and the registry is the source for all 8 plugin slash commands.
 
@@ -406,6 +483,7 @@ These need resolution during implementation but don't block the spec being appro
 
 | Source | Use |
 |---|---|
+| `CONSTITUTION.md` | **Governing document** — principles IX (no mutable global state, Pydantic, StrEnum, no Any), XI (single source of truth), XII (no dead infrastructure), XIV (spec-implementation parity) bound the Day 1-4 rework and the Day 5 result-type extraction |
 | `deliberations/capability-exposure/proposal.md` | Original 5-question proposal that surfaced the duplication problem |
 | `deliberations/capability-exposure/output/architecture-purist/revision.md` | Architecture-purist's final position — close to the adapter pattern but never named it |
 | `deliberations/capability-exposure/output/summary/final.md` | First synthesis — converged on principles but failed to commit to a pattern |
@@ -413,6 +491,7 @@ These need resolution during implementation but don't block the spec being appro
 | `deliberations/capability-exposure-followup/output/summary/final.md` | Second synthesis — picked anti-framework on resource economics |
 | `deliberations/capability-exposure-followup/output/arbiter/resolution.md` | **Binding decision** — overrode the synthesis and chose Option A on user-equity grounds |
 | `specs/distribution-strategy.md` | Established the 4 distribution surfaces this spec consolidates |
+| `docs/developer-guide/gotchas.md` | Agent hand-off memo — subtle bugs and Pydantic behaviors discovered during Day 1-4. Read before touching the registry, the projector, or generated surface files. |
 
 ---
 

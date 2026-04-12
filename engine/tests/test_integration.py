@@ -776,21 +776,31 @@ class TestMCPProviderResolution:
     def test_mcp_in_process_no_credentials_returns_error(
         self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     ) -> None:
-        """In-process execution with 'openai' and no credentials returns auth error."""
+        """In-process execution with 'openai' and no credentials returns auth error.
+
+        Note: ``_run_in_process`` moved from ``mcp_server`` to
+        ``engine.handlers`` in Day 6 of spec 055 (principle XI — single
+        source of truth). The monkeypatch targets must point at the
+        *module that contains the function*, which is now
+        ``engine.handlers``, because Python looks up bare name
+        references (``resolve_provider``, ``parse_config``) in the
+        defining module's namespace — patching any other module is a
+        no-op for those lookups. The ``from mcp_server import
+        _run_in_process`` still works because ``mcp_server`` re-exports
+        the alias, but the resolution still happens inside
+        ``engine.handlers``.
+        """
         from engine.providers import ProviderError
         from mcp_server import _run_in_process
 
-        # Monkeypatch resolve_provider in mcp_server to raise an auth error,
-        # simulating the case where no credentials are available.
         def _raise_no_creds(name: str) -> None:
             raise ProviderError(
                 f"No credentials available for '{name}'.",
                 category="auth",
             )
 
-        monkeypatch.setattr("mcp_server.resolve_provider", _raise_no_creds)
+        monkeypatch.setattr("engine.handlers.resolve_provider", _raise_no_creds)
 
-        # Also monkeypatch parse_config so we don't need real files on disk
         from engine.config import EngineConfig, AgentConfig
 
         dummy_config = EngineConfig(
@@ -802,7 +812,7 @@ class TestMCPProviderResolution:
                 AgentConfig(name="a2", prompt="P2"),
             ],
         )
-        monkeypatch.setattr("mcp_server.parse_config", lambda path: dummy_config)
+        monkeypatch.setattr("engine.handlers.parse_config", lambda path: dummy_config)
 
         config_yaml = yaml.dump({
             "mode": "cooperative",

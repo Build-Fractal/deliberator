@@ -1,5 +1,21 @@
 # Contributing
 
+## For AI coding agents: read the gotchas first
+
+If you are an AI coding agent working on this codebase, start with
+[**gotchas.md**](gotchas.md) before touching the capability registry,
+the projector, or any generated surface file
+(`engine/cli/__init__.py`, `mcp_server.py`, `claude-code-plugin/`,
+`desktop-extension/manifest.json`). That file is a hand-off memo from
+previous agents: subtle bugs they hit, Pydantic v2 behaviors that
+disagreed with their mental model, and constitutional constraints that
+bit them mid-implementation. It's unpublished on purpose — it's a
+memo from agents to agents, not user documentation — but reading it
+first will save you rediscovering the same traps.
+
+When you finish work and discover a new gotcha, append an entry to
+that file in the same format.
+
 ## Code style
 
 ### Pure functions
