@@ -1,48 +1,53 @@
-# Feature Specification: Deliberation Persistence & Desktop Content Viewing
+# Feature Specification: Deliberation Persistence & Content Browsing
 
 **Feature ID**: `056-deliberation-persistence`
 **Created**: 2026-04-12
-**Status**: Draft
-**Depends On**: `055-capability-registry` (capability framework), existing Desktop Extension (`.mcpb`)
-**Motivated by**: spec 055 deliberation feedback (P1: "the registry creates genuine single points of failure") + user feedback on Desktop Extension experience
+**Status**: Draft (revised after spec 056 deliberation)
+**Depends On**: `055-capability-registry`, `057-settings-architecture`
+**Motivated by**: Desktop Extension gap (ephemeral output) + developer workflow needs
+
+> **Revision 2026-04-12** — Rewritten based on deliberation results.
+> Both agents unanimously concluded the original framing was backwards:
+> these are **developer-first** tools that Desktop inherits via the
+> registry's per-surface projection, not Desktop-first features with
+> developer use bolted on. Storage is **workspace-scoped** (project
+> directory), not global (`~/.conversus/`). The global directory is
+> for settings and credentials only (see spec 057).
 
 ---
 
 ## 1. Problem
 
-Conversus deliberations produce rich, multi-file output: each agent's review, cross-reviews between every pair, revised positions, extracted disputes, and a final synthesis. This pipeline record is the core value — it's the evidence chain that makes the synthesis trustworthy.
+Conversus deliberations produce a rich multi-file record: each agent's review, cross-reviews between every pair, revised positions, extracted disputes, and a final synthesis. This adversarial record is the core value — it's the evidence chain that makes the synthesis trustworthy.
 
-**Today, Desktop Extension users lose all of it.** The `conversus_decide` tool:
+**Today, all of it is ephemeral.** `conversus_decide` creates a temp directory, runs the pipeline, parses the synthesis, and deletes the output. Users on every surface — CLI developers, Claude Code users, Cursor users, Desktop Extension users — lose the full record after every run.
 
-1. Creates a temp directory
-2. Runs the full 5-phase pipeline, writing ~10-20 files
-3. Parses the synthesis into a structured `DecideResult`
-4. Returns the result to Claude Desktop
-5. **Deletes the temp directory** in the `finally` block
-
-The user sees the synthesis in the chat. But the agent reviews, cross-reviews, revisions, and disputes — the adversarial record that *justifies* the synthesis — are gone. There's no way to:
-
-- Revisit a past deliberation ("what did the devil's advocate say about my database choice last week?")
-- Compare deliberations ("how did the cooperative mode differ from red-blue for the same question?")
-- Share the full record with a colleague
-- Audit the reasoning chain behind a decision
-
-CLI users can work around this with `--output /path/to/keep`. MCP users on `conversus_run` can pass `output_path`. But `conversus_decide` — the primary tool for Desktop Extension users — offers no persistence.
+CLI users can work around this with `--output /path/`. But `conversus decide` (the primary entry point) has no persistence by default, and no way to browse or reference past deliberations.
 
 ---
 
-## 2. Proposed solution
+## 2. Design principles (from the deliberation)
 
-Three capabilities, in order of implementation priority:
+1. **Developer-first.** Developers using CLI, Claude Code, and Cursor are the primary creators and consumers of deliberation content. Desktop Extension users get the same tools via the registry's per-surface projection — no separate "Desktop-friendly" system.
 
-### 2.1 Persist by default (P1)
+2. **Workspace-scoped.** Deliberation output belongs with the project, not in a user-global directory. A developer running `conversus decide "Postgres or MongoDB?"` inside `~/code/my-app/` finds the output at `~/code/my-app/.conversus/deliberations/`. This makes output git-trackable, shareable with colleagues, and contextual to the project.
 
-All `conversus_decide` invocations (on every surface) persist their full output to a known directory:
+3. **Enhance existing workflows.** The `--output` flag already works. Persistence means making it the default (write to `.conversus/deliberations/`), not inventing a parallel mechanism.
+
+4. **File-level access first, semantic API later.** The `show` tool starts as raw file access (read any markdown from a past deliberation). A semantic layer (`show disputes`, `show agent X review`) is a follow-up after the file-level foundation proves itself.
+
+---
+
+## 3. Capabilities
+
+### 3.1 Persist by default (P1)
+
+All `conversus decide` and `conversus run` invocations persist their full output to the workspace:
 
 ```
-~/.conversus/deliberations/<timestamp>-<slug>/
-  question.md
-  conversus.yml          # the generated config
+<project>/.conversus/deliberations/<timestamp>-<slug>/
+  question.md              # the original question (decide) or target doc reference
+  conversus.yml            # the generated or provided config
   output/
     pragmatist/
       review.md
@@ -57,15 +62,18 @@ All `conversus_decide` invocations (on every surface) persist their full output 
     summary/final.md
 ```
 
-The `<slug>` is a sanitized version of the question (first ~40 chars). The `<timestamp>` is ISO 8601 compact (`20260412T173000`).
+- `<timestamp>`: ISO 8601 compact (`20260412T173000`)
+- `<slug>`: sanitized first ~40 chars of the question
+- Controlled by `persistence.enabled` in `.conversus/settings.yml` (default: `true`, see spec 057)
+- Auto-cleanup via `persistence.retention_days` (default: 90 days)
+- The `DecideResult` / `RunResult` response includes `output_path` pointing to the persisted directory
+- CLI prints the path after the synthesis: `Output saved to: .conversus/deliberations/20260412T173000-postgres-vs-mongodb/`
 
-**What changes**: `run_decide_mcp` and `run_decide_cli` copy the output tree to `~/.conversus/deliberations/` before deleting the temp dir. The `DecideResult` response includes a new `output_path` field pointing to the persisted directory.
+### 3.2 List deliberations (P2)
 
-**Backward compatible**: the temp dir is still created and cleaned up. The persistent copy is additional, not a replacement.
+New capability: `list_deliberations`
 
-### 2.2 List past deliberations (P2)
-
-A new `conversus_list_deliberations` MCP tool (and CLI command) that scans `~/.conversus/deliberations/` and returns a summary of each:
+Scans `<project>/.conversus/deliberations/` and returns a summary of each:
 
 ```json
 [
@@ -74,109 +82,130 @@ A new `conversus_list_deliberations` MCP tool (and CLI command) that scans `~/.c
     "question": "Should I build a timber framed home or...",
     "mode": "cooperative",
     "agents": ["pragmatist", "devils-advocate"],
-    "path": "~/.conversus/deliberations/20260412T173000-timber-vs-conventional/"
+    "path": ".conversus/deliberations/20260412T173000-timber-vs-conventional/",
+    "has_synthesis": true
   }
 ]
 ```
 
-### 2.3 View deliberation content (P3)
+**Surfaces**: CLI + MCP + Plugin + MCPB
 
-A new `conversus_show_deliberation` MCP tool that reads a specific file from a past deliberation and returns it as markdown:
+**CLI**: `conversus list` — prints a table of past deliberations with timestamps, questions, modes. `--json` flag for piping to `jq`.
+
+**MCP**: `conversus_list_deliberations` — returns the JSON array. Claude/Cursor can use it to reference past decisions in conversation.
+
+### 3.3 Show deliberation content (P2)
+
+New capability: `show_deliberation`
+
+Reads a specific file from a past deliberation and returns it:
 
 ```
 User: "Show me the devil's advocate review from my timber framing deliberation"
-Claude: [calls conversus_show_deliberation with path and file]
+Claude: [calls conversus_show_deliberation]
 → Returns the full text of devils-advocate/review.md
 ```
 
-This lets Desktop Extension users browse the full adversarial record from within their chat — no file browser, no terminal, no leaving Claude Desktop.
+**Surfaces**: CLI + MCP + Plugin + MCPB
 
----
+**CLI**: `conversus show <deliberation-path> <file>` — prints the file content. Examples:
+```bash
+conversus show .conversus/deliberations/20260412T173000-timber/ summary/final.md
+conversus show .conversus/deliberations/20260412T173000-timber/ pragmatist/review.md
+conversus show .conversus/deliberations/20260412T173000-timber/ devils-advocate/disputes.md
+```
 
-## 3. Surface projection
+**MCP**: `conversus_show_deliberation(deliberation_path, file_path)` — returns the file text as a string. Security: validates both paths are inside `.conversus/deliberations/` (no path traversal).
 
-| Capability | CLI | MCP | Plugin | MCPB |
-|---|---|---|---|---|
-| Persist by default | ✅ (already has `--output`) | ✅ (new behavior) | n/a | ✅ (via MCP) |
-| `list_deliberations` | ✅ | ✅ | ✅ | ✅ |
-| `show_deliberation` | ✅ | ✅ | ✅ | ✅ |
+### 3.4 Semantic API (P3 — future phase)
 
-These are the "discovery capabilities" that spec 055 Day 7 deferred: `list_deliberations` and `show_deliberation` replace the originally-planned `list_modes`/`list_providers`/`list_presets`/`list_examples`/`show_docs` with something users actually need — access to their own deliberation history, not static metadata they can find in the docs.
+Higher-level queries that don't require knowing file paths:
+
+```
+"What were the disputes from my last deliberation?"
+"Show me where the pragmatist changed their mind"
+"Compare the synthesis from my cooperative vs red-blue run on the same question"
+```
+
+These map to:
+- `show_disputes(deliberation)` → reads `*/disputes.md`, extracts structured disputes
+- `show_revisions(deliberation, agent)` → reads `*/revision.md`, extracts withdrawn/modified/surviving
+- `compare_deliberations(path_a, path_b)` → diff two syntheses
+
+**Deferred** — build after file-level access (3.3) proves the pattern. The file-level tool is the foundation; semantic tools are views over it.
 
 ---
 
 ## 4. Implementation plan
 
-### Phase 1: Persist by default
+### Phase 1: Persistence (depends on spec 057 for `.conversus/` directory)
 
-- Add `~/.conversus/deliberations/` as the default persistence root
-- After pipeline completion in `run_decide_mcp`, copy the output tree to the persistence directory
-- Add `output_path: str | None` field to `DecideResult` pointing to the persisted copy
-- Update `run_decide_cli` to print the persistence path after the synthesis
-- Add the persistence path to the structured MCP result so Claude Desktop can reference it
+1. Update `run_decide_mcp` and `run_decide_cli` in `engine/handlers.py`:
+   - After pipeline completion, copy the output tree to `<project>/.conversus/deliberations/<timestamp>-<slug>/`
+   - Add `output_path` field to `DecideResult`
+   - CLI prints the persistence path
+2. Same for `run_mcp` and `run_cli` (the `conversus run` handlers)
+3. Add `persistence.retention_days` cleanup: on each run, delete deliberation directories older than the retention limit
+4. Add to `capabilities.py`, project, test
 
-### Phase 2: List deliberations
+### Phase 2: List + Show
 
-- Add `list_deliberations` handler to `engine/handlers.py`
-- Scan `~/.conversus/deliberations/`, read each directory's `conversus.yml` for metadata
-- Add `list_deliberations` capability to `capabilities.py` with CLI + MCP + Plugin + MCPB surfaces
-- Project via `make build-surfaces`
+1. Add `list_deliberations_cli` + `list_deliberations_mcp` to `engine/handlers.py`
+2. Add `show_deliberation_cli` + `show_deliberation_mcp` to `engine/handlers.py`
+3. Register both as capabilities in `capabilities.py`
+4. Project via `make build-surfaces`
+5. Day 5-style validation: generate, exec, verify signatures, principle XI compliance
 
-### Phase 3: View deliberation content
+### Phase 3: Semantic API (separate spec)
 
-- Add `show_deliberation` handler that takes a deliberation path + relative file path
-- Returns the file content as a string (markdown rendered in Claude Desktop chat)
-- Security: validate the path is inside `~/.conversus/deliberations/` (no path traversal)
-- Add capability to `capabilities.py`, project
-
----
-
-## 5. Success criteria
-
-- SC-001: `conversus_decide` in Desktop Extension persists the full output tree to `~/.conversus/deliberations/` without the user requesting it
-- SC-002: The `DecideResult` response includes a non-null `output_path` after a successful deliberation
-- SC-003: `conversus_list_deliberations` returns a JSON array of past deliberations with timestamps, questions, and modes
-- SC-004: `conversus_show_deliberation` returns the full markdown text of any file within a past deliberation
-- SC-005: Path traversal outside `~/.conversus/deliberations/` is rejected with a clear error
+Not in scope for this spec. Write a follow-up spec after Phase 2 is validated.
 
 ---
 
-## 6. `conversus init` integration
+## 5. `conversus init` integration
 
-`conversus init` currently creates per-runtime permission files. This spec extends it to also handle Desktop Extension setup:
+`conversus init` (spec 057) creates the `.conversus/` directory. This spec adds:
 
 ```bash
-conversus init --runtime claude-desktop
+conversus init
+# → creates .conversus/settings.yml (with persistence.enabled: true)
+# → creates .conversus/deliberations/ (empty, ready for output)
+# → creates .conversus/runtimes/ (per-runtime permission configs)
 ```
 
-What it creates:
+For Desktop Extension users who don't have the CLI:
+- The `.mcpb` bundle's MCP server creates `.conversus/deliberations/` on first deliberation run (lazy init)
+- No explicit `init` step needed — persistence "just works"
 
-- `~/.conversus/deliberations/` — the persistence directory for all deliberation output
-- Claude Desktop MCP server registration — adds conversus to Claude Desktop's MCP config (typically `~/Library/Application Support/Claude/claude_desktop_config.json` on macOS) so the extension works without manually installing a `.mcpb` bundle
-- Permission grants for the conversus MCP tools
+---
 
-This means Desktop Extension users have **two install paths**:
+## 6. Success criteria
 
-1. **Double-click the `.mcpb`** — self-contained, no terminal, no CLI. The bundle ships its own Python + dependencies. Deliberation persistence directory is created on first run.
-2. **`conversus init --runtime claude-desktop`** — for users who already have conversus installed via pip. Registers the local `mcp_server.py` as a Claude Desktop MCP server and creates the persistence directory. No bundle needed.
-
-Path 1 is for non-technical users. Path 2 is for developers who want the CLI + Desktop Extension from the same install.
+- SC-001: `conversus decide` persists the full output tree to `<project>/.conversus/deliberations/` without the user requesting it
+- SC-002: `DecideResult` and `RunResult` include a non-null `output_path` after a successful deliberation
+- SC-003: `conversus list` prints a table of past deliberations from the project's `.conversus/deliberations/`
+- SC-004: `conversus show <path> <file>` returns the full markdown text of any file within a past deliberation
+- SC-005: Path traversal outside `.conversus/deliberations/` is rejected with a clear error
+- SC-006: Deliberation directories older than `persistence.retention_days` are cleaned up automatically
+- SC-007: `--json` flag on `list` produces `jq`-friendly output
 
 ---
 
 ## 7. Out of scope
 
-- **Search across deliberations** — full-text search of past deliberation content. Useful but complex (index maintenance, relevance ranking). Separate spec.
-- **Deliberation diff** — comparing two deliberations on the same question with different modes/agents. Useful but needs a diff rendering strategy. Separate spec.
-- **Cloud sync** — syncing `~/.conversus/deliberations/` to a remote backend. Not needed for single-user Desktop Extension.
-- **Deliberation deletion** — users can `rm -rf` the directory. No in-tool deletion needed for v1.
+- **Semantic API** (show disputes, compare deliberations) — Phase 3, separate spec after file-level access is validated
+- **Full-text search** across deliberations — needs an index, separate concern
+- **Cloud sync** — not needed for single-user workflows
+- **Deliberation deletion via tool** — users can `rm -rf`; no in-tool deletion for v1
+- **Settings cascade** — defined in spec 057, not here
 
 ---
 
-## 7. Sources
+## 8. Sources
 
 | Source | Use |
 |---|---|
-| `specs/055-capability-registry.md` | Capability framework that `list_deliberations` and `show_deliberation` register into |
-| Spec 055 deliberation (Day 7 deferred items) | Discovery capabilities were deferred from Day 7 — this spec replaces them with user-facing discovery of their own content |
-| `CONSTITUTION.md` principles IX, XI | Persistence path is configuration passed as a parameter (not module-level state); deliberation metadata is single-source-of-truth from the persisted `conversus.yml` |
+| `specs/055-capability-registry.md` | Capability framework for `list_deliberations` and `show_deliberation` |
+| Spec 056 deliberation results | Unanimous: developer-first, workspace-scoped, file-level access first |
+| `specs/057-settings-architecture.md` | `.conversus/` directory structure and settings cascade |
+| `.claude/` directory convention | The pattern `.conversus/` follows |
