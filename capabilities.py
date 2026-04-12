@@ -41,6 +41,7 @@ from pathlib import Path
 from conversus.registry import (
     Capability,
     DefaultMCPAdapter,
+    DefaultMCPBAdapter,
     Param,
     PluginAdapter,
     Surface,
@@ -73,6 +74,52 @@ Use this when the user describes a specific decision they are facing
 (e.g. "Postgres or MongoDB?"). Don't use it for vague questions — the
 sufficiency classifier rejects them before execution.
 """
+
+
+# ---------------------------------------------------------------------------
+# MCPB adapter overrides — Desktop Extension install-dialog descriptions
+#
+# The DefaultMCPBAdapter uses ``capability.long_description`` which
+# targets MCP editors and sometimes leaks surface-specific language
+# ("On the CLI surface..."). These overrides restore the hand-written
+# descriptions that were tailored for the Claude Desktop install dialog.
+# ---------------------------------------------------------------------------
+
+
+class DecideMCPBAdapter(DefaultMCPBAdapter):
+    def render(self, capability: "Capability") -> dict:
+        entry = super().render(capability)
+        entry["description"] = (
+            "Run an ad-hoc deliberation on a natural-language question using "
+            "the built-in pragmatist + devil's advocate agents. Best for "
+            "quick decisions \u2014 no config file needed. Accepts a mode "
+            "parameter (cooperative, red-blue, winner-take-all, prisoners-dilemma)."
+        )
+        return entry
+
+
+class RunMCPBAdapter(DefaultMCPBAdapter):
+    def render(self, capability: "Capability") -> dict:
+        entry = super().render(capability)
+        entry["description"] = (
+            "Run or parse a full multi-agent deliberation from a YAML config "
+            "file. Supports all 8 game theory modes, custom agents, target "
+            "documents, and optional arbiters. Use this when you want "
+            "reproducible deliberations with your own stakeholder personas."
+        )
+        return entry
+
+
+class ValidateMCPBAdapter(DefaultMCPBAdapter):
+    def render(self, capability: "Capability") -> dict:
+        entry = super().render(capability)
+        entry["description"] = (
+            "Validate a conversus YAML config and estimate the total LLM "
+            "launch count BEFORE running. Catches schema errors, missing "
+            "target files, and invalid mode names. Always run this before "
+            "a real deliberation to know the cost."
+        )
+        return entry
 
 
 decide = Capability(
@@ -173,6 +220,7 @@ decide = Capability(
     handler="engine.handlers:run_decide_cli",
     handlers={Surface.MCP: "engine.handlers:run_decide_mcp"},
     mcp_adapter=DecideMCPAdapter(),
+    mcpb_adapter=DecideMCPBAdapter(),
 )
 
 
@@ -294,6 +342,7 @@ run = Capability(
     ],
     handler="engine.handlers:run_cli",
     handlers={Surface.MCP: "engine.handlers:run_mcp"},
+    mcpb_adapter=RunMCPBAdapter(),
 )
 
 
@@ -347,6 +396,7 @@ validate = Capability(
     ],
     handler="engine.handlers:validate_cli",
     handlers={Surface.MCP: "engine.handlers:validate_mcp"},
+    mcpb_adapter=ValidateMCPBAdapter(),
 )
 
 

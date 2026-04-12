@@ -53,15 +53,15 @@
   "tools": [
     {
       "name": "conversus_decide",
-      "description": "Quick deliberation without needing a config file. Uses the built-in pragmatist + devils-advocate agents and runs the full 5-phase pipeline. Insufficient questions are rejected before execution via the R020 quality gate."
+      "description": "Run an ad-hoc deliberation on a natural-language question using the built-in pragmatist + devil's advocate agents. Best for quick decisions \u2014 no config file needed. Accepts a mode parameter (cooperative, red-blue, winner-take-all, prisoners-dilemma)."
     },
     {
       "name": "conversus_run",
-      "description": "Executes the full 5-phase deliberation pipeline from a conversus YAML config. On the CLI surface, takes a path to a config file and runs with Rich progress display. On the MCP surface, takes the config YAML inline and operates in one of three modes: validate-only (returns cost estimate), parsed-output (parses an existing synthesis file), or in-process (runs the full pipeline and returns structured output)."
+      "description": "Run or parse a full multi-agent deliberation from a YAML config file. Supports all 8 game theory modes, custom agents, target documents, and optional arbiters. Use this when you want reproducible deliberations with your own stakeholder personas."
     },
     {
       "name": "conversus_validate",
-      "description": "Parses and validates a conversus YAML configuration, runs template validation, optionally classifies a deliberation question for sufficiency, and computes a cost estimate (number of LLM launches required). Returns before any pipeline execution \u2014 always run this before a real deliberation to know the cost."
+      "description": "Validate a conversus YAML config and estimate the total LLM launch count BEFORE running. Catches schema errors, missing target files, and invalid mode names. Always run this before a real deliberation to know the cost."
     }
   ]
 }
