@@ -1,0 +1,12 @@
+mode: cooperative
+target: quality-floor/questions/factual-capital.md
+output: quality-floor/reference-outputs/factual-capital/
+iterations: 1
+
+agents:
+  - name: pragmatist
+    preset: philosophy/pragmatist
+    docs: []
+  - name: devils-advocate
+    preset: role/devils-advocate
+    docs: []
