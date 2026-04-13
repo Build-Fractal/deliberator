@@ -272,6 +272,88 @@ def conversus_decide(
 
 
 # ---------------------------------------------------------------------------
+# MCP Prompts — clickable actions in Claude Desktop (spec 059)
+#
+# Prompts are the Desktop equivalent of slash commands. They appear in
+# the Claude Desktop UI as selectable actions so non-technical users can
+# explicitly invoke conversus instead of hoping Claude picks the right
+# tool from the description alone. All 5 prompts ship — the full
+# capability set is visible, not hidden behind progressive disclosure
+# (user override of deliberation recommendation).
+# ---------------------------------------------------------------------------
+
+
+@mcp.prompt()
+def deliberate(question: str) -> str:
+    """Run a cooperative multi-agent deliberation on a decision.
+
+    Agents seek convergence — finding where they agree, surfacing
+    tensions, and producing a synthesis that integrates all perspectives.
+    Best for: complex decisions where you want a balanced recommendation.
+    """
+    return (
+        f"Use the conversus_decide tool to run a deliberation on this question: "
+        f"{question}\n\nUse mode 'cooperative'."
+    )
+
+
+@mcp.prompt()
+def challenge(question: str) -> str:
+    """Red-team a decision — one agent attacks, one defends.
+
+    Asymmetric adversarial review where the red team tries to find
+    every flaw in the proposal while the blue team defends it.
+    Best for: stress-testing a plan before committing.
+    """
+    return (
+        f"Use the conversus_decide tool to run a deliberation on this question: "
+        f"{question}\n\nUse mode 'red-blue'. This is an adversarial review — "
+        f"one agent will attack the proposal, one will defend it."
+    )
+
+
+@mcp.prompt()
+def force_decision(question: str) -> str:
+    """Force a definitive answer — no compromise, pick one winner.
+
+    Each agent defends a position. The synthesis must choose one winner
+    and explain why, not produce a balanced trade-off.
+    Best for: when you need a commitment, not a list of pros and cons.
+    """
+    return (
+        f"Use the conversus_decide tool to run a deliberation on this question: "
+        f"{question}\n\nUse mode 'winner-take-all'. The synthesis must pick "
+        f"ONE winner — no compromise, no 'it depends'."
+    )
+
+
+@mcp.prompt()
+def review_config(config_yaml: str) -> str:
+    """Run a full deliberation from a YAML config file.
+
+    For reproducible deliberations with custom agents, target documents,
+    and advanced game theory modes. Pass the full YAML config content.
+    """
+    return (
+        f"Use the conversus_run tool with this config:\n\n"
+        f"```yaml\n{config_yaml}\n```"
+    )
+
+
+@mcp.prompt()
+def check_cost(config_yaml: str) -> str:
+    """Check the cost of a deliberation before running it.
+
+    Validates the YAML config, estimates the number of LLM launches
+    required, and reports any schema errors — without executing anything.
+    """
+    return (
+        f"Use the conversus_validate tool to check this config before running:\n\n"
+        f"```yaml\n{config_yaml}\n```"
+    )
+
+
+# ---------------------------------------------------------------------------
 # Entry point — stdio transport
 # ---------------------------------------------------------------------------
 

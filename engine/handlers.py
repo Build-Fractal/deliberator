@@ -1168,3 +1168,58 @@ def show_deliberation_cli(deliberation_path: str, file_path: str) -> None:
     except FileNotFoundError as exc:
         click.echo(f"Error: {exc}", err=True)
         sys.exit(1)
+
+
+# ---------------------------------------------------------------------------
+# skills / skill — list and view capability guidance (spec 059 Phase 2)
+# ---------------------------------------------------------------------------
+
+_SKILLS_DIR = Path(__file__).resolve().parent.parent / "claude-code-plugin" / "skills"
+
+
+def skills_cli() -> None:
+    """List all available conversus skills with summaries (CLI surface)."""
+    # Import the real CAPABILITIES list to get summaries
+    try:
+        _repo_root = Path(__file__).resolve().parent.parent
+        _sys_path_added = False
+        if str(_repo_root) not in sys.path:
+            sys.path.insert(0, str(_repo_root))
+            _sys_path_added = True
+        from capabilities import CAPABILITIES
+        if _sys_path_added:
+            sys.path.remove(str(_repo_root))
+    except ImportError:
+        click.echo("Error: capabilities.py not found at repo root.", err=True)
+        sys.exit(1)
+
+    from rich.console import Console
+    from rich.table import Table
+
+    console = Console()
+    table = Table(title="Conversus Skills")
+    table.add_column("Skill", style="bold cyan")
+    table.add_column("Summary", style="white")
+    table.add_column("Surfaces", style="dim")
+
+    for cap in CAPABILITIES:
+        surfaces = ", ".join(s.value for s in cap.surfaces)
+        table.add_row(cap.name, cap.summary, surfaces)
+
+    console.print(table)
+    click.echo(f"\nUse 'conversus skill <name>' to see the full guided workflow.")
+
+
+def skill_cli(name: str) -> None:
+    """Print the SKILL.md guided workflow for a capability (CLI surface)."""
+    skill_path = _SKILLS_DIR / name / "SKILL.md"
+    if not skill_path.is_file():
+        # Try hyphenated name (list-deliberations → list-deliberations/)
+        skill_path = _SKILLS_DIR / name.replace("_", "-") / "SKILL.md"
+
+    if not skill_path.is_file():
+        click.echo(f"Error: no skill found for '{name}'.", err=True)
+        click.echo(f"Available skills: {', '.join(d.name for d in _SKILLS_DIR.iterdir() if d.is_dir())}", err=True)
+        sys.exit(1)
+
+    click.echo(skill_path.read_text(encoding="utf-8"))

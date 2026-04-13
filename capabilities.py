@@ -676,6 +676,34 @@ show_deliberation = Capability(
 
 
 # ---------------------------------------------------------------------------
+# skills — list all capabilities with summaries
+# ---------------------------------------------------------------------------
+
+skills = Capability(
+    name="skills",
+    summary="List all available conversus capabilities",
+    surfaces=[Surface.CLI],
+    params=[],
+    handler="engine.handlers:skills_cli",
+)
+
+
+# ---------------------------------------------------------------------------
+# skill — view the guided workflow (SKILL.md) for a capability
+# ---------------------------------------------------------------------------
+
+skill = Capability(
+    name="skill",
+    summary="View the guided workflow for a conversus capability",
+    surfaces=[Surface.CLI],
+    params=[
+        Param(name="name", type=str, required=True, help="Capability name (e.g. decide, run, design)."),
+    ],
+    handler="engine.handlers:skill_cli",
+)
+
+
+# ---------------------------------------------------------------------------
 # The capability list — what the projector walks
 # ---------------------------------------------------------------------------
 
@@ -696,4 +724,6 @@ CAPABILITIES: list[Capability] = [
     design,
     list_deliberations,
     show_deliberation,
+    skills,
+    skill,
 ]
