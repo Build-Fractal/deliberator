@@ -57,6 +57,7 @@ from engine.persistence import (
     persist_deliberation,
     read_deliberation_file,
 )
+from engine.settings import load_settings, resolve_setting
 from engine.results import (
     CostEstimate,
     DecideResult,
@@ -90,7 +91,19 @@ def run_decide_mcp(
     the extraction target for the registry's MCP projection of the
     ``decide`` capability. Returns a structured ``DecideResult``; never
     prints or raises (errors propagate via ``result.errors``).
+
+    Provider and mode resolve through the settings cascade (spec 057):
+    CLI flag → project settings → global settings → built-in default.
+    The ``"mock"`` default in the function signature is the last-resort
+    fallback; if ``.conversus/settings.yml`` sets ``default_provider:
+    anthropic``, that takes effect when the caller passes ``"mock"``
+    (the signature default).
     """
+    # Resolve settings cascade (spec 057)
+    settings = load_settings()
+    provider = resolve_setting(settings, provider if provider != "mock" else None, "default_provider")
+    mode = resolve_setting(settings, mode if mode != "cooperative" else None, "default_mode")
+
     stripped = question.strip()
     if not stripped:
         logger.warning("run_decide_mcp: empty question rejected")
@@ -275,6 +288,11 @@ def run_decide_cli(
     the projector's keyword-forwarded dispatch requires all three to
     agree.
     """
+    # Resolve settings cascade (spec 057)
+    settings = load_settings()
+    provider = resolve_setting(settings, provider if provider != "mock" else None, "default_provider")
+    mode = resolve_setting(settings, mode if mode != "cooperative" else None, "default_mode")
+
     stripped = question.strip()
     if not stripped:
         click.echo("Error: question must not be empty.", err=True)
@@ -1016,6 +1034,45 @@ def init_cli(
     if not created:
         click.echo("Already initialized (use --force to overwrite).")
         return
+
+    # --- spec 057: create .conversus/settings.yml with init defaults -------
+    try:
+        settings_dir = project_root / ".conversus"
+        settings_dir.mkdir(parents=True, exist_ok=True)
+        settings_file = settings_dir / "settings.yml"
+        if not settings_file.exists() or force:
+            settings_data = {
+                "default_provider": default_provider,
+                "default_model": default_model,
+                "default_mode": "cooperative",
+                "max_launches": 20,
+                "persistence": {
+                    "enabled": True,
+                    "retention_days": 90,
+                },
+            }
+            settings_file.write_text(
+                yaml.dump(settings_data, default_flow_style=False, sort_keys=False),
+                encoding="utf-8",
+            )
+            created["settings"] = settings_file
+
+        # spec 056: proactively create deliberations directory
+        (settings_dir / "deliberations").mkdir(exist_ok=True)
+
+        # global ~/.conversus/ directory with empty settings.yml
+        global_dir = Path.home() / ".conversus"
+        global_settings = global_dir / "settings.yml"
+        if not global_settings.exists():
+            global_dir.mkdir(parents=True, exist_ok=True)
+            global_settings.write_text(
+                "# Global conversus defaults\n# See: specs/057-settings-architecture.md\n",
+                encoding="utf-8",
+            )
+    except Exception as settings_exc:
+        click.echo(
+            f"Warning: settings creation failed: {settings_exc}", err=True,
+        )
 
     click.echo(f"Initialized .conversus/ in {project_root}")
     for desc, path in created.items():

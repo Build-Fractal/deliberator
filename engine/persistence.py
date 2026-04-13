@@ -63,36 +63,20 @@ def find_project_root(start: Path | None = None) -> Path:
 
 
 def is_persistence_enabled(project_root: Path) -> bool:
-    """Check whether persistence is enabled in the project's settings.
+    """Check whether persistence is enabled via the settings cascade.
 
-    Reads ``<project_root>/.conversus/settings.yml`` and checks
-    ``persistence.enabled``. Returns ``True`` by default if the
-    settings file doesn't exist (persist-by-default per spec 056).
-    Returns ``True`` if the settings file exists but has no
-    ``persistence`` key. Only returns ``False`` when the settings
-    file explicitly says ``persistence: enabled: false``.
+    Delegates to ``engine.settings.load_settings`` (spec 057) which
+    resolves the full cascade: project ``.conversus/settings.yml`` →
+    global ``~/.conversus/settings.yml`` → built-in defaults.
 
-    This is the integration point for spec 057's settings cascade.
-    Once 057 is implemented, the settings cascade (CLI flag → config
-    file → project settings → global settings → built-in default)
-    will feed into this function. For now it only reads the project-
-    level settings file.
+    Returns ``True`` by default when no settings files exist (persist-
+    by-default per spec 056). Returns ``False`` only when a settings
+    file explicitly sets ``persistence: enabled: false``.
     """
-    settings_path = project_root / _SETTINGS_FILE
-    if not settings_path.is_file():
-        return True  # persist by default when no settings exist
+    from engine.settings import load_settings
 
-    try:
-        data = yaml.safe_load(settings_path.read_text(encoding="utf-8"))
-        if not isinstance(data, dict):
-            return True
-        persistence = data.get("persistence", {})
-        if not isinstance(persistence, dict):
-            return True
-        return persistence.get("enabled", True)
-    except (yaml.YAMLError, OSError):
-        logger.warning("Could not read settings at %s — defaulting to persistence enabled", settings_path)
-        return True
+    settings = load_settings(project_root)
+    return settings.persistence.enabled
 
 
 # ---------------------------------------------------------------------------
