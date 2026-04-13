@@ -5,6 +5,9 @@ Implements the settings cascade for ``ConversusSettings``:
     ┌─────────────────────────────────────────────┐
     │  CLI flag  (resolve_setting)                │  ← highest priority
     ├─────────────────────────────────────────────┤
+    │  Environment variables                      │  ← Desktop Extension
+    │  (CONVERSUS_DEFAULT_PROVIDER, etc.)          │    user_config
+    ├─────────────────────────────────────────────┤
     │  <project>/.conversus/settings.yml          │
     ├─────────────────────────────────────────────┤
     │  ~/.conversus/settings.yml                  │
@@ -12,9 +15,11 @@ Implements the settings cascade for ``ConversusSettings``:
     │  Built-in defaults  (Pydantic model)        │  ← lowest priority
     └─────────────────────────────────────────────┘
 
-Resolution: most-specific wins.  Project-level overrides global-level;
-global-level overrides built-in defaults.  ``resolve_setting`` lets a
-CLI flag override everything.
+Resolution: most-specific wins.  Environment variables sit between CLI
+flags and project settings because they represent the Desktop Extension's
+``user_config`` — settings the user configured in Claude Desktop's
+extension UI.  ``resolve_setting`` checks env vars before falling through
+to the settings cascade.
 
 Constitution compliance
 -----------------------
@@ -23,12 +28,13 @@ Constitution compliance
 - Principle XI: single source of truth — all settings logic lives here;
   callers import rather than reimplementing.
 
-See ``specs/057-settings-cascade.md``.
+See ``specs/057-settings-architecture.md``.
 """
 
 from __future__ import annotations
 
 import logging
+import os
 from pathlib import Path
 from typing import Any
 
@@ -156,6 +162,28 @@ def load_settings(project_root: Path | None = None) -> ConversusSettings:
     project_data = _read_yaml(project_path)
     if project_data:
         merged = _deep_merge(merged, project_data)
+
+    # Tier 1 → 0: environment variables override file settings.
+    # These are set by Claude Desktop's user_config mechanism when the
+    # .mcpb extension is installed — the user fills in settings in the
+    # Desktop UI and they arrive here as env vars. This is the bridge
+    # between the Desktop Extension (no filesystem settings) and the
+    # settings cascade that CLI/Claude Code users get via YAML files.
+    env_overrides: dict[str, Any] = {}
+    if os.environ.get("CONVERSUS_DEFAULT_PROVIDER"):
+        env_overrides["default_provider"] = os.environ["CONVERSUS_DEFAULT_PROVIDER"]
+    if os.environ.get("CONVERSUS_DEFAULT_MODE"):
+        env_overrides["default_mode"] = os.environ["CONVERSUS_DEFAULT_MODE"]
+    if os.environ.get("CONVERSUS_DEFAULT_MODEL"):
+        env_overrides["default_model"] = os.environ["CONVERSUS_DEFAULT_MODEL"]
+    if os.environ.get("CONVERSUS_MAX_LAUNCHES"):
+        try:
+            env_overrides["max_launches"] = int(os.environ["CONVERSUS_MAX_LAUNCHES"])
+        except ValueError:
+            logger.warning("Invalid CONVERSUS_MAX_LAUNCHES: %s", os.environ["CONVERSUS_MAX_LAUNCHES"])
+
+    if env_overrides:
+        merged = _deep_merge(merged, env_overrides)
 
     return ConversusSettings(**merged)
 
