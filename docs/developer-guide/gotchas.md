@@ -183,6 +183,37 @@ it at refactor time is far cheaper than debugging it later.
 
 ---
 
+## `from __future__ import annotations` breaks Pydantic in bundled/deferred contexts
+
+**Symptom**: All three MCP tools fail with `DecideResult is not fully
+defined; you should define 'Any', then call DecideResult.model_rebuild()`
+or `RunResult is not fully defined; you should define 'CostEstimate'`.
+The error happens at tool INVOCATION time, not at import time. Tools
+load and register fine; they crash when called.
+
+**Cause**: `from __future__ import annotations` (PEP 563) turns all
+type annotations into strings. Pydantic v2 must then lazily resolve
+those strings back to real types. When the module runs in a standard
+Python process (CLI, pytest), the module namespace has all symbols
+and resolution works. But in bundled contexts (`.mcpb` extension,
+claude.ai's deferred tool loading via `tool_search`), the module may
+be imported in a namespace where the resolution fails — `typing.Any`
+becomes the string `"Any"` which Pydantic can't find.
+
+**Fix**: Remove `from __future__ import annotations` from files that
+define Pydantic models used as MCP tool return types. Specifically:
+`engine/results.py` and `mcp_server.py`. These files don't need
+PEP 563 — all types are concrete and already imported by the time
+they're annotated.
+
+**How to avoid next time**: Never use `from __future__ import
+annotations` in a file that defines Pydantic `BaseModel` subclasses
+used by FastMCP's `@mcp.tool()` return type annotations. The eager
+evaluation (no `__future__`) means Pydantic resolves types at class
+definition time, which is always safe regardless of import context.
+
+---
+
 ## MCPB `user_config` fields require `title` — not just `type` + `description`
 
 **Symptom**: Claude Desktop shows "Failed to preview extension: Invalid

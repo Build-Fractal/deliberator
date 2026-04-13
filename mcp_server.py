@@ -19,7 +19,13 @@ Usage:
     uv run python3 mcp_server.py --help   # (reserved for future flags)
 """
 
-from __future__ import annotations
+# NOTE: do NOT add ``from __future__ import annotations`` here.
+# FastMCP uses return type annotations (``-> DecideResult``) to generate
+# JSON schemas. With ``from __future__``, they become strings that
+# FastMCP/Pydantic must resolve — and in bundled contexts (.mcpb,
+# claude.ai deferred tool loading) the resolution fails with
+# "model is not fully defined". Keeping eager annotation evaluation
+# avoids the issue entirely.
 
 import asyncio
 import logging

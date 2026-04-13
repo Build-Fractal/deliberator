@@ -22,7 +22,14 @@ See ``specs/055-capability-registry.md`` §4 Day 5 (Pre-work — extract
 shared result types).
 """
 
-from __future__ import annotations
+# NOTE: do NOT add ``from __future__ import annotations`` to this file.
+# Pydantic v2 needs to evaluate type annotations at class definition time
+# so it can resolve ``CostEstimate | None``, ``dict[str, Any]``, etc.
+# With ``from __future__ import annotations``, all annotations become
+# strings that Pydantic must resolve lazily — and in some import contexts
+# (the .mcpb bundle, deferred tool loading on claude.ai), the resolution
+# fails with "model is not fully defined; you should define 'Any'".
+# See docs/developer-guide/gotchas.md for the full explanation.
 
 import logging
 from typing import Any
