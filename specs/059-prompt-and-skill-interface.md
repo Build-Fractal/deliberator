@@ -2,9 +2,23 @@
 
 **Feature ID**: `059-prompt-and-skill-interface`
 **Created**: 2026-04-13
-**Status**: Draft
+**Status**: Draft (revised after deliberation)
 **Depends On**: `055-capability-registry`, existing plugin SKILL.md files, MCP server
 **Motivated by**: Desktop Extension users can't reliably trigger conversus — Claude gives its own answer instead of invoking the deliberation tools
+
+> **Deliberation amendment 2026-04-13** — Both agents recommended reducing
+> prompts to 2-3 to mitigate "prompt overload" in the Desktop UI.
+> **User override**: keep all 5 prompts. The prompt set is intentionally
+> comprehensive — conversus is a deliberation tool and every prompt maps
+> to a distinct decision-making pattern. Users who install a deliberation
+> extension expect deliberation prompts. Overload concern is noted but
+> rejected for this use case.
+>
+> **Accepted from deliberation**: hybrid registry integration (prompts
+> defined in `capabilities.py`, generated to MCP server by the projector).
+> The spec originally said "prompts should NOT go through the registry" —
+> both agents disagreed, and the hybrid approach is architecturally
+> cleaner (principle XI: single source of truth). Revised below.
 
 ---
 
@@ -127,12 +141,11 @@ This is a meta-skill — a SKILL.md that lists the other skills. Simple but high
 
 ### Phase 1: MCP Prompts (Desktop UX fix)
 
-1. Add 5 `@mcp.prompt()` functions to `mcp_server.py`
-2. Each returns a `PromptMessage` with role="user" and content that instructs Claude to call the relevant tool
-3. No registry changes needed — MCP prompts are registered directly with FastMCP, not through the capability registry
-4. Test: install the `.mcpb` in Claude Desktop, verify prompts appear in the UI, verify clicking one triggers the correct tool
+1. Add prompt metadata to each relevant capability in `capabilities.py` — a new `prompts` field on `Capability` containing label, description, mode, and argument hints
+2. Extend the MCP projector (`project_to_mcp`) to emit `@mcp.prompt()` functions alongside `@mcp.tool()` functions, generated from the prompt metadata
+3. Test: install the `.mcpb` in Claude Desktop, verify all 5 prompts appear in the UI, verify clicking each triggers the correct tool with the correct mode
 
-**Why not through the registry**: MCP prompts are a protocol-level feature (`prompts/list`, `prompts/get`) that sit alongside tools. They're not capabilities in the conversus sense — they're invocation shortcuts for existing capabilities. Routing them through the registry would add complexity without benefit.
+**Hybrid registry integration** (accepted from deliberation): prompt metadata lives in `capabilities.py` alongside capability definitions. The projector generates the `@mcp.prompt()` code. This keeps `capabilities.py` as the single source of truth (principle XI) and means `make build-surfaces` regenerates prompts alongside tools. All 5 prompts ship from day one — the full capability set is visible, not hidden behind progressive disclosure.
 
 ### Phase 2: CLI skill viewer
 
