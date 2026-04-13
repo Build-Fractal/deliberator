@@ -712,6 +712,10 @@ async def run_pipeline(
     termination_reason: str | None = None
     prior_dispute_count: int | None = None
     arbitration_ran = False
+    # Inter-round arbitration path (spec 006): populated after each
+    # round's Phase 6 when config.arbiter.timing == "inter-round".
+    # For timing == "final" (default), this stays None for all rounds.
+    prior_arbitration_path: Path | None = None
 
     # ── Outer round loop ─────────────────────────────────────────────
     for round_num in range(1, config.rounds + 1):
@@ -731,23 +735,8 @@ async def run_pipeline(
         # Round 1: flat output (round_base=None → uses output_mgr.output_dir)
 
         # Build prior-round context for rounds > 1.
-        #
-        # Note on ``prior_arbitration_path``: spec 006 (inter-round
-        # arbitration) designed per-round Phase 6 execution that would
-        # write ``{root}/round-{N}/arbiter/resolution.md`` during the
-        # round loop, allowing Round N+1 agents to read the prior round's
-        # arbiter decisions. That execution model was never implemented —
-        # the current pipeline runs Phase 6 exactly once, AFTER the round
-        # loop (see the arbitration block further down). Consequently
-        # there is never a prior-round arbitration file to pick up while
-        # rounds are still iterating, and ``prior_arbitration_path``
-        # remains ``None`` for all Round N > 1 executions. The argument
-        # is still plumbed through to ``_run_single_round`` and the
-        # context builders so that when spec 006 is fully wired, the
-        # only change here is populating this variable.
         prior_synthesis_path: str | None = None
         prior_round_dir: str | None = None
-        prior_arbitration_path: Path | None = None
         if round_num > 1:
             prior_base = output_mgr.get_round_base(round_num - 1)
             prior_synthesis_path = str(
@@ -791,6 +780,115 @@ async def run_pipeline(
                 _make_plugin_state(round_num=round_num, synthesis=synthesis_text),
                 output_mgr.output_dir,
             )
+
+        # ── Inter-round arbitration (spec 006) ─────────────────────
+        # When timing == "inter-round", run Phase 6 between rounds
+        # (but not after the LAST round — final arb handles that case
+        # only for timing == "final").
+        if (
+            config.arbiter is not None
+            and config.arbiter.timing == "inter-round"
+            and round_num < config.rounds
+        ):
+            # Determine whether the trigger condition is met
+            _should_run_arb = False
+            if config.arbiter.trigger == "always":
+                _should_run_arb = True
+            elif config.arbiter.trigger == "disputes_remain":
+                remaining = _extract_remaining_disputes(
+                    synthesis_text, config.mode
+                )
+                _should_run_arb = bool(remaining.strip())
+
+            if _should_run_arb:
+                _arb_start = time.monotonic()
+                _emit_phase_started(emitter, "arbitration", 1)
+
+                try:
+                    _arb_template = load_template(
+                        templates_dir, config.mode, "arbitration"
+                    )
+                    _arb_round_base = (
+                        round_base
+                        if round_base is not None
+                        else (
+                            output_mgr.get_round_base(round_num)
+                            if config.rounds > 1
+                            else None
+                        )
+                    )
+                    _arb_context = build_arbitration_context(
+                        config,
+                        config.output,
+                        synthesis_text,
+                        round_num,
+                        round_base=_arb_round_base,
+                    )
+                    _arb_filled = fill_template(_arb_template, _arb_context)
+                    _arb_prompt = _assemble_phase_prompt(
+                        filled_template=_arb_filled,
+                        target_files=config.target_files,
+                        agent_docs=config.arbiter.docs,
+                        base_dir=base_dir,
+                    )
+
+                    _arb_results = await dispatch_phase(
+                        agents=[(config.arbiter.name, _arb_prompt)],
+                        model=model,
+                        max_tokens=max_tokens,
+                        provider=provider,
+                        emitter=emitter,
+                        phase="arbitration",
+                        **_hetero_kw,
+                    )
+                    total_dispatches += 1
+
+                    _arb_success = 0
+                    _arb_failure = 0
+                    for _, _arb_text, _arb_error in _arb_results:
+                        if _arb_error is None:
+                            _arb_path = output_mgr.get_arbitration_path(
+                                round_base=_arb_round_base
+                            )
+                            _arb_path.parent.mkdir(parents=True, exist_ok=True)
+                            _arb_path.write_text(_arb_text, encoding="utf-8")
+                            all_written_files.append(_arb_path)
+                            _arb_success += 1
+                            arbitration_ran = True
+                            # Feed this round's arbitration to the next round
+                            prior_arbitration_path = _arb_path
+                        else:
+                            _arb_failure += 1
+                            _arb_path = output_mgr.get_arbitration_path(
+                                round_base=_arb_round_base
+                            )
+                            if _arb_path.exists():
+                                _arb_path.unlink()
+
+                    _emit_phase_completed(
+                        emitter, "arbitration", 1,
+                        _arb_success, _arb_failure, _arb_start,
+                    )
+                except Exception:
+                    # Arbitration failure must not abort the pipeline
+                    _arb_path = output_mgr.get_arbitration_path(
+                        round_base=round_base
+                    )
+                    if _arb_path.exists():
+                        _arb_path.unlink()
+                    _emit_phase_completed(
+                        emitter, "arbitration", 1, 0, 1, _arb_start,
+                    )
+
+                total_phases_completed += 1
+
+                # POST_ARBITRATION hook
+                if plugins and arbitration_ran:
+                    execute_hooks(
+                        HookPoint.POST_ARBITRATION, plugins,
+                        _make_plugin_state(round_num=round_num),
+                        output_mgr.output_dir,
+                    )
 
         # ── Stagnation / convergence detection ───────────────────────
         if config.rounds > 1:
@@ -883,7 +981,14 @@ async def run_pipeline(
         synthesis_text = round_syntheses[0] if round_syntheses else ""
 
     # ── Phase 6: Arbitration (conditional) ───────────────────────────
-    if config.arbiter is not None:
+    # timing: "final" → always runs after the loop (spec 001 behaviour)
+    # timing: "inter-round" → already ran per-round inside the loop;
+    #   skip the post-loop arbitration entirely.
+    _run_final_arbitration = (
+        config.arbiter is not None
+        and config.arbiter.timing == "final"
+    )
+    if _run_final_arbitration:
         should_arbitrate = False
         if config.arbiter.trigger == "always":
             should_arbitrate = True

@@ -9,6 +9,7 @@ model.
 
 from __future__ import annotations
 
+import logging
 import re
 from pathlib import Path
 from typing import Any, Literal
@@ -17,6 +18,8 @@ import yaml
 from pydantic import BaseModel
 
 from conversus.schemas.modes import VALID_MODES as _CANONICAL_MODES
+
+logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
@@ -67,6 +70,13 @@ class ArbiterConfig(BaseModel):
     docs: list[Path] = []
     grounding: Path
     trigger: Literal["disputes_remain", "always"]
+    timing: Literal["final", "inter-round"] = "final"
+    """When the arbiter runs.  ``final`` (default) runs once after all rounds
+    complete; ``inter-round`` runs between each round.  (spec 006)"""
+    influence: Literal["binding", "recommended", "advisory"] = "binding"
+    """How much weight the arbiter's decision carries.  ``binding`` (default,
+    spec 001 behaviour) forces adoption; ``recommended`` and ``advisory``
+    allow agents to weigh the ruling.  (spec 006)"""
 
 
 VALID_PROVIDERS = ("anthropic", "openai")
@@ -506,12 +516,29 @@ def _resolve_arbiter(
             "arbiter.trigger must be 'disputes_remain' or 'always'."
         )
 
+    # Timing (spec 006) — default: "final" (single post-loop arbitration)
+    timing = raw.get("timing", "final")
+    if timing not in ("final", "inter-round"):
+        raise ConfigError(
+            f"arbiter.timing must be 'final' or 'inter-round', got {timing!r}"
+        )
+
+    # Influence (spec 006) — default: "binding" (spec 001 behavior)
+    influence = raw.get("influence", "binding")
+    if influence not in ("binding", "recommended", "advisory"):
+        raise ConfigError(
+            f"arbiter.influence must be 'binding', 'recommended', or 'advisory', "
+            f"got {influence!r}"
+        )
+
     return ArbiterConfig(
         name=name,
         prompt=prompt.strip(),
         docs=docs,
         grounding=grounding,
         trigger=trigger,
+        timing=timing,
+        influence=influence,
     )
 
 
@@ -670,6 +697,14 @@ def parse_config(config_path: Path) -> EngineConfig:
         if not isinstance(arbiter_raw, dict):
             raise ConfigError("arbiter: must be a YAML mapping.")
         arbiter = _resolve_arbiter(arbiter_raw, presets_root, base_path)
+
+        # Cross-field validation: inter-round timing with single round is a no-op
+        if arbiter is not None and arbiter.timing == "inter-round" and rounds <= 1:
+            logger.warning(
+                "arbiter.timing is 'inter-round' but rounds=%d — "
+                "inter-round arbitration has no effect with a single round",
+                rounds,
+            )
 
     # Parse plugins (optional)
     plugins_raw = raw.get("plugins", [])

@@ -204,6 +204,41 @@ Downstream phases consume typed objects. Markdown files are written by the seria
 
 **The risk**: this is an engine-level refactor touching `engine/phases.py`, `engine/dispatch.py`, and every provider adapter. The 5-phase migration strategy (A→E) mitigates this by allowing gradual adoption — the pipeline produces both typed objects and files during the transition, and downstream consumers can migrate one at a time.
 
+## 7.1 Alternative approach: tree-sitter typed markdown
+
+> **Research note** (added 2026-04-13): Before committing to a full
+> engine refactor, evaluate
+> [treesitter-types-markdown](https://crates.io/crates/treesitter-types-markdown)
+> — a Rust crate that provides typed AST nodes for markdown documents
+> via tree-sitter grammars. This could enable a **hybrid approach**
+> where:
+>
+> - The pipeline continues to output markdown files (no engine refactor)
+> - A tree-sitter-based parser provides typed access to the markdown
+>   structure (headings → sections → disputes/recommendations/etc.)
+> - The "typed objects" in Phase B-D of the migration strategy become
+>   **parsed projections** from the markdown AST rather than native
+>   engine output
+>
+> Advantages over the full refactor:
+> - No changes to `engine/phases.py` or `engine/dispatch.py`
+> - Markdown files remain the canonical output (backward compatible)
+> - The typed access layer is read-only and additive
+> - tree-sitter parsing is deterministic and fast (no LLM inference
+>   needed to extract structure)
+> - Python bindings available via `tree-sitter` + language grammar
+>
+> Disadvantages:
+> - Depends on markdown being well-structured (templates enforce this)
+> - Adds a Rust/tree-sitter dependency to the Python stack
+> - Parsing is per-file, not per-pipeline (no cross-file typed views
+>   without an assembly step)
+>
+> This approach could satisfy the semantic API (show disputes, compare
+> deliberations) WITHOUT the engine refactor, making it a significantly
+> cheaper path to the same user-facing capabilities. Evaluate before
+> choosing between Phase A-E refactor and the tree-sitter hybrid.
+
 ---
 
 ## 8. Sources

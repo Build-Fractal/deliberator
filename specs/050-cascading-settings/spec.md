@@ -1,6 +1,6 @@
 # Spec 050: Cascading Settings System
 
-**Status**: Draft
+**Status**: Superseded by spec 057 (settings-architecture) — implemented 2026-04-12
 **Author**: Brian Slater + Claude Opus 4.6
 **Date**: 2026-04-06
 **Depends on**: 042 (execution providers), 048 (governance mode)
