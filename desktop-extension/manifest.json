@@ -53,8 +53,8 @@
     "CONVERSUS_DEFAULT_PROVIDER": {
       "type": "string",
       "title": "Default Provider",
-      "description": "LLM provider for deliberations. Use 'mock' for free synthetic responses, 'anthropic' for Claude, or 'openai' for GPT.",
-      "default": "mock"
+      "description": "LLM provider for deliberations. Use 'anthropic' for Claude (recommended), 'openai' for GPT, or 'mock' for free synthetic test responses.",
+      "default": "anthropic"
     },
     "CONVERSUS_DEFAULT_MODE": {
       "type": "string",
@@ -73,6 +73,19 @@
       "title": "OpenAI API Key",
       "description": "Required when Default Provider is 'openai'. Get one at platform.openai.com.",
       "sensitive": true
+    },
+    "GOOGLE_API_KEY": {
+      "type": "string",
+      "title": "Google AI API Key",
+      "description": "Required when Default Provider is 'gemini'. Get one at ai.google.dev.",
+      "sensitive": true
+    },
+    "OLLAMA_BASE_URL": {
+      "type": "string",
+      "title": "Ollama Server URL",
+      "description": "URL for your local Ollama server (default: http://localhost:11434). Only needed if Ollama runs on a non-default port.",
+      "default": "http://localhost:11434",
+      "sensitive": false
     }
   },
   "tools_generated": false,

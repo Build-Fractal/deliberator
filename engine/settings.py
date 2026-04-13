@@ -169,6 +169,11 @@ def load_settings(project_root: Path | None = None) -> ConversusSettings:
     # Desktop UI and they arrive here as env vars. This is the bridge
     # between the Desktop Extension (no filesystem settings) and the
     # settings cascade that CLI/Claude Code users get via YAML files.
+    #
+    # NOTE: API keys (ANTHROPIC_API_KEY, OPENAI_API_KEY, GOOGLE_API_KEY)
+    # and provider URLs (OLLAMA_BASE_URL) are NOT part of ConversusSettings.
+    # They are consumed directly by the provider resolution layer in
+    # engine/auth.py via os.environ.get(). Do not add them here.
     env_overrides: dict[str, Any] = {}
     if os.environ.get("CONVERSUS_DEFAULT_PROVIDER"):
         env_overrides["default_provider"] = os.environ["CONVERSUS_DEFAULT_PROVIDER"]
