@@ -183,6 +183,45 @@ it at refactor time is far cheaper than debugging it later.
 
 ---
 
+## MCPB `user_config` fields require `title` — not just `type` + `description`
+
+**Symptom**: Claude Desktop shows "Failed to preview extension: Invalid
+manifest: user_config: Required, Required, Required" when you try to
+install a `.mcpb` bundle. The error says "Required" once per
+`user_config` field but doesn't name WHICH property is missing.
+
+**Cause**: The MCPB v0.3 `user_config` schema requires a `title` field
+on every option — the human-readable label that Claude Desktop renders
+in its extension settings UI. If you only provide `type` +
+`description` (which is what most JSON schema conventions suggest),
+the manifest validation fails.
+
+**Fix**: Add `"title": "Human Label"` to every `user_config` entry:
+
+```json
+"user_config": {
+  "ANTHROPIC_API_KEY": {
+    "type": "string",
+    "title": "Anthropic API Key",
+    "description": "Get one at console.anthropic.com.",
+    "sensitive": true
+  }
+}
+```
+
+**Also**: set `"sensitive": true` on API key fields. Claude Desktop
+stores sensitive values in the OS keychain (macOS Keychain, Windows
+Credential Manager) instead of plaintext. It's free security — one
+boolean flag and the user's API key never touches disk unencrypted.
+
+**How to avoid next time**: when writing `user_config` for a `.mcpb`
+manifest, always include all four core fields: `type`, `title`,
+`description`, and either `default` or `sensitive`. Check the schema
+at https://github.com/modelcontextprotocol/mcpb/blob/main/MANIFEST.md
+before shipping.
+
+---
+
 ## `CostEstimate` / `DecideResult` duplication across modules (principle XI)
 
 **Symptom**: You have a result type used in two places (e.g.
