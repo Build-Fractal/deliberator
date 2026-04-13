@@ -239,6 +239,59 @@ Downstream phases consume typed objects. Markdown files are written by the seria
 > cheaper path to the same user-facing capabilities. Evaluate before
 > choosing between Phase A-E refactor and the tree-sitter hybrid.
 
+## 7.2 Alternative approach: Markdoc schema-driven typed AST
+
+> **Research note** (added 2026-04-13): [Markdoc](https://markdoc.dev/)
+> (by Stripe) is a stronger candidate than tree-sitter for typed
+> markdown access. Where tree-sitter gives a generic markdown AST that
+> requires custom domain rules for typing, Markdoc provides a
+> **schema system** that maps markdown structures to typed nodes with
+> validated attributes — exactly the "typed deliberation output"
+> problem this spec describes.
+>
+> How it would work for conversus:
+>
+> 1. Define Markdoc schemas for each deliberation artifact type:
+>    `AgentReview`, `CrossReview`, `Dispute`, `Synthesis`, etc.
+> 2. Schemas map heading patterns to typed nodes: an h2 "Disputes"
+>    with bullet children becomes a `DisputeSection` node where each
+>    bullet is a typed `Dispute` with `agent`, `description`,
+>    `unresolved_reason` attributes.
+> 3. Conversus templates already enforce the heading structure —
+>    Markdoc schemas formalize what templates enforce informally.
+> 4. Agents continue producing standard markdown (no new syntax).
+>    Markdoc parses plain markdown AND can apply schema-driven
+>    transforms to type the nodes after parsing.
+> 5. The typed AST is JSON-serializable → can be consumed by Python
+>    handlers, MCP tools, the semantic API, and the Desktop Extension.
+>
+> Advantages over tree-sitter:
+> - Schema-driven typing (not custom post-parse rules)
+> - Validation at parse time (a "Disputes" section missing required
+>   attributes fails validation, not silently drops data)
+> - Render to multiple formats from one AST (HTML, React, plain text)
+> - Active ecosystem (Stripe-maintained, used in production docs)
+>
+> Advantages over the full engine refactor (Phase A-E):
+> - No changes to engine/phases.py or engine/dispatch.py
+> - Markdown files remain canonical — typing is a read-side concern
+> - Additive and read-only — zero risk to existing pipeline
+>
+> Tradeoffs:
+> - JavaScript/Node.js dependency (Markdoc is JS-native). Options:
+>   (a) run as a subprocess, (b) use the JSON AST from a Node script,
+>   (c) port the schema logic to Python (Markdoc's AST is simple
+>   enough for a lightweight Python reimplementation)
+> - Schema maintenance: every template change needs a corresponding
+>   schema update (but this is a feature, not a bug — it catches
+>   template-schema drift at parse time)
+>
+> **Recommendation**: evaluate Markdoc before tree-sitter. The schema
+> system is a closer match to the typed-output problem than generic
+> AST parsing. If the JS dependency is unacceptable, consider a
+> Python Markdoc-schema-inspired library that applies typed schemas
+> to the output of Python's `markdown-it-py` parser.
+
 ---
 
 ## 8. Sources
