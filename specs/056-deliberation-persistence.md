@@ -199,6 +199,37 @@ For Desktop Extension users who don't have the CLI:
 - **Deliberation deletion via tool** — users can `rm -rf`; no in-tool deletion for v1
 - **Settings cascade** — defined in spec 057, not here
 
+## 8. Future consideration: in-memory deliberation representations
+
+> **Note for future spec**: The current persistence model is file-system
+> based — the engine writes markdown files to disk, and the persistence
+> layer copies those files to `.conversus/deliberations/`. This works but
+> creates a tight coupling between the pipeline and the filesystem.
+>
+> A future spec should explore **in-memory deliberation representations**
+> where the pipeline produces structured objects (agent reviews as typed
+> models, cross-reviews as relationship objects, disputes as first-class
+> entities) that can be:
+>
+> - Serialized to disk as the current markdown files (backward compat)
+> - Queried in memory without file I/O (for the semantic API in Phase 3)
+> - Rendered to different formats (markdown, JSON, HTML) by surface-specific adapters
+> - Streamed to MCP clients as structured progress events during execution
+> - Diffed programmatically (compare two deliberation runs without parsing markdown)
+>
+> This would make the `show_deliberation` semantic API trivial —
+> instead of parsing markdown files to extract disputes/revisions, the
+> engine would produce typed objects that the show handler can filter
+> and project directly. It would also enable real-time deliberation
+> streaming to Desktop Extension users (show each phase as it completes
+> rather than waiting for the full pipeline to finish).
+>
+> The key design question: should the in-memory representation be the
+> pipeline's native output format (with files as a serialization), or
+> should files remain primary with in-memory as a parsed projection?
+> The former is cleaner but requires refactoring the engine; the latter
+> is more incremental but creates a parse-at-read-time cost.
+
 ---
 
 ## 8. Sources

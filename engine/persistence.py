@@ -27,7 +27,72 @@ import yaml
 
 logger = logging.getLogger("conversus.persistence")
 
-_DELIBERATIONS_REL = Path(".conversus") / "deliberations"
+_CONVERSUS_DIR = Path(".conversus")
+_DELIBERATIONS_REL = _CONVERSUS_DIR / "deliberations"
+_SETTINGS_FILE = _CONVERSUS_DIR / "settings.yml"
+
+
+# ---------------------------------------------------------------------------
+# Project root discovery
+# ---------------------------------------------------------------------------
+
+
+def find_project_root(start: Path | None = None) -> Path:
+    """Walk up from *start* looking for a directory containing ``.conversus/``
+    or ``conversus.yml``, returning the first match.
+
+    Falls back to *start* (or ``Path.cwd()``) if no marker is found —
+    this is the correct behavior for first-run scenarios where neither
+    ``conversus init`` nor a previous deliberation has created the
+    ``.conversus/`` directory yet.
+
+    This is critical for MCP servers: Claude Desktop and other editors
+    may launch the server with CWD set to the home directory or the
+    bundle install directory, not the user's project. Walking up from
+    the config file's parent (when available) or the CWD finds the
+    project root reliably.
+    """
+    current = (start or Path.cwd()).resolve()
+    for parent in [current, *current.parents]:
+        if (parent / _CONVERSUS_DIR).is_dir():
+            return parent
+        if (parent / "conversus.yml").is_file():
+            return parent
+    # No marker found — fall back to start directory
+    return current
+
+
+def is_persistence_enabled(project_root: Path) -> bool:
+    """Check whether persistence is enabled in the project's settings.
+
+    Reads ``<project_root>/.conversus/settings.yml`` and checks
+    ``persistence.enabled``. Returns ``True`` by default if the
+    settings file doesn't exist (persist-by-default per spec 056).
+    Returns ``True`` if the settings file exists but has no
+    ``persistence`` key. Only returns ``False`` when the settings
+    file explicitly says ``persistence: enabled: false``.
+
+    This is the integration point for spec 057's settings cascade.
+    Once 057 is implemented, the settings cascade (CLI flag → config
+    file → project settings → global settings → built-in default)
+    will feed into this function. For now it only reads the project-
+    level settings file.
+    """
+    settings_path = project_root / _SETTINGS_FILE
+    if not settings_path.is_file():
+        return True  # persist by default when no settings exist
+
+    try:
+        data = yaml.safe_load(settings_path.read_text(encoding="utf-8"))
+        if not isinstance(data, dict):
+            return True
+        persistence = data.get("persistence", {})
+        if not isinstance(persistence, dict):
+            return True
+        return persistence.get("enabled", True)
+    except (yaml.YAMLError, OSError):
+        logger.warning("Could not read settings at %s — defaulting to persistence enabled", settings_path)
+        return True
 
 
 # ---------------------------------------------------------------------------

@@ -50,9 +50,11 @@ from engine.events import CallbackEmitter, NullEmitter
 from engine.phases import PipelineError, run_pipeline
 from engine.providers import ProviderError
 from engine.persistence import (
-    persist_deliberation,
     cleanup_old_deliberations,
+    find_project_root,
+    is_persistence_enabled,
     list_deliberations as _list_deliberations,
+    persist_deliberation,
     read_deliberation_file,
 )
 from engine.results import (
@@ -195,17 +197,19 @@ def run_decide_mcp(
         parsed = parse_synthesis(synthesis_text, mode=mode)
 
         persisted_path: str | None = None
-        try:
-            persisted = persist_deliberation(
-                source_dir=result.output_dir,
-                project_root=Path.cwd(),
-                question=question,
-                config_path=config_path,
-            )
-            persisted_path = str(persisted)
-            cleanup_old_deliberations(Path.cwd())
-        except Exception:
-            logger.warning("Failed to persist deliberation output", exc_info=True)
+        _root = find_project_root()
+        if is_persistence_enabled(_root):
+            try:
+                persisted = persist_deliberation(
+                    source_dir=result.output_dir,
+                    project_root=_root,
+                    question=question,
+                    config_path=config_path,
+                )
+                persisted_path = str(persisted)
+                cleanup_old_deliberations(_root)
+            except Exception:
+                logger.warning("Failed to persist deliberation output", exc_info=True)
 
         return DecideResult(
             sufficient=True,
@@ -348,12 +352,12 @@ def run_decide_cli(
         try:
             persisted = persist_deliberation(
                 source_dir=effective_output,
-                project_root=Path.cwd(),
+                project_root=find_project_root(),
                 question=question,
                 config_path=config_path,
             )
             click.echo(f"\nOutput saved to: {persisted}")
-            cleanup_old_deliberations(Path.cwd())
+            cleanup_old_deliberations(find_project_root())
         except Exception:
             logger.warning("Failed to persist deliberation output", exc_info=True)
 
@@ -491,12 +495,12 @@ def _run_in_process(
                 question = getattr(engine_config, "question", "")
             persisted = persist_deliberation(
                 source_dir=result.output_dir,
-                project_root=Path.cwd(),
+                project_root=find_project_root(),
                 question=question,
                 config_path=tmp_path,
             )
             persisted_path = str(persisted)
-            cleanup_old_deliberations(Path.cwd())
+            cleanup_old_deliberations(find_project_root())
         except Exception:
             logger.warning("Failed to persist deliberation output", exc_info=True)
 
@@ -775,12 +779,12 @@ def run_cli(
         if output_dir.is_dir():
             persisted = persist_deliberation(
                 source_dir=output_dir,
-                project_root=Path.cwd(),
+                project_root=find_project_root(),
                 question="",
                 config_path=Path(config_path),
             )
             click.echo(f"\nOutput saved to: {persisted}")
-            cleanup_old_deliberations(Path.cwd())
+            cleanup_old_deliberations(find_project_root())
     except Exception:
         logger.warning("Failed to persist deliberation output", exc_info=True)
 
@@ -994,7 +998,7 @@ def init_cli(
     """
     from engine.project import init_project
 
-    project_root = Path.cwd()
+    project_root = find_project_root()
     runtime_list = [r.strip() for r in runtimes.split(",") if r.strip()]
 
     try:
@@ -1031,7 +1035,7 @@ def init_cli(
 
 def list_deliberations_mcp(project_root: str = "") -> ListResult:
     """List past deliberations for the MCP surface."""
-    root: Path = Path(project_root) if project_root else Path.cwd()
+    root: Path = Path(project_root) if project_root else find_project_root()
     deliberations: list[dict[str, Any]] = _list_deliberations(root)
     return ListResult(
         deliberations=deliberations,
@@ -1042,7 +1046,7 @@ def list_deliberations_mcp(project_root: str = "") -> ListResult:
 
 def list_deliberations_cli(as_json: bool = False) -> None:
     """List past deliberations for the CLI surface."""
-    root: Path = Path.cwd()
+    root: Path = find_project_root()
     deliberations: list[dict[str, Any]] = _list_deliberations(root)
 
     if as_json:
@@ -1078,7 +1082,7 @@ def list_deliberations_cli(as_json: bool = False) -> None:
 
 def show_deliberation_mcp(deliberation_path: str, file_path: str) -> ShowResult:
     """Read a file from a past deliberation for the MCP surface."""
-    root: Path = Path.cwd()
+    root: Path = find_project_root()
     try:
         content: str = read_deliberation_file(root, deliberation_path, file_path)
         return ShowResult(
@@ -1097,7 +1101,7 @@ def show_deliberation_mcp(deliberation_path: str, file_path: str) -> ShowResult:
 
 def show_deliberation_cli(deliberation_path: str, file_path: str) -> None:
     """Read a file from a past deliberation for the CLI surface."""
-    root: Path = Path.cwd()
+    root: Path = find_project_root()
     try:
         content: str = read_deliberation_file(root, deliberation_path, file_path)
         click.echo(content)
