@@ -284,73 +284,68 @@ def conversus_decide(
 
 
 @mcp.prompt()
-def deliberate(question: str) -> str:
+def deliberate(question: str) -> list[dict]:
     """Run a cooperative multi-agent deliberation on a decision.
 
     Agents seek convergence — finding where they agree, surfacing
     tensions, and producing a synthesis that integrates all perspectives.
     Best for: complex decisions where you want a balanced recommendation.
     """
-    return (
+    return [{"role": "user", "content":
         f"Use the conversus_decide tool to run a deliberation on this question: "
-        f"{question}\n\nUse mode 'cooperative'."
-    )
+        f"{question}\n\nUse mode 'cooperative'."}]
 
 
 @mcp.prompt()
-def challenge(question: str) -> str:
+def challenge(question: str) -> list[dict]:
     """Red-team a decision — one agent attacks, one defends.
 
     Asymmetric adversarial review where the red team tries to find
     every flaw in the proposal while the blue team defends it.
     Best for: stress-testing a plan before committing.
     """
-    return (
+    return [{"role": "user", "content":
         f"Use the conversus_decide tool to run a deliberation on this question: "
         f"{question}\n\nUse mode 'red-blue'. This is an adversarial review — "
-        f"one agent will attack the proposal, one will defend it."
-    )
+        f"one agent will attack the proposal, one will defend it."}]
 
 
 @mcp.prompt()
-def force_decision(question: str) -> str:
+def force_decision(question: str) -> list[dict]:
     """Force a definitive answer — no compromise, pick one winner.
 
     Each agent defends a position. The synthesis must choose one winner
     and explain why, not produce a balanced trade-off.
     Best for: when you need a commitment, not a list of pros and cons.
     """
-    return (
+    return [{"role": "user", "content":
         f"Use the conversus_decide tool to run a deliberation on this question: "
         f"{question}\n\nUse mode 'winner-take-all'. The synthesis must pick "
-        f"ONE winner — no compromise, no 'it depends'."
-    )
+        f"ONE winner — no compromise, no 'it depends'."}]
 
 
 @mcp.prompt()
-def review_config(config_yaml: str) -> str:
+def review_config(config_yaml: str) -> list[dict]:
     """Run a full deliberation from a YAML config file.
 
     For reproducible deliberations with custom agents, target documents,
     and advanced game theory modes. Pass the full YAML config content.
     """
-    return (
+    return [{"role": "user", "content":
         f"Use the conversus_run tool with this config:\n\n"
-        f"```yaml\n{config_yaml}\n```"
-    )
+        f"```yaml\n{config_yaml}\n```"}]
 
 
 @mcp.prompt()
-def check_cost(config_yaml: str) -> str:
+def check_cost(config_yaml: str) -> list[dict]:
     """Check the cost of a deliberation before running it.
 
     Validates the YAML config, estimates the number of LLM launches
     required, and reports any schema errors — without executing anything.
     """
-    return (
+    return [{"role": "user", "content":
         f"Use the conversus_validate tool to check this config before running:\n\n"
-        f"```yaml\n{config_yaml}\n```"
-    )
+        f"```yaml\n{config_yaml}\n```"}]
 
 
 # ---------------------------------------------------------------------------
