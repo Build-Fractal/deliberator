@@ -183,6 +183,43 @@ it at refactor time is far cheaper than debugging it later.
 
 ---
 
+## MCPB prompts must be declared in manifest.json AND registered in the MCP server
+
+**Symptom**: Prompts appear in Claude Desktop's prompt picker. User
+fills in the form and clicks "Add prompt". Error: "Failed to attach
+prompt." The MCP server log shows: `Extension Conversus attempted
+undeclared prompt: deliberate`.
+
+**Cause**: Claude Desktop's extension security model validates prompts
+against TWO sources: the MCP server's `prompts/list` response AND
+the manifest.json `prompts` array. Both must agree. If the server
+registers a prompt via `@mcp.prompt()` but the manifest doesn't
+declare it in `prompts[]`, the client rejects it as "undeclared" —
+even though `prompts/list` returned it successfully.
+
+This mirrors how tools work: the manifest has `tools[]` that must
+match what the server registers via `@mcp.tool()`.
+
+**Fix**: Add a `prompts` array to manifest.json alongside `tools`:
+
+```json
+"prompts": [
+  {
+    "name": "deliberate",
+    "description": "Run a cooperative deliberation",
+    "arguments": ["question"]
+  }
+],
+"tools": [...]
+```
+
+**How to avoid next time**: when adding a new `@mcp.prompt()` to the
+server, also add the corresponding entry to `manifest.json`'s
+`prompts[]` array. The prompt name, description, and argument names
+must match between the two declarations.
+
+---
+
 ## FastMCP `@mcp.prompt()` functions must return `list[dict]`, not `str`
 
 **Symptom**: Claude Desktop shows the prompt dialog correctly (title,
