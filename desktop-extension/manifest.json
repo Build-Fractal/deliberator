@@ -91,33 +91,33 @@
   "prompts": [
     {
       "name": "deliberate",
-      "title": "Deliberate",
       "description": "Run a cooperative multi-agent deliberation on a decision",
-      "arguments": ["question"]
+      "arguments": ["question"],
+      "text": "Use the conversus_decide tool to run a deliberation on this question: ${arguments.question}\n\nUse mode 'cooperative'."
     },
     {
       "name": "challenge",
-      "title": "Challenge My Thinking",
       "description": "Red-team a decision — one agent attacks, one defends",
-      "arguments": ["question"]
+      "arguments": ["question"],
+      "text": "Use the conversus_decide tool to run a deliberation on this question: ${arguments.question}\n\nUse mode 'red-blue'. This is an adversarial review — one agent will attack the proposal, one will defend it."
     },
     {
       "name": "force_decision",
-      "title": "Force a Decision",
       "description": "Force a definitive answer — no compromise, pick one winner",
-      "arguments": ["question"]
+      "arguments": ["question"],
+      "text": "Use the conversus_decide tool to run a deliberation on this question: ${arguments.question}\n\nUse mode 'winner-take-all'. The synthesis must pick ONE winner — no compromise, no 'it depends'."
     },
     {
       "name": "review_config",
-      "title": "Review Config",
       "description": "Run a full deliberation from a YAML config",
-      "arguments": ["config_yaml"]
+      "arguments": ["config_yaml"],
+      "text": "Use the conversus_run tool with this config:\n\n```yaml\n${arguments.config_yaml}\n```"
     },
     {
       "name": "check_cost",
-      "title": "Check Cost",
       "description": "Check the cost of a deliberation before running it",
-      "arguments": ["config_yaml"]
+      "arguments": ["config_yaml"],
+      "text": "Use the conversus_validate tool to check this config before running:\n\n```yaml\n${arguments.config_yaml}\n```"
     }
   ],
   "tools_generated": false,
