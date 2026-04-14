@@ -91,21 +91,21 @@
   "prompts": [
     {
       "name": "deliberate",
-      "description": "Run a cooperative multi-agent deliberation on a decision",
+      "description": "Analyze your question, recommend a deliberation mode, explain the setup, and run after your approval",
       "arguments": ["question"],
-      "text": "Use the conversus_decide tool to run a deliberation on this question: ${arguments.question}\n\nUse mode 'cooperative'."
+      "text": "I want to run a conversus deliberation on this question:\n\n> ${arguments.question}\n\nBefore running, analyze the question and recommend a mode (cooperative, winner-take-all, red-blue, or prisoners-dilemma). Present your recommendation as a table with Mode, Why, What to expect, and Cost. Then ask me to confirm before calling conversus_decide."
     },
     {
       "name": "challenge",
-      "description": "Red-team a decision — one agent attacks, one defends",
+      "description": "Red-team a decision — one agent attacks, one defends. Explains the setup before running.",
       "arguments": ["question"],
-      "text": "Use the conversus_decide tool to run a deliberation on this question: ${arguments.question}\n\nUse mode 'red-blue'. This is an adversarial review — one agent will attack the proposal, one will defend it."
+      "text": "I want to stress-test this decision with a conversus red-blue deliberation:\n\n> ${arguments.question}\n\nBriefly explain what the red team will attack and what the blue team will defend. Then ask me to confirm before calling conversus_decide with mode red-blue."
     },
     {
       "name": "force_decision",
-      "description": "Force a definitive answer — no compromise, pick one winner",
+      "description": "Force a definitive answer — no compromise, pick one winner. Explains the setup before running.",
       "arguments": ["question"],
-      "text": "Use the conversus_decide tool to run a deliberation on this question: ${arguments.question}\n\nUse mode 'winner-take-all'. The synthesis must pick ONE winner — no compromise, no 'it depends'."
+      "text": "I need a definitive answer on this — no 'it depends':\n\n> ${arguments.question}\n\nExplain the two competing positions and why winner-take-all mode is right for this question. Then ask me to confirm before calling conversus_decide with mode winner-take-all."
     },
     {
       "name": "review_config",

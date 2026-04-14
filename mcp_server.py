@@ -285,43 +285,68 @@ def conversus_decide(
 
 @mcp.prompt()
 def deliberate(question: str) -> list[dict]:
-    """Run a cooperative multi-agent deliberation on a decision.
+    """Run a multi-agent deliberation on a decision.
 
-    Agents seek convergence — finding where they agree, surfacing
-    tensions, and producing a synthesis that integrates all perspectives.
-    Best for: complex decisions where you want a balanced recommendation.
+    Analyzes your question, recommends the right mode and agent setup,
+    explains the reasoning, and waits for your approval before running.
     """
     return [{"role": "user", "content":
-        f"Use the conversus_decide tool to run a deliberation on this question: "
-        f"{question}\n\nUse mode 'cooperative'."}]
+        f"I want to run a conversus deliberation on this question:\n\n"
+        f"> {question}\n\n"
+        f"Before running, analyze the question and recommend a deliberation setup. "
+        f"Consider these conversus modes:\n\n"
+        f"- **cooperative** — agents seek convergence, best for complex decisions where you want a balanced recommendation\n"
+        f"- **winner-take-all** — each agent defends a position, synthesis picks ONE winner, best when you need a commitment not a list of pros/cons\n"
+        f"- **red-blue** — one agent attacks, one defends, best for stress-testing a plan\n"
+        f"- **prisoners-dilemma** — agents choose cooperate/defect, tests whether trust holds\n\n"
+        f"Present your recommended config as a table:\n"
+        f"- **Mode**: which mode and why\n"
+        f"- **Why this mode**: 1-2 sentences on why it fits this question\n"
+        f"- **What to expect**: what the 5-phase pipeline will produce for this question\n"
+        f"- **Estimated cost**: ~9 LLM launches for 2 agents / 1 iteration\n\n"
+        f"Then ask me: 'Ready to run this deliberation, or would you like to adjust the mode?'\n\n"
+        f"Only call the conversus_decide tool AFTER I confirm. Use the mode you recommended "
+        f"(or whatever I chose if I adjusted it)."}]
 
 
 @mcp.prompt()
 def challenge(question: str) -> list[dict]:
     """Red-team a decision — one agent attacks, one defends.
 
-    Asymmetric adversarial review where the red team tries to find
-    every flaw in the proposal while the blue team defends it.
-    Best for: stress-testing a plan before committing.
+    Sets up an adversarial review where the red team finds every flaw
+    while the blue team defends. Explains the setup before running.
     """
     return [{"role": "user", "content":
-        f"Use the conversus_decide tool to run a deliberation on this question: "
-        f"{question}\n\nUse mode 'red-blue'. This is an adversarial review — "
-        f"one agent will attack the proposal, one will defend it."}]
+        f"I want to stress-test this decision with a conversus red-blue deliberation:\n\n"
+        f"> {question}\n\n"
+        f"Red-blue mode assigns one agent as the attacker (finds every flaw, worst-case scenario) "
+        f"and one as the defender (makes the strongest possible case). The synthesis weighs both.\n\n"
+        f"Before running, briefly explain:\n"
+        f"- What the **red team** will try to break about this decision\n"
+        f"- What the **blue team** will defend\n"
+        f"- What kind of verdict the synthesis will produce\n\n"
+        f"Then ask me: 'Ready to run the red-blue deliberation?'\n\n"
+        f"Only call conversus_decide with mode 'red-blue' AFTER I confirm."}]
 
 
 @mcp.prompt()
 def force_decision(question: str) -> list[dict]:
     """Force a definitive answer — no compromise, pick one winner.
 
-    Each agent defends a position. The synthesis must choose one winner
-    and explain why, not produce a balanced trade-off.
-    Best for: when you need a commitment, not a list of pros and cons.
+    Winner-take-all mode where the synthesis must choose one side.
+    Explains the setup before running.
     """
     return [{"role": "user", "content":
-        f"Use the conversus_decide tool to run a deliberation on this question: "
-        f"{question}\n\nUse mode 'winner-take-all'. The synthesis must pick "
-        f"ONE winner — no compromise, no 'it depends'."}]
+        f"I need a definitive answer on this — no 'it depends', no balanced trade-offs:\n\n"
+        f"> {question}\n\n"
+        f"Winner-take-all mode: each agent defends a position. The synthesis MUST pick one winner "
+        f"and explain why the other lost. No compromise.\n\n"
+        f"Before running, briefly explain:\n"
+        f"- What the **two competing positions** will likely be\n"
+        f"- Why winner-take-all is the right mode (vs cooperative which would hedge)\n"
+        f"- That the verdict will be decisive — one winner, one loser, with reasoning\n\n"
+        f"Then ask me: 'Ready to force a decision?'\n\n"
+        f"Only call conversus_decide with mode 'winner-take-all' AFTER I confirm."}]
 
 
 @mcp.prompt()
