@@ -23,6 +23,10 @@ Capability declarations route to the right handlers.
 
 from __future__ import annotations
 
+import pytest
+
+pytestmark = pytest.mark.integration
+
 import inspect
 import sys
 import types

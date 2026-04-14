@@ -13,6 +13,8 @@ from pathlib import Path
 
 import pytest
 
+pytestmark = pytest.mark.security
+
 from conversus.registry import Capability, Param, Surface
 from conversus.registry.adapters._helpers import literal
 from conversus.registry.projector import project_to_cli, project_to_mcp

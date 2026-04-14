@@ -13,6 +13,10 @@ from __future__ import annotations
 
 import asyncio
 import logging
+
+import pytest
+
+pytestmark = pytest.mark.integration
 from pathlib import Path
 
 import pytest

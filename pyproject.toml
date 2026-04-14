@@ -122,6 +122,8 @@ asyncio_mode = "auto"
 pythonpath = ["."]
 markers = [
     "live: tests that spawn real subprocesses and may cost API credits (deselect with '-m not live')",
+    "integration: end-to-end tests that exercise multiple layers (settings cascade, pipeline execution, persistence)",
+    "security: tests for path traversal, injection, and input validation attack surfaces",
 ]
 
 [tool.coverage.run]

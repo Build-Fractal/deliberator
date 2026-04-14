@@ -30,6 +30,10 @@ for the new handler.
 
 from __future__ import annotations
 
+import pytest
+
+pytestmark = pytest.mark.integration
+
 import inspect
 import sys
 import types
