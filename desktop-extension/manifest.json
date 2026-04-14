@@ -88,6 +88,33 @@
       "sensitive": false
     }
   },
+  "prompts": [
+    {
+      "name": "deliberate",
+      "description": "Run a cooperative multi-agent deliberation on a decision",
+      "arguments": ["question"]
+    },
+    {
+      "name": "challenge",
+      "description": "Red-team a decision — one agent attacks, one defends",
+      "arguments": ["question"]
+    },
+    {
+      "name": "force_decision",
+      "description": "Force a definitive answer — no compromise, pick one winner",
+      "arguments": ["question"]
+    },
+    {
+      "name": "review_config",
+      "description": "Run a full deliberation from a YAML config",
+      "arguments": ["config_yaml"]
+    },
+    {
+      "name": "check_cost",
+      "description": "Check the cost of a deliberation before running it",
+      "arguments": ["config_yaml"]
+    }
+  ],
   "tools_generated": false,
   "tools": [
     {
