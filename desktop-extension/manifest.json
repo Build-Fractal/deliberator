@@ -91,26 +91,31 @@
   "prompts": [
     {
       "name": "deliberate",
+      "title": "Deliberate",
       "description": "Run a cooperative multi-agent deliberation on a decision",
       "arguments": ["question"]
     },
     {
       "name": "challenge",
+      "title": "Challenge My Thinking",
       "description": "Red-team a decision — one agent attacks, one defends",
       "arguments": ["question"]
     },
     {
       "name": "force_decision",
+      "title": "Force a Decision",
       "description": "Force a definitive answer — no compromise, pick one winner",
       "arguments": ["question"]
     },
     {
       "name": "review_config",
+      "title": "Review Config",
       "description": "Run a full deliberation from a YAML config",
       "arguments": ["config_yaml"]
     },
     {
       "name": "check_cost",
+      "title": "Check Cost",
       "description": "Check the cost of a deliberation before running it",
       "arguments": ["config_yaml"]
     }
