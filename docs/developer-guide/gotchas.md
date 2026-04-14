@@ -183,6 +183,42 @@ it at refactor time is far cheaper than debugging it later.
 
 ---
 
+## FastMCP `@mcp.prompt()` functions must return `list[dict]`, not `str`
+
+**Symptom**: Claude Desktop shows the prompt dialog correctly (title,
+description, input fields all render). The user fills in the question
+and clicks "Add prompt". Error banner: "Failed to attach prompt. You
+can try again." No further diagnostics.
+
+**Cause**: FastMCP's `@mcp.prompt()` decorator expects the function to
+return a `list[dict]` (or `list[Message]`) — each dict has `role` and
+`content` keys matching the MCP `prompts/get` response format. Returning
+a plain `str` causes FastMCP to fail silently when serializing the
+response.
+
+**Fix**: Return `[{"role": "user", "content": f"..."}]` not `f"..."`:
+
+```python
+# WRONG — returns str, fails silently
+@mcp.prompt()
+def deliberate(question: str) -> str:
+    return f"Use conversus_decide on: {question}"
+
+# CORRECT — returns list[dict], works
+@mcp.prompt()
+def deliberate(question: str) -> list[dict]:
+    return [{"role": "user", "content":
+        f"Use conversus_decide on: {question}"}]
+```
+
+**How to avoid next time**: always check FastMCP's `help(mcp.prompt)`
+example — it shows `-> list[Message]` with dict-style message objects.
+The `str` return type is tempting because it's simpler, but FastMCP
+doesn't auto-wrap strings into messages for prompts (unlike tools
+where the return value IS the tool output).
+
+---
+
 ## `from __future__ import annotations` breaks Pydantic in bundled/deferred contexts
 
 **Symptom**: All three MCP tools fail with `DecideResult is not fully
