@@ -54,6 +54,16 @@ def _load_mcp_server():
 
 def main() -> None:
     _bootstrap_sys_path()
+
+    # Set CWD to the server/ directory so the engine's
+    # find_project_root(marker="presets") finds the bundled presets/,
+    # schema/, and templates/ directories. Without this, CWD is
+    # wherever Claude Desktop launched us (typically ~ or the bundle
+    # install dir), and the engine can't find its runtime data.
+    import os
+    here = Path(__file__).resolve().parent
+    os.chdir(here)
+
     mcp_module = _load_mcp_server()
     mcp_module.mcp.run(transport="stdio")
 

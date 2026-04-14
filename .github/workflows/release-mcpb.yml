@@ -62,6 +62,18 @@ jobs:
         run: |
           cp mcp_server.py desktop-extension/server/mcp_server.py
 
+      - name: Copy runtime data files into bundle
+        shell: bash
+        run: |
+          # The engine needs these non-Python directories at runtime:
+          # - presets/  → agent preset YAML files (pragmatist, devils-advocate, etc.)
+          # - schema/   → variables.yml, modes/*.yml for template validation
+          # - templates/ → per-mode prompt templates for all 5 phases
+          # pip install --target only installs Python packages, not these.
+          cp -r presets desktop-extension/server/presets
+          cp -r schema desktop-extension/server/schema
+          cp -r templates desktop-extension/server/templates
+
       - name: Update manifest with platform-specific compatibility
         shell: bash
         run: |
