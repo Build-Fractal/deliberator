@@ -222,6 +222,7 @@ def conversus_decide(
     provider: str = "mock",
     mode: str = "cooperative",
     max_launches: int = 20,
+    ctx: object = None,
 ) -> DecideResult:
     """Run an ad-hoc deliberation on a natural-language question.
 
@@ -236,7 +237,8 @@ def conversus_decide(
         question: Natural-language question to deliberate (e.g.
             "Should we use SQLite or Postgres for our metadata store?").
         provider: Model provider for the deliberation. Supported values:
-            'mock' (default, no API key needed), 'anthropic', 'openai'.
+            'demo' (free test mode), 'claude-desktop' (uses host session),
+            'anthropic', 'openai'.
         mode: Deliberation mode. One of: 'cooperative' (default),
             'winner-take-all', 'prisoners-dilemma', 'red-blue'.
         max_launches: Maximum allowed LLM launches (default: 20). Execution
@@ -255,7 +257,10 @@ def conversus_decide(
         mode,
         max_launches,
     )
-    result = _decide(question, provider, mode, max_launches)
+    # Pass MCP context for the claude-desktop provider (spec 060).
+    # FastMCP injects ctx automatically when the tool handler has a
+    # parameter named "ctx". For other providers, ctx is ignored.
+    result = _decide(question, provider, mode, max_launches, mcp_context=ctx)
     if not result.sufficient:
         logger.warning(
             "conversus_decide: question rejected — %s",

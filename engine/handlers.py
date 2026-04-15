@@ -84,6 +84,8 @@ def run_decide_mcp(
     provider: str = "mock",
     mode: str = "cooperative",
     max_launches: int = 20,
+    *,
+    mcp_context: object | None = None,
 ) -> DecideResult:
     """Run an ad-hoc deliberation for the MCP surface.
 
@@ -175,15 +177,33 @@ def run_decide_mcp(
 
         engine_config = parse_config(config_path)
 
-        try:
-            model_provider = resolve_provider(provider)
-        except ProviderError as exc:
-            return DecideResult(
-                sufficient=True,
-                classification=classification,
-                cost_estimate=cost_estimate,
-                errors=[f"Provider error: {exc}"],
-            )
+        # Resolve the provider — claude-desktop uses MCP sampling
+        # (spec 060), all others use direct API via resolve_provider.
+        if provider == "claude-desktop" and mcp_context is not None:
+            from engine.execution.providers.desktop_sampling import DesktopSamplingProvider
+            model_provider = DesktopSamplingProvider(mcp_context=mcp_context)
+        else:
+            if provider == "claude-desktop":
+                # Fallback: no MCP context available (running from CLI, not Desktop)
+                return DecideResult(
+                    sufficient=True,
+                    classification=classification,
+                    cost_estimate=cost_estimate,
+                    errors=[
+                        "The 'claude-desktop' provider requires the Claude Desktop MCP context. "
+                        "It only works inside the Desktop Extension. "
+                        "Use 'anthropic', 'openai', or 'demo' instead."
+                    ],
+                )
+            try:
+                model_provider = resolve_provider(provider)
+            except ProviderError as exc:
+                return DecideResult(
+                    sufficient=True,
+                    classification=classification,
+                    cost_estimate=cost_estimate,
+                    errors=[f"Provider error: {exc}"],
+                )
 
         emitter = NullEmitter()
         result = asyncio.run(
