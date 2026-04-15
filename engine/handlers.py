@@ -845,6 +845,27 @@ def login_cli(provider: str) -> None:
     click.echo("Login successful")
 
 
+def login_mcp(provider: str) -> str:
+    """Log in to a model provider via OAuth (MCP surface).
+
+    Opens the user's browser for OAuth authentication. The token is
+    stored in ``~/.conversus/auth.json`` so subsequent deliberations
+    use it automatically. Desktop Extension users can say "log in to
+    anthropic" in their chat and the browser opens — no CLI needed.
+
+    Returns a status message (success or error description).
+    """
+    from engine import auth
+
+    try:
+        auth.login(provider)
+        return f"Login successful for {provider}. Your credentials are stored securely and will be used for future deliberations."
+    except ProviderError as exc:
+        return f"Login failed for {provider}: {exc}"
+    except Exception as exc:
+        return f"Login error: {exc}"
+
+
 def logout_cli(provider: str) -> None:
     """Log out of a model provider (CLI surface)."""
     from engine import auth

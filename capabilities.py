@@ -431,11 +431,18 @@ validate = Capability(
 login = Capability(
     name="login",
     summary="Log in to a model provider via OAuth",
-    surfaces=[Surface.CLI, Surface.PLUGIN],
+    long_description=(
+        "Opens a browser for OAuth authentication with the specified provider. "
+        "Stores the token locally so future deliberations use it automatically. "
+        "Desktop Extension users: just say 'log in to anthropic' and the browser "
+        "opens for authentication — no CLI needed."
+    ),
+    surfaces=[Surface.CLI, Surface.MCP, Surface.PLUGIN, Surface.MCPB],
     params=[
-        Param(name="provider", type=str, required=True, help="Provider to log in to."),
+        Param(name="provider", type=str, required=True, help="Provider to log in to (e.g. anthropic, openai)."),
     ],
     handler="engine.handlers:login_cli",
+    handlers={Surface.MCP: "engine.handlers:login_mcp"},
 )
 
 
