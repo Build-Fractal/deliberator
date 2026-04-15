@@ -87,6 +87,7 @@ from engine.execution.providers import codex as _codex  # noqa: E402, F401
 from engine.execution.providers import copilot as _copilot  # noqa: E402, F401
 from engine.execution.providers import gemini as _gemini  # noqa: E402, F401
 from engine.execution.providers import pi as _pi  # noqa: E402, F401
+from engine.execution.providers import desktop_sampling as _desktop_sampling  # noqa: E402, F401
 
 __all__ = [
     "PROVIDER_REGISTRY",
