@@ -184,17 +184,15 @@ def run_decide_mcp(
             model_provider = DesktopSamplingProvider(mcp_context=mcp_context)
         else:
             if provider == "claude-desktop":
-                # Fallback: no MCP context available (running from CLI, not Desktop)
-                return DecideResult(
-                    sufficient=True,
-                    classification=classification,
-                    cost_estimate=cost_estimate,
-                    errors=[
-                        "The 'claude-desktop' provider requires the Claude Desktop MCP context. "
-                        "It only works inside the Desktop Extension. "
-                        "Use 'anthropic', 'openai', or 'demo' instead."
-                    ],
+                # MCP sampling context not available — fall back to anthropic
+                # credentials if the user has them (from conversus login or
+                # ANTHROPIC_API_KEY env var). This makes "claude-desktop" work
+                # even when MCP sampling isn't wired yet.
+                logger.info(
+                    "claude-desktop provider requested but no MCP context — "
+                    "falling back to anthropic credentials"
                 )
+                provider = "anthropic"
             try:
                 model_provider = resolve_provider(provider)
             except ProviderError as exc:

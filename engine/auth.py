@@ -628,7 +628,7 @@ def resolve_provider(
     Raises:
         ProviderError: If no credentials are available for *provider_name*.
     """
-    if provider_name == "mock":
+    if provider_name in ("mock", "demo"):
         return MockProvider()
 
     if provider_name not in OAUTH_CONFIGS:
