@@ -291,3 +291,6 @@ class MockExecutionProvider:
 from engine.execution.providers import register_provider  # noqa: E402
 
 register_provider("mock", MockExecutionProvider)
+# "demo" alias for non-technical users — same synthetic responses,
+# friendlier name for Desktop Extension users who don't know what "mock" means.
+register_provider("demo", MockExecutionProvider)

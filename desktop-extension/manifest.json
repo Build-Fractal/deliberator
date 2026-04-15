@@ -53,8 +53,8 @@
     "CONVERSUS_DEFAULT_PROVIDER": {
       "type": "string",
       "title": "Default Provider",
-      "description": "LLM provider for deliberations. Use 'anthropic' for Claude (recommended), 'openai' for GPT, or 'mock' for free synthetic test responses.",
-      "default": "anthropic"
+      "description": "LLM provider for deliberations. Use 'demo' for free test runs (no API key), 'anthropic' for Claude, or 'openai' for GPT.",
+      "default": "demo"
     },
     "CONVERSUS_DEFAULT_MODE": {
       "type": "string",
