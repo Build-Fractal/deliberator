@@ -38,20 +38,29 @@ _SETTINGS_FILE = _CONVERSUS_DIR / "settings.yml"
 
 
 def find_project_root(start: Path | None = None) -> Path:
-    """Walk up from *start* looking for a directory containing ``.conversus/``
-    or ``conversus.yml``, returning the first match.
+    """Discover the conversus project root.
 
-    Falls back to *start* (or ``Path.cwd()``) if no marker is found —
-    this is the correct behavior for first-run scenarios where neither
-    ``conversus init`` nor a previous deliberation has created the
-    ``.conversus/`` directory yet.
+    Resolution order:
 
-    This is critical for MCP servers: Claude Desktop and other editors
-    may launch the server with CWD set to the home directory or the
-    bundle install directory, not the user's project. Walking up from
-    the config file's parent (when available) or the CWD finds the
-    project root reliably.
+    1. ``CONVERSUS_ROOT`` environment variable — set by the Desktop
+       Extension's ``main.py`` to point at the bundled ``server/``
+       directory. This is the highest priority because the bundle's
+       runtime data (presets, schema, templates) is at a known path.
+    2. Walk up from *start* (or CWD) looking for ``.conversus/`` or
+       ``conversus.yml`` — the standard marker-based discovery.
+    3. Fall back to *start* (or CWD) — correct for first-run scenarios.
+
+    This is critical for MCP servers: Claude Desktop may launch the
+    server with CWD set to the home directory, not the project.
     """
+    import os
+
+    env_root = os.environ.get("CONVERSUS_ROOT")
+    if env_root:
+        root = Path(env_root).resolve()
+        if root.is_dir():
+            return root
+
     current = (start or Path.cwd()).resolve()
     for parent in [current, *current.parents]:
         if (parent / _CONVERSUS_DIR).is_dir():

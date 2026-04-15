@@ -38,6 +38,15 @@ def find_project_root(
     Raises:
         FileNotFoundError: If no directory containing *marker* is found.
     """
+    # Strategy 0: CONVERSUS_ROOT env var — set by the Desktop Extension's
+    # main.py to point at the bundled server/ directory.
+    import os
+    env_root = os.environ.get("CONVERSUS_ROOT")
+    if env_root:
+        root = Path(env_root).resolve()
+        if (root / marker).is_dir():
+            return root
+
     # Strategy 1: anchor's parent chain
     if anchor is not None:
         candidate = anchor.resolve().parent
