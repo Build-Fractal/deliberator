@@ -923,11 +923,18 @@ class TestFullRegistry:
         expected = {"mock", "anthropic", "claude-code", "aider", "opencode", "codex", "copilot", "pi"}
         assert expected.issubset(set(PROVIDER_REGISTRY.keys()))
 
+    # Known aliases: registry name → canonical provider name
+    _ALIASES = {"demo": "mock"}
+
     def test_all_providers_instantiate(self) -> None:
         for name in PROVIDER_REGISTRY:
             provider = get_provider(name)
             assert isinstance(provider, ExecutionProvider)
-            assert provider.name == name
+            expected = self._ALIASES.get(name, name)
+            assert provider.name == expected, (
+                f"Registry name {name!r}: expected provider.name={expected!r}, "
+                f"got {provider.name!r}"
+            )
 
     def test_unknown_provider_error_lists_all(self) -> None:
         with pytest.raises(ValueError, match="Available:"):
