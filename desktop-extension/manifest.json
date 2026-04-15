@@ -53,13 +53,13 @@
     "CONVERSUS_DEFAULT_PROVIDER": {
       "type": "string",
       "title": "Default Provider",
-      "description": "LLM provider for deliberations. Use 'demo' for free test runs (no API key), 'anthropic' for Claude, or 'openai' for GPT.",
-      "default": "demo"
+      "description": "claude-desktop (uses your Claude session, no API key) | anthropic (direct API, needs key) | openai (GPT, needs key) | demo (free test mode)",
+      "default": "claude-desktop"
     },
     "CONVERSUS_DEFAULT_MODE": {
       "type": "string",
       "title": "Default Mode",
-      "description": "Deliberation mode. Options: cooperative, winner-take-all, prisoners-dilemma, red-blue.",
+      "description": "cooperative (balanced) | winner-take-all (pick one) | red-blue (attack/defend) | prisoners-dilemma (test trust)",
       "default": "cooperative"
     },
     "ANTHROPIC_API_KEY": {
