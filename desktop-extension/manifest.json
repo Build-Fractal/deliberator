@@ -113,6 +113,11 @@
       "text": "Help me design a custom conversus deliberation config. Ask me one question at a time about my decision, the best mode, which agent perspectives to include, and how many rounds."
     },
     {
+      "name": "analyze_documents",
+      "description": "Multi-agent analysis over one or many documents — extract claims, compare, or find contradictions",
+      "text": "Help me run a conversus document analysis. Ask me which documents to analyze (paths or URLs), what kind of analysis (extract, compare, contradictions, or open review), and which analytical lenses to use. Build a YAML config with target docs and run it with conversus_run."
+    },
+    {
       "name": "review_config",
       "description": "Run a full deliberation from a YAML config",
       "arguments": ["config_yaml"],

@@ -395,6 +395,25 @@ def design_deliberation() -> list[dict]:
 
 
 @mcp.prompt()
+def analyze_documents() -> list[dict]:
+    """Multi-agent analysis over one or many documents.
+
+    Extract key claims, compare across docs, surface contradictions,
+    or run an open review. Agents read the docs independently, then
+    cross-review each other so disagreements about what the docs
+    actually say become explicit.
+    """
+    return [{"role": "user", "content":
+        "Help me run a conversus document analysis. Ask me: "
+        "which documents to analyze (file paths or URLs, one or many), "
+        "what kind of analysis — extract key claims, compare across docs, "
+        "find contradictions, or open review — and which analytical lenses "
+        "to use (e.g. skeptic + advocate, legal + technical, domain expert "
+        "+ layperson). Build a YAML config with the target docs listed and "
+        "run it with conversus_run."}]
+
+
+@mcp.prompt()
 def review_config(config_yaml: str) -> list[dict]:
     """Run a full deliberation from a YAML config file.
 
