@@ -380,6 +380,35 @@ def force_decision(question: str) -> list[dict]:
 
 
 @mcp.prompt()
+def design_deliberation() -> list[dict]:
+    """Build a custom deliberation config through conversation.
+
+    Walks you through creating a conversus.yml step by step — question,
+    mode, agents, iterations, arbiter. Ask one question at a time.
+    """
+    return [{"role": "user", "content":
+        "I want to design a custom conversus deliberation. Walk me through it "
+        "step by step — ask me ONE question at a time, wait for my answer, "
+        "then ask the next. Here's the order:\n\n"
+        "1. **What decision or question** do you want to deliberate on? Get the specifics.\n"
+        "2. **What mode** fits best? Explain the options (cooperative, winner-take-all, "
+        "red-blue, prisoners-dilemma) in plain language and recommend one based on my question.\n"
+        "3. **How many agents** and what perspectives? Suggest 2-4 agent personas that would "
+        "give useful opposing viewpoints for THIS specific question. Name them and describe "
+        "their stance in one sentence each.\n"
+        "4. **How many rounds?** Explain the trade-off (more rounds = deeper analysis but "
+        "more cost). Recommend 1-2 for most questions.\n"
+        "5. **Do you want an arbiter?** Explain what an arbiter does (makes a binding decision "
+        "after the agents deliberate). Recommend based on the mode — winner-take-all usually "
+        "wants one, cooperative usually doesn't.\n\n"
+        "After each answer, confirm what you heard and move to the next step. "
+        "When all steps are done, show me the complete YAML config and ask: "
+        "'Ready to run this deliberation?'\n\n"
+        "Only call conversus_run AFTER I confirm the final config. "
+        "Start with step 1 now."}]
+
+
+@mcp.prompt()
 def review_config(config_yaml: str) -> list[dict]:
     """Run a full deliberation from a YAML config file.
 

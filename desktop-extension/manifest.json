@@ -108,6 +108,12 @@
       "text": "I need a definitive answer on this — no 'it depends':\n\n> ${arguments.question}\n\nExplain the two competing positions and why winner-take-all mode is right for this question. Then ask me to confirm before calling conversus_decide with mode winner-take-all."
     },
     {
+      "name": "design_deliberation",
+      "description": "Build a custom deliberation config through a guided conversation",
+      "arguments": [],
+      "text": "I want to design a custom conversus deliberation. Walk me through it step by step — ask me ONE question at a time. Start with: what decision do I want to deliberate on?"
+    },
+    {
       "name": "review_config",
       "description": "Run a full deliberation from a YAML config",
       "arguments": ["config_yaml"],
