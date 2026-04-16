@@ -110,8 +110,7 @@
     {
       "name": "design_deliberation",
       "description": "Build a custom deliberation config through a guided conversation",
-      "arguments": [],
-      "text": "I want to design a custom conversus deliberation. Walk me through it step by step — ask me ONE question at a time. Start with: what decision do I want to deliberate on?"
+      "text": "Help me design a custom conversus deliberation config. Ask me one question at a time about my decision, the best mode, which agent perspectives to include, and how many rounds."
     },
     {
       "name": "review_config",
