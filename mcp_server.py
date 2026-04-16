@@ -277,6 +277,31 @@ def conversus_decide(
 
 
 # ---------------------------------------------------------------------------
+# conversus_login — OAuth login from chat (spec 059)
+# ---------------------------------------------------------------------------
+from engine.handlers import login_mcp as _login_mcp
+
+
+@mcp.tool()
+def conversus_login(provider: str) -> str:
+    """Log in to a model provider via OAuth.
+
+    Opens your browser for OAuth authentication. The token is stored
+    locally so future deliberations use it automatically.
+
+    Say "log in to anthropic" to authenticate — no CLI needed.
+
+    Args:
+        provider: Provider to authenticate with (e.g. 'anthropic', 'openai').
+
+    Returns:
+        Status message (success or error description).
+    """
+    logger.info("conversus_login called (provider=%r)", provider)
+    return _login_mcp(provider)
+
+
+# ---------------------------------------------------------------------------
 # MCP Prompts — clickable actions in Claude Desktop (spec 059)
 #
 # Prompts are the Desktop equivalent of slash commands. They appear in

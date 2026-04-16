@@ -131,6 +131,10 @@
       "description": "Run or parse a full multi-agent deliberation from a YAML config file. Supports all 8 game theory modes, custom agents, target documents, and optional arbiters. Use this when you want reproducible deliberations with your own stakeholder personas."
     },
     {
+      "name": "conversus_login",
+      "description": "Log in to a model provider via OAuth. Opens your browser for authentication — say 'log in to anthropic' and the token is stored locally for future deliberations."
+    },
+    {
       "name": "conversus_validate",
       "description": "Validate a conversus YAML config and estimate the total LLM launch count BEFORE running. Catches schema errors, missing target files, and invalid mode names. Always run this before a real deliberation to know the cost."
     }
