@@ -1,0 +1,123 @@
+name: Engine Evals
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'engine/**'
+      - 'evals/**'
+      - 'linter/**'
+      - 'presets/**'
+      - 'templates/**'
+      - 'mcp_server.py'
+      - 'pyproject.toml'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      run_ollama:
+        description: 'Run Ollama quality evals (slower, downloads model)'
+        required: false
+        default: 'false'
+        type: boolean
+
+jobs:
+  # ---------------------------------------------------------------
+  # Smoke tier — mock provider, structural validation, every push
+  # ---------------------------------------------------------------
+  smoke:
+    name: Smoke tests (mock provider)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Run pytest smoke tests
+        run: uv run pytest engine/tests/ -x -q --timeout=30 2>&1 | tail -20
+
+      - name: Run promptfoo smoke eval (mock, 4 modes)
+        run: npx promptfoo eval -c evals/promptfooconfig.yaml --no-cache
+
+      - name: Verify all providers resolve
+        run: |
+          uv run python3 -c "
+          from engine.run import resolve_execution_provider
+          failed = []
+          for name in ['mock', 'demo', 'ollama', 'claude-code', 'aider', 'opencode', 'codex', 'copilot', 'gemini', 'pi']:
+              try:
+                  p = resolve_execution_provider(name)
+                  print(f'  OK {name}: {type(p).__name__}')
+              except Exception as e:
+                  failed.append(f'{name}: {e}')
+                  print(f'  FAIL {name}: {e}')
+          if failed:
+              raise SystemExit(f'{len(failed)} provider(s) failed to resolve')
+          "
+
+  # ---------------------------------------------------------------
+  # Quality tier — local model via Ollama, on demand or release
+  # ---------------------------------------------------------------
+  quality:
+    name: Quality evals (Ollama local model)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    if: >
+      github.event_name == 'workflow_dispatch' && github.event.inputs.run_ollama == 'true'
+      || startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Install Ollama
+        run: |
+          curl -fsSL https://ollama.com/install.sh | sh
+          ollama serve &
+          sleep 3
+
+      - name: Pull model
+        run: ollama pull qwen3:0.6b
+
+      - name: Run Ollama quality eval
+        run: npx promptfoo eval -c evals/promptfooconfig.ollama.yaml --no-cache
+        timeout-minutes: 15
+
+      - name: Upload eval results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-results-ollama
+          path: |
+            evals/results*.json
+            .promptfoo/output/
+          retention-days: 30

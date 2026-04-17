@@ -120,7 +120,13 @@ class OpenAICompatibleProvider:
         return self._provider_name
 
     async def execute(self, task: ExecutionTask) -> ExecutionResult:
-        model = task.metadata.get("model", self._model)
+        # Local providers (ollama, llama-cpp, vllm) define their own default
+        # models (e.g. qwen3:0.6b).  The dispatch layer sets metadata["model"]
+        # to the global default (claude-sonnet-4-20250514) which doesn't exist
+        # on local servers.  Prefer the provider's own default unless the
+        # caller explicitly set a local-compatible model name.
+        task_model = task.metadata.get("model", "")
+        model = self._model if not task_model or task_model.startswith("claude") else task_model
         max_tokens = task.metadata.get("max_tokens", self._max_tokens)
         prompt = _inline_references(task)
 

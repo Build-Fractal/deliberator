@@ -1,0 +1,67 @@
+# Conversus Engine Eval — Ollama local model (quality layer)
+#
+# Runs the same test cases as the mock smoke suite but against a real
+# local LLM via Ollama. Tests that the pipeline produces meaningful
+# output, not just structurally valid JSON.
+#
+# Requires: ollama running with qwen3:0.6b (or override via OLLAMA_MODEL)
+#
+# Run: npx promptfoo eval -c evals/promptfooconfig.ollama.yaml
+# CI:  Ollama is installed in the workflow and model is pulled before eval.
+
+description: "Conversus engine eval — Ollama local model"
+
+prompts:
+  - "{{prompt}}"
+
+providers:
+  - id: "file://provider.py"
+    label: cooperative-ollama
+    config:
+      mode: cooperative
+      provider: ollama
+
+  - id: "file://provider.py"
+    label: wta-ollama
+    config:
+      mode: winner-take-all
+      provider: ollama
+
+  - id: "file://provider.py"
+    label: redblue-ollama
+    config:
+      mode: red-blue
+      provider: ollama
+
+tests:
+  - description: "Standard tech decision (ollama)"
+    vars:
+      prompt: "Should we use Postgres or MongoDB for our metadata store?"
+    assert:
+      - type: is-json
+      - type: javascript
+        value: |
+          const d = JSON.parse(output);
+          return d.headline !== undefined &&
+            d.summary !== undefined &&
+            d.full_analysis !== undefined &&
+            d.quality_indicators !== undefined;
+      - type: javascript
+        value: |
+          const d = JSON.parse(output);
+          return d.full_analysis && d.full_analysis.length > 100;
+        metric: output-length
+      - type: not-contains
+        value: "\"error\": true"
+
+  - description: "Multi-option decision (ollama)"
+    vars:
+      prompt: "Should we use Redis, Memcached, or DynamoDB for our caching layer given we need sub-ms latency?"
+    assert:
+      - type: is-json
+      - type: javascript
+        value: |
+          const d = JSON.parse(output);
+          return d.full_analysis && d.full_analysis.length > 100;
+      - type: not-contains
+        value: "\"error\": true"
