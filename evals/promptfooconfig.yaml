@@ -1,0 +1,114 @@
+# Conversus Engine Eval Suite — Functional Layer (promptfoo)
+#
+# Tests the CLI surface from outside using a Python custom provider
+# that calls `uv run conversus decide` via subprocess.
+#
+# Run: npx promptfoo eval -c evals/promptfooconfig.yaml
+# View: npx promptfoo view
+
+description: "Conversus engine eval — smoke tests (mock provider)"
+
+prompts:
+  - "{{prompt}}"
+
+providers:
+  - id: "file://provider.py"
+    label: cooperative-mock
+    config:
+      mode: cooperative
+      provider: mock
+
+  - id: "file://provider.py"
+    label: wta-mock
+    config:
+      mode: winner-take-all
+      provider: mock
+
+  - id: "file://provider.py"
+    label: pd-mock
+    config:
+      mode: prisoners-dilemma
+      provider: mock
+
+  # Red-blue excluded — G1 bug (adhoc presets lack role: red/blue)
+  # - id: "file://provider.py"
+  #   label: redblue-mock
+  #   config:
+  #     mode: red-blue
+  #     provider: mock
+
+tests:
+  # --- Standard deliberation questions ---
+  - description: "Standard tech decision question"
+    vars:
+      prompt: "Should we use Postgres or MongoDB for our metadata store?"
+    assert:
+      - type: is-json
+      - type: javascript
+        value: |
+          const d = JSON.parse(output);
+          return d.headline !== undefined &&
+            d.summary !== undefined &&
+            d.full_analysis !== undefined &&
+            d.quality_indicators !== undefined &&
+            d.debate_transcript !== undefined;
+      - type: javascript
+        value: |
+          const d = JSON.parse(output);
+          return typeof d.quality_indicators === 'object' &&
+            typeof d.quality_indicators.agent_count === 'number' &&
+            typeof d.quality_indicators.mode === 'string' &&
+            typeof d.quality_indicators.phases_completed === 'number';
+      - type: not-contains
+        value: "\"error\": true"
+
+  - description: "Short but valid question"
+    vars:
+      prompt: "Build vs buy for auth system?"
+    assert:
+      - type: is-json
+      - type: javascript
+        value: |
+          const d = JSON.parse(output);
+          return d.headline !== undefined && d.summary !== undefined;
+      - type: not-contains
+        value: "\"error\": true"
+
+  - description: "Multi-option decision"
+    vars:
+      prompt: "Should we use Redis, Memcached, or DynamoDB for our caching layer given we need sub-ms latency and 10TB capacity?"
+    assert:
+      - type: is-json
+      - type: javascript
+        value: |
+          const d = JSON.parse(output);
+          return d.quality_indicators && d.quality_indicators.phases_completed >= 4;
+      - type: not-contains
+        value: "\"error\": true"
+
+  - description: "Shell metacharacter in question (quoting safety)"
+    vars:
+      prompt: "Should we use $HOME or /tmp for caches? What about paths with single quotes and double quotes?"
+    assert:
+      - type: is-json
+      - type: not-contains
+        value: "\"error\": true"
+
+  - description: "Mode field populated in quality_indicators"
+    vars:
+      prompt: "Should we monorepo or polyrepo for our microservices?"
+    assert:
+      - type: is-json
+      - type: javascript
+        value: |
+          const d = JSON.parse(output);
+          return d.quality_indicators &&
+            typeof d.quality_indicators.mode === 'string' &&
+            d.quality_indicators.mode.length > 0;
+
+  - description: "Very short question (sufficiency gate behavior)"
+    vars:
+      prompt: "Redis?"
+    assert:
+      # Document current behavior — may warn or reject
+      - type: is-json
