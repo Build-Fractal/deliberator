@@ -240,7 +240,7 @@ class MockExecutionProvider:
     # ------------------------------------------------------------------
 
     def _resolve_response(self, task: ExecutionTask, agent_name: str) -> str:
-        """Apply the 3-tier response resolution order."""
+        """Apply the 4-tier response resolution order."""
         # Tier 1: response map
         if agent_name and agent_name in self.response_map:
             return self.response_map[agent_name]
@@ -249,13 +249,55 @@ class MockExecutionProvider:
         if self.response_fn is not None:
             return self.response_fn(task)
 
-        # Tier 3: template
+        # Tier 3: synthesis-phase structured template.
+        # When the phase is "synthesis", return markdown that
+        # parse_synthesis can parse — headline, agent metadata,
+        # convergence/disputes sections.  Without this, the entire
+        # smoke tier exercises the error-recovery fallback in
+        # StructuredDeliberation.from_events (spec 061, dispute 1).
+        phase = task.metadata.get("phase", "")
+        if phase == "synthesis":
+            mode = task.metadata.get("mode", "cooperative")
+            return self._synthesis_template(agent_name, mode)
+
+        # Tier 4: generic template
         return self.response_template.format(
             prompt=task.prompt,
             agent_name=agent_name,
-            phase=task.metadata.get("phase", ""),
+            phase=phase,
             output_path=task.output_path,
             model=task.metadata.get("model", ""),
+        )
+
+    @staticmethod
+    def _synthesis_template(agent_name: str, mode: str) -> str:
+        """Return synthesis markdown parseable by output_contract.parse_synthesis.
+
+        The template contains the minimum headings and metadata that the
+        parser needs to extract: headline, agent count, mode, phases,
+        convergence, and disputes sections.  Content is clearly mock
+        data but structurally valid.
+        """
+        return (
+            f"# Synthesis: Mock Deliberation Result\n\n"
+            f"**Agents:** pragmatist, devils-advocate\n"
+            f"**Deliberation mode:** {mode}\n"
+            f"**Phases completed:** 4\n\n"
+            f"## Process Summary\n\n"
+            f"| Agents | 2 (pragmatist, devils-advocate) |\n"
+            f"| Mode | {mode} |\n"
+            f"| Phases | 5 |\n\n"
+            f"### Convergence Achieved\n\n"
+            f"1. **Both agents agree on the core trade-off.** "
+            f"The fundamental tension is well-understood.\n"
+            f"2. **Implementation approach is uncontested.** "
+            f"No disputes on the technical path forward.\n\n"
+            f"### Remaining Disputes\n\n"
+            f"**None.** All perspectives converged during deliberation.\n\n"
+            f"## Verdict\n\n"
+            f"[mock:{agent_name}] This is a mock synthesis. "
+            f"In a real deliberation, this section contains the "
+            f"synthesizer's verdict grounded in the full adversarial record.\n"
         )
 
     # ------------------------------------------------------------------
