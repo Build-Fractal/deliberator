@@ -60,6 +60,14 @@ DEFAULT_AGENTS: tuple[AgentSpec, ...] = (
     AgentSpec(name="devils-advocate", preset="role/devils-advocate"),
 )
 
+# Red-blue mode requires agents with role: red / role: blue.
+# The default pair (pragmatist + devils-advocate) lacks these roles,
+# so red-blue uses dedicated presets instead.
+RED_BLUE_AGENTS: tuple[AgentSpec, ...] = (
+    AgentSpec(name="red-team", preset="role/red-team"),
+    AgentSpec(name="blue-team", preset="role/blue-team"),
+)
+
 
 def build_adhoc_config(
     question: str,
@@ -96,7 +104,14 @@ def build_adhoc_config(
     if not stripped:
         raise ConfigError("Question must not be empty.")
 
-    effective_agents = agents if agents else DEFAULT_AGENTS
+    # Red-blue mode needs agents with role: red/blue.  Use dedicated
+    # presets when the caller didn't supply custom agents.
+    if agents:
+        effective_agents = agents
+    elif mode == "red-blue":
+        effective_agents = RED_BLUE_AGENTS
+    else:
+        effective_agents = DEFAULT_AGENTS
 
     if len(effective_agents) < 2:
         raise ConfigError("At least 2 agents are required for a deliberation.")
@@ -126,9 +141,13 @@ def build_adhoc_config(
 
     # Build agents YAML block — sanitize display names (e.g. "UX Reviewer")
     # to valid config names (e.g. "ux-reviewer") and deduplicate.
+    #
+    # For red-blue mode, assign role: red to the first agent and role: blue
+    # to the second.  For >2 agents the caller should specify roles via
+    # AgentSpec, but the default 2-agent case is handled here.
     agents_yaml = "agents:\n"
     seen_names: set[str] = set()
-    for agent in effective_agents:
+    for idx, agent in enumerate(effective_agents):
         config_name = _sanitize_agent_name(agent.name)
         # Deduplicate: append a numeric suffix if the sanitized name collides
         base_name = config_name
@@ -139,6 +158,10 @@ def build_adhoc_config(
         seen_names.add(config_name)
         agents_yaml += f"  - name: {config_name}\n"
         agents_yaml += f"    preset: {agent.preset}\n"
+        # Red-blue role assignment for the default 2-agent pair
+        if mode == "red-blue":
+            role = "red" if idx == 0 else "blue"
+            agents_yaml += f"    role: {role}\n"
 
     # Build config YAML with absolute paths
     config_content = (

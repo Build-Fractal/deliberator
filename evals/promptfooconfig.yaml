@@ -30,12 +30,11 @@ providers:
       mode: prisoners-dilemma
       provider: mock
 
-  # Red-blue excluded — G1 bug (adhoc presets lack role: red/blue)
-  # - id: "file://provider.py"
-  #   label: redblue-mock
-  #   config:
-  #     mode: red-blue
-  #     provider: mock
+  - id: "file://provider.py"
+    label: redblue-mock
+    config:
+      mode: red-blue
+      provider: mock
 
 tests:
   # --- Standard deliberation questions ---
