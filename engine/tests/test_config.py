@@ -539,7 +539,7 @@ class TestProviderField:
         assert config.provider == provider
 
     def test_invalid_provider_rejected(self, tmp_path: Path) -> None:
-        cfg_path = _minimal_config(tmp_path, extra={"provider": "gemini"})
+        cfg_path = _minimal_config(tmp_path, extra={"provider": "nonexistent-provider"})
         with pytest.raises(ConfigError, match="provider.*not valid"):
             parse_config(cfg_path)
 

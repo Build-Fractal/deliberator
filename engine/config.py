@@ -79,7 +79,17 @@ class ArbiterConfig(BaseModel):
     allow agents to weigh the ruling.  (spec 006)"""
 
 
-VALID_PROVIDERS = ("anthropic", "openai")
+# Provider validation: accept any provider in the execution registry
+# plus the legacy auth-only providers. Previously hardcoded to
+# ("anthropic", "openai") which rejected 11+ valid providers (G12).
+def _valid_providers() -> frozenset[str]:
+    """Build the set of valid provider names from the execution registry."""
+    from engine.execution.providers import PROVIDER_REGISTRY
+    # Include legacy auth providers and all registered execution providers
+    return frozenset(PROVIDER_REGISTRY.keys()) | {"anthropic", "openai"}
+
+
+VALID_PROVIDERS = _valid_providers()
 
 
 class EngineConfig(BaseModel):
@@ -197,6 +207,15 @@ def _resolve_file_entries(
 ) -> list[Path]:
     """Resolve a target/prior entry into a list of existing paths.
 
+    Resolution order for each entry:
+      1. Relative to ``base`` (config file's parent directory)
+      2. Relative to CWD (project root / invocation directory)
+      3. Absolute path (used as-is)
+
+    This two-pass resolution handles both conventions:
+      - ``target: ./spec.md`` (relative to config dir) — resolves in pass 1
+      - ``target: specs/X/spec.md`` (relative to project root) — resolves in pass 2
+
     Rules:
       - String ending in ``/`` → directory: find all ``.md`` files (non-recursive)
       - String ending in a file extension → single file
@@ -208,14 +227,20 @@ def _resolve_file_entries(
     if isinstance(raw, str):
         raw = [raw]
 
+    cwd = Path.cwd()
     resolved: list[Path] = []
     for entry in raw:
-        p = (base / entry).resolve()
+        # Try config-dir-relative first, then CWD-relative
+        p_base = (base / entry).resolve()
+        p_cwd = (cwd / entry).resolve()
+        p = p_base if p_base.exists() or p_base.is_dir() else p_cwd
+
         if entry.endswith("/"):
             # Directory: non-recursive .md enumeration
             if not p.is_dir():
                 raise ConfigError(
-                    f"{field_name}: directory not found: {entry} (resolved to {p})"
+                    f"{field_name}: directory not found: {entry} "
+                    f"(tried {p_base} and {p_cwd})"
                 )
             md_files = sorted(p.glob("*.md"))
             if not md_files:
@@ -227,7 +252,8 @@ def _resolve_file_entries(
             # Single file
             if not p.exists():
                 raise ConfigError(
-                    f"{field_name}: file not found: {entry} (resolved to {p})"
+                    f"{field_name}: file not found: {entry} "
+                    f"(tried {p_base} and {p_cwd})"
                 )
             resolved.append(p)
     return resolved
