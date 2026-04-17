@@ -44,7 +44,8 @@ import yaml
 
 from engine._root import find_project_root
 from engine.adhoc import build_adhoc_config
-from engine.auth import resolve_provider
+from engine.auth import resolve_provider  # legacy — only for claude-desktop fallback
+from engine.run import resolve_execution_provider
 from engine.config import ConfigError, parse_config
 from engine.events import CallbackEmitter, NullEmitter
 from engine.phases import PipelineError, run_pipeline
@@ -194,8 +195,8 @@ def run_decide_mcp(
                 )
                 provider = "anthropic"
             try:
-                model_provider = resolve_provider(provider)
-            except ProviderError as exc:
+                model_provider = resolve_execution_provider(provider)
+            except (ProviderError, KeyError) as exc:
                 return DecideResult(
                     sufficient=True,
                     classification=classification,
@@ -488,8 +489,8 @@ def _run_in_process(
         engine_config = parse_config(tmp_path)
 
         try:
-            model_provider = resolve_provider(provider_name)
-        except ProviderError as exc:
+            model_provider = resolve_execution_provider(provider_name)
+        except (ProviderError, KeyError) as exc:
             errors_out = list(errors)
             errors_out.append(str(exc))
             return RunResult(
