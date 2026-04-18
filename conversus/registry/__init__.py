@@ -40,6 +40,7 @@ from conversus.registry.adapters import (
     PluginAdapter,
 )
 from conversus.registry.capability import Capability
+from conversus.registry.discovery import CAPABILITY_GROUPS, collect_capabilities
 from conversus.registry.params import Param, Surface
 from conversus.registry.registry import for_surface, get
 
@@ -78,4 +79,7 @@ __all__ = [
     # Lookup helpers (pure functions over an explicit list)
     "get",
     "for_surface",
+    # Entry-point discovery (spec 064)
+    "CAPABILITY_GROUPS",
+    "collect_capabilities",
 ]
