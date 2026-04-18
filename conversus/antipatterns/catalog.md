@@ -10,6 +10,8 @@
 | redundant-cache | Do not create tracking documents that duplicate computable state | tracking, cache, artifact-creation, status, taxonomy, deliberation-drift, convention-over-content, speckit-duplication |
 | unchecked-authority | Do not assert facts about code without citing specific lines — expert credibility does not substitute for evidence | authority, uncited, ungrounded, self-contradiction, impure-labeled-pure, expert-deference, bluffing |
 
+> **Consumer note**: The Summary Index is consumed by spec 055's typed `AntipatternRef` validator (see `specs/055-challenge-loop-deliberation/spec.md` §11.3); format changes require coordinated updates to consumers.
+
 ---
 
 ## redundant-cache
