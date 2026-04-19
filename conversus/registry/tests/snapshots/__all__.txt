@@ -1,0 +1,16 @@
+CAPABILITY_GROUPS
+CLIAdapter
+Capability
+DefaultCLIAdapter
+DefaultMCPAdapter
+DefaultMCPBAdapter
+DefaultPluginAdapter
+MCPAdapter
+MCPBAdapter
+MCPBToolEntry
+Param
+PluginAdapter
+Surface
+collect_capabilities
+for_surface
+get
