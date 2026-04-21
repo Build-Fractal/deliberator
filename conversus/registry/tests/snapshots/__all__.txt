@@ -14,3 +14,5 @@ Surface
 collect_capabilities
 for_surface
 get
+register_discovered_cli_commands
+register_discovered_mcp_tools

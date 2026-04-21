@@ -43,6 +43,10 @@ from conversus.registry.capability import Capability
 from conversus.registry.discovery import CAPABILITY_GROUPS, collect_capabilities
 from conversus.registry.params import Param, Surface
 from conversus.registry.registry import for_surface, get
+from conversus.registry.runtime import (
+    register_discovered_cli_commands,
+    register_discovered_mcp_tools,
+)
 
 # Pydantic v2 forward-reference resolution: ``Capability`` declares its
 # adapter slots with string annotations (``"CLIAdapter | None"``) to avoid
@@ -82,4 +86,7 @@ __all__ = [
     # Entry-point discovery (spec 064)
     "CAPABILITY_GROUPS",
     "collect_capabilities",
+    # Runtime registration of discovered capabilities (spec 064.1)
+    "register_discovered_mcp_tools",
+    "register_discovered_cli_commands",
 ]
