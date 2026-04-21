@@ -738,3 +738,18 @@ def init(
     click.echo("")
     click.echo("You can now run:")
     click.echo(f"  conversus run conversus.yml --provider {default_provider}")
+
+
+# ---------------------------------------------------------------------------
+# Spec 064.1 — runtime registration of entry-point-discovered capabilities
+# ---------------------------------------------------------------------------
+#
+# Capabilities shipped by paid wheels (``conversus-enhanced`` etc.) advertise
+# themselves via setuptools entry points under the four functional groups
+# defined in :data:`conversus.registry.discovery.CAPABILITY_GROUPS`. The
+# registration call below walks those discoveries and installs each as a
+# subcommand on the ``cli`` group. Hand-coded ``@cli.command()`` decorators
+# above are unaffected.
+from conversus.registry.runtime import register_discovered_cli_commands
+
+register_discovered_cli_commands(cli)

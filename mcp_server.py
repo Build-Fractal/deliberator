@@ -510,6 +510,20 @@ def check_cost(config_yaml: str) -> list[dict]:
 
 
 # ---------------------------------------------------------------------------
+# Spec 064.1 — runtime registration of entry-point-discovered capabilities
+# ---------------------------------------------------------------------------
+#
+# Capabilities shipped by paid wheels (``conversus-enhanced`` etc.) advertise
+# themselves via setuptools entry points under the four functional groups
+# defined in :data:`conversus.registry.discovery.CAPABILITY_GROUPS`. The
+# registration call below walks those discoveries and registers each as a
+# live MCP tool. Static ``@mcp.tool()`` decorations above are unaffected.
+from conversus.registry.runtime import register_discovered_mcp_tools
+
+register_discovered_mcp_tools(mcp)
+
+
+# ---------------------------------------------------------------------------
 # Entry point — stdio transport
 # ---------------------------------------------------------------------------
 
