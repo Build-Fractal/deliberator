@@ -34,6 +34,7 @@ Key design decisions:
 from __future__ import annotations
 
 import json
+import os
 import shutil
 from datetime import timedelta
 from typing import Any
@@ -258,7 +259,21 @@ class ClaudeCodeProvider(SubprocessProvider):
             else None
         )
 
-        if is_error and not content:
+        # Tool-use-only success: when the agent completes its task solely
+        # via tool invocations (e.g., Write to task.output_path) and emits
+        # no final text block, text_parts is empty and content is None.
+        # In that mode the CLI's result envelope may spuriously surface
+        # is_error=True even though the artifact is on disk.  Trust the
+        # artifact: if task.output_path was written, treat as success.
+        try:
+            output_written = (
+                os.path.exists(task.output_path)
+                and os.path.getsize(task.output_path) > 0
+            )
+        except OSError:
+            output_written = False
+
+        if is_error and not content and not output_written:
             errors = result_msg.get("errors", [])
             error_msg = "; ".join(errors) if errors else f"claude-code reported error (rc={returncode})"
             return ExecutionResult(
@@ -276,6 +291,15 @@ class ClaudeCodeProvider(SubprocessProvider):
                 },
             )
 
+        metadata: dict[str, Any] = {
+            "returncode": returncode,
+            "num_turns": num_turns,
+            "stop_reason": result_msg.get("stop_reason"),
+        }
+        if is_error and not content and output_written:
+            metadata["tool_use_only"] = True
+            metadata["errors"] = result_msg.get("errors", [])
+
         return ExecutionResult(
             success=True,
             output_path=task.output_path,
@@ -284,11 +308,7 @@ class ClaudeCodeProvider(SubprocessProvider):
             cost=cost,
             duration=duration,
             provider=self.name,
-            metadata={
-                "returncode": returncode,
-                "num_turns": num_turns,
-                "stop_reason": result_msg.get("stop_reason"),
-            },
+            metadata=metadata,
         )
 
 
