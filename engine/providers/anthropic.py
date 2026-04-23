@@ -8,6 +8,8 @@ behaviour (no explicit key parameter).  All SDK errors are wrapped into
 
 from __future__ import annotations
 
+import asyncio
+import random
 from collections.abc import AsyncIterator
 
 import anthropic
@@ -17,6 +19,52 @@ from engine.providers import ProviderError
 # Version string for stealth headers. Derived from installed Claude Code
 # binary at import time; falls back to "unknown" if not installed.
 import subprocess as _subprocess
+
+# Rate-limit retry policy.  Subscription OAuth tokens collide under
+# modest concurrency; a short bounded retry with jitter clears transient
+# 429s without looking like an abuse pattern.  API-key users whose
+# throughput is already sized for their budget also benefit from
+# absorbing the occasional spike.
+_RETRY_MAX_ATTEMPTS = 3
+_RETRY_BACKOFF_BASE_SECONDS = 2.0
+_RETRY_BACKOFF_CAP_SECONDS = 30.0
+
+
+def _retry_after_seconds(exc: anthropic.RateLimitError) -> float | None:
+    """Extract the server's Retry-After hint if present.
+
+    Anthropic returns ``retry-after`` as an integer second count.  If
+    absent or malformed, callers should fall back to client-side backoff.
+    """
+    response = getattr(exc, "response", None)
+    if response is None:
+        return None
+    headers = getattr(response, "headers", None)
+    if headers is None:
+        return None
+    try:
+        raw = headers.get("retry-after")
+    except AttributeError:
+        return None
+    if raw is None:
+        return None
+    try:
+        return max(0.0, float(raw))
+    except (TypeError, ValueError):
+        return None
+
+
+def _retry_delay_seconds(exc: anthropic.RateLimitError, attempt: int) -> float:
+    """Delay before retry *attempt* (0-indexed), preferring Retry-After."""
+    server_hint = _retry_after_seconds(exc)
+    if server_hint is not None:
+        return server_hint
+    # Full-jitter exponential backoff: uniform(0, min(base*2^attempt, cap)).
+    ceiling = min(
+        _RETRY_BACKOFF_BASE_SECONDS * (2 ** attempt),
+        _RETRY_BACKOFF_CAP_SECONDS,
+    )
+    return random.uniform(0.0, ceiling)
 
 def _detect_claude_version() -> str:
     try:
@@ -115,85 +163,123 @@ class AnthropicProvider:
         return 1 if self._oauth_subscription else None
 
     async def complete(self, prompt: str, model: str, max_tokens: int) -> str:
-        """Send a single-shot completion request and return the full text."""
-        try:
-            response = await self.client.messages.create(
-                model=model,
-                max_tokens=max_tokens,
-                messages=[{"role": "user", "content": prompt}],
-            )
-            self._record_usage(getattr(response, "usage", None))
-            return response.content[0].text
-        except anthropic.AuthenticationError as exc:
-            raise ProviderError(
-                f"Anthropic authentication failed: {exc}",
-                category="auth",
-                original=exc,
-            ) from exc
-        except anthropic.RateLimitError as exc:
-            raise ProviderError(
-                f"Anthropic rate limit exceeded: {exc}",
-                category="rate_limit",
-                original=exc,
-            ) from exc
-        except anthropic.APIStatusError as exc:
-            raise ProviderError(
-                f"Anthropic API error (status {exc.status_code}): {exc}",
-                category="server",
-                original=exc,
-            ) from exc
-        except anthropic.APIError as exc:
-            raise ProviderError(
-                f"Anthropic API error: {exc}",
-                category="unknown",
-                original=exc,
-            ) from exc
+        """Send a single-shot completion request and return the full text.
+
+        Rate-limit errors trigger a bounded retry with server-honored
+        ``Retry-After`` (or jittered exponential backoff if absent).
+        After :data:`_RETRY_MAX_ATTEMPTS` attempts the final 429 is
+        surfaced as a ``rate_limit`` :class:`ProviderError`.
+        """
+        last_rate_limit: anthropic.RateLimitError | None = None
+        for attempt in range(_RETRY_MAX_ATTEMPTS):
+            try:
+                response = await self.client.messages.create(
+                    model=model,
+                    max_tokens=max_tokens,
+                    messages=[{"role": "user", "content": prompt}],
+                )
+                self._record_usage(getattr(response, "usage", None))
+                return response.content[0].text
+            except anthropic.RateLimitError as exc:
+                last_rate_limit = exc
+                if attempt == _RETRY_MAX_ATTEMPTS - 1:
+                    break
+                await asyncio.sleep(_retry_delay_seconds(exc, attempt))
+                continue
+            except anthropic.AuthenticationError as exc:
+                raise ProviderError(
+                    f"Anthropic authentication failed: {exc}",
+                    category="auth",
+                    original=exc,
+                ) from exc
+            except anthropic.APIStatusError as exc:
+                raise ProviderError(
+                    f"Anthropic API error (status {exc.status_code}): {exc}",
+                    category="server",
+                    original=exc,
+                ) from exc
+            except anthropic.APIError as exc:
+                raise ProviderError(
+                    f"Anthropic API error: {exc}",
+                    category="unknown",
+                    original=exc,
+                ) from exc
+
+        # Exhausted retries; surface the last 429.
+        assert last_rate_limit is not None
+        raise ProviderError(
+            f"Anthropic rate limit exceeded after {_RETRY_MAX_ATTEMPTS} attempts: {last_rate_limit}",
+            category="rate_limit",
+            original=last_rate_limit,
+        ) from last_rate_limit
 
     async def stream(self, prompt: str, model: str, max_tokens: int) -> AsyncIterator[str]:
         """Stream text chunks from a completion request.
+
+        Rate-limit errors raised before any chunk yields trigger the same
+        bounded retry as :meth:`complete`.  Once the stream has produced
+        at least one chunk, retry is unsafe (it would duplicate output)
+        and the 429 propagates as a ``rate_limit`` :class:`ProviderError`.
 
         After the stream completes, ``last_usage`` is populated from the
         final message's ``usage`` field (the SDK aggregates token counts
         on the assembled message available via ``stream.get_final_message()``).
         """
-        try:
-            async with self.client.messages.stream(
-                model=model,
-                max_tokens=max_tokens,
-                messages=[{"role": "user", "content": prompt}],
-            ) as stream:
-                async for text in stream.text_stream:
-                    yield text
-                # Capture usage from the assembled final message.  The
-                # SDK exposes this after the iterator is exhausted.
-                try:
-                    final = await stream.get_final_message()
-                    self._record_usage(getattr(final, "usage", None))
-                except Exception:
-                    # Usage capture is best-effort — never fail the
-                    # caller because token telemetry is missing.
-                    pass
-        except anthropic.AuthenticationError as exc:
-            raise ProviderError(
-                f"Anthropic authentication failed: {exc}",
-                category="auth",
-                original=exc,
-            ) from exc
-        except anthropic.RateLimitError as exc:
-            raise ProviderError(
-                f"Anthropic rate limit exceeded: {exc}",
-                category="rate_limit",
-                original=exc,
-            ) from exc
-        except anthropic.APIStatusError as exc:
-            raise ProviderError(
-                f"Anthropic API error (status {exc.status_code}): {exc}",
-                category="server",
-                original=exc,
-            ) from exc
-        except anthropic.APIError as exc:
-            raise ProviderError(
-                f"Anthropic API error: {exc}",
-                category="unknown",
-                original=exc,
-            ) from exc
+        last_rate_limit: anthropic.RateLimitError | None = None
+        for attempt in range(_RETRY_MAX_ATTEMPTS):
+            yielded = False
+            try:
+                async with self.client.messages.stream(
+                    model=model,
+                    max_tokens=max_tokens,
+                    messages=[{"role": "user", "content": prompt}],
+                ) as stream:
+                    async for text in stream.text_stream:
+                        yielded = True
+                        yield text
+                    # Capture usage from the assembled final message.  The
+                    # SDK exposes this after the iterator is exhausted.
+                    # Best-effort — never fail the caller for missing telemetry.
+                    try:
+                        final = await stream.get_final_message()
+                        self._record_usage(getattr(final, "usage", None))
+                    except Exception:
+                        pass
+                return
+            except anthropic.RateLimitError as exc:
+                last_rate_limit = exc
+                if yielded or attempt == _RETRY_MAX_ATTEMPTS - 1:
+                    raise ProviderError(
+                        f"Anthropic rate limit exceeded: {exc}",
+                        category="rate_limit",
+                        original=exc,
+                    ) from exc
+                await asyncio.sleep(_retry_delay_seconds(exc, attempt))
+                continue
+            except anthropic.AuthenticationError as exc:
+                raise ProviderError(
+                    f"Anthropic authentication failed: {exc}",
+                    category="auth",
+                    original=exc,
+                ) from exc
+            except anthropic.APIStatusError as exc:
+                raise ProviderError(
+                    f"Anthropic API error (status {exc.status_code}): {exc}",
+                    category="server",
+                    original=exc,
+                ) from exc
+            except anthropic.APIError as exc:
+                raise ProviderError(
+                    f"Anthropic API error: {exc}",
+                    category="unknown",
+                    original=exc,
+                ) from exc
+
+        # Unreachable: either the loop returned after a successful stream,
+        # or one of the branches raised.  Guard for safety.
+        assert last_rate_limit is not None
+        raise ProviderError(
+            f"Anthropic rate limit exceeded after {_RETRY_MAX_ATTEMPTS} attempts: {last_rate_limit}",
+            category="rate_limit",
+            original=last_rate_limit,
+        ) from last_rate_limit
