@@ -56,7 +56,10 @@ class AnthropicProvider:
     """
 
     def __init__(self, auth_token: str | None = None) -> None:
-        if auth_token is not None and is_oauth_token(auth_token):
+        self._oauth_subscription = (
+            auth_token is not None and is_oauth_token(auth_token)
+        )
+        if self._oauth_subscription:
             self.client = anthropic.AsyncAnthropic(
                 auth_token=auth_token,
                 default_headers={
@@ -94,6 +97,22 @@ class AnthropicProvider:
             "input_tokens": input_tokens,
             "output_tokens": output_tokens,
         }
+
+    @property
+    def effective_concurrency(self) -> int | None:
+        """Max in-flight requests this provider can sustain without 429s.
+
+        Subscription OAuth tokens (``sk-ant-oat`` prefix) carry a
+        per-subscription concurrent-request ceiling independent of the
+        per-minute RPM budget.  Two in-flight Sonnet requests reliably
+        trigger 429s on a fresh subscription, which cascades into full
+        phase failure in multi-agent runs.  Report ``1`` so dispatchers
+        that honor this property can gate concurrency accordingly.
+
+        Returns ``None`` for API-key auth (no client-side cap — the SDK
+        and server govern throughput).
+        """
+        return 1 if self._oauth_subscription else None
 
     async def complete(self, prompt: str, model: str, max_tokens: int) -> str:
         """Send a single-shot completion request and return the full text."""

@@ -499,3 +499,31 @@ class TestModelProviderAdapterReadsUsage:
 
         assert result.success is True
         assert result.cost is None
+
+
+# ---------------------------------------------------------------------------
+# Anthropic — OAuth concurrency cap
+# ---------------------------------------------------------------------------
+
+
+class TestAnthropicConcurrencyCap:
+    """OAuth subscription tokens collide under concurrent dispatch; the
+    provider reports an ``effective_concurrency`` of 1 so dispatchers can
+    gate accordingly.  API keys report ``None`` — no client-side cap.
+    """
+
+    def test_oauth_token_implies_concurrency_cap(self) -> None:
+        provider = AnthropicProvider(auth_token="sk-ant-oat-subscription-token")
+        assert provider.effective_concurrency == 1
+
+    def test_api_key_implies_no_concurrency_cap(self) -> None:
+        provider = AnthropicProvider(auth_token="sk-ant-api03-user-key")
+        assert provider.effective_concurrency is None
+
+    def test_env_var_auth_implies_no_concurrency_cap(self) -> None:
+        """When auth_token is None (env-var path), no cap is imposed —
+        API-key users whose key comes from ANTHROPIC_API_KEY should not
+        be throttled by this provider.
+        """
+        provider = AnthropicProvider()
+        assert provider.effective_concurrency is None
