@@ -156,12 +156,34 @@ class DesktopSamplingProvider:
                 len(response_text),
             )
 
+            # TODO(token-tracking): MCP's ``CreateMessageResult`` schema
+            # (mcp/types.py) does not expose ``usage`` — the sampling
+            # spec routes the request through the host's LLM session
+            # but does not surface token counts back to the server.
+            # When the spec adds usage (or when individual hosts begin
+            # attaching it via ``meta``), capture it here.  Until then
+            # we report ``cost=None`` (unknown != zero per binding
+            # condition #5) rather than fabricating zeros.
+            cost: Cost | None = None
+            meta = getattr(result, "meta", None) or getattr(result, "_meta", None)
+            if isinstance(meta, dict):
+                usage = meta.get("usage")
+                if isinstance(usage, dict):
+                    try:
+                        cost = Cost(
+                            input_tokens=int(usage.get("input_tokens", 0) or 0),
+                            output_tokens=int(usage.get("output_tokens", 0) or 0),
+                            usd=None,
+                        )
+                    except (TypeError, ValueError):
+                        cost = None
+
             return ExecutionResult(
                 success=True,
                 output_path=task.output_path,
                 content=response_text,
                 error=None,
-                cost=Cost(input_tokens=0, output_tokens=0),
+                cost=cost,
                 duration=elapsed,
                 provider=self.name,
             )
