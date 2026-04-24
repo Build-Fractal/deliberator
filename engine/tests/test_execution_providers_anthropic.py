@@ -328,6 +328,73 @@ class TestExecuteErrors:
 
 
 # ---------------------------------------------------------------------------
+# Rate-limit retry
+# ---------------------------------------------------------------------------
+
+
+class TestExecuteRateLimitRetry:
+    """Execution provider retries transient 429s before returning failure."""
+
+    @patch("engine.execution.providers.anthropic.anthropic.AsyncAnthropic")
+    def test_retries_and_succeeds(
+        self,
+        mock_cls: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        monkeypatch.setenv("CONVERSUS_RATE_LIMIT_MAX_ATTEMPTS", "3")
+        monkeypatch.setenv("CONVERSUS_RATE_LIMIT_BASE_DELAY", "0")
+        monkeypatch.setenv("CONVERSUS_RATE_LIMIT_MAX_DELAY", "0")
+
+        mock_response = MagicMock()
+        mock_response.status_code = 429
+        mock_response.headers = {}
+        rate_limit_exc = anthropic.RateLimitError(
+            message="rl", response=mock_response, body=None
+        )
+
+        mock_client = MagicMock()
+        mock_client.messages.create = AsyncMock(
+            side_effect=[rate_limit_exc, _make_sdk_response(text="recovered")]
+        )
+        mock_cls.return_value = mock_client
+
+        provider = AnthropicExecutionProvider()
+        result = asyncio.run(provider.execute(_make_task()))
+
+        assert result.success is True
+        assert result.content == "recovered"
+        assert mock_client.messages.create.call_count == 2
+
+    @patch("engine.execution.providers.anthropic.anthropic.AsyncAnthropic")
+    def test_exhausts_attempts(
+        self,
+        mock_cls: MagicMock,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        monkeypatch.setenv("CONVERSUS_RATE_LIMIT_MAX_ATTEMPTS", "3")
+        monkeypatch.setenv("CONVERSUS_RATE_LIMIT_BASE_DELAY", "0")
+        monkeypatch.setenv("CONVERSUS_RATE_LIMIT_MAX_DELAY", "0")
+
+        mock_response = MagicMock()
+        mock_response.status_code = 429
+        mock_response.headers = {}
+        exc = anthropic.RateLimitError(
+            message="rl", response=mock_response, body=None
+        )
+        mock_client = MagicMock()
+        mock_client.messages.create = AsyncMock(side_effect=exc)
+        mock_cls.return_value = mock_client
+
+        provider = AnthropicExecutionProvider()
+        result = asyncio.run(provider.execute(_make_task()))
+
+        assert result.success is False
+        assert result.error is not None
+        assert result.error.category == "rate_limit"
+        assert mock_client.messages.create.call_count == 3
+
+
+# ---------------------------------------------------------------------------
 # Reference inlining
 # ---------------------------------------------------------------------------
 

@@ -336,3 +336,158 @@ class TestAnthropicStealthHeaders:
         assert re.match(r"^\d+\.\d+\.\d+$", CLAUDE_CODE_VERSION) or CLAUDE_CODE_VERSION == "unknown", (
             f"Expected semver or 'unknown', got: {CLAUDE_CODE_VERSION}"
         )
+
+
+# ---------------------------------------------------------------------------
+# Rate-limit retry integration
+# ---------------------------------------------------------------------------
+#
+# Verifies that provider.complete/stream retries transient 429s with
+# backoff.  The autouse ``_disable_rate_limit_retry`` conftest fixture
+# pins max_attempts=1 for the rest of the suite; these tests opt back
+# in via monkeypatch.
+
+
+@pytest.fixture
+def _enable_retry(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Opt in to retry with near-zero backoff so tests run fast."""
+    monkeypatch.setenv("CONVERSUS_RATE_LIMIT_MAX_ATTEMPTS", "3")
+    monkeypatch.setenv("CONVERSUS_RATE_LIMIT_BASE_DELAY", "0")
+    monkeypatch.setenv("CONVERSUS_RATE_LIMIT_MAX_DELAY", "0")
+
+
+def _anthropic_response(content: str) -> MagicMock:
+    """Build a mock Anthropic Message response with a single text block."""
+    block = MagicMock()
+    block.text = content
+    response = MagicMock()
+    response.content = [block]
+    return response
+
+
+def _mock_anthropic_rate_limit(headers: dict[str, str] | None = None) -> Exception:
+    """Construct an ``anthropic.RateLimitError`` suitable for side_effect."""
+    import anthropic
+
+    mock_response = MagicMock()
+    mock_response.status_code = 429
+    mock_response.headers = headers or {}
+    return anthropic.RateLimitError(
+        message="Rate limit exceeded",
+        response=mock_response,
+        body=None,
+    )
+
+
+class TestAnthropicRateLimitRetry:
+    """Anthropic provider retries transient 429s and respects Retry-After."""
+
+    async def test_complete_retries_and_succeeds(self, _enable_retry: None) -> None:
+        provider = AnthropicProvider()
+        provider.client.messages.create = AsyncMock(
+            side_effect=[
+                _mock_anthropic_rate_limit(),
+                _anthropic_response("recovered"),
+            ]
+        )
+
+        result = await provider.complete(prompt="Hi", model="claude", max_tokens=100)
+
+        assert result == "recovered"
+        assert provider.client.messages.create.call_count == 2
+
+    async def test_complete_exhausts_attempts(self, _enable_retry: None) -> None:
+        provider = AnthropicProvider()
+        exc = _mock_anthropic_rate_limit()
+        provider.client.messages.create = AsyncMock(side_effect=exc)
+
+        with pytest.raises(ProviderError) as exc_info:
+            await provider.complete(prompt="Hi", model="claude", max_tokens=100)
+
+        assert exc_info.value.category == "rate_limit"
+        assert exc_info.value.original is exc
+        assert provider.client.messages.create.call_count == 3
+
+    async def test_complete_honours_retry_after(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """Server-provided Retry-After drives the sleep duration."""
+        import asyncio as _asyncio
+
+        monkeypatch.setenv("CONVERSUS_RATE_LIMIT_MAX_ATTEMPTS", "3")
+        monkeypatch.setenv("CONVERSUS_RATE_LIMIT_MAX_DELAY", "60")
+
+        sleeps: list[float] = []
+
+        async def _fake_sleep(delay: float) -> None:
+            sleeps.append(delay)
+
+        monkeypatch.setattr("engine.providers.anthropic.asyncio.sleep", _fake_sleep)
+
+        provider = AnthropicProvider()
+        provider.client.messages.create = AsyncMock(
+            side_effect=[
+                _mock_anthropic_rate_limit({"retry-after": "7"}),
+                _anthropic_response("ok"),
+            ]
+        )
+
+        result = await provider.complete(prompt="Hi", model="claude", max_tokens=100)
+
+        assert result == "ok"
+        assert sleeps == [7.0]
+
+    async def test_complete_does_not_retry_on_auth(
+        self, _enable_retry: None
+    ) -> None:
+        """Non-rate-limit errors should surface immediately."""
+        import anthropic
+
+        provider = AnthropicProvider()
+        mock_response = MagicMock()
+        mock_response.status_code = 401
+        mock_response.headers = {}
+        exc = anthropic.AuthenticationError(
+            message="Invalid", response=mock_response, body=None
+        )
+        provider.client.messages.create = AsyncMock(side_effect=exc)
+
+        with pytest.raises(ProviderError) as exc_info:
+            await provider.complete(prompt="Hi", model="claude", max_tokens=100)
+
+        assert exc_info.value.category == "auth"
+        assert provider.client.messages.create.call_count == 1
+
+
+class TestOpenAIRateLimitRetry:
+    """OpenAI provider retries transient 429s with the same semantics."""
+
+    async def test_complete_retries_and_succeeds(self, _enable_retry: None) -> None:
+        provider = OpenAIProvider(api_key="test-key")
+        provider.client.chat.completions.create = AsyncMock(
+            side_effect=[
+                openai.RateLimitError(
+                    message="rl", response=_mock_httpx_response(429), body=None
+                ),
+                _openai_response("recovered"),
+            ]
+        )
+
+        result = await provider.complete(prompt="Hi", model="gpt-4o", max_tokens=100)
+
+        assert result == "recovered"
+        assert provider.client.chat.completions.create.call_count == 2
+
+    async def test_complete_exhausts_attempts(self, _enable_retry: None) -> None:
+        provider = OpenAIProvider(api_key="test-key")
+        exc = openai.RateLimitError(
+            message="rl", response=_mock_httpx_response(429), body=None
+        )
+        provider.client.chat.completions.create = AsyncMock(side_effect=exc)
+
+        with pytest.raises(ProviderError) as exc_info:
+            await provider.complete(prompt="Hi", model="gpt-4o", max_tokens=100)
+
+        assert exc_info.value.category == "rate_limit"
+        assert provider.client.chat.completions.create.call_count == 3

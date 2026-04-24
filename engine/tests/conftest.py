@@ -12,6 +12,21 @@ from engine.providers import MockProvider
 
 
 # ---------------------------------------------------------------------------
+# Rate-limit retry defaults (autouse)
+# ---------------------------------------------------------------------------
+#
+# The provider layer retries 429s with exponential backoff (see
+# ``engine.providers._retry``).  For the test suite we disable retry by
+# default so tests that mock a persistent rate-limit error do not sleep
+# through multiple backoff intervals.  Tests that explicitly exercise
+# retry behavior opt back in via monkeypatch.
+
+@pytest.fixture(autouse=True)
+def _disable_rate_limit_retry(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("CONVERSUS_RATE_LIMIT_MAX_ATTEMPTS", "1")
+
+
+# ---------------------------------------------------------------------------
 # Paths
 # ---------------------------------------------------------------------------
 

@@ -38,6 +38,7 @@ be retired.
 
 from __future__ import annotations
 
+import asyncio
 import time
 from datetime import timedelta
 from pathlib import Path
@@ -51,6 +52,11 @@ from engine.execution.provider import (
     ExecutionTask,
 )
 from engine.providers import ProviderError
+from engine.providers._retry import (
+    compute_backoff_delay,
+    get_max_attempts,
+    parse_retry_after,
+)
 
 # Re-use the version string and OAuth detection from the model provider.
 from engine.providers.anthropic import CLAUDE_CODE_VERSION, is_oauth_token
@@ -154,42 +160,54 @@ class AnthropicExecutionProvider:
         prompt = _inline_references(task)
 
         start = time.monotonic()
-        try:
-            response = await self._client.messages.create(
-                model=model,
-                max_tokens=max_tokens,
-                messages=[{"role": "user", "content": prompt}],
-            )
-        except anthropic.AuthenticationError as exc:
-            return self._error_result(
-                task, start, "auth",
-                f"Anthropic authentication failed: {exc}", exc,
-                model=model, max_tokens=max_tokens,
-            )
-        except anthropic.RateLimitError as exc:
-            return self._error_result(
-                task, start, "rate_limit",
-                f"Anthropic rate limit exceeded: {exc}", exc,
-                model=model, max_tokens=max_tokens,
-            )
-        except anthropic.APIStatusError as exc:
-            return self._error_result(
-                task, start, "server",
-                f"Anthropic API error (status {exc.status_code}): {exc}", exc,
-                model=model, max_tokens=max_tokens,
-            )
-        except anthropic.APIError as exc:
-            return self._error_result(
-                task, start, "unknown",
-                f"Anthropic API error: {exc}", exc,
-                model=model, max_tokens=max_tokens,
-            )
-        except Exception as exc:
-            return self._error_result(
-                task, start, "unknown",
-                f"{type(exc).__name__}: {exc}", exc,
-                model=model, max_tokens=max_tokens,
-            )
+        # Retry 429s with exponential backoff; see engine.providers._retry.
+        max_attempts = get_max_attempts()
+        response = None
+        for attempt in range(max_attempts):
+            try:
+                response = await self._client.messages.create(
+                    model=model,
+                    max_tokens=max_tokens,
+                    messages=[{"role": "user", "content": prompt}],
+                )
+                break
+            except anthropic.AuthenticationError as exc:
+                return self._error_result(
+                    task, start, "auth",
+                    f"Anthropic authentication failed: {exc}", exc,
+                    model=model, max_tokens=max_tokens,
+                )
+            except anthropic.RateLimitError as exc:
+                if attempt == max_attempts - 1:
+                    return self._error_result(
+                        task, start, "rate_limit",
+                        f"Anthropic rate limit exceeded: {exc}", exc,
+                        model=model, max_tokens=max_tokens,
+                    )
+                await asyncio.sleep(
+                    compute_backoff_delay(
+                        attempt, retry_after=parse_retry_after(exc)
+                    )
+                )
+            except anthropic.APIStatusError as exc:
+                return self._error_result(
+                    task, start, "server",
+                    f"Anthropic API error (status {exc.status_code}): {exc}", exc,
+                    model=model, max_tokens=max_tokens,
+                )
+            except anthropic.APIError as exc:
+                return self._error_result(
+                    task, start, "unknown",
+                    f"Anthropic API error: {exc}", exc,
+                    model=model, max_tokens=max_tokens,
+                )
+            except Exception as exc:
+                return self._error_result(
+                    task, start, "unknown",
+                    f"{type(exc).__name__}: {exc}", exc,
+                    model=model, max_tokens=max_tokens,
+                )
+        assert response is not None  # loop exits only via break or return
 
         # Extract text content
         content = response.content[0].text if response.content else ""

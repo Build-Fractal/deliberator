@@ -8,11 +8,17 @@ behaviour (no explicit key parameter).  All SDK errors are wrapped into
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import AsyncIterator
 
 import anthropic
 
 from engine.providers import ProviderError
+from engine.providers._retry import (
+    compute_backoff_delay,
+    get_max_attempts,
+    parse_retry_after,
+)
 
 # Version string for stealth headers. Derived from installed Claude Code
 # binary at import time; falls back to "unknown" if not installed.
@@ -71,70 +77,101 @@ class AnthropicProvider:
             self.client = anthropic.AsyncAnthropic()
 
     async def complete(self, prompt: str, model: str, max_tokens: int) -> str:
-        """Send a single-shot completion request and return the full text."""
-        try:
-            response = await self.client.messages.create(
-                model=model,
-                max_tokens=max_tokens,
-                messages=[{"role": "user", "content": prompt}],
-            )
-            return response.content[0].text
-        except anthropic.AuthenticationError as exc:
-            raise ProviderError(
-                f"Anthropic authentication failed: {exc}",
-                category="auth",
-                original=exc,
-            ) from exc
-        except anthropic.RateLimitError as exc:
-            raise ProviderError(
-                f"Anthropic rate limit exceeded: {exc}",
-                category="rate_limit",
-                original=exc,
-            ) from exc
-        except anthropic.APIStatusError as exc:
-            raise ProviderError(
-                f"Anthropic API error (status {exc.status_code}): {exc}",
-                category="server",
-                original=exc,
-            ) from exc
-        except anthropic.APIError as exc:
-            raise ProviderError(
-                f"Anthropic API error: {exc}",
-                category="unknown",
-                original=exc,
-            ) from exc
+        """Send a single-shot completion request and return the full text.
+
+        Retries transient 429 rate-limit responses with exponential
+        backoff; see :mod:`engine.providers._retry` for policy.
+        """
+        max_attempts = get_max_attempts()
+        for attempt in range(max_attempts):
+            try:
+                response = await self.client.messages.create(
+                    model=model,
+                    max_tokens=max_tokens,
+                    messages=[{"role": "user", "content": prompt}],
+                )
+                return response.content[0].text
+            except anthropic.AuthenticationError as exc:
+                raise ProviderError(
+                    f"Anthropic authentication failed: {exc}",
+                    category="auth",
+                    original=exc,
+                ) from exc
+            except anthropic.RateLimitError as exc:
+                if attempt == max_attempts - 1:
+                    raise ProviderError(
+                        f"Anthropic rate limit exceeded: {exc}",
+                        category="rate_limit",
+                        original=exc,
+                    ) from exc
+                await asyncio.sleep(
+                    compute_backoff_delay(
+                        attempt, retry_after=parse_retry_after(exc)
+                    )
+                )
+            except anthropic.APIStatusError as exc:
+                raise ProviderError(
+                    f"Anthropic API error (status {exc.status_code}): {exc}",
+                    category="server",
+                    original=exc,
+                ) from exc
+            except anthropic.APIError as exc:
+                raise ProviderError(
+                    f"Anthropic API error: {exc}",
+                    category="unknown",
+                    original=exc,
+                ) from exc
+        # Unreachable: loop either returns on success or raises on the
+        # final attempt. Kept for type-checker completeness.
+        raise RuntimeError("retry loop exited without returning or raising")
 
     async def stream(self, prompt: str, model: str, max_tokens: int) -> AsyncIterator[str]:
-        """Stream text chunks from a completion request."""
-        try:
-            async with self.client.messages.stream(
-                model=model,
-                max_tokens=max_tokens,
-                messages=[{"role": "user", "content": prompt}],
-            ) as stream:
-                async for text in stream.text_stream:
-                    yield text
-        except anthropic.AuthenticationError as exc:
-            raise ProviderError(
-                f"Anthropic authentication failed: {exc}",
-                category="auth",
-                original=exc,
-            ) from exc
-        except anthropic.RateLimitError as exc:
-            raise ProviderError(
-                f"Anthropic rate limit exceeded: {exc}",
-                category="rate_limit",
-                original=exc,
-            ) from exc
-        except anthropic.APIStatusError as exc:
-            raise ProviderError(
-                f"Anthropic API error (status {exc.status_code}): {exc}",
-                category="server",
-                original=exc,
-            ) from exc
-        except anthropic.APIError as exc:
-            raise ProviderError(
-                f"Anthropic API error: {exc}",
-                category="unknown",
-                original=exc,
-            ) from exc
+        """Stream text chunks from a completion request.
+
+        Retries rate-limit failures only before any chunk has been
+        yielded — once output has started flowing to the consumer a
+        retry would replay text, so we let such errors surface instead.
+        """
+        max_attempts = get_max_attempts()
+        for attempt in range(max_attempts):
+            yielded_any = False
+            try:
+                async with self.client.messages.stream(
+                    model=model,
+                    max_tokens=max_tokens,
+                    messages=[{"role": "user", "content": prompt}],
+                ) as stream:
+                    async for text in stream.text_stream:
+                        yielded_any = True
+                        yield text
+                return
+            except anthropic.AuthenticationError as exc:
+                raise ProviderError(
+                    f"Anthropic authentication failed: {exc}",
+                    category="auth",
+                    original=exc,
+                ) from exc
+            except anthropic.RateLimitError as exc:
+                if yielded_any or attempt == max_attempts - 1:
+                    raise ProviderError(
+                        f"Anthropic rate limit exceeded: {exc}",
+                        category="rate_limit",
+                        original=exc,
+                    ) from exc
+                await asyncio.sleep(
+                    compute_backoff_delay(
+                        attempt, retry_after=parse_retry_after(exc)
+                    )
+                )
+            except anthropic.APIStatusError as exc:
+                raise ProviderError(
+                    f"Anthropic API error (status {exc.status_code}): {exc}",
+                    category="server",
+                    original=exc,
+                ) from exc
+            except anthropic.APIError as exc:
+                raise ProviderError(
+                    f"Anthropic API error: {exc}",
+                    category="unknown",
+                    original=exc,
+                ) from exc
