@@ -349,6 +349,58 @@ class TestAiderOutputParsing:
         assert result.success is False
         assert result.error.category == "subprocess"
 
+    def test_aider_captures_tokens(self) -> None:
+        """Parse the 'Tokens: X sent, Y received.' summary line."""
+        provider = AiderProvider()
+        stdout = (
+            "Aider v0.50\n"
+            "Reasoning about the request...\n"
+            "Here is the answer.\n"
+            "Tokens: 1.2k sent, 234 received. Cost: $0.0042 message, $0.04 session.\n"
+        )
+        result = provider._parse_output(stdout, "", 0, _make_task())
+        assert result.success is True
+        assert result.cost is not None
+        assert result.cost.input_tokens == 1200
+        assert result.cost.output_tokens == 234
+        assert result.cost.usd is None
+
+    def test_aider_token_summary_no_k_suffix(self) -> None:
+        provider = AiderProvider()
+        stdout = "ok\nTokens: 47 sent, 12 received.\n"
+        result = provider._parse_output(stdout, "", 0, _make_task())
+        assert result.cost is not None
+        assert result.cost.input_tokens == 47
+        assert result.cost.output_tokens == 12
+
+    def test_aider_token_summary_with_commas(self) -> None:
+        provider = AiderProvider()
+        stdout = "Tokens: 1,234 sent, 567 received.\n"
+        result = provider._parse_output(stdout, "", 0, _make_task())
+        assert result.cost is not None
+        assert result.cost.input_tokens == 1234
+        assert result.cost.output_tokens == 567
+
+    def test_aider_uses_last_token_summary(self) -> None:
+        """Multi-message runs reprint the line each turn — we want the last."""
+        provider = AiderProvider()
+        stdout = (
+            "Tokens: 100 sent, 50 received.\n"
+            "More work happening...\n"
+            "Tokens: 200 sent, 75 received.\n"
+        )
+        result = provider._parse_output(stdout, "", 0, _make_task())
+        assert result.cost is not None
+        assert result.cost.input_tokens == 200
+        assert result.cost.output_tokens == 75
+
+    def test_aider_no_summary_means_no_cost(self) -> None:
+        """No Tokens line → cost is None (preserves unknown != zero)."""
+        provider = AiderProvider()
+        result = provider._parse_output("just a reply", "", 0, _make_task())
+        assert result.success is True
+        assert result.cost is None
+
 
 # ═══════════════════════════════════════════════════════════════════════════
 # OpenCodeProvider
@@ -383,6 +435,16 @@ class TestOpenCodeArgv:
         assert "Analyze code" in argv
 
 
+class TestOpenCodeArgvRequestsJson:
+    def test_argv_includes_format_json(self) -> None:
+        """Without ``--format json`` opencode prints free-form text — no tokens."""
+        provider = OpenCodeProvider(binary="opencode")
+        argv = provider._build_argv(_make_task(prompt="hi"))
+        assert "--format" in argv
+        idx = argv.index("--format")
+        assert argv[idx + 1] == "json"
+
+
 class TestOpenCodeOutputParsing:
     def test_success(self) -> None:
         provider = OpenCodeProvider()
@@ -394,6 +456,45 @@ class TestOpenCodeOutputParsing:
         provider = OpenCodeProvider()
         result = provider._parse_output("", "error", 1, _make_task())
         assert result.success is False
+
+    def test_opencode_captures_tokens(self) -> None:
+        """``message`` events with ``info.tokens.{input,output,...}`` → Cost."""
+        provider = OpenCodeProvider()
+        events = [
+            {
+                "info": {
+                    "role": "assistant",
+                    "tokens": {
+                        "input": 120,
+                        "output": 45,
+                        "reasoning": 5,
+                        "cache": {"read": 800, "write": 0},
+                    },
+                },
+                "parts": [{"text": "Here is the answer."}],
+            },
+        ]
+        stdout = "\n".join(json.dumps(e) for e in events)
+
+        result = provider._parse_output(stdout, "", 0, _make_task())
+
+        assert result.success is True
+        assert result.content == "Here is the answer."
+        assert result.cost is not None
+        # 120 input + 800 cache_read = 920 input tokens
+        assert result.cost.input_tokens == 920
+        # 45 output + 5 reasoning = 50 output tokens
+        assert result.cost.output_tokens == 50
+        assert result.cost.usd is None
+
+    def test_opencode_plain_text_fallback(self) -> None:
+        """If stdout isn't JSONL we still surface content with cost=None."""
+        provider = OpenCodeProvider()
+        result = provider._parse_output("plain output", "", 0, _make_task())
+        assert result.success is True
+        assert result.content == "plain output"
+        assert result.cost is None
+        assert result.metadata.get("raw_output") is True
 
 
 # ═══════════════════════════════════════════════════════════════════════════
