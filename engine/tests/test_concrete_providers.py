@@ -529,33 +529,58 @@ class TestCodexConformance:
 
 class TestCodexArgv:
     def test_basic_argv_contains_required_flags(self) -> None:
+        """argv uses the ``exec --json`` flow with deterministic last-message file."""
         provider = CodexProvider(model="o4-mini", binary="/usr/bin/codex")
         task = _make_task(prompt="Review this code")
         argv = provider._build_argv(task)
 
         assert argv[0] == "/usr/bin/codex"
-        assert "--quiet" in argv
-        assert "--full-auto" in argv
+        # ``exec`` subcommand replaces the deprecated `--quiet --full-auto` flags.
+        assert "exec" in argv
+        assert argv[1] == "exec"
+        assert "--json" in argv
+        assert "--output-last-message" in argv
         assert "--model" in argv
         idx = argv.index("--model")
         assert argv[idx + 1] == "o4-mini"
         assert argv[-1] == "Review this code"
 
+    def test_argv_includes_output_last_message_path(self) -> None:
+        """``--output-last-message`` is followed by an absolute tempfile path."""
+        provider = CodexProvider()
+        argv = provider._build_argv(_make_task(prompt="hi"))
+        idx = argv.index("--output-last-message")
+        path = argv[idx + 1]
+        # Path is absolute, points at an existing tempfile, and matches our prefix.
+        assert path.startswith("/")
+        assert "codex-last-msg-" in path
+        # Cleanup — the file is created by ``mkstemp`` in _build_argv.
+        try:
+            import os as _os
+
+            _os.unlink(path)
+        except OSError:
+            pass
+
+    def test_argv_no_longer_uses_deprecated_quiet_full_auto(self) -> None:
+        """The old ``--quiet --full-auto`` shape is gone — guard against regression."""
+        provider = CodexProvider()
+        argv = provider._build_argv(_make_task(prompt="hi"))
+        assert "--quiet" not in argv
+        assert "--full-auto" not in argv
+
     def test_argv_flag_order(self) -> None:
-        """Verify flags come before the positional prompt argument."""
+        """Verify ``exec`` comes immediately after the binary and prompt is last."""
         provider = CodexProvider(binary="codex")
         task = _make_task(prompt="Hello")
         argv = provider._build_argv(task)
 
-        # Prompt is the last element (positional)
-        assert argv[-1] == "Hello"
-        # Binary is first
         assert argv[0] == "codex"
-        # --quiet and --full-auto appear before the prompt
-        quiet_idx = argv.index("--quiet")
-        auto_idx = argv.index("--full-auto")
-        assert quiet_idx < len(argv) - 1
-        assert auto_idx < len(argv) - 1
+        assert argv[1] == "exec"
+        assert argv[-1] == "Hello"
+        # --json appears before the positional prompt
+        json_idx = argv.index("--json")
+        assert json_idx < len(argv) - 1
 
     def test_api_key_not_in_argv(self) -> None:
         """Secrets must never appear in argv — only in env."""
@@ -683,19 +708,52 @@ class TestCodexOutputParsing:
         assert result.success is False
         assert "codex exited -9" in str(result.error)
 
-    def test_codex_captures_tokens(self) -> None:
-        """JSONL ``token_count`` events are aggregated into Cost.
+    def test_codex_captures_tokens_from_info_total_shape(self) -> None:
+        """Documented shape: ``token_count`` events carry ``info.total_token_usage``.
 
-        Codex emits one ``token_count`` event per LLM turn when run via
-        the ``exec --json`` flow.  ``_parse_output`` should sum
-        ``input_tokens``/``output_tokens`` across all events.  This test
-        feeds a synthetic two-turn JSONL stream.
+        Per ``codex-rs/protocol/src/protocol.rs``, each ``token_count``
+        event re-publishes the **cumulative** running totals (not a
+        per-turn delta) — so ``_parse_output`` should take the LAST
+        event's totals, not sum across events.
         """
         provider = CodexProvider()
         jsonl = "\n".join([
-            json.dumps({"type": "token_count", "input_tokens": 100, "output_tokens": 25}),
+            json.dumps({
+                "type": "token_count",
+                "info": {
+                    "total_token_usage": {
+                        "input_tokens": 100,
+                        "cached_input_tokens": 0,
+                        "output_tokens": 25,
+                        "reasoning_output_tokens": 0,
+                        "total_tokens": 125,
+                    },
+                    "last_token_usage": {
+                        "input_tokens": 100,
+                        "output_tokens": 25,
+                    },
+                    "model_context_window": 200_000,
+                },
+            }),
             json.dumps({"type": "agent_message", "message": "First reply."}),
-            json.dumps({"type": "token_count", "input_tokens": 30, "output_tokens": 12}),
+            # Second turn: cumulative grows to 130/37, NOT a delta of 30/12.
+            json.dumps({
+                "type": "token_count",
+                "info": {
+                    "total_token_usage": {
+                        "input_tokens": 130,
+                        "cached_input_tokens": 0,
+                        "output_tokens": 37,
+                        "reasoning_output_tokens": 0,
+                        "total_tokens": 167,
+                    },
+                    "last_token_usage": {
+                        "input_tokens": 30,
+                        "output_tokens": 12,
+                    },
+                    "model_context_window": 200_000,
+                },
+            }),
             json.dumps({"type": "agent_message", "message": "Final answer is 42."}),
         ])
 
@@ -703,11 +761,51 @@ class TestCodexOutputParsing:
 
         assert result.success is True
         assert result.cost is not None
+        # Last event's cumulative totals — NOT 100+130=230.
         assert result.cost.input_tokens == 130
         assert result.cost.output_tokens == 37
         assert result.cost.usd is None
-        # Final agent_message wins — that's the response we display.
+        # Final agent_message wins as fallback content (no last-message file).
         assert result.content == "Final answer is 42."
+
+    def test_codex_folds_cached_input_and_reasoning_tokens(self) -> None:
+        """``cached_input_tokens`` → input; ``reasoning_output_tokens`` → output.
+
+        Matches how anthropic/gemini providers fold cache + reasoning fields.
+        """
+        provider = CodexProvider()
+        jsonl = json.dumps({
+            "type": "token_count",
+            "info": {
+                "total_token_usage": {
+                    "input_tokens": 50,
+                    "cached_input_tokens": 200,
+                    "output_tokens": 30,
+                    "reasoning_output_tokens": 70,
+                    "total_tokens": 350,
+                },
+            },
+        })
+        result = provider._parse_output(jsonl, "", 0, _make_task())
+        assert result.cost is not None
+        assert result.cost.input_tokens == 250  # 50 + 200 cached
+        assert result.cost.output_tokens == 100  # 30 + 70 reasoning
+
+    def test_codex_legacy_flat_shape_still_aggregates(self) -> None:
+        """Older codex versions used a flat ``input_tokens``/``output_tokens``
+        shape on the event itself.  Preserve that path as a fallback so we
+        don't regress users on pinned older codex CLI builds.
+        """
+        provider = CodexProvider()
+        jsonl = "\n".join([
+            json.dumps({"type": "token_count", "input_tokens": 100, "output_tokens": 25}),
+            json.dumps({"type": "token_count", "input_tokens": 30, "output_tokens": 12}),
+        ])
+        result = provider._parse_output(jsonl, "", 0, _make_task())
+        assert result.cost is not None
+        # Legacy shape doesn't carry cumulative totals — sum is correct here.
+        assert result.cost.input_tokens == 130
+        assert result.cost.output_tokens == 37
 
     def test_codex_jsonl_with_msg_envelope(self) -> None:
         """Codex sometimes wraps payloads in a ``msg`` envelope — handle both."""
@@ -722,12 +820,62 @@ class TestCodexOutputParsing:
         assert result.cost.output_tokens == 3
 
     def test_codex_no_token_events_falls_back_to_text(self) -> None:
-        """When stdout is plain text (the default ``--quiet`` mode), cost is None."""
+        """When stdout has no ``token_count`` events at all, cost is None."""
         provider = CodexProvider()
         result = provider._parse_output("Just plain text\n", "", 0, _make_task())
         assert result.success is True
         assert result.content == "Just plain text"
         assert result.cost is None
+
+    def test_codex_prefers_last_message_file_over_event_stream(self, tmp_path) -> None:
+        """``--output-last-message`` file is the authoritative source for content.
+
+        When ``_build_argv`` sets up a tempfile and codex writes to it,
+        ``_parse_output`` should read that file rather than scraping the
+        event stream.  This test simulates the file having content while
+        the JSONL stream's last ``agent_message`` says something different.
+        """
+        provider = CodexProvider()
+        # Simulate ``_build_argv`` having allocated a tempfile.
+        msg_file = tmp_path / "last-msg.txt"
+        msg_file.write_text("Authoritative final answer.\n")
+        provider._last_message_path = str(msg_file)
+
+        jsonl = "\n".join([
+            json.dumps({"type": "agent_message", "message": "Stale streaming text."}),
+        ])
+        result = provider._parse_output(jsonl, "", 0, _make_task())
+        assert result.success is True
+        # File wins over event-stream agent_message.
+        assert result.content == "Authoritative final answer."
+        # File is consumed (deleted) after read.
+        assert not msg_file.exists()
+        assert provider._last_message_path is None
+
+    def test_codex_falls_back_to_event_stream_when_message_file_empty(
+        self, tmp_path,
+    ) -> None:
+        """If the last-message file exists but is empty, fall back to events."""
+        provider = CodexProvider()
+        msg_file = tmp_path / "last-msg.txt"
+        msg_file.write_text("")
+        provider._last_message_path = str(msg_file)
+
+        jsonl = json.dumps({"type": "agent_message", "message": "Stream wins."})
+        result = provider._parse_output(jsonl, "", 0, _make_task())
+        assert result.content == "Stream wins."
+
+    def test_codex_cleans_up_message_file_on_failure(self, tmp_path) -> None:
+        """Even when codex exits non-zero, the tempfile must be removed."""
+        provider = CodexProvider()
+        msg_file = tmp_path / "last-msg.txt"
+        msg_file.write_text("partial")
+        provider._last_message_path = str(msg_file)
+
+        result = provider._parse_output("", "auth failed", 1, _make_task())
+        assert result.success is False
+        assert not msg_file.exists()
+        assert provider._last_message_path is None
 
 
 # ═══════════════════════════════════════════════════════════════════════════
