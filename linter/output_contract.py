@@ -129,9 +129,10 @@ _PHASES_HEADER: re.Pattern[str] = re.compile(
     r"\*\*Phases completed:\*\*\s*(\d+)", re.IGNORECASE
 )
 
-# Convergence section
+# Convergence section — heading levels H1–H4 tolerated for synthesizer drift.
 _CONVERGENCE_SECTION: re.Pattern[str] = re.compile(
-    r"###\s*Convergence Achieved.*?\n(.*?)(?=\n###|\n<!--\s*CONVERSUS|$)",
+    r"#{1,4}\s*Convergence Achieved.*?\n"
+    r"(.*?)(?=\n#{1,4}\s|\n<!--\s*CONVERSUS|$)",
     re.DOTALL,
 )
 
@@ -142,8 +143,13 @@ _CONVERGENCE_ITEM: re.Pattern[str] = re.compile(
 
 # Actionable Spec Changes section for fallback headline
 _SPEC_CHANGES_SECTION: re.Pattern[str] = re.compile(
-    r"###\s*Actionable Spec Changes.*?\n(.*?)(?=\n###|$)",
+    r"#{1,4}\s*Actionable Spec Changes.*?\n(.*?)(?=\n#{1,4}\s|$)",
     re.DOTALL,
+)
+
+# Scorecard heading (red-blue) — presence alone is a strong structural signal.
+_SCORECARD_HEADING: re.Pattern[str] = re.compile(
+    r"^#{1,4}\s+Scorecard\s*$", re.MULTILINE | re.IGNORECASE
 )
 
 # P1 item in spec changes: "1. **Deploy Buf-based...**"
@@ -258,7 +264,8 @@ def _extract_convergence_count(text: str) -> int:
 
 # Dangerous Contradictions Found section
 _CONTRADICTIONS_SECTION: re.Pattern[str] = re.compile(
-    r"###\s*Dangerous Contradictions Found\s*\n(.*?)(?=\n###|\n---|\Z)",
+    r"#{1,4}\s*Dangerous Contradictions Found\s*\n"
+    r"(.*?)(?=\n#{1,4}\s|\n---|\Z)",
     re.DOTALL,
 )
 
@@ -379,23 +386,6 @@ def parse_synthesis(text: str, mode: str = "cooperative") -> ConversusOutput:
     phases_completed = _extract_phases_completed(text)
     cross_reviews = _extract_cross_reviews_performed(text, agent_count)
 
-    # Guard against silent parse failure: if every explicit structural probe
-    # missed AND the phase-keyword fallback found nothing, the text is not a
-    # real synthesis — it's almost always meta-prose from a misbehaving
-    # tool-use agent. Surface that as an error so downstream gates don't
-    # read the zero-valued result as a clean PASS.
-    if agent_count == 0 and phases_completed == 0:
-        raise UnparseableSynthesisError(
-            "Synthesis text contains no recognizable structural markers "
-            "(no agent count, no phase headers, no phase keywords). This is "
-            "typically meta-prose returned by a tool-use-capable agent that "
-            "wrote the real synthesis to disk via a Write tool and returned "
-            "only a conversational receipt as its response — which the "
-            "engine then clobbered over the real file. Check the agent's "
-            "system/tool config, or that the mode template instructs the "
-            "agent to return the synthesis as its response (not Write it)."
-        )
-
     # Reuse the tested dispute parser from linter.quality
     disagreement = check_disagreement(text, mode=extracted_mode)
     dispute_count = disagreement.dispute_count
@@ -403,9 +393,41 @@ def parse_synthesis(text: str, mode: str = "cooperative") -> ConversusOutput:
     # Count resolved contradictions for surfaced vs surviving distinction
     resolved_contradictions = _extract_resolved_contradictions_count(text)
 
+    convergence_count = _extract_convergence_count(text)
+    has_scorecard = _SCORECARD_HEADING.search(text) is not None
+
+    # Guard against silent parse failure: a real synthesis produces *some*
+    # structural marker — an Agents header/table, a dispute section the mode
+    # fallback can parse, a Convergence block, resolved-contradictions list,
+    # or a Scorecard heading. If every one of those is absent, the text is
+    # almost always meta-prose from a misbehaving tool-use agent returning a
+    # chat-message receipt (see spec 027 postmortem). The phases-completed
+    # prose-keyword heuristic is intentionally excluded here — it pops
+    # positive on any paragraph that narrates review/revision/dispute/
+    # synthesis and so cannot distinguish a real synthesis from a well-
+    # written receipt.
+    structural_evidence = (
+        agent_count > 0
+        or dispute_count > 0
+        or convergence_count > 0
+        or resolved_contradictions > 0
+        or has_scorecard
+    )
+    if not structural_evidence:
+        raise UnparseableSynthesisError(
+            "Synthesis text contains no recognizable structural markers "
+            "(no agent count, no dispute/landed-attack sections, no "
+            "convergence block, no scorecard). This is typically meta-prose "
+            "returned by a tool-use-capable agent that wrote the real "
+            "synthesis to disk via a Write tool and returned only a "
+            "conversational receipt as its response — which the engine "
+            "then clobbered over the real file. Check the agent's "
+            "system/tool config, or that the mode template instructs the "
+            "agent to return the synthesis as its response (not Write it)."
+        )
+
     # Extract headline and build deterministic summary
     headline = _extract_headline(text)
-    convergence_count = _extract_convergence_count(text)
 
     summary = (
         f"{agent_count} agents in {extracted_mode} mode completed "

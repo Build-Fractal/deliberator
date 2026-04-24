@@ -480,12 +480,20 @@ Proceed with Conditions.
         assert result.quality_indicators.genuine_disagreements_surviving == 3
 
     def test_no_landed_no_disputed_is_zero(self) -> None:
+        # Includes a Scorecard heading because the red-blue template mandates
+        # one in every synthesis — without it, the tightened unparseable
+        # guard would (correctly) refuse a fixture this minimal.
         text = (
             "# Synthesis: clean-proposal\n"
             "**Deliberation mode:** red-blue\n"
             "**Phases completed:** 4\n\n"
             "### Mitigated Attacks — Risks Successfully Defended\n\n"
-            "- **[RISK-A]: All defended**.\n"
+            "- **[RISK-A]: All defended**.\n\n"
+            "### Scorecard\n\n"
+            "| Metric | Count |\n"
+            "|--------|-------|\n"
+            "| Landed (unmitigated) | 0 |\n"
+            "| Disputed (unresolved) | 0 |\n"
         )
         result = parse_synthesis(text, mode="red-blue")
         assert result.quality_indicators.genuine_disagreements_surviving == 0
@@ -559,3 +567,140 @@ class TestUnparseableSynthesisGuard:
         )
         err = json.loads(r.stderr)
         assert err["error"] == "unparseable_synthesis"
+
+    def test_phase_keyword_prose_alone_raises(self) -> None:
+        """Prose that narrates the 5 phases but has no structured sections
+        must raise. This is the exact shape of the false-PASS bug — the old
+        guard counted prose-keyword matches as phases_completed > 0 and
+        silently returned all-zeros."""
+        from linter.output_contract import UnparseableSynthesisError
+
+        narrative = (
+            "I ran the deliberation. We went through review, cross-review, "
+            "revision, disputes, and synthesis. Red Team argued the "
+            "proposal was unsafe. Blue Team defended it. In the end the "
+            "teams reached consensus and I wrote the synthesis to disk.\n"
+        )
+        with pytest.raises(UnparseableSynthesisError):
+            parse_synthesis(narrative, mode="red-blue")
+
+
+class TestHeadingLevelDrift:
+    """Parser must tolerate synthesizer heading-level drift (H1 vs H2 vs H3).
+
+    Observed across real runs: LLM synthesizers inconsistently choose heading
+    levels for section anchors like "Landed Attacks" and "Disputed Risks".
+    The same deliberation produced H2 (##) on one run and H1 (#) on another.
+    The parser must yield identical dispute counts regardless of level.
+    """
+
+    @staticmethod
+    def _synthesis_at_level(hashes: str) -> str:
+        return (
+            "# Risk Register — Example\n\n"
+            f"{hashes} Landed Attacks — Unmitigated Risks\n\n"
+            f"{hashes}# [RISK-A]: Thing A\n"
+            "- Red's case: landed.\n"
+            "- Blue's response: insufficient.\n\n"
+            f"{hashes}# [RISK-B]: Thing B\n"
+            "- Red's case: landed.\n"
+            "- Blue's response: insufficient.\n\n"
+            f"{hashes} Mitigated Attacks — Risks Successfully Defended\n\n"
+            f"{hashes}# [RISK-C]: Thing C\n"
+            "- Defense held.\n\n"
+            f"{hashes} Disputed Risks\n\n"
+            f"{hashes}# [RISK-D]: Thing D\n"
+            "- Red's final: problematic.\n"
+            "- Blue's final: acceptable.\n"
+        )
+
+    def test_h1_sections_parse(self) -> None:
+        text = self._synthesis_at_level("#")
+        result = parse_synthesis(text, mode="red-blue")
+        assert result.quality_indicators.genuine_disagreements_surviving == 3
+
+    def test_h2_sections_parse(self) -> None:
+        text = self._synthesis_at_level("##")
+        result = parse_synthesis(text, mode="red-blue")
+        assert result.quality_indicators.genuine_disagreements_surviving == 3
+
+    def test_h3_sections_parse(self) -> None:
+        text = self._synthesis_at_level("###")
+        result = parse_synthesis(text, mode="red-blue")
+        assert result.quality_indicators.genuine_disagreements_surviving == 3
+
+    def test_h2_sections_match_spec_027_fixture_shape(self) -> None:
+        """Spec 027's real synthesizer output uses H2 sections + H3 heading
+        entries. This mirrors that exact shape and confirms it parses."""
+        text = (
+            "# Risk Register — Spec 027\n\n"
+            "## Landed Attacks — Unmitigated Risks\n\n"
+            "### [CONSTITUTIONAL-01]: Evidence Before Claims Violation\n"
+            "- Red's case: landed.\n\n"
+            "### [ARBITER-02]: Arbiter Component Mismatch\n"
+            "- Red's case: landed.\n\n"
+            "## Disputed Risks\n\n"
+            "### [FALLBACK-06]: Graceful Fallback Chain\n"
+            "- Arbiter's ruling: Red wins.\n"
+        )
+        result = parse_synthesis(text, mode="red-blue")
+        # 2 landed + 1 disputed = 3
+        assert result.quality_indicators.genuine_disagreements_surviving == 3
+
+
+class TestScorecardFallback:
+    """When prose sections are missing or malformed, the Scorecard table's
+    Landed/Disputed row counts are the template-declared authoritative source
+    of surviving-risk counts."""
+
+    def test_scorecard_counts_used_when_sections_absent(self) -> None:
+        text = (
+            "# Risk Register — Scorecard-only\n\n"
+            "## Deliberation Summary\n\n"
+            "A full narrative summary appears here.\n\n"
+            "## Scorecard\n\n"
+            "| Metric | Count |\n"
+            "|--------|-------|\n"
+            "| Total threats identified | 8 |\n"
+            "| Landed (unmitigated) | 5 |\n"
+            "| Mitigated (defended) | 2 |\n"
+            "| Disputed (unresolved) | 1 |\n"
+        )
+        result = parse_synthesis(text, mode="red-blue")
+        # Scorecard says 5 landed + 1 disputed = 6 surviving
+        assert result.quality_indicators.genuine_disagreements_surviving == 6
+
+    def test_scorecard_presence_alone_blocks_unparseable(self) -> None:
+        """A synthesis with a Scorecard heading but zero-count rows is still
+        structurally valid — it must not raise UnparseableSynthesisError."""
+        text = (
+            "# Risk Register — Clean\n\n"
+            "## Deliberation Summary\n\n"
+            "Narrative.\n\n"
+            "## Scorecard\n\n"
+            "| Metric | Count |\n"
+            "|--------|-------|\n"
+            "| Landed (unmitigated) | 0 |\n"
+            "| Disputed (unresolved) | 0 |\n"
+        )
+        # Must not raise — Scorecard heading is structural evidence even at 0.
+        result = parse_synthesis(text, mode="red-blue")
+        assert result.quality_indicators.genuine_disagreements_surviving == 0
+
+    def test_prose_sections_preferred_over_scorecard(self) -> None:
+        """When both prose entries and a Scorecard are present, prose wins.
+        (Prevents double-counting the same risks.)"""
+        text = (
+            "# Risk Register — Both\n\n"
+            "## Landed Attacks — Unmitigated Risks\n\n"
+            "### [RISK-A]: A\n"
+            "- landed.\n\n"
+            "### [RISK-B]: B\n"
+            "- landed.\n\n"
+            "## Scorecard\n\n"
+            "| Landed (unmitigated) | 99 |\n"
+            "| Disputed (unresolved) | 99 |\n"
+        )
+        result = parse_synthesis(text, mode="red-blue")
+        # Prose shows 2 entries; scorecard's 99s must NOT override.
+        assert result.quality_indicators.genuine_disagreements_surviving == 2

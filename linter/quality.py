@@ -354,8 +354,13 @@ def _extract_section_after_heading(
 
 
 def _fallback_cooperative(text: str) -> list[DisputeInfo]:
-    """Cooperative fallback: count ``**Dispute:`` under ``### Remaining Disputes``."""
-    section = _extract_section_after_heading(text, r"^###\s+Remaining\s+Disputes")
+    """Cooperative fallback: count ``**Dispute:`` under ``Remaining Disputes``.
+
+    Accepts heading levels H1–H4 to tolerate synthesizer heading drift.
+    """
+    section = _extract_section_after_heading(
+        text, r"^#{1,4}\s+Remaining\s+Disputes"
+    )
     if section is None:
         return []
     entries = re.findall(r"\*\*Dispute:\s*(.+?)(?:\*\*)?$", section, re.MULTILINE)
@@ -368,13 +373,14 @@ def _fallback_cooperative(text: str) -> list[DisputeInfo]:
 def _fallback_winner_take_all(text: str) -> list[DisputeInfo]:
     """Winner-take-all fallback.
 
-    1. ``## Runner-Up`` heading presence = 1 dispute (the contested selection).
-    2. ``### Remaining Disputes`` with ``**Dispute:`` entries = additional disputes.
+    1. ``Runner-Up`` heading (H1–H4) presence = 1 dispute (contested selection).
+    2. ``Remaining Disputes`` section with ``**Dispute:`` entries = additional.
     """
     disputes: list[DisputeInfo] = []
 
-    # Check for ## Runner-Up heading
-    runner_up_section = _extract_section_after_heading(text, r"^##\s+Runner-Up")
+    runner_up_section = _extract_section_after_heading(
+        text, r"^#{1,4}\s+Runner-Up"
+    )
     if runner_up_section is not None:
         # Extract a label from the first non-empty line
         for raw_line in runner_up_section.strip().splitlines():
@@ -392,53 +398,104 @@ def _fallback_winner_take_all(text: str) -> list[DisputeInfo]:
     return disputes
 
 
+# Red-blue risk-entry pattern. Tolerates two surface forms the synthesizer
+# may produce under a Landed/Disputed section:
+#   - bold list item: ``- **[RISK-ID]: Description** ...``
+#   - heading entry:  ``### [RISK-ID]: Description``
+# LLM output has been observed to use either style, and to shift heading levels
+# as the surrounding section heading drifts between H1–H3.
+_RED_BLUE_ENTRY: re.Pattern[str] = re.compile(
+    r"(?:^#{2,5}\s+|\*\*)\[([^\]]+)\][:\s]",
+    re.MULTILINE,
+)
+
+# Authoritative fallback: parse counts straight out of the Scorecard table.
+# Template-declared rows: "Landed (unmitigated)" and "Disputed (unresolved)".
+_SCORECARD_LANDED_ROW: re.Pattern[str] = re.compile(
+    r"\|\s*Landed[^\|]*\|\s*(\d+)\s*\|", re.IGNORECASE
+)
+_SCORECARD_DISPUTED_ROW: re.Pattern[str] = re.compile(
+    r"\|\s*Disputed[^\|]*\|\s*(\d+)\s*\|", re.IGNORECASE
+)
+
+
 def _fallback_red_blue(text: str) -> list[DisputeInfo]:
     """Red-blue fallback: count surviving unresolved risk entries.
 
     Counts two kinds of surviving risk as disputes:
 
-    1. ``**[RISK-ID]`` entries under ``### Landed Attacks — Unmitigated Risks`` —
-       Red Team's attacks the arbiter ruled Blue Team could not adequately
-       mitigate. These are surviving risk by arbiter judgment.
-    2. ``**[RISK-ID]`` entries under ``### Disputed Risks`` — risks where Red
-       and Blue fundamentally disagreed and the arbiter could not rule. These
-       are surviving disagreements.
+    1. Entries under ``Landed Attacks — Unmitigated Risks`` — Red Team's
+       attacks the arbiter ruled Blue Team could not adequately mitigate.
+    2. Entries under ``Disputed Risks`` — risks where Red and Blue
+       fundamentally disagreed and the arbiter could not rule.
 
-    Mitigated Attacks and Accepted Risks are NOT counted — mitigated attacks
-    are resolved in Blue's favor; accepted risks are consciously tolerated by
-    the organization and so represent intent rather than surviving risk.
+    Mitigated Attacks and Accepted Risks are NOT counted.
+
+    Heading levels H1–H3 are accepted for both section and entry lines, and
+    entries may be either bold list items or heading entries. If the prose
+    sections are absent or malformed, falls back to the Scorecard table's
+    authoritative Landed/Disputed row counts.
     """
     disputes: list[DisputeInfo] = []
-    entry_pattern = r"\*\*\[([^\]]+)\][:\s]"
 
     landed = _extract_section_after_heading(
-        text, r"^###\s+Landed\s+Attacks"
+        text, r"^#{1,3}\s+Landed\s+Attacks"
     )
     if landed is not None:
-        for e in re.findall(entry_pattern, landed):
+        for e in _RED_BLUE_ENTRY.findall(landed):
             disputes.append(
                 DisputeInfo(label=f"[Landed] [{e.strip()}]", agent_names=[])
             )
 
     disputed = _extract_section_after_heading(
-        text, r"^###\s+Disputed\s+Risks"
+        text, r"^#{1,3}\s+Disputed\s+Risks"
     )
     if disputed is not None:
-        for e in re.findall(entry_pattern, disputed):
+        for e in _RED_BLUE_ENTRY.findall(disputed):
             disputes.append(
                 DisputeInfo(label=f"[Disputed] [{e.strip()}]", agent_names=[])
             )
 
+    if disputes:
+        return disputes
+
+    # Authoritative fallback: the Scorecard table is template-declared as the
+    # canonical summary, so when prose parsing returns nothing we trust it.
+    return _scorecard_disputes(text)
+
+
+def _scorecard_disputes(text: str) -> list[DisputeInfo]:
+    """Read Landed/Disputed counts from the Scorecard table and synthesize
+    a matching number of DisputeInfo stubs. Returns [] if no Scorecard."""
+    scorecard_section = _extract_section_after_heading(
+        text, r"^#{1,3}\s+Scorecard"
+    )
+    if scorecard_section is None:
+        return []
+    disputes: list[DisputeInfo] = []
+    landed_match = _SCORECARD_LANDED_ROW.search(scorecard_section)
+    if landed_match:
+        for i in range(int(landed_match.group(1))):
+            disputes.append(
+                DisputeInfo(label=f"[Landed] [scorecard #{i + 1}]", agent_names=[])
+            )
+    disputed_match = _SCORECARD_DISPUTED_ROW.search(scorecard_section)
+    if disputed_match:
+        for i in range(int(disputed_match.group(1))):
+            disputes.append(
+                DisputeInfo(label=f"[Disputed] [scorecard #{i + 1}]", agent_names=[])
+            )
     return disputes
 
 
 def _fallback_prisoners_dilemma(text: str) -> list[DisputeInfo]:
-    """Prisoner's-dilemma fallback: count ``### [`` sub-headings under ``## Disputed Boundaries``."""
-    section = _extract_section_after_heading(text, r"^##\s+Disputed\s+Boundaries")
+    """Prisoner's-dilemma fallback: count ``[...]`` sub-headings under ``Disputed Boundaries``."""
+    section = _extract_section_after_heading(
+        text, r"^#{1,3}\s+Disputed\s+Boundaries"
+    )
     if section is None:
         return []
-    # Match ### [BoundaryLabel] or ### [Anything ...] sub-headings
-    entries = re.findall(r"^###\s+\[([^\]]+)\]", section, re.MULTILINE)
+    entries = re.findall(r"^#{2,5}\s+\[([^\]]+)\]", section, re.MULTILINE)
     return [
         DisputeInfo(label=f"[{e.strip()}]", agent_names=[])
         for e in entries
