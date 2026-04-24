@@ -72,11 +72,25 @@ def find_templates_dir(config_path: Path) -> Path:
     Raises:
         TemplateError: If templates/ cannot be found.
     """
-    # Strategy 1: walk up from config file location
+    # Strategy 1: walk up from config file location.
+    # Require at least one known mode subdir so we don't accept a
+    # same-named but unrelated `templates/` sibling (e.g. a project
+    # calling conversus that happens to have its own templates dir).
+    _MODE_MARKERS = (
+        "cooperative", "red-blue", "winner-take-all",
+        "prisoners-dilemma", "negotiation", "fair-division",
+        "resource-allocation", "mechanism-design",
+    )
+
+    def _is_conversus_templates_dir(path: Path) -> bool:
+        if not path.is_dir():
+            return False
+        return any((path / m).is_dir() for m in _MODE_MARKERS)
+
     candidate = config_path.resolve().parent
     for _ in range(10):  # safety bound
         templates = candidate / "templates"
-        if templates.is_dir():
+        if _is_conversus_templates_dir(templates):
             return templates
         parent = candidate.parent
         if parent == candidate:
@@ -93,12 +107,12 @@ def find_templates_dir(config_path: Path) -> Path:
     # Strategy 3: engine/ is a child of conversus root (dev fallback)
     engine_root = Path(__file__).resolve().parent.parent
     templates = engine_root / "templates"
-    if templates.is_dir():
+    if _is_conversus_templates_dir(templates):
         return templates
 
     # Strategy 4: cwd
     templates = Path.cwd() / "templates"
-    if templates.is_dir():
+    if _is_conversus_templates_dir(templates):
         return templates
 
     raise TemplateError(
