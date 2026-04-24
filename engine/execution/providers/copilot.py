@@ -78,6 +78,14 @@ class CopilotProvider(SubprocessProvider):
                 provider=self.name,
                 metadata={"returncode": returncode, "stderr": stderr[:500]},
             )
+        # TODO(token-tracking): ``gh copilot {explain,suggest}`` prints
+        # human-readable text only — the GitHub Copilot CLI has no
+        # ``--json`` flag (as of gh-copilot v1.x) and no documented
+        # token-usage surface.  Token telemetry is gated on either an
+        # upstream feature add or a switch to the underlying Copilot
+        # API (which does report ``usage`` like the OpenAI Chat
+        # Completions schema).  Leaving ``cost=None`` for now —
+        # ``unknown != zero`` per binding condition #5.
         return ExecutionResult(
             success=True,
             output_path=task.output_path,
