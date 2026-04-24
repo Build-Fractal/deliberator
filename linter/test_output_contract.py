@@ -300,17 +300,47 @@ class TestEdgeCases:
             parse_synthesis("   \n\t  ")
 
     def test_mode_parameter_used_as_fallback(self) -> None:
-        """When text has no mode header, the mode parameter is used."""
-        text = "# Synthesis: Test\n\nSome content with no mode header."
+        """When text has no mode header, the mode parameter is used.
+
+        Fixture includes a metadata block with no ``mode:`` field so the
+        structural-evidence guard is satisfied (agent_count > 0) while the
+        mode-extraction path still falls through to the caller default.
+        """
+        text = (
+            "<!-- CONVERSUS:METADATA\n"
+            "agents: 2\n"
+            "agent_names: a, b\n"
+            "phases_completed: 5\n"
+            "iterations: 1\n"
+            "-->\n\n"
+            "# Synthesis: Test\n\nSome content with no mode header."
+        )
         result = parse_synthesis(text, mode="winner-take-all")
         assert result.quality_indicators.mode == "winner-take-all"
 
     def test_minimal_valid_input(self) -> None:
-        """A minimal non-empty string should not crash."""
-        text = "# Synthesis: Minimal Test\n\nJust some text."
+        """A minimal synthesis (metadata block + title + empty body) must
+        parse, even with zero disputes and zero convergence. This is the
+        legitimate "clean pass" shape.
+
+        The guard explicitly refuses pure-prose fixtures with no structural
+        markers at all — that behavior is covered in
+        TestUnparseableSynthesisGuard; here we confirm the minimum-valid
+        shape still parses.
+        """
+        text = (
+            "<!-- CONVERSUS:METADATA\n"
+            "agents: 2\n"
+            "agent_names: a, b\n"
+            "mode: cooperative\n"
+            "phases_completed: 5\n"
+            "iterations: 1\n"
+            "-->\n\n"
+            "# Synthesis: Minimal Test\n\nJust some text."
+        )
         result = parse_synthesis(text)
         assert result.headline == "Minimal Test"
-        assert result.quality_indicators.agent_count == 0
+        assert result.quality_indicators.agent_count == 2
         assert result.quality_indicators.genuine_disagreements_surfaced == 0
 
     def test_output_serializes_to_valid_json(self, monorepo_text: str) -> None:
@@ -704,3 +734,138 @@ class TestScorecardFallback:
         result = parse_synthesis(text, mode="red-blue")
         # Prose shows 2 entries; scorecard's 99s must NOT override.
         assert result.quality_indicators.genuine_disagreements_surviving == 2
+
+
+class TestRiskIdDedup:
+    """_fallback_red_blue must count each RISK-ID once even when the
+    synthesizer re-lists a critical risk in both Landed and Disputed
+    (template violation, but observed in real runs)."""
+
+    def test_same_id_in_landed_and_disputed_counts_once(self) -> None:
+        text = (
+            "# Risk Register — Duplicate IDs\n\n"
+            "## Landed Attacks — Unmitigated Risks\n\n"
+            "### [RISK-A]: A (critical)\n"
+            "- landed.\n\n"
+            "### [RISK-B]: B\n"
+            "- landed.\n\n"
+            "### [RISK-C]: C\n"
+            "- landed.\n\n"
+            "## Disputed Risks\n\n"
+            "### [RISK-A]: A (re-mentioned, template violation)\n"
+            "- arbiter undecided.\n\n"
+            "### [RISK-D]: D (genuinely disputed)\n"
+            "- arbiter undecided.\n"
+        )
+        result = parse_synthesis(text, mode="red-blue")
+        # 3 landed + 1 new disputed (RISK-A dedup'd, RISK-D new) = 4
+        assert result.quality_indicators.genuine_disagreements_surviving == 4
+
+    def test_duplicates_within_landed_collapse(self) -> None:
+        text = (
+            "# Risk Register — Duplicates Inside Landed\n\n"
+            "## Landed Attacks — Unmitigated Risks\n\n"
+            "### [RISK-A]: first mention\n"
+            "- landed.\n\n"
+            "### [RISK-A]: second mention of same ID\n"
+            "- landed.\n\n"
+            "### [RISK-B]: B\n"
+            "- landed.\n"
+        )
+        result = parse_synthesis(text, mode="red-blue")
+        # RISK-A once + RISK-B once = 2
+        assert result.quality_indicators.genuine_disagreements_surviving == 2
+
+
+class TestMetadataBlock:
+    """Engine injects a ``<!-- CONVERSUS:METADATA ... -->`` block at the top
+    of every synthesis. Parser must trust it over LLM prose so ``agent_count``
+    and ``phases_completed`` stop reading zero just because the synthesizer
+    failed to recite them."""
+
+    METADATA_ONLY = (
+        "<!-- CONVERSUS:METADATA\n"
+        "agents: 2\n"
+        "agent_names: blue-advocate, red-advocate\n"
+        "mode: red-blue\n"
+        "phases_completed: 6\n"
+        "iterations: 1\n"
+        "round: 1\n"
+        "-->\n\n"
+        "# Risk Register — Example\n\n"
+        "## Landed Attacks — Unmitigated Risks\n\n"
+        "### [RISK-A]: A\n"
+        "- landed.\n"
+    )
+
+    def test_metadata_supplies_agent_count(self) -> None:
+        result = parse_synthesis(self.METADATA_ONLY, mode="red-blue")
+        assert result.quality_indicators.agent_count == 2
+
+    def test_metadata_supplies_phases_completed(self) -> None:
+        result = parse_synthesis(self.METADATA_ONLY, mode="red-blue")
+        # Authoritative 6 (deliberation + arbitration), not a prose inference.
+        assert result.quality_indicators.phases_completed == 6
+
+    def test_metadata_supplies_mode(self) -> None:
+        result = parse_synthesis(self.METADATA_ONLY, mode="cooperative")
+        # Metadata says red-blue; caller default must be overridden.
+        assert result.quality_indicators.mode == "red-blue"
+
+    def test_metadata_overrides_prose_values(self) -> None:
+        """When both metadata and prose headers are present, metadata wins —
+        the engine is authoritative about its own run state."""
+        text = (
+            "<!-- CONVERSUS:METADATA\n"
+            "agents: 3\n"
+            "agent_names: a, b, c\n"
+            "mode: red-blue\n"
+            "phases_completed: 6\n"
+            "iterations: 2\n"
+            "-->\n\n"
+            "# Synthesis\n\n"
+            "**Agents:** only-one-agent\n"
+            "**Phases completed:** 1\n\n"
+            "## Process Summary\n\n"
+            "| Agents | 99 (bogus) |\n\n"
+            "## Scorecard\n\n"
+            "| Landed (unmitigated) | 0 |\n"
+        )
+        result = parse_synthesis(text, mode="cooperative")
+        assert result.quality_indicators.agent_count == 3
+        assert result.quality_indicators.phases_completed == 6
+        assert result.quality_indicators.mode == "red-blue"
+
+    def test_missing_metadata_falls_back_to_prose(self) -> None:
+        """Fixtures from before metadata injection (no block) must still
+        parse using the prose-header fallbacks."""
+        text = (
+            "# Synthesis: legacy\n"
+            "**Agents:** pragmatist, devils-advocate\n"
+            "**Deliberation mode:** cooperative\n"
+            "**Phases completed:** 4\n\n"
+            "### Convergence Achieved\n\n"
+            "1. **Converged.**\n"
+        )
+        result = parse_synthesis(text, mode="cooperative")
+        assert result.quality_indicators.agent_count == 2
+        assert result.quality_indicators.mode == "cooperative"
+
+    def test_metadata_block_alone_is_structural_evidence(self) -> None:
+        """A metadata block means the engine wrote the file — the guard
+        must not fire even if the synthesizer returned no prose content.
+        (This is the engine's own receipt of a run; prose absence is a
+        different failure to diagnose elsewhere.)"""
+        text = (
+            "<!-- CONVERSUS:METADATA\n"
+            "agents: 2\n"
+            "agent_names: a, b\n"
+            "mode: red-blue\n"
+            "phases_completed: 5\n"
+            "iterations: 1\n"
+            "-->\n\n"
+            "(synthesizer returned empty body)\n"
+        )
+        # Must not raise — agent_count from metadata is structural evidence.
+        result = parse_synthesis(text, mode="red-blue")
+        assert result.quality_indicators.agent_count == 2

@@ -436,15 +436,26 @@ def _fallback_red_blue(text: str) -> list[DisputeInfo]:
     sections are absent or malformed, falls back to the Scorecard table's
     authoritative Landed/Disputed row counts.
     """
+    # Dedupe by RISK-ID across both sections. The template mandates every
+    # threat appear in exactly one category (Landed, Mitigated, Accepted,
+    # Disputed), but LLM synthesizers sometimes re-list critical risks under
+    # both Landed AND Disputed. The parser must be resilient to that
+    # violation: count each RISK-ID once, preferring Landed classification
+    # (the stronger verdict) over Disputed.
     disputes: list[DisputeInfo] = []
+    seen_ids: set[str] = set()
 
     landed = _extract_section_after_heading(
         text, r"^#{1,3}\s+Landed\s+Attacks"
     )
     if landed is not None:
         for e in _RED_BLUE_ENTRY.findall(landed):
+            risk_id = e.strip()
+            if risk_id in seen_ids:
+                continue
+            seen_ids.add(risk_id)
             disputes.append(
-                DisputeInfo(label=f"[Landed] [{e.strip()}]", agent_names=[])
+                DisputeInfo(label=f"[Landed] [{risk_id}]", agent_names=[])
             )
 
     disputed = _extract_section_after_heading(
@@ -452,8 +463,12 @@ def _fallback_red_blue(text: str) -> list[DisputeInfo]:
     )
     if disputed is not None:
         for e in _RED_BLUE_ENTRY.findall(disputed):
+            risk_id = e.strip()
+            if risk_id in seen_ids:
+                continue
+            seen_ids.add(risk_id)
             disputes.append(
-                DisputeInfo(label=f"[Disputed] [{e.strip()}]", agent_names=[])
+                DisputeInfo(label=f"[Disputed] [{risk_id}]", agent_names=[])
             )
 
     if disputes:

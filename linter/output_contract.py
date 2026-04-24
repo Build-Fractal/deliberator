@@ -104,6 +104,27 @@ class ConversusOutput(BaseModel):
 # Regex patterns for parsing synthesis output
 # ---------------------------------------------------------------------------
 
+# Engine-injected authoritative metadata block. Format (written verbatim by
+# engine.phases._build_metadata_block):
+#   <!-- CONVERSUS:METADATA
+#   agents: 2
+#   agent_names: blue-advocate, red-advocate
+#   mode: red-blue
+#   phases_completed: 5
+#   iterations: 1
+#   round: 1
+#   -->
+# When present, these fields are treated as the canonical source of truth —
+# LLM prose heuristics are only consulted as a fallback for older fixtures
+# written before the engine began injecting this block.
+_METADATA_BLOCK: re.Pattern[str] = re.compile(
+    r"<!--\s*CONVERSUS:METADATA\s*\n(.*?)\n\s*-->",
+    re.DOTALL,
+)
+_METADATA_FIELD: re.Pattern[str] = re.compile(
+    r"^(\w+)\s*:\s*(.+?)\s*$", re.MULTILINE
+)
+
 # Agent count — table format: | Agents | 2 (pragmatist, devils-advocate) |
 _AGENTS_TABLE: re.Pattern[str] = re.compile(
     r"\|\s*Agents\s*\|\s*(\d+)", re.IGNORECASE
@@ -168,18 +189,45 @@ _SYNTHESIS_TITLE: re.Pattern[str] = re.compile(
 # ---------------------------------------------------------------------------
 
 
-def _extract_agent_count(text: str) -> int:
-    """Extract agent count from Process Summary table or header metadata.
+def _extract_metadata(text: str) -> dict[str, str]:
+    """Parse the engine-injected metadata block, if present.
 
-    Tries table format first (monorepo style: | Agents | 2 (...) |),
-    then header format (lease/factual style: **Agents:** Name, Name).
+    Returns a dict of field-name → raw-string-value. Empty dict when no
+    block exists (older synthesis outputs, or a synthesis written before
+    engine metadata injection was added).
     """
-    # Table format: | Agents | 2 (pragmatist, devils-advocate) |
+    block_match = _METADATA_BLOCK.search(text)
+    if not block_match:
+        return {}
+    block = block_match.group(1)
+    return {
+        field.lower(): value.strip()
+        for field, value in _METADATA_FIELD.findall(block)
+    }
+
+
+def _extract_agent_count(text: str) -> int:
+    """Extract agent count.
+
+    Priority order:
+    1. Engine-injected metadata block's ``agents:`` field (authoritative).
+    2. Process Summary table: ``| Agents | 2 (pragmatist, devils-advocate) |``.
+    3. Header: ``**Agents:** Pragmatist, Devil's Advocate``.
+    """
+    meta = _extract_metadata(text)
+    if "agents" in meta:
+        try:
+            return int(meta["agents"])
+        except ValueError:
+            pass
+    # Fallback: agent_names line — count comma-separated entries.
+    if "agent_names" in meta and meta["agent_names"]:
+        return len([n for n in meta["agent_names"].split(",") if n.strip()])
+
     m = _AGENTS_TABLE.search(text)
     if m:
         return int(m.group(1))
 
-    # Header format: **Agents:** Pragmatist, Devil's Advocate
     m = _AGENTS_HEADER.search(text)
     if m:
         names = [n.strip() for n in m.group(1).split(",") if n.strip()]
@@ -189,11 +237,18 @@ def _extract_agent_count(text: str) -> int:
 
 
 def _extract_mode(text: str, default: str) -> str:
-    """Extract deliberation mode from header metadata.
+    """Extract deliberation mode.
 
-    Tries **Deliberation mode:** first, then **Mode:**, then falls back
-    to the provided default.
+    Priority order:
+    1. Engine-injected metadata block's ``mode:`` field (authoritative).
+    2. ``**Deliberation mode:**`` prose header.
+    3. ``**Mode:**`` prose header.
+    4. Caller-supplied default.
     """
+    meta = _extract_metadata(text)
+    if "mode" in meta and meta["mode"]:
+        return meta["mode"].lower()
+
     m = _MODE_DELIB.search(text)
     if m:
         return m.group(1).strip().lower()
@@ -206,13 +261,21 @@ def _extract_mode(text: str, default: str) -> str:
 
 
 def _extract_phases_completed(text: str) -> int:
-    """Extract phases completed from header or infer from section structure.
+    """Extract phases completed.
 
-    Checks for explicit **Phases completed:** header first. Falls back to
-    counting which phase-related sections exist in the synthesis. Standard
-    cooperative deliberation has 5 phases: review, cross-review, revision,
-    disputes, synthesis.
+    Priority order:
+    1. Engine-injected metadata block's ``phases_completed:`` field
+       (authoritative — the engine knows this from its own run state).
+    2. ``**Phases completed:**`` prose header.
+    3. Keyword-match fallback on phase-related section names.
     """
+    meta = _extract_metadata(text)
+    if "phases_completed" in meta:
+        try:
+            return int(meta["phases_completed"])
+        except ValueError:
+            pass
+
     m = _PHASES_HEADER.search(text)
     if m:
         count = int(m.group(1))
