@@ -70,6 +70,31 @@ class AnthropicProvider:
         else:
             self.client = anthropic.AsyncAnthropic()
 
+        # Token usage from the most recent successful call.  Side-channel
+        # for the ModelProviderExecutionAdapter: the ``ModelProvider``
+        # protocol returns text only, so the SDK's ``response.usage`` is
+        # captured here.  Cache tokens (creation/read) are folded into
+        # ``input_tokens`` to match the Cost.input_tokens semantics in
+        # ``engine/execution/providers/claude_code.py``.  ``None`` until
+        # the first successful call.
+        self.last_usage: dict[str, int] | None = None
+
+    def _record_usage(self, usage: object | None) -> None:
+        """Capture ``response.usage`` into :attr:`last_usage` (best-effort)."""
+        if usage is None:
+            return
+        try:
+            input_tokens = int(getattr(usage, "input_tokens", 0) or 0)
+            input_tokens += int(getattr(usage, "cache_creation_input_tokens", 0) or 0)
+            input_tokens += int(getattr(usage, "cache_read_input_tokens", 0) or 0)
+            output_tokens = int(getattr(usage, "output_tokens", 0) or 0)
+        except (TypeError, ValueError):
+            return
+        self.last_usage = {
+            "input_tokens": input_tokens,
+            "output_tokens": output_tokens,
+        }
+
     async def complete(self, prompt: str, model: str, max_tokens: int) -> str:
         """Send a single-shot completion request and return the full text."""
         try:
@@ -78,6 +103,7 @@ class AnthropicProvider:
                 max_tokens=max_tokens,
                 messages=[{"role": "user", "content": prompt}],
             )
+            self._record_usage(getattr(response, "usage", None))
             return response.content[0].text
         except anthropic.AuthenticationError as exc:
             raise ProviderError(
@@ -105,7 +131,12 @@ class AnthropicProvider:
             ) from exc
 
     async def stream(self, prompt: str, model: str, max_tokens: int) -> AsyncIterator[str]:
-        """Stream text chunks from a completion request."""
+        """Stream text chunks from a completion request.
+
+        After the stream completes, ``last_usage`` is populated from the
+        final message's ``usage`` field (the SDK aggregates token counts
+        on the assembled message available via ``stream.get_final_message()``).
+        """
         try:
             async with self.client.messages.stream(
                 model=model,
@@ -114,6 +145,15 @@ class AnthropicProvider:
             ) as stream:
                 async for text in stream.text_stream:
                     yield text
+                # Capture usage from the assembled final message.  The
+                # SDK exposes this after the iterator is exhausted.
+                try:
+                    final = await stream.get_final_message()
+                    self._record_usage(getattr(final, "usage", None))
+                except Exception:
+                    # Usage capture is best-effort — never fail the
+                    # caller because token telemetry is missing.
+                    pass
         except anthropic.AuthenticationError as exc:
             raise ProviderError(
                 f"Anthropic authentication failed: {exc}",

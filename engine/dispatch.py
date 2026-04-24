@@ -156,14 +156,29 @@ class ModelProviderExecutionAdapter:
                 metadata={"model": self._model, "max_tokens": self._max_tokens},
             )
 
+        # Read token usage off the wrapped ModelProvider's side-channel,
+        # if it implements one.  ``AnthropicProvider`` and ``OpenAIProvider``
+        # populate ``last_usage`` after ``complete()``; providers that do
+        # not implement the side-channel get ``cost=None`` (preserving the
+        # "unknown ≠ zero" semantics of binding condition #5).
+        cost: Cost | None = None
+        usage = getattr(self._inner, "last_usage", None)
+        if usage:
+            try:
+                cost = Cost(
+                    input_tokens=int(usage.get("input_tokens", 0) or 0),
+                    output_tokens=int(usage.get("output_tokens", 0) or 0),
+                    usd=None,
+                )
+            except (AttributeError, TypeError, ValueError):
+                cost = None
+
         return ExecutionResult(
             success=True,
             output_path=task.output_path,
             content=response_text,
             error=None,
-            # ModelProvider does not report cost data — leave None
-            # rather than fabricating zero (binding condition #5).
-            cost=None,
+            cost=cost,
             duration=timedelta(seconds=time.monotonic() - start),
             provider=self._name,
             metadata={"model": self._model, "max_tokens": self._max_tokens},
