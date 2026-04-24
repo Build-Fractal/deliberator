@@ -29,6 +29,28 @@ class OpenAIProvider:
         else:
             self.client = openai.AsyncOpenAI()
 
+        # Token usage from the most recent successful call.  Side-channel
+        # for the ModelProviderExecutionAdapter: the ``ModelProvider``
+        # protocol returns text only, so the SDK's ``response.usage`` is
+        # captured here.  ``None`` until the first successful call that
+        # carries usage data.  For streaming, populated from the final
+        # chunk's ``usage`` field when ``stream_options`` requests it.
+        self.last_usage: dict[str, int] | None = None
+
+    def _record_usage(self, usage: object | None) -> None:
+        """Capture ``response.usage`` into :attr:`last_usage` (best-effort)."""
+        if usage is None:
+            return
+        try:
+            input_tokens = int(getattr(usage, "prompt_tokens", 0) or 0)
+            output_tokens = int(getattr(usage, "completion_tokens", 0) or 0)
+        except (TypeError, ValueError):
+            return
+        self.last_usage = {
+            "input_tokens": input_tokens,
+            "output_tokens": output_tokens,
+        }
+
     async def complete(self, prompt: str, model: str, max_tokens: int) -> str:
         """Send a single-shot completion request and return the full text."""
         try:
@@ -37,6 +59,7 @@ class OpenAIProvider:
                 max_tokens=max_tokens,
                 messages=[{"role": "user", "content": prompt}],
             )
+            self._record_usage(getattr(response, "usage", None))
             return response.choices[0].message.content
         except openai.AuthenticationError as exc:
             raise ProviderError(
@@ -64,15 +87,25 @@ class OpenAIProvider:
             ) from exc
 
     async def stream(self, prompt: str, model: str, max_tokens: int) -> AsyncIterator[str]:
-        """Stream text chunks from a completion request."""
+        """Stream text chunks from a completion request.
+
+        Requests ``stream_options={"include_usage": True}`` so the final
+        chunk carries the cumulative ``usage`` counters; that chunk has
+        no choices/content, so the loop simply records usage and skips.
+        """
         try:
             response = await self.client.chat.completions.create(
                 model=model,
                 max_tokens=max_tokens,
                 messages=[{"role": "user", "content": prompt}],
                 stream=True,
+                stream_options={"include_usage": True},
             )
             async for chunk in response:
+                # The usage-only final chunk has no choices.
+                chunk_usage = getattr(chunk, "usage", None)
+                if chunk_usage is not None:
+                    self._record_usage(chunk_usage)
                 if chunk.choices and chunk.choices[0].delta.content is not None:
                     yield chunk.choices[0].delta.content
         except openai.AuthenticationError as exc:

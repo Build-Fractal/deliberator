@@ -79,6 +79,12 @@ class PiProvider(SubprocessProvider):
                 provider=self.name,
                 metadata={"returncode": returncode, "stderr": stderr[:500]},
             )
+        # TODO(token-tracking): Inflection's ``pi`` CLI does not document
+        # a structured-output mode (``--json``, ``-o json``, etc.) and
+        # the public API surface for token telemetry is undocumented as
+        # of writing.  Leaving ``cost=None`` until the CLI surfaces
+        # usage (or until we move to the HTTP API which carries
+        # ``usage`` per the OpenAI-compatible response shape).
         return ExecutionResult(
             success=True,
             output_path=task.output_path,

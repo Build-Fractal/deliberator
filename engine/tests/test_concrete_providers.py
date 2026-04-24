@@ -33,6 +33,8 @@ from engine.execution.providers.aider import AiderProvider
 from engine.execution.providers.opencode import OpenCodeProvider
 from engine.execution.providers.codex import CodexProvider
 from engine.execution.providers.copilot import CopilotProvider
+from engine.execution.providers.desktop_sampling import DesktopSamplingProvider
+from engine.execution.providers.gemini import GeminiProvider
 from engine.execution.providers.pi import PiProvider
 
 
@@ -347,6 +349,58 @@ class TestAiderOutputParsing:
         assert result.success is False
         assert result.error.category == "subprocess"
 
+    def test_aider_captures_tokens(self) -> None:
+        """Parse the 'Tokens: X sent, Y received.' summary line."""
+        provider = AiderProvider()
+        stdout = (
+            "Aider v0.50\n"
+            "Reasoning about the request...\n"
+            "Here is the answer.\n"
+            "Tokens: 1.2k sent, 234 received. Cost: $0.0042 message, $0.04 session.\n"
+        )
+        result = provider._parse_output(stdout, "", 0, _make_task())
+        assert result.success is True
+        assert result.cost is not None
+        assert result.cost.input_tokens == 1200
+        assert result.cost.output_tokens == 234
+        assert result.cost.usd is None
+
+    def test_aider_token_summary_no_k_suffix(self) -> None:
+        provider = AiderProvider()
+        stdout = "ok\nTokens: 47 sent, 12 received.\n"
+        result = provider._parse_output(stdout, "", 0, _make_task())
+        assert result.cost is not None
+        assert result.cost.input_tokens == 47
+        assert result.cost.output_tokens == 12
+
+    def test_aider_token_summary_with_commas(self) -> None:
+        provider = AiderProvider()
+        stdout = "Tokens: 1,234 sent, 567 received.\n"
+        result = provider._parse_output(stdout, "", 0, _make_task())
+        assert result.cost is not None
+        assert result.cost.input_tokens == 1234
+        assert result.cost.output_tokens == 567
+
+    def test_aider_uses_last_token_summary(self) -> None:
+        """Multi-message runs reprint the line each turn — we want the last."""
+        provider = AiderProvider()
+        stdout = (
+            "Tokens: 100 sent, 50 received.\n"
+            "More work happening...\n"
+            "Tokens: 200 sent, 75 received.\n"
+        )
+        result = provider._parse_output(stdout, "", 0, _make_task())
+        assert result.cost is not None
+        assert result.cost.input_tokens == 200
+        assert result.cost.output_tokens == 75
+
+    def test_aider_no_summary_means_no_cost(self) -> None:
+        """No Tokens line → cost is None (preserves unknown != zero)."""
+        provider = AiderProvider()
+        result = provider._parse_output("just a reply", "", 0, _make_task())
+        assert result.success is True
+        assert result.cost is None
+
 
 # ═══════════════════════════════════════════════════════════════════════════
 # OpenCodeProvider
@@ -381,6 +435,16 @@ class TestOpenCodeArgv:
         assert "Analyze code" in argv
 
 
+class TestOpenCodeArgvRequestsJson:
+    def test_argv_includes_format_json(self) -> None:
+        """Without ``--format json`` opencode prints free-form text — no tokens."""
+        provider = OpenCodeProvider(binary="opencode")
+        argv = provider._build_argv(_make_task(prompt="hi"))
+        assert "--format" in argv
+        idx = argv.index("--format")
+        assert argv[idx + 1] == "json"
+
+
 class TestOpenCodeOutputParsing:
     def test_success(self) -> None:
         provider = OpenCodeProvider()
@@ -392,6 +456,45 @@ class TestOpenCodeOutputParsing:
         provider = OpenCodeProvider()
         result = provider._parse_output("", "error", 1, _make_task())
         assert result.success is False
+
+    def test_opencode_captures_tokens(self) -> None:
+        """``message`` events with ``info.tokens.{input,output,...}`` → Cost."""
+        provider = OpenCodeProvider()
+        events = [
+            {
+                "info": {
+                    "role": "assistant",
+                    "tokens": {
+                        "input": 120,
+                        "output": 45,
+                        "reasoning": 5,
+                        "cache": {"read": 800, "write": 0},
+                    },
+                },
+                "parts": [{"text": "Here is the answer."}],
+            },
+        ]
+        stdout = "\n".join(json.dumps(e) for e in events)
+
+        result = provider._parse_output(stdout, "", 0, _make_task())
+
+        assert result.success is True
+        assert result.content == "Here is the answer."
+        assert result.cost is not None
+        # 120 input + 800 cache_read = 920 input tokens
+        assert result.cost.input_tokens == 920
+        # 45 output + 5 reasoning = 50 output tokens
+        assert result.cost.output_tokens == 50
+        assert result.cost.usd is None
+
+    def test_opencode_plain_text_fallback(self) -> None:
+        """If stdout isn't JSONL we still surface content with cost=None."""
+        provider = OpenCodeProvider()
+        result = provider._parse_output("plain output", "", 0, _make_task())
+        assert result.success is True
+        assert result.content == "plain output"
+        assert result.cost is None
+        assert result.metadata.get("raw_output") is True
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -426,33 +529,58 @@ class TestCodexConformance:
 
 class TestCodexArgv:
     def test_basic_argv_contains_required_flags(self) -> None:
+        """argv uses the ``exec --json`` flow with deterministic last-message file."""
         provider = CodexProvider(model="o4-mini", binary="/usr/bin/codex")
         task = _make_task(prompt="Review this code")
         argv = provider._build_argv(task)
 
         assert argv[0] == "/usr/bin/codex"
-        assert "--quiet" in argv
-        assert "--full-auto" in argv
+        # ``exec`` subcommand replaces the deprecated `--quiet --full-auto` flags.
+        assert "exec" in argv
+        assert argv[1] == "exec"
+        assert "--json" in argv
+        assert "--output-last-message" in argv
         assert "--model" in argv
         idx = argv.index("--model")
         assert argv[idx + 1] == "o4-mini"
         assert argv[-1] == "Review this code"
 
+    def test_argv_includes_output_last_message_path(self) -> None:
+        """``--output-last-message`` is followed by an absolute tempfile path."""
+        provider = CodexProvider()
+        argv = provider._build_argv(_make_task(prompt="hi"))
+        idx = argv.index("--output-last-message")
+        path = argv[idx + 1]
+        # Path is absolute, points at an existing tempfile, and matches our prefix.
+        assert path.startswith("/")
+        assert "codex-last-msg-" in path
+        # Cleanup — the file is created by ``mkstemp`` in _build_argv.
+        try:
+            import os as _os
+
+            _os.unlink(path)
+        except OSError:
+            pass
+
+    def test_argv_no_longer_uses_deprecated_quiet_full_auto(self) -> None:
+        """The old ``--quiet --full-auto`` shape is gone — guard against regression."""
+        provider = CodexProvider()
+        argv = provider._build_argv(_make_task(prompt="hi"))
+        assert "--quiet" not in argv
+        assert "--full-auto" not in argv
+
     def test_argv_flag_order(self) -> None:
-        """Verify flags come before the positional prompt argument."""
+        """Verify ``exec`` comes immediately after the binary and prompt is last."""
         provider = CodexProvider(binary="codex")
         task = _make_task(prompt="Hello")
         argv = provider._build_argv(task)
 
-        # Prompt is the last element (positional)
-        assert argv[-1] == "Hello"
-        # Binary is first
         assert argv[0] == "codex"
-        # --quiet and --full-auto appear before the prompt
-        quiet_idx = argv.index("--quiet")
-        auto_idx = argv.index("--full-auto")
-        assert quiet_idx < len(argv) - 1
-        assert auto_idx < len(argv) - 1
+        assert argv[1] == "exec"
+        assert argv[-1] == "Hello"
+        # --json appears before the positional prompt
+        json_idx = argv.index("--json")
+        assert json_idx < len(argv) - 1
 
     def test_api_key_not_in_argv(self) -> None:
         """Secrets must never appear in argv — only in env."""
@@ -579,6 +707,251 @@ class TestCodexOutputParsing:
         result = provider._parse_output("", "Killed", -9, _make_task())
         assert result.success is False
         assert "codex exited -9" in str(result.error)
+
+    def test_codex_captures_tokens_from_info_total_shape(self) -> None:
+        """Documented shape: ``token_count`` events carry ``info.total_token_usage``.
+
+        Per ``codex-rs/protocol/src/protocol.rs``, each ``token_count``
+        event re-publishes the **cumulative** running totals (not a
+        per-turn delta) — so ``_parse_output`` should take the LAST
+        event's totals, not sum across events.
+        """
+        provider = CodexProvider()
+        jsonl = "\n".join([
+            json.dumps({
+                "type": "token_count",
+                "info": {
+                    "total_token_usage": {
+                        "input_tokens": 100,
+                        "cached_input_tokens": 0,
+                        "output_tokens": 25,
+                        "reasoning_output_tokens": 0,
+                        "total_tokens": 125,
+                    },
+                    "last_token_usage": {
+                        "input_tokens": 100,
+                        "output_tokens": 25,
+                    },
+                    "model_context_window": 200_000,
+                },
+            }),
+            json.dumps({"type": "agent_message", "message": "First reply."}),
+            # Second turn: cumulative grows to 130/37, NOT a delta of 30/12.
+            json.dumps({
+                "type": "token_count",
+                "info": {
+                    "total_token_usage": {
+                        "input_tokens": 130,
+                        "cached_input_tokens": 0,
+                        "output_tokens": 37,
+                        "reasoning_output_tokens": 0,
+                        "total_tokens": 167,
+                    },
+                    "last_token_usage": {
+                        "input_tokens": 30,
+                        "output_tokens": 12,
+                    },
+                    "model_context_window": 200_000,
+                },
+            }),
+            json.dumps({"type": "agent_message", "message": "Final answer is 42."}),
+        ])
+
+        result = provider._parse_output(jsonl, "", 0, _make_task())
+
+        assert result.success is True
+        assert result.cost is not None
+        # Last event's cumulative totals — NOT 100+130=230.
+        assert result.cost.input_tokens == 130
+        assert result.cost.output_tokens == 37
+        assert result.cost.usd is None
+        # Final agent_message wins as fallback content (no last-message file).
+        assert result.content == "Final answer is 42."
+
+    def test_codex_folds_cached_input_and_reasoning_tokens(self) -> None:
+        """``cached_input_tokens`` → input; ``reasoning_output_tokens`` → output.
+
+        Matches how anthropic/gemini providers fold cache + reasoning fields.
+        """
+        provider = CodexProvider()
+        jsonl = json.dumps({
+            "type": "token_count",
+            "info": {
+                "total_token_usage": {
+                    "input_tokens": 50,
+                    "cached_input_tokens": 200,
+                    "output_tokens": 30,
+                    "reasoning_output_tokens": 70,
+                    "total_tokens": 350,
+                },
+            },
+        })
+        result = provider._parse_output(jsonl, "", 0, _make_task())
+        assert result.cost is not None
+        assert result.cost.input_tokens == 250  # 50 + 200 cached
+        assert result.cost.output_tokens == 100  # 30 + 70 reasoning
+
+    def test_codex_legacy_flat_shape_still_aggregates(self) -> None:
+        """Older codex versions used a flat ``input_tokens``/``output_tokens``
+        shape on the event itself.  Preserve that path as a fallback so we
+        don't regress users on pinned older codex CLI builds.
+        """
+        provider = CodexProvider()
+        jsonl = "\n".join([
+            json.dumps({"type": "token_count", "input_tokens": 100, "output_tokens": 25}),
+            json.dumps({"type": "token_count", "input_tokens": 30, "output_tokens": 12}),
+        ])
+        result = provider._parse_output(jsonl, "", 0, _make_task())
+        assert result.cost is not None
+        # Legacy shape doesn't carry cumulative totals — sum is correct here.
+        assert result.cost.input_tokens == 130
+        assert result.cost.output_tokens == 37
+
+    def test_codex_jsonl_with_msg_envelope(self) -> None:
+        """Codex sometimes wraps payloads in a ``msg`` envelope — handle both."""
+        provider = CodexProvider()
+        jsonl = json.dumps({
+            "type": "token_count",
+            "msg": {"input_tokens": 7, "output_tokens": 3},
+        })
+        result = provider._parse_output(jsonl, "", 0, _make_task())
+        assert result.cost is not None
+        assert result.cost.input_tokens == 7
+        assert result.cost.output_tokens == 3
+
+    def test_codex_no_token_events_falls_back_to_text(self) -> None:
+        """When stdout has no ``token_count`` events at all, cost is None."""
+        provider = CodexProvider()
+        result = provider._parse_output("Just plain text\n", "", 0, _make_task())
+        assert result.success is True
+        assert result.content == "Just plain text"
+        assert result.cost is None
+
+    def test_codex_prefers_last_message_file_over_event_stream(self, tmp_path) -> None:
+        """``--output-last-message`` file is the authoritative source for content.
+
+        When ``_build_argv`` sets up a tempfile and codex writes to it,
+        ``_parse_output`` should read that file rather than scraping the
+        event stream.  This test simulates the file having content while
+        the JSONL stream's last ``agent_message`` says something different.
+        """
+        provider = CodexProvider()
+        # Simulate ``_build_argv`` having allocated a tempfile.
+        msg_file = tmp_path / "last-msg.txt"
+        msg_file.write_text("Authoritative final answer.\n")
+        provider._last_message_path = str(msg_file)
+
+        jsonl = "\n".join([
+            json.dumps({"type": "agent_message", "message": "Stale streaming text."}),
+        ])
+        result = provider._parse_output(jsonl, "", 0, _make_task())
+        assert result.success is True
+        # File wins over event-stream agent_message.
+        assert result.content == "Authoritative final answer."
+        # File is consumed (deleted) after read.
+        assert not msg_file.exists()
+        assert provider._last_message_path is None
+
+    def test_codex_falls_back_to_event_stream_when_message_file_empty(
+        self, tmp_path,
+    ) -> None:
+        """If the last-message file exists but is empty, fall back to events."""
+        provider = CodexProvider()
+        msg_file = tmp_path / "last-msg.txt"
+        msg_file.write_text("")
+        provider._last_message_path = str(msg_file)
+
+        jsonl = json.dumps({"type": "agent_message", "message": "Stream wins."})
+        result = provider._parse_output(jsonl, "", 0, _make_task())
+        assert result.content == "Stream wins."
+
+    def test_codex_cleans_up_message_file_on_failure(self, tmp_path) -> None:
+        """Even when codex exits non-zero, the tempfile must be removed."""
+        provider = CodexProvider()
+        msg_file = tmp_path / "last-msg.txt"
+        msg_file.write_text("partial")
+        provider._last_message_path = str(msg_file)
+
+        result = provider._parse_output("", "auth failed", 1, _make_task())
+        assert result.success is False
+        assert not msg_file.exists()
+        assert provider._last_message_path is None
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# GeminiProvider
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+class TestGeminiRegistry:
+    def test_registered(self) -> None:
+        assert "gemini" in PROVIDER_REGISTRY
+        assert PROVIDER_REGISTRY["gemini"] is GeminiProvider
+
+
+class TestGeminiArgvRequestsJson:
+    def test_argv_includes_json_output_flag(self) -> None:
+        """Without ``-o json`` the CLI emits free-form text — no token data."""
+        provider = GeminiProvider(binary="gemini")
+        argv = provider._build_argv(_make_task(prompt="hi"))
+        assert "-o" in argv
+        idx = argv.index("-o")
+        assert argv[idx + 1] == "json"
+
+
+class TestGeminiOutputParsing:
+    def test_gemini_captures_tokens(self) -> None:
+        """``stats.models[*].tokens.{prompt,candidates,cached}`` → Cost."""
+        provider = GeminiProvider()
+        envelope = {
+            "response": "Hello there.",
+            "stats": {
+                "models": {
+                    "gemini-2.5-pro": {
+                        "tokens": {
+                            "prompt": 250,
+                            "candidates": 75,
+                            "cached": 0,
+                            "total": 325,
+                        },
+                    },
+                },
+            },
+        }
+        result = provider._parse_output(json.dumps(envelope), "", 0, _make_task())
+        assert result.success is True
+        assert result.content == "Hello there."
+        assert result.cost is not None
+        assert result.cost.input_tokens == 250
+        assert result.cost.output_tokens == 75
+        assert result.cost.usd is None
+
+    def test_gemini_folds_cached_tokens_into_input(self) -> None:
+        """``cached`` tokens are read-from-cache prompt context — count as input."""
+        provider = GeminiProvider()
+        envelope = {
+            "response": "ok",
+            "stats": {
+                "models": {
+                    "gemini-2.5-pro": {
+                        "tokens": {"prompt": 50, "candidates": 10, "cached": 200},
+                    },
+                },
+            },
+        }
+        result = provider._parse_output(json.dumps(envelope), "", 0, _make_task())
+        assert result.cost is not None
+        assert result.cost.input_tokens == 250  # 50 + 200 cached
+        assert result.cost.output_tokens == 10
+
+    def test_gemini_plain_text_fallback(self) -> None:
+        """If the CLI emits plain text instead of JSON, cost is None."""
+        provider = GeminiProvider()
+        result = provider._parse_output("just plain text", "", 0, _make_task())
+        assert result.success is True
+        assert result.content == "just plain text"
+        assert result.cost is None
+        assert result.metadata.get("raw_output") is True
 
 
 # ═══════════════════════════════════════════════════════════════════════════

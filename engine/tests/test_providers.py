@@ -133,6 +133,7 @@ class TestOpenAIStream:
             max_tokens=100,
             messages=[{"role": "user", "content": "Hi"}],
             stream=True,
+            stream_options={"include_usage": True},
         )
 
 
@@ -336,3 +337,165 @@ class TestAnthropicStealthHeaders:
         assert re.match(r"^\d+\.\d+\.\d+$", CLAUDE_CODE_VERSION) or CLAUDE_CODE_VERSION == "unknown", (
             f"Expected semver or 'unknown', got: {CLAUDE_CODE_VERSION}"
         )
+
+
+# ---------------------------------------------------------------------------
+# Token usage side-channel (feat/token-tracking-all-providers)
+# ---------------------------------------------------------------------------
+
+
+def _openai_response_with_usage(
+    content: str = "ok",
+    prompt_tokens: int = 12,
+    completion_tokens: int = 7,
+) -> MagicMock:
+    """OpenAI ChatCompletion mock with a populated ``usage`` block."""
+    response = _openai_response(content)
+    usage = MagicMock()
+    usage.prompt_tokens = prompt_tokens
+    usage.completion_tokens = completion_tokens
+    response.usage = usage
+    return response
+
+
+def _anthropic_response_with_usage(
+    content: str = "ok",
+    input_tokens: int = 20,
+    output_tokens: int = 9,
+    cache_creation_input_tokens: int = 0,
+    cache_read_input_tokens: int = 0,
+) -> MagicMock:
+    """Anthropic Messages mock with a populated ``usage`` block."""
+    block = MagicMock()
+    block.text = content
+    response = MagicMock()
+    response.content = [block]
+    usage = MagicMock()
+    usage.input_tokens = input_tokens
+    usage.output_tokens = output_tokens
+    usage.cache_creation_input_tokens = cache_creation_input_tokens
+    usage.cache_read_input_tokens = cache_read_input_tokens
+    response.usage = usage
+    return response
+
+
+class TestOpenAICapturesTokens:
+    """OpenAIProvider.complete() populates last_usage from response.usage."""
+
+    async def test_openai_captures_tokens(self) -> None:
+        provider = OpenAIProvider(api_key="test-key")
+        mock_create = AsyncMock(
+            return_value=_openai_response_with_usage(
+                content="hi", prompt_tokens=42, completion_tokens=11
+            )
+        )
+        provider.client.chat.completions.create = mock_create
+
+        await provider.complete(prompt="hi", model="gpt-4o", max_tokens=10)
+
+        assert provider.last_usage == {"input_tokens": 42, "output_tokens": 11}
+
+    async def test_openai_stream_captures_usage_from_final_chunk(self) -> None:
+        """The final chunk in an include_usage stream carries token totals."""
+        provider = OpenAIProvider(api_key="test-key")
+
+        async def _gen():
+            for text in ["hello", " world"]:
+                delta = MagicMock()
+                delta.content = text
+                choice = MagicMock()
+                choice.delta = delta
+                chunk = MagicMock()
+                chunk.choices = [choice]
+                chunk.usage = None
+                yield chunk
+            # Final usage-only chunk: no choices, just usage.
+            final = MagicMock()
+            final.choices = []
+            final_usage = MagicMock()
+            final_usage.prompt_tokens = 5
+            final_usage.completion_tokens = 3
+            final.usage = final_usage
+            yield final
+
+        provider.client.chat.completions.create = AsyncMock(return_value=_gen())
+
+        async for _ in provider.stream(prompt="hi", model="gpt-4o", max_tokens=10):
+            pass
+
+        assert provider.last_usage == {"input_tokens": 5, "output_tokens": 3}
+
+
+class TestAnthropicCapturesTokens:
+    """AnthropicProvider.complete() populates last_usage from response.usage,
+    folding cache_creation/cache_read into input_tokens (matching the
+    claude_code execution provider's existing semantics)."""
+
+    async def test_anthropic_captures_tokens(self) -> None:
+        provider = AnthropicProvider()
+        mock_create = AsyncMock(
+            return_value=_anthropic_response_with_usage(
+                content="ok", input_tokens=100, output_tokens=50,
+            )
+        )
+        provider.client.messages.create = mock_create
+
+        await provider.complete(prompt="hi", model="claude-sonnet-4", max_tokens=64)
+
+        assert provider.last_usage == {"input_tokens": 100, "output_tokens": 50}
+
+    async def test_anthropic_folds_cache_tokens_into_input(self) -> None:
+        provider = AnthropicProvider()
+        mock_create = AsyncMock(
+            return_value=_anthropic_response_with_usage(
+                input_tokens=10,
+                output_tokens=5,
+                cache_creation_input_tokens=200,
+                cache_read_input_tokens=300,
+            )
+        )
+        provider.client.messages.create = mock_create
+
+        await provider.complete(prompt="hi", model="claude-sonnet-4", max_tokens=64)
+
+        assert provider.last_usage == {"input_tokens": 510, "output_tokens": 5}
+
+
+class TestModelProviderAdapterReadsUsage:
+    """ModelProviderExecutionAdapter populates ExecutionResult.cost from
+    the inner ModelProvider's last_usage side-channel."""
+
+    async def test_adapter_populates_cost_from_last_usage(self) -> None:
+        from engine.dispatch import ModelProviderExecutionAdapter
+        from engine.execution import ExecutionTask
+
+        provider = OpenAIProvider(api_key="test-key")
+        provider.client.chat.completions.create = AsyncMock(
+            return_value=_openai_response_with_usage(
+                content="ok", prompt_tokens=7, completion_tokens=3,
+            )
+        )
+        adapter = ModelProviderExecutionAdapter(provider, name="openai")
+        task = ExecutionTask.from_prompt("ping", output_path="/tmp/x.md")
+
+        result = await adapter.execute(task)
+
+        assert result.success is True
+        assert result.cost is not None
+        assert result.cost.input_tokens == 7
+        assert result.cost.output_tokens == 3
+        assert result.cost.usd is None
+
+    async def test_adapter_cost_none_when_provider_lacks_side_channel(self) -> None:
+        """A ModelProvider without ``last_usage`` produces cost=None."""
+        from engine.dispatch import ModelProviderExecutionAdapter
+        from engine.execution import ExecutionTask
+        from engine.providers import MockProvider
+
+        adapter = ModelProviderExecutionAdapter(MockProvider(), name="mock")
+        task = ExecutionTask.from_prompt("ping", output_path="/tmp/x.md")
+
+        result = await adapter.execute(task)
+
+        assert result.success is True
+        assert result.cost is None
