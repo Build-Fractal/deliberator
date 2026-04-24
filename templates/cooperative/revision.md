@@ -32,8 +32,7 @@ Read all files before writing. Pay close attention to contradictions and tension
 
 ## What to Produce
 
-Write your revision to: `{OUTPUT_PATH}`
-
+Return your revision as your response — the engine will write it to `{OUTPUT_PATH}` verbatim. Do NOT use the Write or Edit tools.
 Your revision must contain the following sections in this exact order:
 
 ---
@@ -91,4 +90,4 @@ If no new recommendations emerge, write "No new recommendations. The cross-revie
 - **Do not withdraw everything.** If cross-reviews challenged all your positions, some of those challenges were likely wrong. Defend what deserves defending with evidence.
 - **Do not add recommendations just to pad.** New recommendations should only appear if the cross-review process genuinely surfaced something you missed.
 - **Acknowledge the source.** When you change your position, credit the specific cross-review that prompted it. This creates the audit trail the synthesis needs.
-- **Write the file.** Your entire output must be written to `{OUTPUT_PATH}`. Do not summarize or truncate. Write the complete revision.
+- **Response IS the file.** Your entire response will be written to `{OUTPUT_PATH}` by the engine verbatim. Do NOT use the Write or Edit tools. Do NOT prefix your response with status messages ("I've completed…", "I've written…") or any meta-commentary. Do NOT summarize or truncate. Include the complete revision.

@@ -31,8 +31,7 @@ Read in phase order to trace how valuations evolved.
 
 ## What to Produce
 
-Write the synthesis to: `{OUTPUT_PATH}`
-
+Return the synthesis as your response — the engine will write it to `{OUTPUT_PATH}` verbatim. Do NOT use the Write or Edit tools.
 ---
 
 ### Process Summary
@@ -121,4 +120,4 @@ The recommended envy-free allocation:
 - **Trace everything.** Every allocation must reference specific valuations and trades.
 - **Do not introduce new valuations.** Use the parties' stated valuations.
 - **Fairness analysis is required.** Envy-freeness check, proportionality, and Pareto optimality must all be assessed.
-- **Write the file.** Your entire output must be written to `{OUTPUT_PATH}`. Do not summarize or truncate.
+- **Response IS the file.** Your entire response will be written to `{OUTPUT_PATH}` by the engine verbatim. Do NOT use the Write or Edit tools. Do NOT prefix your response with status messages ("I've completed…", "I've written…") or any meta-commentary. Do NOT summarize or truncate.

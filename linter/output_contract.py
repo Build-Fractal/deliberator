@@ -35,6 +35,26 @@ from pydantic import BaseModel
 from linter.quality import check_disagreement
 
 
+class UnparseableSynthesisError(ValueError):
+    """Raised when synthesis text contains none of the expected structural markers.
+
+    The linter defaults every :class:`QualityIndicators` field to 0 when its
+    regex probes miss. That's indistinguishable from a legitimate
+    "0 disputes, clean convergence" result — silent failure looks like a
+    clean PASS to downstream gates.
+
+    This error is raised when BOTH ``agent_count`` and ``phases_completed``
+    extract to 0, which means every explicit structural probe missed and no
+    phase keywords were found anywhere in the text. That's not a valid
+    deliberation output — it's almost always meta-prose from a tool-use-capable
+    agent that called Write and returned a chat-message receipt (see
+    spec 027 postmortem).
+
+    Callers can catch this to distinguish parse failure from convergence and
+    choose to BLOCK/retry/escalate rather than treat as PASS.
+    """
+
+
 # ---------------------------------------------------------------------------
 # Pydantic models — frozen per Constitution Principle IX
 # ---------------------------------------------------------------------------
@@ -359,6 +379,23 @@ def parse_synthesis(text: str, mode: str = "cooperative") -> ConversusOutput:
     phases_completed = _extract_phases_completed(text)
     cross_reviews = _extract_cross_reviews_performed(text, agent_count)
 
+    # Guard against silent parse failure: if every explicit structural probe
+    # missed AND the phase-keyword fallback found nothing, the text is not a
+    # real synthesis — it's almost always meta-prose from a misbehaving
+    # tool-use agent. Surface that as an error so downstream gates don't
+    # read the zero-valued result as a clean PASS.
+    if agent_count == 0 and phases_completed == 0:
+        raise UnparseableSynthesisError(
+            "Synthesis text contains no recognizable structural markers "
+            "(no agent count, no phase headers, no phase keywords). This is "
+            "typically meta-prose returned by a tool-use-capable agent that "
+            "wrote the real synthesis to disk via a Write tool and returned "
+            "only a conversational receipt as its response — which the "
+            "engine then clobbered over the real file. Check the agent's "
+            "system/tool config, or that the mode template instructs the "
+            "agent to return the synthesis as its response (not Write it)."
+        )
+
     # Reuse the tested dispute parser from linter.quality
     disagreement = check_disagreement(text, mode=extracted_mode)
     dispute_count = disagreement.dispute_count
@@ -429,6 +466,18 @@ if __name__ == "__main__":
         sys.exit(2)
 
     text = filepath.read_text(encoding="utf-8")
-    result = parse_synthesis(text, mode=args.mode)
+    try:
+        result = parse_synthesis(text, mode=args.mode)
+    except UnparseableSynthesisError as exc:
+        print(
+            json.dumps({
+                "error": "unparseable_synthesis",
+                "message": str(exc),
+                "path": args.path,
+                "mode": args.mode,
+            }),
+            file=sys.stderr,
+        )
+        sys.exit(3)
     print(result.model_dump_json(indent=2))
     sys.exit(0)

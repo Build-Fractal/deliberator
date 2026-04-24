@@ -27,8 +27,7 @@ Read all revision documents before writing. Focus on where parties' revised posi
 
 ## What to Produce
 
-Write your final position to: `{OUTPUT_PATH}`
-
+Return your final position as your response — the engine will write it to `{OUTPUT_PATH}` verbatim. Do NOT use the Write or Edit tools.
 Your final position must contain the following sections in this exact order:
 
 ---
@@ -75,4 +74,4 @@ Terms where you are willing to accept an alternative formulation. For each:
 - **Do not re-litigate Phase 3 concessions.** If you conceded a term in revision, you cannot bring it back here.
 - **Deal-breakers must be defensible.** Anything you declare a deal-breaker will receive extra scrutiny from the mediator. Only claim this status for terms backed by essential interests.
 - **Be concise.** The mediator will read all parties' final positions. Repetition dilutes your strongest terms.
-- **Write the file.** Your entire output must be written to `{OUTPUT_PATH}`. Do not summarize or truncate. Write the complete final position.
+- **Response IS the file.** Your entire response will be written to `{OUTPUT_PATH}` by the engine verbatim. Do NOT use the Write or Edit tools. Do NOT prefix your response with status messages ("I've completed…", "I've written…") or any meta-commentary. Do NOT summarize or truncate. Include the complete final position.

@@ -30,8 +30,7 @@ Read the competitor's opening argument and their supporting documentation. Compa
 
 ### Output Structure
 
-Write your attack brief to `{OUTPUT_PATH}` with the following sections:
-
+Return your attack brief as your response with the following sections (the engine will write your response to `{OUTPUT_PATH}` verbatim; do NOT use the Write or Edit tools):
 ---
 
 ## False Claims

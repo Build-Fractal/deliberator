@@ -30,8 +30,7 @@ You are participating in a **{MODE}** multi-agent deliberation. In this phase, y
 
 ## What to Produce
 
-Write your revision to: `{OUTPUT_PATH}`
-
+Return your revision as your response — the engine will write it to `{OUTPUT_PATH}` verbatim. Do NOT use the Write or Edit tools.
 ---
 
 ### Recommendation Dispositions
@@ -89,4 +88,4 @@ Revise your incentive/vulnerability/efficiency assessment based on cross-review 
 - **Trade-offs are not defeats.** Modifying a recommendation to respect another property is good mechanism design, not weakness.
 - **Maintain role discipline.** Even after revision, your analysis should reflect your role's primary concern.
 - **Credit sources.** Cite the cross-review that prompted each change.
-- **Write the file.** Your entire output must be written to `{OUTPUT_PATH}`. Do not summarize or truncate.
+- **Response IS the file.** Your entire response will be written to `{OUTPUT_PATH}` by the engine verbatim. Do NOT use the Write or Edit tools. Do NOT prefix your response with status messages ("I've completed…", "I've written…") or any meta-commentary. Do NOT summarize or truncate.

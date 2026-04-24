@@ -41,8 +41,7 @@ The unresolved terms from the synthesis have been extracted for you:
 
 ## What to Produce
 
-Write your arbitration resolution to: `{OUTPUT_PATH}`
-
+Return your arbitration resolution as your response — the engine will write it to `{OUTPUT_PATH}` verbatim. Do NOT use the Write or Edit tools.
 Your resolution must contain the following sections in this exact order:
 
 ---
@@ -111,4 +110,4 @@ A prioritized list of all terms from the binding decisions:
 - **Every ruling must cite the grounding document.** A ruling without a grounding citation is invalid.
 - **Acknowledge rejected positions.** Explain why, respectfully and specifically.
 - **Be concrete.** Required terms must be specific enough to implement without further negotiation.
-- **Write the file.** Your entire output must be written to `{OUTPUT_PATH}`. Do not summarize or truncate.
+- **Response IS the file.** Your entire response will be written to `{OUTPUT_PATH}` by the engine verbatim. Do NOT use the Write or Edit tools. Do NOT prefix your response with status messages ("I've completed…", "I've written…") or any meta-commentary. Do NOT summarize or truncate.

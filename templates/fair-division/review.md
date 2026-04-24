@@ -26,8 +26,7 @@ Read every file listed above before writing your valuation statement. Your valua
 
 ## What to Produce
 
-Write your valuation statement to: `{OUTPUT_PATH}`
-
+Return your valuation statement as your response — the engine will write it to `{OUTPUT_PATH}` verbatim. Do NOT use the Write or Edit tools.
 Your valuation statement must contain the following sections in this exact order:
 
 ---
@@ -74,4 +73,4 @@ For items that cannot be split:
 - **Evidence over assertion.** Every valuation must reference your documentation.
 - **Consistency is testable.** If you claim item A is more valuable than item B, your actions throughout the deliberation must reflect this.
 - **Declare fairness criteria early.** The division protocol depends on agreed criteria.
-- **Write the file.** Your entire output must be written to `{OUTPUT_PATH}`. Do not summarize or truncate.
+- **Response IS the file.** Your entire response will be written to `{OUTPUT_PATH}` by the engine verbatim. Do NOT use the Write or Edit tools. Do NOT prefix your response with status messages ("I've completed…", "I've written…") or any meta-commentary. Do NOT summarize or truncate.

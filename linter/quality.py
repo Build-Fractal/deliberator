@@ -393,16 +393,43 @@ def _fallback_winner_take_all(text: str) -> list[DisputeInfo]:
 
 
 def _fallback_red_blue(text: str) -> list[DisputeInfo]:
-    """Red-blue fallback: count ``**[RISK-ID]`` entries under ``### Disputed Risks``."""
-    section = _extract_section_after_heading(text, r"^###\s+Disputed\s+Risks")
-    if section is None:
-        return []
-    # Match **[RISK-ID]: or **[RISK-xxx]** patterns
-    entries = re.findall(r"\*\*\[([^\]]+)\][:\s]", section)
-    return [
-        DisputeInfo(label=f"[{e.strip()}]", agent_names=[])
-        for e in entries
-    ]
+    """Red-blue fallback: count surviving unresolved risk entries.
+
+    Counts two kinds of surviving risk as disputes:
+
+    1. ``**[RISK-ID]`` entries under ``### Landed Attacks — Unmitigated Risks`` —
+       Red Team's attacks the arbiter ruled Blue Team could not adequately
+       mitigate. These are surviving risk by arbiter judgment.
+    2. ``**[RISK-ID]`` entries under ``### Disputed Risks`` — risks where Red
+       and Blue fundamentally disagreed and the arbiter could not rule. These
+       are surviving disagreements.
+
+    Mitigated Attacks and Accepted Risks are NOT counted — mitigated attacks
+    are resolved in Blue's favor; accepted risks are consciously tolerated by
+    the organization and so represent intent rather than surviving risk.
+    """
+    disputes: list[DisputeInfo] = []
+    entry_pattern = r"\*\*\[([^\]]+)\][:\s]"
+
+    landed = _extract_section_after_heading(
+        text, r"^###\s+Landed\s+Attacks"
+    )
+    if landed is not None:
+        for e in re.findall(entry_pattern, landed):
+            disputes.append(
+                DisputeInfo(label=f"[Landed] [{e.strip()}]", agent_names=[])
+            )
+
+    disputed = _extract_section_after_heading(
+        text, r"^###\s+Disputed\s+Risks"
+    )
+    if disputed is not None:
+        for e in re.findall(entry_pattern, disputed):
+            disputes.append(
+                DisputeInfo(label=f"[Disputed] [{e.strip()}]", agent_names=[])
+            )
+
+    return disputes
 
 
 def _fallback_prisoners_dilemma(text: str) -> list[DisputeInfo]:

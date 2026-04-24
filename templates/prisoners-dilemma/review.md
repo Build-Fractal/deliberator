@@ -35,8 +35,7 @@ Read the target document and your documentation, then write a **Capability Decla
 
 ### Output
 
-Write your Capability Declaration to: `{OUTPUT_PATH}`
-
+Return your Capability Declaration as your response — the engine will write it to `{OUTPUT_PATH}` verbatim. Do NOT use the Write or Edit tools.
 ### Required Sections
 
 Your output must contain exactly these sections, in this order:

@@ -43,8 +43,7 @@ These are the boundary disputes you must resolve. If this section is empty, read
 
 ## What to Produce
 
-Write your arbitration resolution to: `{OUTPUT_PATH}`
-
+Return your arbitration resolution as your response — the engine will write it to `{OUTPUT_PATH}` verbatim. Do NOT use the Write or Edit tools.
 Your resolution must contain the following sections in this exact order:
 
 ---
@@ -126,4 +125,4 @@ End with 1-2 paragraphs: whether the disputed boundaries indicate structural iss
 - **Every ruling must cite the grounding document.** A ruling without a grounding citation is invalid.
 - **Respect trust scores.** When evidence is genuinely balanced, prefer the participant with the higher accuracy score. They have demonstrated more reliable self-assessment.
 - **Boundary specifications must be precise.** Every ruling must include owner, scope, and handoff. An assignment without a clear boundary creates the next dispute.
-- **Write the file.** Your entire output must be written to `{OUTPUT_PATH}`. Do not summarize or truncate. Write the complete arbitration resolution.
+- **Response IS the file.** Your entire response will be written to `{OUTPUT_PATH}` by the engine verbatim. Do NOT use the Write or Edit tools. Do NOT prefix your response with status messages ("I've completed…", "I've written…") or any meta-commentary. Do NOT summarize or truncate. Include the complete arbitration resolution.

@@ -41,8 +41,7 @@ Read all audits written about you, your own audits of others, and your original 
 
 ### Output
 
-Write your recalibration to: `{OUTPUT_PATH}`
-
+Return your recalibration as your response — the engine will write it to `{OUTPUT_PATH}` verbatim. Do NOT use the Write or Edit tools.
 ### Required Sections
 
 Your output must contain exactly these sections, in this order:

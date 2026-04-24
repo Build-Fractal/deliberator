@@ -30,8 +30,7 @@ You are participating in a **{MODE}** multi-agent deliberation. In this phase, y
 
 ## What to Produce
 
-Write your revision to: `{OUTPUT_PATH}`
-
+Return your revision as your response — the engine will write it to `{OUTPUT_PATH}` verbatim. Do NOT use the Write or Edit tools.
 ---
 
 ### Demand Dispositions
@@ -79,4 +78,4 @@ Your updated view of what a fair overall allocation looks like:
 - **Modifications must be concrete.** State exact revised quantities.
 - **Do not reduce to zero.** If you have a legitimate need, defend it even if challenged.
 - **Credit the source.** When you adjust a demand, cite the specific challenge that prompted it.
-- **Write the file.** Your entire output must be written to `{OUTPUT_PATH}`. Do not summarize or truncate.
+- **Response IS the file.** Your entire response will be written to `{OUTPUT_PATH}` by the engine verbatim. Do NOT use the Write or Edit tools. Do NOT prefix your response with status messages ("I've completed…", "I've written…") or any meta-commentary. Do NOT summarize or truncate.

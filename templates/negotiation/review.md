@@ -26,8 +26,7 @@ Read every file listed above before writing your position statement. Your claims
 
 ## What to Produce
 
-Write your position statement to: `{OUTPUT_PATH}`
-
+Return your position statement as your response — the engine will write it to `{OUTPUT_PATH}` verbatim. Do NOT use the Write or Edit tools.
 Your position statement must contain the following sections in this exact order:
 
 ---
@@ -69,4 +68,4 @@ Your honest assessment of where a deal is possible:
 - **Evidence over assertion.** Every claim must reference either the target document or your documentation. Ungrounded claims will be dismantled in cross-review.
 - **Strategic honesty.** You may emphasize certain interests over others, but do not fabricate interests or misrepresent your BATNA. The cross-review phase will expose inconsistencies.
 - **No premature concessions.** This is your opening position. Do not compromise in Phase 1 — that happens in revision.
-- **Write the file.** Your entire output must be written to `{OUTPUT_PATH}`. Do not summarize or truncate. Write the complete position statement.
+- **Response IS the file.** Your entire response will be written to `{OUTPUT_PATH}` by the engine verbatim. Do NOT use the Write or Edit tools. Do NOT prefix your response with status messages ("I've completed…", "I've written…") or any meta-commentary. Do NOT summarize or truncate. Include the complete position statement.

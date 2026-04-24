@@ -37,8 +37,7 @@ The disputed valuations from the synthesis:
 
 ## What to Produce
 
-Write your resolution to: `{OUTPUT_PATH}`
-
+Return your resolution as your response — the engine will write it to `{OUTPUT_PATH}` verbatim. Do NOT use the Write or Edit tools.
 ---
 
 ### Process Note
@@ -105,4 +104,4 @@ Updated allocation incorporating all binding decisions:
 - **No new items.** Resolve what exists.
 - **Every ruling must cite the grounding document.**
 - **Preserve envy-freeness where possible.** Your rulings should not introduce envy into previously envy-free portions.
-- **Write the file.** Your entire output must be written to `{OUTPUT_PATH}`. Do not summarize or truncate.
+- **Response IS the file.** Your entire response will be written to `{OUTPUT_PATH}` by the engine verbatim. Do NOT use the Write or Edit tools. Do NOT prefix your response with status messages ("I've completed…", "I've written…") or any meta-commentary. Do NOT summarize or truncate.

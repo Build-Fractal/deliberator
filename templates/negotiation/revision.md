@@ -32,8 +32,7 @@ Read all files before writing. Pay close attention to counter-proposals and valu
 
 ## What to Produce
 
-Write your revision to: `{OUTPUT_PATH}`
-
+Return your revision as your response — the engine will write it to `{OUTPUT_PATH}` verbatim. Do NOT use the Write or Edit tools.
 Your revision must contain the following sections in this exact order:
 
 ---
@@ -88,4 +87,4 @@ Update your assessment of the zone of possible agreement:
 - **Modifications must be concrete.** State the exact revised term, not "I am willing to be more flexible."
 - **Do not concede everything.** Some counter-offers are themselves inflated. Hold firm where your evidence is stronger.
 - **Credit the source.** When you change position, cite the specific counter-offer that prompted it.
-- **Write the file.** Your entire output must be written to `{OUTPUT_PATH}`. Do not summarize or truncate. Write the complete revision.
+- **Response IS the file.** Your entire response will be written to `{OUTPUT_PATH}` by the engine verbatim. Do NOT use the Write or Edit tools. Do NOT prefix your response with status messages ("I've completed…", "I've written…") or any meta-commentary. Do NOT summarize or truncate. Include the complete revision.

@@ -26,8 +26,7 @@ Read every file listed above before writing your demand statement. Your claims m
 
 ## What to Produce
 
-Write your demand statement to: `{OUTPUT_PATH}`
-
+Return your demand statement as your response — the engine will write it to `{OUTPUT_PATH}` verbatim. Do NOT use the Write or Edit tools.
 Your demand statement must contain the following sections in this exact order:
 
 ---
@@ -76,4 +75,4 @@ Why your proposed allocation is fair relative to others:
 - **Evidence over assertion.** Every claim must reference either the target document or your documentation.
 - **Acknowledge the constraint.** The pool is finite. Show that you understand the trade-offs your demand creates for others.
 - **Be specific.** "We need more resources" is not a demand. State exact quantities and what each unit delivers.
-- **Write the file.** Your entire output must be written to `{OUTPUT_PATH}`. Do not summarize or truncate.
+- **Response IS the file.** Your entire response will be written to `{OUTPUT_PATH}` by the engine verbatim. Do NOT use the Write or Edit tools. Do NOT prefix your response with status messages ("I've completed…", "I've written…") or any meta-commentary. Do NOT summarize or truncate.

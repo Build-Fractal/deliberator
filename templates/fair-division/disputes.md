@@ -25,8 +25,7 @@ You are participating in a **{MODE}** multi-agent deliberation. This is the fina
 
 ## What to Produce
 
-Write your final valuation claim to: `{OUTPUT_PATH}`
-
+Return your final valuation claim as your response — the engine will write it to `{OUTPUT_PATH}` verbatim. Do NOT use the Write or Edit tools.
 ---
 
 ### Disputed Valuations
@@ -76,4 +75,4 @@ Trades from cross-reviews that all involved parties accepted:
 - **Do not reverse Phase 3 adjustments.** If you adjusted a valuation in revision, it stays adjusted.
 - **Accepted trades are binding.** If you accept a trade here, you cannot reject it later.
 - **Fairness claims must be grounded.** State which fairness property and why it matters for your domain.
-- **Write the file.** Your entire output must be written to `{OUTPUT_PATH}`. Do not summarize or truncate.
+- **Response IS the file.** Your entire response will be written to `{OUTPUT_PATH}` by the engine verbatim. Do NOT use the Write or Edit tools. Do NOT prefix your response with status messages ("I've completed…", "I've written…") or any meta-commentary. Do NOT summarize or truncate.

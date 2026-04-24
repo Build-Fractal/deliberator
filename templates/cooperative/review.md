@@ -26,8 +26,7 @@ Read every file listed above before writing your review. Your recommendations mu
 
 ## What to Produce
 
-Write your review to: `{OUTPUT_PATH}`
-
+Return your review as your response — the engine will write it to `{OUTPUT_PATH}` verbatim. Do NOT use the Write or Edit tools.
 Your review must contain the following sections in this exact order:
 
 ---
@@ -87,4 +86,4 @@ A flat list of every documentation file you cited in this review, with the speci
 - **Evidence over opinion.** Every claim must reference either the target spec (by line) or your documentation (by file and line/section). Ungrounded claims will be dismantled in cross-review.
 - **Stay in your lane.** Review only from your tool's perspective. Do not comment on areas outside your domain unless they directly impact your tool's integration.
 - **No filler.** If a section has fewer items than the suggested range, that is fine. Do not pad with weak points to hit a number.
-- **Write the file.** Your entire output must be written to `{OUTPUT_PATH}`. Do not summarize or truncate. Write the complete review.
+- **Response IS the file.** Your entire response will be written to `{OUTPUT_PATH}` by the engine verbatim. Do NOT use the Write or Edit tools. Do NOT prefix your response with status messages ("I've completed…", "I've written…") or any meta-commentary. Do NOT summarize or truncate. Include the complete review.

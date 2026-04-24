@@ -383,3 +383,179 @@ class TestCLI:
         data = json.loads(r.stdout)
         # monorepo has explicit mode header, so --mode flag is overridden
         assert data["quality_indicators"]["mode"] == "cooperative"
+
+
+# ---------------------------------------------------------------------------
+# Layer 2/3 regression tests — red-blue Landed Attacks + parse-failure guard
+# ---------------------------------------------------------------------------
+
+
+class TestRedBlueLandedAttacksCount:
+    """_fallback_red_blue must count Landed Attacks, not just Disputed Risks.
+
+    Rationale (spec 027 postmortem): a red-blue deliberation where the
+    arbiter rules Red's attack landed and Blue could not defend it is a
+    surviving unresolved risk — it must flow into
+    genuine_disagreements_surviving. Previously only ``### Disputed Risks``
+    was counted, producing false-PASS verdicts on deliberations that
+    concluded with P0 required mitigations.
+    """
+
+    SYNTHESIS_WITH_LANDED = """# Synthesis: Red-Blue Risk Register
+
+**Agents:** red-advocate, blue-advocate
+**Deliberation mode:** red-blue
+**Phases completed:** 4
+
+## Process Summary
+
+| Agents | 2 (red-advocate, blue-advocate) |
+| Mode | red-blue |
+
+### Landed Attacks — Unmitigated Risks
+
+- **[RISK-001]: Constitutional violation on evidence-before-claims** (Severity: Critical)
+  - Red's case: proposal claims parity without audit.
+  - Blue's response: deferred to follow-up.
+  - Arbiter's assessment: landed. Mitigation required.
+
+- **[RISK-002]: Arbiter component contract undefined** (Severity: High)
+  - Red's case: five callers depend on PASS/BLOCK.
+  - Blue's response: insufficient.
+  - Arbiter's assessment: landed.
+
+### Mitigated Attacks — Risks Successfully Defended
+
+- **[RISK-007]: Schema drift** (Severity: Medium)
+  - Defense: schema pin validated.
+
+### Accepted Risks
+
+- **[RISK-009]: Cold-start latency** (Severity: Low)
+  - Nature of risk: 1-3s per invocation.
+
+### Disputed Risks
+
+- **[RISK-011]: Semantics of synthesis wording**
+  - Red's final: problematic.
+  - Blue's final: acceptable.
+
+### Verdict
+
+Proceed with Conditions.
+"""
+
+    def test_fallback_counts_landed_attacks(self) -> None:
+        result = parse_synthesis(
+            self.SYNTHESIS_WITH_LANDED, mode="red-blue"
+        )
+        qi = result.quality_indicators
+        # 2 landed + 1 disputed = 3 surviving disagreements
+        assert qi.genuine_disagreements_surviving == 3, (
+            f"Expected 3 (2 landed + 1 disputed), got "
+            f"{qi.genuine_disagreements_surviving}"
+        )
+
+    def test_fallback_ignores_mitigated_and_accepted(self) -> None:
+        # RISK-007 (Mitigated) and RISK-009 (Accepted) must NOT count
+        result = parse_synthesis(
+            self.SYNTHESIS_WITH_LANDED, mode="red-blue"
+        )
+        # Parse the disputes directly — with 2 landed + 1 disputed,
+        # mitigated/accepted are excluded (would have been 5 otherwise).
+        qi = result.quality_indicators
+        assert qi.genuine_disagreements_surviving == 3
+
+    def test_landed_only_still_counts(self) -> None:
+        text = (
+            "# Synthesis: only-landed\n"
+            "**Deliberation mode:** red-blue\n"
+            "**Phases completed:** 4\n\n"
+            "### Landed Attacks — Unmitigated Risks\n\n"
+            "- **[RISK-A]: Thing A** landed.\n"
+            "- **[RISK-B]: Thing B** landed.\n"
+            "- **[RISK-C]: Thing C** landed.\n"
+        )
+        result = parse_synthesis(text, mode="red-blue")
+        assert result.quality_indicators.genuine_disagreements_surviving == 3
+
+    def test_no_landed_no_disputed_is_zero(self) -> None:
+        text = (
+            "# Synthesis: clean-proposal\n"
+            "**Deliberation mode:** red-blue\n"
+            "**Phases completed:** 4\n\n"
+            "### Mitigated Attacks — Risks Successfully Defended\n\n"
+            "- **[RISK-A]: All defended**.\n"
+        )
+        result = parse_synthesis(text, mode="red-blue")
+        assert result.quality_indicators.genuine_disagreements_surviving == 0
+
+
+class TestUnparseableSynthesisGuard:
+    """parse_synthesis must raise UnparseableSynthesisError on meta-prose.
+
+    Rationale (spec 027 postmortem): when a tool-use agent returns a
+    conversational receipt rather than the synthesis document itself, the
+    text lacks every structural marker. Silently returning an all-zeros
+    QualityIndicators looks identical to a legitimate clean-PASS to
+    downstream gates, producing false-PASS verdicts. The guard surfaces
+    this as an explicit error so callers can decide: BLOCK, retry, or
+    escalate.
+    """
+
+    META_PROSE_FROM_027 = (
+        "I've completed the comprehensive risk synthesis for the red-blue "
+        "deliberation on spec 027. The analysis shows a significant evolution "
+        "in the debate, with the Blue Team making three major concessions "
+        "while the Red Team maintained all attacks.\n\n"
+        "## Key Findings:\n\n"
+        "**Critical Issues Identified:**\n"
+        "- Constitutional violation (Evidence Before Claims)\n"
+        "- Arbiter component crisis\n"
+    )
+
+    def test_meta_prose_raises(self) -> None:
+        from linter.output_contract import UnparseableSynthesisError
+
+        with pytest.raises(UnparseableSynthesisError) as exc_info:
+            parse_synthesis(self.META_PROSE_FROM_027, mode="red-blue")
+        assert "no recognizable structural markers" in str(exc_info.value)
+
+    def test_well_formed_synthesis_does_not_raise(self) -> None:
+        text = (
+            "# Synthesis: well-formed\n"
+            "**Deliberation mode:** red-blue\n"
+            "**Phases completed:** 4\n\n"
+            "## Process Summary\n\n"
+            "| Agents | 2 (red-advocate, blue-advocate) |\n\n"
+            "### Landed Attacks — Unmitigated Risks\n\n"
+            "- **[RISK-A]: Thing** landed.\n"
+        )
+        # Must not raise — all three guard-relevant fields populate.
+        result = parse_synthesis(text, mode="red-blue")
+        assert result.quality_indicators.agent_count == 2
+
+    def test_empty_text_raises_value_error_not_unparseable(self) -> None:
+        # Empty text is the pre-existing ValueError path; guard should not
+        # swallow it or upgrade it to UnparseableSynthesisError.
+        with pytest.raises(ValueError) as exc_info:
+            parse_synthesis("", mode="red-blue")
+        assert "empty synthesis text" in str(exc_info.value)
+
+    def test_cli_exits_three_on_meta_prose(self, tmp_path: Path) -> None:
+        bad = tmp_path / "bad.md"
+        bad.write_text(self.META_PROSE_FROM_027, encoding="utf-8")
+        r = subprocess.run(
+            [
+                "uv", "run", "python3", "-m", "linter.output_contract",
+                str(bad), "--mode", "red-blue",
+            ],
+            capture_output=True,
+            text=True,
+        )
+        assert r.returncode == 3, (
+            f"expected exit 3, got {r.returncode}: stdout={r.stdout} "
+            f"stderr={r.stderr}"
+        )
+        err = json.loads(r.stderr)
+        assert err["error"] == "unparseable_synthesis"

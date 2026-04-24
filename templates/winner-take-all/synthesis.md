@@ -33,8 +33,7 @@ Read the target document, then read ALL deliberation artifacts in order. Evaluat
 
 ### Output Structure
 
-Write your verdict to `{OUTPUT_PATH}` with the following sections:
-
+Return your verdict as your response with the following sections (the engine will write your response to `{OUTPUT_PATH}` verbatim; do NOT use the Write or Edit tools):
 ---
 
 ## Judging Criteria

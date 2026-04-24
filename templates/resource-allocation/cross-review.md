@@ -27,8 +27,7 @@ Read all files before writing.
 
 ## What to Produce
 
-Write your challenge to: `{OUTPUT_PATH}`
-
+Return your challenge as your response — the engine will write it to `{OUTPUT_PATH}` verbatim. Do NOT use the Write or Edit tools.
 ---
 
 ### Demand Scrutiny
@@ -79,4 +78,4 @@ Resources where sharing or time-slicing could satisfy both demands:
 - **Cite both demands.** Every claim must reference specific sections from both demand statements.
 - **Be specific about quantities.** "Their demand is too high" is not a challenge. State what the right amount is and why.
 - **Acknowledge legitimate needs.** If their demand is justified for certain resources, say so.
-- **Write the file.** Your entire output must be written to `{OUTPUT_PATH}`. Do not summarize or truncate.
+- **Response IS the file.** Your entire response will be written to `{OUTPUT_PATH}` by the engine verbatim. Do NOT use the Write or Edit tools. Do NOT prefix your response with status messages ("I've completed…", "I've written…") or any meta-commentary. Do NOT summarize or truncate.

@@ -31,8 +31,7 @@ Read all participants' revised capability maps (Phase 3 revisions), then write y
 
 ### Output
 
-Write your boundary proposals to: `{OUTPUT_PATH}`
-
+Return your boundary proposals as your response — the engine will write it to `{OUTPUT_PATH}` verbatim. Do NOT use the Write or Edit tools.
 ### Required Sections
 
 Your output must contain exactly these sections, in this order:

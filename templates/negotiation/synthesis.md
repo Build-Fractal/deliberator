@@ -31,8 +31,7 @@ Read the files in phase order. This lets you trace how positions evolved through
 
 ## What to Produce
 
-Write the synthesis to: `{OUTPUT_PATH}`
-
+Return the synthesis as your response — the engine will write it to `{OUTPUT_PATH}` verbatim. Do NOT use the Write or Edit tools.
 Your synthesis must contain the following sections in this exact order:
 
 ---
@@ -138,4 +137,4 @@ Notable moments where a party moved from their opening position:
 - **Do not introduce new terms.** You synthesize what the parties produced. If you notice an opportunity no party raised, note it as an observation, not a term.
 - **The deal is the deliverable.** The Recommended Deal section is the primary output. A synthesis without a clear, implementable deal has failed.
 - **Completeness over brevity.** Every term, every interest, every concession must be accounted for.
-- **Write the file.** Your entire output must be written to `{OUTPUT_PATH}`. Do not summarize or truncate. Write the complete synthesis.
+- **Response IS the file.** Your entire response will be written to `{OUTPUT_PATH}` by the engine verbatim. Do NOT use the Write or Edit tools. Do NOT prefix your response with status messages ("I've completed…", "I've written…") or any meta-commentary. Do NOT summarize or truncate. Include the complete synthesis.

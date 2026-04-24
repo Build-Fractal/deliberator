@@ -31,8 +31,7 @@ Read the round syntheses in order (Round 1 first, then Round 2, etc.). Each roun
 
 ## What to Produce
 
-Write the cross-round synthesis to: `{OUTPUT_PATH}`
-
+Return the cross-round synthesis as your response — the engine will write it to `{OUTPUT_PATH}` verbatim. Do NOT use the Write or Edit tools.
 Your synthesis must contain the following sections in this exact order:
 
 ---
@@ -163,4 +162,4 @@ Evaluate the deliberation's termination:
 - **The trajectory is the insight.** The primary value of this synthesis over a single-round synthesis is showing how the adversarial game evolved. If a risk was mitigated, explain what changed between rounds. If it persisted, explain whether the attack surface was genuinely intractable or both teams simply stagnated.
 - **Every risk must be classified.** Each risk raised across all rounds must appear in exactly one category of the Final Risk Register: Landed, Mitigated, Accepted, or Disputed. No risks should be silently dropped.
 - **Completeness over brevity.** This is the definitive record of the multi-round adversarial deliberation. Every risk, every defense improvement, every attack pattern shift must be accounted for across all rounds.
-- **Write the file.** Your entire output must be written to `{OUTPUT_PATH}`. Do not summarize or truncate. Write the complete synthesis.
+- **Response IS the file.** Your entire response will be written to `{OUTPUT_PATH}` by the engine verbatim. Do NOT use the Write or Edit tools. Do NOT prefix your response with status messages ("I've completed…", "I've written…") or any meta-commentary. Do NOT summarize or truncate. Include the complete synthesis.

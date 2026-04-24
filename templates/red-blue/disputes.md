@@ -27,8 +27,7 @@ Read all revision documents to understand where the deliberation has landed. You
 
 ## What to Produce
 
-Write your final position to: `{OUTPUT_PATH}`
-
+Return your final position as your response — the engine will write it to `{OUTPUT_PATH}` verbatim. Do NOT use the Write or Edit tools.
 ---
 
 **If your role is RED (attacker), produce a Final Unmitigated Risks document:**
@@ -112,4 +111,4 @@ Attacks where Red and Blue fundamentally disagree after the full deliberation. F
 - **Acknowledge the full deliberation.** Your final position must reflect what happened in cross-review and revision, not just reiterate your opening position.
 - **Be concrete about mitigations.** "This needs to be fixed" is not actionable. State what the fix is, how to verify it, and what effort it requires.
 - **Rank by impact.** Spend the most space on the highest-severity items. Do not give equal weight to critical risks and minor quibbles.
-- **Write the file.** Your entire output must be written to `{OUTPUT_PATH}`. Do not summarize or truncate. Write the complete final position.
+- **Response IS the file.** Your entire response will be written to `{OUTPUT_PATH}` by the engine verbatim. Do NOT use the Write or Edit tools. Do NOT prefix your response with status messages ("I've completed…", "I've written…") or any meta-commentary. Do NOT summarize or truncate. Include the complete final position.
