@@ -64,10 +64,15 @@ class GeminiProvider(SubprocessProvider):
 
     def _build_argv(self, task: ExecutionTask) -> list[str]:
         model = task.metadata.get("model", self._model)
+        # Request JSON output so we can parse structured token usage.
+        # Gemini CLI ≥ 0.4 documents ``-o json`` (alias of
+        # ``--output-format json``) — the envelope carries ``response``
+        # plus ``stats.models[*].tokens.{prompt,candidates,cached,total}``.
         argv = [
             self._binary,
             "-p", task.prompt,
             "-m", model,
+            "-o", "json",
         ]
         if self._sandbox:
             argv.extend(["--sandbox", self._sandbox])
@@ -98,13 +103,69 @@ class GeminiProvider(SubprocessProvider):
                 provider=self.name,
                 metadata={"returncode": returncode, "stderr": stderr[:500]},
             )
+
+        # Try to parse JSON envelope from ``-o json``.  Older versions of
+        # the CLI may still print plain text — fall back gracefully.
+        content: str | None = None
+        cost = None
+        metadata: dict[str, Any] = {"returncode": returncode}
+        try:
+            envelope = json.loads(stdout)
+        except (json.JSONDecodeError, ValueError):
+            content = stdout.strip()
+            metadata["raw_output"] = True
+        else:
+            if isinstance(envelope, dict):
+                # The "response" field is the agent's text reply.
+                response_value = envelope.get("response")
+                if isinstance(response_value, str):
+                    content = response_value.strip()
+                else:
+                    # Some versions emit a structured object — fall back
+                    # to the full envelope's string repr for the content
+                    # so we don't drop the agent's reply silently.
+                    content = stdout.strip()
+
+                # Extract token totals from ``stats.models[*].tokens``.
+                # Schema (per ``gemini --help`` and the gemini-cli repo):
+                #   stats: {
+                #     models: {
+                #       "<model>": {
+                #         tokens: { prompt, candidates, cached, total, ... }
+                #       }
+                #     }
+                #   }
+                stats = envelope.get("stats")
+                if isinstance(stats, dict):
+                    models = stats.get("models")
+                    if isinstance(models, dict):
+                        input_tokens = 0
+                        output_tokens = 0
+                        for _name, mstats in models.items():
+                            if not isinstance(mstats, dict):
+                                continue
+                            tokens = mstats.get("tokens", {}) or {}
+                            input_tokens += int(tokens.get("prompt", 0) or 0)
+                            input_tokens += int(tokens.get("cached", 0) or 0)
+                            output_tokens += int(tokens.get("candidates", 0) or 0)
+                        if input_tokens or output_tokens:
+                            cost = Cost(
+                                input_tokens=input_tokens,
+                                output_tokens=output_tokens,
+                                usd=None,
+                            )
+            else:
+                content = stdout.strip()
+                metadata["raw_output"] = True
+
         return ExecutionResult(
             success=True,
             output_path=task.output_path,
-            content=stdout.strip(),
+            content=content,
             error=None,
+            cost=cost,
             provider=self.name,
-            metadata={"returncode": returncode},
+            metadata=metadata,
         )
 
 

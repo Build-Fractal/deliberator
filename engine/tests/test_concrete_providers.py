@@ -33,6 +33,8 @@ from engine.execution.providers.aider import AiderProvider
 from engine.execution.providers.opencode import OpenCodeProvider
 from engine.execution.providers.codex import CodexProvider
 from engine.execution.providers.copilot import CopilotProvider
+from engine.execution.providers.desktop_sampling import DesktopSamplingProvider
+from engine.execution.providers.gemini import GeminiProvider
 from engine.execution.providers.pi import PiProvider
 
 
@@ -579,6 +581,128 @@ class TestCodexOutputParsing:
         result = provider._parse_output("", "Killed", -9, _make_task())
         assert result.success is False
         assert "codex exited -9" in str(result.error)
+
+    def test_codex_captures_tokens(self) -> None:
+        """JSONL ``token_count`` events are aggregated into Cost.
+
+        Codex emits one ``token_count`` event per LLM turn when run via
+        the ``exec --json`` flow.  ``_parse_output`` should sum
+        ``input_tokens``/``output_tokens`` across all events.  This test
+        feeds a synthetic two-turn JSONL stream.
+        """
+        provider = CodexProvider()
+        jsonl = "\n".join([
+            json.dumps({"type": "token_count", "input_tokens": 100, "output_tokens": 25}),
+            json.dumps({"type": "agent_message", "message": "First reply."}),
+            json.dumps({"type": "token_count", "input_tokens": 30, "output_tokens": 12}),
+            json.dumps({"type": "agent_message", "message": "Final answer is 42."}),
+        ])
+
+        result = provider._parse_output(jsonl, "", 0, _make_task())
+
+        assert result.success is True
+        assert result.cost is not None
+        assert result.cost.input_tokens == 130
+        assert result.cost.output_tokens == 37
+        assert result.cost.usd is None
+        # Final agent_message wins — that's the response we display.
+        assert result.content == "Final answer is 42."
+
+    def test_codex_jsonl_with_msg_envelope(self) -> None:
+        """Codex sometimes wraps payloads in a ``msg`` envelope — handle both."""
+        provider = CodexProvider()
+        jsonl = json.dumps({
+            "type": "token_count",
+            "msg": {"input_tokens": 7, "output_tokens": 3},
+        })
+        result = provider._parse_output(jsonl, "", 0, _make_task())
+        assert result.cost is not None
+        assert result.cost.input_tokens == 7
+        assert result.cost.output_tokens == 3
+
+    def test_codex_no_token_events_falls_back_to_text(self) -> None:
+        """When stdout is plain text (the default ``--quiet`` mode), cost is None."""
+        provider = CodexProvider()
+        result = provider._parse_output("Just plain text\n", "", 0, _make_task())
+        assert result.success is True
+        assert result.content == "Just plain text"
+        assert result.cost is None
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# GeminiProvider
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+class TestGeminiRegistry:
+    def test_registered(self) -> None:
+        assert "gemini" in PROVIDER_REGISTRY
+        assert PROVIDER_REGISTRY["gemini"] is GeminiProvider
+
+
+class TestGeminiArgvRequestsJson:
+    def test_argv_includes_json_output_flag(self) -> None:
+        """Without ``-o json`` the CLI emits free-form text — no token data."""
+        provider = GeminiProvider(binary="gemini")
+        argv = provider._build_argv(_make_task(prompt="hi"))
+        assert "-o" in argv
+        idx = argv.index("-o")
+        assert argv[idx + 1] == "json"
+
+
+class TestGeminiOutputParsing:
+    def test_gemini_captures_tokens(self) -> None:
+        """``stats.models[*].tokens.{prompt,candidates,cached}`` → Cost."""
+        provider = GeminiProvider()
+        envelope = {
+            "response": "Hello there.",
+            "stats": {
+                "models": {
+                    "gemini-2.5-pro": {
+                        "tokens": {
+                            "prompt": 250,
+                            "candidates": 75,
+                            "cached": 0,
+                            "total": 325,
+                        },
+                    },
+                },
+            },
+        }
+        result = provider._parse_output(json.dumps(envelope), "", 0, _make_task())
+        assert result.success is True
+        assert result.content == "Hello there."
+        assert result.cost is not None
+        assert result.cost.input_tokens == 250
+        assert result.cost.output_tokens == 75
+        assert result.cost.usd is None
+
+    def test_gemini_folds_cached_tokens_into_input(self) -> None:
+        """``cached`` tokens are read-from-cache prompt context — count as input."""
+        provider = GeminiProvider()
+        envelope = {
+            "response": "ok",
+            "stats": {
+                "models": {
+                    "gemini-2.5-pro": {
+                        "tokens": {"prompt": 50, "candidates": 10, "cached": 200},
+                    },
+                },
+            },
+        }
+        result = provider._parse_output(json.dumps(envelope), "", 0, _make_task())
+        assert result.cost is not None
+        assert result.cost.input_tokens == 250  # 50 + 200 cached
+        assert result.cost.output_tokens == 10
+
+    def test_gemini_plain_text_fallback(self) -> None:
+        """If the CLI emits plain text instead of JSON, cost is None."""
+        provider = GeminiProvider()
+        result = provider._parse_output("just plain text", "", 0, _make_task())
+        assert result.success is True
+        assert result.content == "just plain text"
+        assert result.cost is None
+        assert result.metadata.get("raw_output") is True
 
 
 # ═══════════════════════════════════════════════════════════════════════════
