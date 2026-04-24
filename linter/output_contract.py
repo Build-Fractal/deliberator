@@ -135,6 +135,17 @@ _AGENTS_HEADER: re.Pattern[str] = re.compile(
     r"\*\*Agents:\*\*\s*(.+)", re.IGNORECASE
 )
 
+# Agent count — prose format: "(blue-advocate)", "(red-advocate)",
+# "(pragmatist)", "(devils-advocate)". Red-blue Risk Register synthesis
+# introduces agents this way: "The Blue Team (blue-advocate) initially…".
+# Matches canonical conversus agent identifiers: any ``X-advocate`` form,
+# plus the hardcoded ``pragmatist`` / ``synthesizer`` singletons. The
+# restrictive shape prevents false positives on noise like ``(OQ-9)`` or
+# ``(M011/M013/M014)``.
+_AGENT_PROSE_MENTION: re.Pattern[str] = re.compile(
+    r"\(([a-z]+(?:-[a-z]+)*-advocate|pragmatist|synthesizer)\)"
+)
+
 # Mode — **Deliberation mode:** Cooperative
 _MODE_DELIB: re.Pattern[str] = re.compile(
     r"\*\*Deliberation mode:\*\*\s*(\S+)", re.IGNORECASE
@@ -182,6 +193,24 @@ _P1_ITEM: re.Pattern[str] = re.compile(
 _SYNTHESIS_TITLE: re.Pattern[str] = re.compile(
     r"^#\s+Synthesis:\s*(.+)", re.MULTILINE
 )
+
+# Red-blue Risk Register verdict leader. The first bold phrase of the
+# ``## Verdict`` section is the top-line recommendation: "Proceed",
+# "Proceed with conditions", or "Do not proceed". This is the natural
+# headline for a Risk Register synthesis.
+_VERDICT_SECTION: re.Pattern[str] = re.compile(
+    r"^#{1,4}\s+Verdict\s*$\n(.+?)(?=\n#{1,4}\s|\Z)",
+    re.MULTILINE | re.DOTALL | re.IGNORECASE,
+)
+_VERDICT_LEADER: re.Pattern[str] = re.compile(
+    r"\*\*(Proceed(?:\s+with\s+conditions?)?|Do\s+not\s+proceed)[\*\.,:]*\*\*",
+    re.IGNORECASE,
+)
+
+# Any top-level ``# ...`` title, used as the final-fallback headline when
+# none of the more specific patterns match (e.g., Risk Register documents
+# whose title is ``# Red-Blue Synthesis — ...`` or ``# Risk Register — ...``).
+_TOP_TITLE: re.Pattern[str] = re.compile(r"^#\s+(.+?)\s*$", re.MULTILINE)
 
 
 # ---------------------------------------------------------------------------
@@ -232,6 +261,13 @@ def _extract_agent_count(text: str) -> int:
     if m:
         names = [n.strip() for n in m.group(1).split(",") if n.strip()]
         return len(names)
+
+    # Risk Register prose fallback — red-blue synthesis introduces agents
+    # as "The Blue Team (blue-advocate)" / "The Red Team (red-advocate)".
+    # Dedupe to unique identifiers (each agent is named many times in body).
+    prose_mentions = {m.group(1) for m in _AGENT_PROSE_MENTION.finditer(text)}
+    if prose_mentions:
+        return len(prose_mentions)
 
     return 0
 
@@ -285,6 +321,14 @@ def _extract_phases_completed(text: str) -> int:
         if _SYNTHESIS_TITLE.search(text):
             return count + 1
         return count
+
+    # Red-blue Risk Register fallback. The template doesn't provide a
+    # **Phases completed:** header or a | Agents | table, so prose keyword
+    # matching systematically under-counts. But a Risk Register with a
+    # Scorecard section is proof the full 5-phase red-blue pipeline ran
+    # (template requires Scorecard only at the end of phase 5 synthesis).
+    if _SCORECARD_HEADING.search(text):
+        return 5
 
     # Infer from section structure: check for phase-related keywords
     phase_indicators = [
@@ -385,10 +429,16 @@ def _extract_headline(text: str) -> str:
     """Extract headline from the synthesis output.
 
     Priority order:
-    1. First bold text from ### Convergence Achieved numbered list
-    2. First P1 bold text from ### Actionable Spec Changes
-    3. The # Synthesis: title line
-    4. Empty string
+    1. First bold text from ``### Convergence Achieved`` numbered list
+       (cooperative synthesis format).
+    2. First P1 bold text from ``### Actionable Spec Changes``
+       (cooperative synthesis format).
+    3. ``## Verdict`` section's first bold leader: "Proceed" /
+       "Proceed with conditions" / "Do not proceed"
+       (red-blue Risk Register format).
+    4. The ``# Synthesis:`` title line.
+    5. Any top-level ``# ...`` title (final fallback).
+    6. Empty string.
     """
     # Try convergence section first
     m = _CONVERGENCE_SECTION.search(text)
@@ -406,8 +456,21 @@ def _extract_headline(text: str) -> str:
         if item:
             return item.group(1).strip().rstrip(".")
 
+    # Red-blue Risk Register: use the Verdict section's top-line recommendation.
+    verdict = _VERDICT_SECTION.search(text)
+    if verdict:
+        leader = _VERDICT_LEADER.search(verdict.group(1))
+        if leader:
+            return leader.group(1).strip()
+
     # Fall back to synthesis title
     m = _SYNTHESIS_TITLE.search(text)
+    if m:
+        return m.group(1).strip()
+
+    # Final fallback: any top-level title (covers Risk Register documents
+    # titled ``# Red-Blue Synthesis — ...`` with no explicit Verdict leader).
+    m = _TOP_TITLE.search(text)
     if m:
         return m.group(1).strip()
 

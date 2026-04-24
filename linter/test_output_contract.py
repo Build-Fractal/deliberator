@@ -851,6 +851,90 @@ class TestMetadataBlock:
         assert result.quality_indicators.agent_count == 2
         assert result.quality_indicators.mode == "cooperative"
 
+    def test_risk_register_prose_fallback_counts_agents(self) -> None:
+        """Legacy red-blue Risk Register fixtures (pre-metadata-block) must
+        still extract agent_count from the canonical prose introduction
+        pattern: ``(blue-advocate)`` / ``(red-advocate)``."""
+        text = (
+            "# Red-Blue Synthesis — example\n\n"
+            "## Deliberation Summary\n\n"
+            "The Blue Team (blue-advocate) argued for the proposal. "
+            "The Red Team (red-advocate) challenged it. (blue-advocate) "
+            "and (red-advocate) each revised their positions.\n\n"
+            "## Landed Attacks — Unmitigated Risks\n\n"
+            "### [RISK-A]: A\n"
+            "- landed.\n\n"
+            "## Scorecard\n\n"
+            "| Landed (unmitigated) | 1 |\n"
+        )
+        result = parse_synthesis(text, mode="red-blue")
+        # Two distinct agent identifiers, deduped despite multiple mentions.
+        assert result.quality_indicators.agent_count == 2
+
+    def test_risk_register_prose_ignores_non_agent_parens(self) -> None:
+        """Parenthetical noise like ``(OQ-9)``, ``(M011/M013/M014)``, and
+        ``(e.g., partially)`` must not be mistaken for agent names."""
+        text = (
+            "# Red-Blue Synthesis\n\n"
+            "## Deliberation Summary\n\n"
+            "Red pointed to smoke findings (OQ-9) through (OQ-15), affecting "
+            "M011/M013/M014 consumers. (e.g., mock providers).\n\n"
+            "## Landed Attacks — Unmitigated Risks\n\n"
+            "### [RISK-A]: A\n"
+            "- landed.\n\n"
+            "## Scorecard\n\n"
+            "| Landed (unmitigated) | 1 |\n"
+        )
+        result = parse_synthesis(text, mode="red-blue")
+        assert result.quality_indicators.agent_count == 0
+
+    def test_scorecard_heading_alone_supplies_phases_completed(self) -> None:
+        """Legacy Risk Register without **Phases completed:** header must
+        still report phases_completed == 5 — a Scorecard section only
+        appears at the end of a completed phase-5 synthesis."""
+        text = (
+            "# Red-Blue Synthesis\n\n"
+            "## Deliberation Summary\n\n"
+            "Body paragraph.\n\n"
+            "## Landed Attacks — Unmitigated Risks\n\n"
+            "### [RISK-A]: A\n"
+            "- landed.\n\n"
+            "## Scorecard\n\n"
+            "| Landed (unmitigated) | 1 |\n"
+        )
+        result = parse_synthesis(text, mode="red-blue")
+        assert result.quality_indicators.phases_completed == 5
+
+    def test_verdict_leader_becomes_headline(self) -> None:
+        """Red-blue synthesis headline falls through to the Verdict
+        section's first bold recommendation."""
+        text = (
+            "# Red-Blue Synthesis\n\n"
+            "## Landed Attacks — Unmitigated Risks\n\n"
+            "### [RISK-A]: A\n"
+            "- landed.\n\n"
+            "## Scorecard\n\n"
+            "| Landed (unmitigated) | 1 |\n\n"
+            "## Verdict\n\n"
+            "**Do not proceed** in the current form. The critical issues…\n"
+        )
+        result = parse_synthesis(text, mode="red-blue")
+        assert result.headline == "Do not proceed"
+
+    def test_top_title_becomes_headline_when_no_verdict(self) -> None:
+        """Final fallback: if no Convergence / Spec Changes / Verdict /
+        Synthesis-title matches, the top-level ``# ...`` title wins."""
+        text = (
+            "# Custom Risk Register Title\n\n"
+            "## Landed Attacks — Unmitigated Risks\n\n"
+            "### [RISK-A]: A\n"
+            "- landed.\n\n"
+            "## Scorecard\n\n"
+            "| Landed (unmitigated) | 1 |\n"
+        )
+        result = parse_synthesis(text, mode="red-blue")
+        assert result.headline == "Custom Risk Register Title"
+
     def test_metadata_block_alone_is_structural_evidence(self) -> None:
         """A metadata block means the engine wrote the file — the guard
         must not fire even if the synthesizer returned no prose content.
