@@ -280,6 +280,92 @@ class TestClaudeCodeOutputParsing:
         assert result.metadata["num_turns"] == 1
         assert result.metadata["stop_reason"] == "end_turn"
 
+    def test_tool_use_only_response_is_success_when_artifact_written(
+        self, tmp_path
+    ) -> None:
+        """Regression: when the agent completes via tool use only (no final
+        text block) and the CLI spuriously reports is_error=True, the
+        provider must trust the on-disk artifact and return success.
+
+        Seen in red-blue dogfood runs where agents wrote substantive review
+        artifacts (90-120 lines) but the CLI result envelope still carried
+        is_error=True, causing the dispatcher to drop the phase.
+        """
+        provider = ClaudeCodeProvider()
+        output_path = tmp_path / "review.md"
+        output_path.write_text("# Review\n\nSubstantive content written via tool use.\n")
+
+        messages = [
+            {"type": "system", "subtype": "init", "session_id": "test-session"},
+            {
+                "type": "assistant",
+                "message": {
+                    "content": [
+                        {
+                            "type": "tool_use",
+                            "id": "t1",
+                            "name": "Write",
+                            "input": {"file_path": str(output_path)},
+                        }
+                    ],
+                    "model": "claude-sonnet-4-20250514",
+                },
+            },
+            {
+                "type": "result",
+                "subtype": "error_during_execution",
+                "is_error": True,
+                "total_cost_usd": 0.05,
+                "duration_ms": 100000,
+                "num_turns": 3,
+                "stop_reason": "end_turn",
+                "errors": [],
+                "modelUsage": {},
+            },
+        ]
+        stdout = json.dumps(messages)
+        task = _make_task(output_path=str(output_path))
+        result = provider._parse_output(stdout, "", 0, task)
+
+        assert result.success is True
+        assert result.content is None
+        assert result.metadata.get("tool_use_only") is True
+
+    def test_tool_use_only_response_is_failure_when_no_artifact(
+        self, tmp_path
+    ) -> None:
+        """Counterpart: if is_error=True, no text, AND no artifact on disk,
+        the provider must still classify as failure — we're not broadening
+        success semantics, just trusting the artifact when it exists.
+        """
+        provider = ClaudeCodeProvider()
+        output_path = tmp_path / "never-written.md"
+
+        messages = [
+            {"type": "system", "subtype": "init", "session_id": "test-session"},
+            {
+                "type": "assistant",
+                "message": {"content": [], "model": "claude-sonnet-4-20250514"},
+            },
+            {
+                "type": "result",
+                "subtype": "error_max_budget_usd",
+                "is_error": True,
+                "total_cost_usd": 0.01,
+                "duration_ms": 500,
+                "num_turns": 0,
+                "stop_reason": "budget",
+                "errors": ["Reached maximum budget"],
+                "modelUsage": {},
+            },
+        ]
+        stdout = json.dumps(messages)
+        task = _make_task(output_path=str(output_path))
+        result = provider._parse_output(stdout, "", 1, task)
+
+        assert result.success is False
+        assert result.error is not None
+
 
 # ═══════════════════════════════════════════════════════════════════════════
 # AiderProvider
