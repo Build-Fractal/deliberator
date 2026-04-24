@@ -395,17 +395,56 @@ async def dispatch_phase(
     _models = agent_models or {}
     _timeouts = agent_timeouts or {}
 
+    # Per-provider concurrency gating.  Providers that declare an
+    # ``effective_concurrency`` (e.g., :class:`AnthropicProvider` when
+    # authenticated with a subscription OAuth token) have a per-instance
+    # ceiling that, if exceeded, produces 429s that cascade into phase
+    # failure.  Providers that don't expose the property pass through
+    # ungated — API-key users keep the current fan-out behavior.
+    provider_sems: dict[int, asyncio.Semaphore] = {}
+
+    def _sem_for(prov: AnyProvider) -> asyncio.Semaphore | None:
+        cap = getattr(prov, "effective_concurrency", None)
+        if cap is None:
+            return None
+        key = id(prov)
+        sem = provider_sems.get(key)
+        if sem is None:
+            sem = asyncio.Semaphore(cap)
+            provider_sems[key] = sem
+        return sem
+
+    async def _gated_dispatch(
+        name: str,
+        prompt: str,
+        prov: AnyProvider,
+    ) -> tuple[str, str | None]:
+        sem = _sem_for(prov)
+        if sem is None:
+            return await dispatch_agent(
+                prompt=prompt,
+                agent_name=name,
+                model=_models.get(name, model),
+                max_tokens=max_tokens,
+                provider=prov,
+                emitter=emitter,
+                phase=phase,
+                timeout=_timeouts.get(name),
+            )
+        async with sem:
+            return await dispatch_agent(
+                prompt=prompt,
+                agent_name=name,
+                model=_models.get(name, model),
+                max_tokens=max_tokens,
+                provider=prov,
+                emitter=emitter,
+                phase=phase,
+                timeout=_timeouts.get(name),
+            )
+
     tasks = [
-        dispatch_agent(
-            prompt=prompt,
-            agent_name=name,
-            model=_models.get(name, model),
-            max_tokens=max_tokens,
-            provider=_providers.get(name, provider),
-            emitter=emitter,
-            phase=phase,
-            timeout=_timeouts.get(name),
-        )
+        _gated_dispatch(name, prompt, _providers.get(name, provider))
         for name, prompt in agents
     ]
 

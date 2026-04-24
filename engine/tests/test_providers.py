@@ -499,3 +499,113 @@ class TestModelProviderAdapterReadsUsage:
 
         assert result.success is True
         assert result.cost is None
+
+
+# ---------------------------------------------------------------------------
+# Anthropic — OAuth concurrency cap + rate-limit retry
+# ---------------------------------------------------------------------------
+
+
+def _anthropic_rate_limit_error(retry_after: str | None = None) -> "anthropic.RateLimitError":
+    """Construct a realistic anthropic.RateLimitError with optional Retry-After."""
+    import anthropic
+
+    headers = {"retry-after": retry_after} if retry_after is not None else {}
+    response = httpx.Response(
+        status_code=429,
+        headers=headers,
+        request=httpx.Request("POST", "https://api.anthropic.com/v1/messages"),
+    )
+    return anthropic.RateLimitError(
+        message="Rate limit exceeded",
+        response=response,
+        body=None,
+    )
+
+
+def _anthropic_message_response(text: str) -> MagicMock:
+    """Build a mock anthropic messages.create response with one text block."""
+    block = MagicMock()
+    block.text = text
+    response = MagicMock()
+    response.content = [block]
+    return response
+
+
+class TestAnthropicConcurrencyCap:
+    """OAuth subscription tokens collide under concurrent dispatch; the
+    provider reports an ``effective_concurrency`` of 1 so dispatchers can
+    gate accordingly.  API keys report ``None`` — no client-side cap.
+    """
+
+    def test_oauth_token_implies_concurrency_cap(self) -> None:
+        provider = AnthropicProvider(auth_token="sk-ant-oat-subscription-token")
+        assert provider.effective_concurrency == 1
+
+    def test_api_key_implies_no_concurrency_cap(self) -> None:
+        provider = AnthropicProvider(auth_token="sk-ant-api03-user-key")
+        assert provider.effective_concurrency is None
+
+    def test_env_var_auth_implies_no_concurrency_cap(self) -> None:
+        """When auth_token is None (env-var path), no cap is imposed —
+        API-key users whose key comes from ANTHROPIC_API_KEY should not
+        be throttled by this provider.
+        """
+        provider = AnthropicProvider()
+        assert provider.effective_concurrency is None
+
+
+class TestAnthropicRateLimitRetry:
+    """Bounded retry on RateLimitError with Retry-After honoring.
+
+    Patches ``asyncio.sleep`` to a no-op so the test completes
+    instantly; the retry delay is recorded and asserted separately.
+    """
+
+    async def test_rate_limit_retry_respects_retry_after(self) -> None:
+        provider = AnthropicProvider(auth_token="sk-ant-api03-test")
+        rate_limit = _anthropic_rate_limit_error(retry_after="2")
+        success = _anthropic_message_response("Recovered after retry")
+
+        mock_create = AsyncMock(side_effect=[rate_limit, success])
+        provider.client.messages.create = mock_create
+
+        sleeps: list[float] = []
+
+        async def _capture_sleep(seconds: float) -> None:
+            sleeps.append(seconds)
+
+        with patch(
+            "engine.providers.anthropic.asyncio.sleep",
+            side_effect=_capture_sleep,
+        ):
+            result = await provider.complete(
+                prompt="Hi", model="claude-sonnet-4", max_tokens=100
+            )
+
+        assert result == "Recovered after retry"
+        assert mock_create.await_count == 2
+        # Slept once between attempt 0 and attempt 1, honoring Retry-After: 2
+        assert sleeps == [2.0]
+
+    async def test_rate_limit_retry_gives_up_after_cap(self) -> None:
+        provider = AnthropicProvider(auth_token="sk-ant-api03-test")
+        rate_limit = _anthropic_rate_limit_error(retry_after="1")
+
+        # Raise every attempt — retry should bail after the configured cap.
+        mock_create = AsyncMock(side_effect=rate_limit)
+        provider.client.messages.create = mock_create
+
+        with patch(
+            "engine.providers.anthropic.asyncio.sleep",
+            new=AsyncMock(return_value=None),
+        ):
+            with pytest.raises(ProviderError) as exc_info:
+                await provider.complete(
+                    prompt="Hi", model="claude-sonnet-4", max_tokens=100
+                )
+
+        assert exc_info.value.category == "rate_limit"
+        assert exc_info.value.original is rate_limit
+        # One call per attempt; 3 attempts total.
+        assert mock_create.await_count == 3
