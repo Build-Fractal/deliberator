@@ -25,8 +25,7 @@ You are participating in a **{MODE}** multi-agent deliberation. This is the fina
 
 ## What to Produce
 
-Write your final allocation claim to: `{OUTPUT_PATH}`
-
+Return your final allocation claim as your response — the engine will write it to `{OUTPUT_PATH}` verbatim. Do NOT use the Write or Edit tools.
 ---
 
 ### Contested Allocations
@@ -68,4 +67,4 @@ Resources where you accept a reduced allocation:
 - **Do not re-litigate Phase 3 reductions.** If you reduced a demand in revision, you cannot inflate it here.
 - **Non-negotiable demands must be defensible.** Only claim this for minimum-viable needs.
 - **Be concise.** The allocator reads all agents' claims. Repetition dilutes your case.
-- **Write the file.** Your entire output must be written to `{OUTPUT_PATH}`. Do not summarize or truncate.
+- **Response IS the file.** Your entire response will be written to `{OUTPUT_PATH}` by the engine verbatim. Do NOT use the Write or Edit tools. Do NOT prefix your response with status messages ("I've completed…", "I've written…") or any meta-commentary. Do NOT summarize or truncate.

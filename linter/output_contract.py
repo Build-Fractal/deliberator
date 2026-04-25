@@ -35,6 +35,26 @@ from pydantic import BaseModel
 from linter.quality import check_disagreement
 
 
+class UnparseableSynthesisError(ValueError):
+    """Raised when synthesis text contains none of the expected structural markers.
+
+    The linter defaults every :class:`QualityIndicators` field to 0 when its
+    regex probes miss. That's indistinguishable from a legitimate
+    "0 disputes, clean convergence" result — silent failure looks like a
+    clean PASS to downstream gates.
+
+    This error is raised when BOTH ``agent_count`` and ``phases_completed``
+    extract to 0, which means every explicit structural probe missed and no
+    phase keywords were found anywhere in the text. That's not a valid
+    deliberation output — it's almost always meta-prose from a tool-use-capable
+    agent that called Write and returned a chat-message receipt (see
+    spec 027 postmortem).
+
+    Callers can catch this to distinguish parse failure from convergence and
+    choose to BLOCK/retry/escalate rather than treat as PASS.
+    """
+
+
 # ---------------------------------------------------------------------------
 # Pydantic models — frozen per Constitution Principle IX
 # ---------------------------------------------------------------------------
@@ -84,6 +104,27 @@ class ConversusOutput(BaseModel):
 # Regex patterns for parsing synthesis output
 # ---------------------------------------------------------------------------
 
+# Engine-injected authoritative metadata block. Format (written verbatim by
+# engine.phases._build_metadata_block):
+#   <!-- CONVERSUS:METADATA
+#   agents: 2
+#   agent_names: blue-advocate, red-advocate
+#   mode: red-blue
+#   phases_completed: 5
+#   iterations: 1
+#   round: 1
+#   -->
+# When present, these fields are treated as the canonical source of truth —
+# LLM prose heuristics are only consulted as a fallback for older fixtures
+# written before the engine began injecting this block.
+_METADATA_BLOCK: re.Pattern[str] = re.compile(
+    r"<!--\s*CONVERSUS:METADATA\s*\n(.*?)\n\s*-->",
+    re.DOTALL,
+)
+_METADATA_FIELD: re.Pattern[str] = re.compile(
+    r"^(\w+)\s*:\s*(.+?)\s*$", re.MULTILINE
+)
+
 # Agent count — table format: | Agents | 2 (pragmatist, devils-advocate) |
 _AGENTS_TABLE: re.Pattern[str] = re.compile(
     r"\|\s*Agents\s*\|\s*(\d+)", re.IGNORECASE
@@ -92,6 +133,17 @@ _AGENTS_TABLE: re.Pattern[str] = re.compile(
 # Agent count — header format: **Agents:** Pragmatist, Devil's Advocate
 _AGENTS_HEADER: re.Pattern[str] = re.compile(
     r"\*\*Agents:\*\*\s*(.+)", re.IGNORECASE
+)
+
+# Agent count — prose format: "(blue-advocate)", "(red-advocate)",
+# "(pragmatist)", "(devils-advocate)". Red-blue Risk Register synthesis
+# introduces agents this way: "The Blue Team (blue-advocate) initially…".
+# Matches canonical conversus agent identifiers: any ``X-advocate`` form,
+# plus the hardcoded ``pragmatist`` / ``synthesizer`` singletons. The
+# restrictive shape prevents false positives on noise like ``(OQ-9)`` or
+# ``(M011/M013/M014)``.
+_AGENT_PROSE_MENTION: re.Pattern[str] = re.compile(
+    r"\(([a-z]+(?:-[a-z]+)*-advocate|pragmatist|synthesizer)\)"
 )
 
 # Mode — **Deliberation mode:** Cooperative
@@ -109,9 +161,10 @@ _PHASES_HEADER: re.Pattern[str] = re.compile(
     r"\*\*Phases completed:\*\*\s*(\d+)", re.IGNORECASE
 )
 
-# Convergence section
+# Convergence section — heading levels H1–H4 tolerated for synthesizer drift.
 _CONVERGENCE_SECTION: re.Pattern[str] = re.compile(
-    r"###\s*Convergence Achieved.*?\n(.*?)(?=\n###|\n<!--\s*CONVERSUS|$)",
+    r"#{1,4}\s*Convergence Achieved.*?\n"
+    r"(.*?)(?=\n#{1,4}\s|\n<!--\s*CONVERSUS|$)",
     re.DOTALL,
 )
 
@@ -122,8 +175,13 @@ _CONVERGENCE_ITEM: re.Pattern[str] = re.compile(
 
 # Actionable Spec Changes section for fallback headline
 _SPEC_CHANGES_SECTION: re.Pattern[str] = re.compile(
-    r"###\s*Actionable Spec Changes.*?\n(.*?)(?=\n###|$)",
+    r"#{1,4}\s*Actionable Spec Changes.*?\n(.*?)(?=\n#{1,4}\s|$)",
     re.DOTALL,
+)
+
+# Scorecard heading (red-blue) — presence alone is a strong structural signal.
+_SCORECARD_HEADING: re.Pattern[str] = re.compile(
+    r"^#{1,4}\s+Scorecard\s*$", re.MULTILINE | re.IGNORECASE
 )
 
 # P1 item in spec changes: "1. **Deploy Buf-based...**"
@@ -136,38 +194,97 @@ _SYNTHESIS_TITLE: re.Pattern[str] = re.compile(
     r"^#\s+Synthesis:\s*(.+)", re.MULTILINE
 )
 
+# Red-blue Risk Register verdict leader. The first bold phrase of the
+# ``## Verdict`` section is the top-line recommendation: "Proceed",
+# "Proceed with conditions", or "Do not proceed". This is the natural
+# headline for a Risk Register synthesis.
+_VERDICT_SECTION: re.Pattern[str] = re.compile(
+    r"^#{1,4}\s+Verdict\s*$\n(.+?)(?=\n#{1,4}\s|\Z)",
+    re.MULTILINE | re.DOTALL | re.IGNORECASE,
+)
+_VERDICT_LEADER: re.Pattern[str] = re.compile(
+    r"\*\*(Proceed(?:\s+with\s+conditions?)?|Do\s+not\s+proceed)[\*\.,:]*\*\*",
+    re.IGNORECASE,
+)
+
+# Any top-level ``# ...`` title, used as the final-fallback headline when
+# none of the more specific patterns match (e.g., Risk Register documents
+# whose title is ``# Red-Blue Synthesis — ...`` or ``# Risk Register — ...``).
+_TOP_TITLE: re.Pattern[str] = re.compile(r"^#\s+(.+?)\s*$", re.MULTILINE)
+
 
 # ---------------------------------------------------------------------------
 # Extraction helpers
 # ---------------------------------------------------------------------------
 
 
-def _extract_agent_count(text: str) -> int:
-    """Extract agent count from Process Summary table or header metadata.
+def _extract_metadata(text: str) -> dict[str, str]:
+    """Parse the engine-injected metadata block, if present.
 
-    Tries table format first (monorepo style: | Agents | 2 (...) |),
-    then header format (lease/factual style: **Agents:** Name, Name).
+    Returns a dict of field-name → raw-string-value. Empty dict when no
+    block exists (older synthesis outputs, or a synthesis written before
+    engine metadata injection was added).
     """
-    # Table format: | Agents | 2 (pragmatist, devils-advocate) |
+    block_match = _METADATA_BLOCK.search(text)
+    if not block_match:
+        return {}
+    block = block_match.group(1)
+    return {
+        field.lower(): value.strip()
+        for field, value in _METADATA_FIELD.findall(block)
+    }
+
+
+def _extract_agent_count(text: str) -> int:
+    """Extract agent count.
+
+    Priority order:
+    1. Engine-injected metadata block's ``agents:`` field (authoritative).
+    2. Process Summary table: ``| Agents | 2 (pragmatist, devils-advocate) |``.
+    3. Header: ``**Agents:** Pragmatist, Devil's Advocate``.
+    """
+    meta = _extract_metadata(text)
+    if "agents" in meta:
+        try:
+            return int(meta["agents"])
+        except ValueError:
+            pass
+    # Fallback: agent_names line — count comma-separated entries.
+    if "agent_names" in meta and meta["agent_names"]:
+        return len([n for n in meta["agent_names"].split(",") if n.strip()])
+
     m = _AGENTS_TABLE.search(text)
     if m:
         return int(m.group(1))
 
-    # Header format: **Agents:** Pragmatist, Devil's Advocate
     m = _AGENTS_HEADER.search(text)
     if m:
         names = [n.strip() for n in m.group(1).split(",") if n.strip()]
         return len(names)
 
+    # Risk Register prose fallback — red-blue synthesis introduces agents
+    # as "The Blue Team (blue-advocate)" / "The Red Team (red-advocate)".
+    # Dedupe to unique identifiers (each agent is named many times in body).
+    prose_mentions = {m.group(1) for m in _AGENT_PROSE_MENTION.finditer(text)}
+    if prose_mentions:
+        return len(prose_mentions)
+
     return 0
 
 
 def _extract_mode(text: str, default: str) -> str:
-    """Extract deliberation mode from header metadata.
+    """Extract deliberation mode.
 
-    Tries **Deliberation mode:** first, then **Mode:**, then falls back
-    to the provided default.
+    Priority order:
+    1. Engine-injected metadata block's ``mode:`` field (authoritative).
+    2. ``**Deliberation mode:**`` prose header.
+    3. ``**Mode:**`` prose header.
+    4. Caller-supplied default.
     """
+    meta = _extract_metadata(text)
+    if "mode" in meta and meta["mode"]:
+        return meta["mode"].lower()
+
     m = _MODE_DELIB.search(text)
     if m:
         return m.group(1).strip().lower()
@@ -180,13 +297,21 @@ def _extract_mode(text: str, default: str) -> str:
 
 
 def _extract_phases_completed(text: str) -> int:
-    """Extract phases completed from header or infer from section structure.
+    """Extract phases completed.
 
-    Checks for explicit **Phases completed:** header first. Falls back to
-    counting which phase-related sections exist in the synthesis. Standard
-    cooperative deliberation has 5 phases: review, cross-review, revision,
-    disputes, synthesis.
+    Priority order:
+    1. Engine-injected metadata block's ``phases_completed:`` field
+       (authoritative — the engine knows this from its own run state).
+    2. ``**Phases completed:**`` prose header.
+    3. Keyword-match fallback on phase-related section names.
     """
+    meta = _extract_metadata(text)
+    if "phases_completed" in meta:
+        try:
+            return int(meta["phases_completed"])
+        except ValueError:
+            pass
+
     m = _PHASES_HEADER.search(text)
     if m:
         count = int(m.group(1))
@@ -196,6 +321,14 @@ def _extract_phases_completed(text: str) -> int:
         if _SYNTHESIS_TITLE.search(text):
             return count + 1
         return count
+
+    # Red-blue Risk Register fallback. The template doesn't provide a
+    # **Phases completed:** header or a | Agents | table, so prose keyword
+    # matching systematically under-counts. But a Risk Register with a
+    # Scorecard section is proof the full 5-phase red-blue pipeline ran
+    # (template requires Scorecard only at the end of phase 5 synthesis).
+    if _SCORECARD_HEADING.search(text):
+        return 5
 
     # Infer from section structure: check for phase-related keywords
     phase_indicators = [
@@ -238,7 +371,8 @@ def _extract_convergence_count(text: str) -> int:
 
 # Dangerous Contradictions Found section
 _CONTRADICTIONS_SECTION: re.Pattern[str] = re.compile(
-    r"###\s*Dangerous Contradictions Found\s*\n(.*?)(?=\n###|\n---|\Z)",
+    r"#{1,4}\s*Dangerous Contradictions Found\s*\n"
+    r"(.*?)(?=\n#{1,4}\s|\n---|\Z)",
     re.DOTALL,
 )
 
@@ -295,10 +429,16 @@ def _extract_headline(text: str) -> str:
     """Extract headline from the synthesis output.
 
     Priority order:
-    1. First bold text from ### Convergence Achieved numbered list
-    2. First P1 bold text from ### Actionable Spec Changes
-    3. The # Synthesis: title line
-    4. Empty string
+    1. First bold text from ``### Convergence Achieved`` numbered list
+       (cooperative synthesis format).
+    2. First P1 bold text from ``### Actionable Spec Changes``
+       (cooperative synthesis format).
+    3. ``## Verdict`` section's first bold leader: "Proceed" /
+       "Proceed with conditions" / "Do not proceed"
+       (red-blue Risk Register format).
+    4. The ``# Synthesis:`` title line.
+    5. Any top-level ``# ...`` title (final fallback).
+    6. Empty string.
     """
     # Try convergence section first
     m = _CONVERGENCE_SECTION.search(text)
@@ -316,8 +456,21 @@ def _extract_headline(text: str) -> str:
         if item:
             return item.group(1).strip().rstrip(".")
 
+    # Red-blue Risk Register: use the Verdict section's top-line recommendation.
+    verdict = _VERDICT_SECTION.search(text)
+    if verdict:
+        leader = _VERDICT_LEADER.search(verdict.group(1))
+        if leader:
+            return leader.group(1).strip()
+
     # Fall back to synthesis title
     m = _SYNTHESIS_TITLE.search(text)
+    if m:
+        return m.group(1).strip()
+
+    # Final fallback: any top-level title (covers Risk Register documents
+    # titled ``# Red-Blue Synthesis — ...`` with no explicit Verdict leader).
+    m = _TOP_TITLE.search(text)
     if m:
         return m.group(1).strip()
 
@@ -366,9 +519,41 @@ def parse_synthesis(text: str, mode: str = "cooperative") -> ConversusOutput:
     # Count resolved contradictions for surfaced vs surviving distinction
     resolved_contradictions = _extract_resolved_contradictions_count(text)
 
+    convergence_count = _extract_convergence_count(text)
+    has_scorecard = _SCORECARD_HEADING.search(text) is not None
+
+    # Guard against silent parse failure: a real synthesis produces *some*
+    # structural marker — an Agents header/table, a dispute section the mode
+    # fallback can parse, a Convergence block, resolved-contradictions list,
+    # or a Scorecard heading. If every one of those is absent, the text is
+    # almost always meta-prose from a misbehaving tool-use agent returning a
+    # chat-message receipt (see spec 027 postmortem). The phases-completed
+    # prose-keyword heuristic is intentionally excluded here — it pops
+    # positive on any paragraph that narrates review/revision/dispute/
+    # synthesis and so cannot distinguish a real synthesis from a well-
+    # written receipt.
+    structural_evidence = (
+        agent_count > 0
+        or dispute_count > 0
+        or convergence_count > 0
+        or resolved_contradictions > 0
+        or has_scorecard
+    )
+    if not structural_evidence:
+        raise UnparseableSynthesisError(
+            "Synthesis text contains no recognizable structural markers "
+            "(no agent count, no dispute/landed-attack sections, no "
+            "convergence block, no scorecard). This is typically meta-prose "
+            "returned by a tool-use-capable agent that wrote the real "
+            "synthesis to disk via a Write tool and returned only a "
+            "conversational receipt as its response — which the engine "
+            "then clobbered over the real file. Check the agent's "
+            "system/tool config, or that the mode template instructs the "
+            "agent to return the synthesis as its response (not Write it)."
+        )
+
     # Extract headline and build deterministic summary
     headline = _extract_headline(text)
-    convergence_count = _extract_convergence_count(text)
 
     summary = (
         f"{agent_count} agents in {extracted_mode} mode completed "
@@ -429,6 +614,18 @@ if __name__ == "__main__":
         sys.exit(2)
 
     text = filepath.read_text(encoding="utf-8")
-    result = parse_synthesis(text, mode=args.mode)
+    try:
+        result = parse_synthesis(text, mode=args.mode)
+    except UnparseableSynthesisError as exc:
+        print(
+            json.dumps({
+                "error": "unparseable_synthesis",
+                "message": str(exc),
+                "path": args.path,
+                "mode": args.mode,
+            }),
+            file=sys.stderr,
+        )
+        sys.exit(3)
     print(result.model_dump_json(indent=2))
     sys.exit(0)

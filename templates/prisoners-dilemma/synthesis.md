@@ -31,8 +31,7 @@ Read **all** of the following files. Do not skip any. Your synthesis must accoun
 
 ### Output
 
-Write the synthesis to: `{OUTPUT_PATH}`
-
+Return the synthesis as your response — the engine will write it to `{OUTPUT_PATH}` verbatim. Do NOT use the Write or Edit tools.
 ### Required Sections
 
 Your output must contain exactly these sections, in this order:

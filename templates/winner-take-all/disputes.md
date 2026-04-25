@@ -30,8 +30,7 @@ Read all revised positions (including your own). Then write a closing argument t
 
 ### Output Structure
 
-Write your closing argument to `{OUTPUT_PATH}` with the following sections:
-
+Return your closing argument as your response with the following sections (the engine will write your response to `{OUTPUT_PATH}` verbatim; do NOT use the Write or Edit tools):
 ---
 
 ## Head-to-Head Scorecard

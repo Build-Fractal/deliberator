@@ -37,8 +37,7 @@ The unresolved mechanism vulnerabilities from the synthesis:
 
 ## What to Produce
 
-Write your resolution to: `{OUTPUT_PATH}`
-
+Return your resolution as your response — the engine will write it to `{OUTPUT_PATH}` verbatim. Do NOT use the Write or Edit tools.
 ---
 
 ### Process Note
@@ -101,4 +100,4 @@ For EACH unresolved vulnerability:
 - **No new mechanism rules.** Resolve what exists.
 - **Every ruling must cite the grounding document.**
 - **Impossibility results are constraints.** If a trade-off is fundamental (e.g., Gibbard-Satterthwaite), your ruling should acknowledge this and choose the best achievable balance.
-- **Write the file.** Your entire output must be written to `{OUTPUT_PATH}`. Do not summarize or truncate.
+- **Response IS the file.** Your entire response will be written to `{OUTPUT_PATH}` by the engine verbatim. Do NOT use the Write or Edit tools. Do NOT prefix your response with status messages ("I've completed…", "I've written…") or any meta-commentary. Do NOT summarize or truncate.

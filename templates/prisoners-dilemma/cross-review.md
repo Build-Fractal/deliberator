@@ -34,8 +34,7 @@ Read the reviewed agent's Capability Declaration and your own declaration, then 
 
 ### Output
 
-Write your audit to: `{OUTPUT_PATH}`
-
+Return your audit as your response — the engine will write it to `{OUTPUT_PATH}` verbatim. Do NOT use the Write or Edit tools.
 ### Required Sections
 
 Your output must contain exactly these sections, in this order:

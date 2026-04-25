@@ -31,8 +31,7 @@ Read ALL of these files before writing. Your synthesis must account for the full
 
 ## What to Produce
 
-Write the risk register to: `{OUTPUT_PATH}`
-
+Return the risk register as your response — the engine will write it to `{OUTPUT_PATH}` verbatim. Do NOT use the Write or Edit tools.
 Your synthesis must contain the following sections in this exact order:
 
 ---
@@ -169,4 +168,5 @@ A summary table of the full deliberation outcome:
 - **Do not invent.** You are synthesizing what the teams argued. Do not introduce new risks or defenses that were not raised during the deliberation. You may, however, note when both teams missed something obvious.
 - **Actionable output.** The Required Mitigations section is the most important deliverable. Every item must be specific enough that an engineer could implement it without further clarification.
 - **Full coverage.** Every threat raised by Red Team must appear in exactly one category: Landed, Mitigated, Accepted, or Disputed. No threats should be silently dropped.
-- **Write the file.** Your entire output must be written to `{OUTPUT_PATH}`. Do not summarize or truncate. Write the complete synthesis.
+- **Mutually exclusive categories.** Before emitting your response, verify no `[RISK-ID]` appears in more than one of {Landed Attacks, Mitigated Attacks, Accepted Risks, Disputed Risks}. If a risk is genuinely split (e.g., partially mitigated with remaining exposure), choose the category that reflects its *final* status — duplicating the same ID across sections corrupts the risk count and misleads downstream gates. Give the risk one home.
+- **Response IS the file.** Your entire response will be written to `{OUTPUT_PATH}` by the engine verbatim. Do NOT use the Write or Edit tools. Do NOT prefix your response with status messages ("I've completed…", "I've written…") or any meta-commentary. Do NOT summarize or truncate. Include the complete synthesis.

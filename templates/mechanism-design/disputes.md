@@ -25,8 +25,7 @@ You are participating in a **{MODE}** multi-agent deliberation. This is the fina
 
 ## What to Produce
 
-Write your final position to: `{OUTPUT_PATH}`
-
+Return your final position as your response — the engine will write it to `{OUTPUT_PATH}` verbatim. Do NOT use the Write or Edit tools.
 ---
 
 ### Mechanism Vulnerabilities
@@ -68,4 +67,4 @@ Properties where you accept a weaker guarantee if another property is strengthen
 - **Do not re-litigate Phase 3 withdrawals.** If you withdrew a recommendation, it stays withdrawn.
 - **Impossibility trade-offs are valid outcomes.** Some property conflicts cannot be resolved — they can only be managed with explicit trade-off documentation.
 - **Be concise.** The synthesizer reads all roles' final positions.
-- **Write the file.** Your entire output must be written to `{OUTPUT_PATH}`. Do not summarize or truncate.
+- **Response IS the file.** Your entire response will be written to `{OUTPUT_PATH}` by the engine verbatim. Do NOT use the Write or Edit tools. Do NOT prefix your response with status messages ("I've completed…", "I've written…") or any meta-commentary. Do NOT summarize or truncate.

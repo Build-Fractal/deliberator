@@ -27,8 +27,7 @@ Read every file listed above before writing your review. Your analysis must be g
 
 ## What to Produce
 
-Write your review to: `{OUTPUT_PATH}`
-
+Return your review as your response — the engine will write it to `{OUTPUT_PATH}` verbatim. Do NOT use the Write or Edit tools.
 ---
 
 **If your role is RED (attacker), produce an Attack Surface Analysis with these sections:**
@@ -134,4 +133,4 @@ This section builds credibility. A defense that claims perfection will be disman
 - **Be thorough.** Red: a missed vulnerability is a failure. Blue: an undefended surface is a concession.
 - **No filler.** If a section has fewer items than the suggested range, that is fine. Do not pad with weak points.
 - **Severity matters.** Red: rank by actual severity, not by how impressive the attack sounds. Blue: defend the highest-risk areas first.
-- **Write the file.** Your entire output must be written to `{OUTPUT_PATH}`. Do not summarize or truncate. Write the complete review.
+- **Response IS the file.** Your entire response will be written to `{OUTPUT_PATH}` by the engine verbatim. Do NOT use the Write or Edit tools. Do NOT prefix your response with status messages ("I've completed…", "I've written…") or any meta-commentary. Do NOT summarize or truncate. Include the complete review.

@@ -165,6 +165,46 @@ def _emit_phase_completed(
 
 
 # ---------------------------------------------------------------------------
+# Synthesis metadata injection
+# ---------------------------------------------------------------------------
+
+
+def _build_metadata_block(
+    *,
+    active_agents: list[str],
+    mode: str,
+    phases_completed: int,
+    iterations: int,
+    round_num: int | None = None,
+) -> str:
+    """Build the ``<!-- CONVERSUS:METADATA ... -->`` block prepended to every
+    synthesis ``final.md``.
+
+    This block is the authoritative source of ``agent_count``,
+    ``agent_names``, ``mode``, and ``phases_completed`` for downstream
+    parsers — the engine knows these values deterministically from its own
+    run state, so injecting them eliminates parser reliance on whether the
+    LLM synthesizer remembered to recite them in prose.
+
+    The format is stable and machine-readable so parsers can trust it across
+    template changes and LLM drift.
+    """
+    agent_names = ", ".join(active_agents)
+    lines = [
+        "<!-- CONVERSUS:METADATA",
+        f"agents: {len(active_agents)}",
+        f"agent_names: {agent_names}",
+        f"mode: {mode}",
+        f"phases_completed: {phases_completed}",
+        f"iterations: {iterations}",
+    ]
+    if round_num is not None:
+        lines.append(f"round: {round_num}")
+    lines.append("-->")
+    return "\n".join(lines) + "\n\n"
+
+
+# ---------------------------------------------------------------------------
 # Pipeline — single round helper
 # ---------------------------------------------------------------------------
 
@@ -591,9 +631,21 @@ async def _run_single_round(
         if error is None:
             path = output_mgr.get_synthesis_path(round_base=round_base)
             path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(response_text, encoding="utf-8")
+            # Prepend authoritative metadata so the parser doesn't have to
+            # reconstruct agent_count / mode / phases_completed from LLM
+            # prose. +1 on phases_completed accounts for this synthesis
+            # phase, which hasn't been counted yet (see line below).
+            metadata = _build_metadata_block(
+                active_agents=active_agents,
+                mode=config.mode,
+                phases_completed=rr.phases_completed + 1,
+                iterations=config.iterations,
+                round_num=round_num,
+            )
+            final_text = metadata + response_text
+            path.write_text(final_text, encoding="utf-8")
             rr.written_files.append(path)
-            rr.synthesis_text = response_text
+            rr.synthesis_text = final_text
             synth_success += 1
         else:
             synth_failure += 1

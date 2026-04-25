@@ -43,8 +43,7 @@ These are the risk disputes you must resolve. If this section is empty, read the
 
 ## What to Produce
 
-Write your arbitration resolution to: `{OUTPUT_PATH}`
-
+Return your arbitration resolution as your response — the engine will write it to `{OUTPUT_PATH}` verbatim. Do NOT use the Write or Edit tools.
 Your resolution must contain the following sections in this exact order:
 
 ---
@@ -129,4 +128,4 @@ End with 1-2 paragraphs: whether the disputed risks indicate systemic blind spot
 - **Every ruling must cite the grounding document.** A ruling without a grounding citation is invalid.
 - **Operational knowledge is your edge, not your excuse.** When citing operational knowledge to override a team's assessment, be specific about what you know. "We know better" is not a rationale — "Our production metrics show X, which means Y" is.
 - **Required actions must be concrete.** Every mitigation requirement must name the component, the change, and the acceptance criteria.
-- **Write the file.** Your entire output must be written to `{OUTPUT_PATH}`. Do not summarize or truncate. Write the complete arbitration resolution.
+- **Response IS the file.** Your entire response will be written to `{OUTPUT_PATH}` by the engine verbatim. Do NOT use the Write or Edit tools. Do NOT prefix your response with status messages ("I've completed…", "I've written…") or any meta-commentary. Do NOT summarize or truncate. Include the complete arbitration resolution.

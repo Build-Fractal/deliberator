@@ -31,8 +31,7 @@ Read in phase order to trace how demands evolved.
 
 ## What to Produce
 
-Write the synthesis to: `{OUTPUT_PATH}`
-
+Return the synthesis as your response — the engine will write it to `{OUTPUT_PATH}` verbatim. Do NOT use the Write or Edit tools.
 ---
 
 ### Process Summary
@@ -125,4 +124,4 @@ Allocations that survived the full process without agreement:
 - **Trace everything.** Every allocation must reference specific demand statements, challenges, and revisions.
 - **Do not introduce new demands.** You allocate what was demanded, not what you think should be demanded.
 - **Fairness analysis is required.** Shapley values and envy analysis must be present even if approximate.
-- **Write the file.** Your entire output must be written to `{OUTPUT_PATH}`. Do not summarize or truncate.
+- **Response IS the file.** Your entire response will be written to `{OUTPUT_PATH}` by the engine verbatim. Do NOT use the Write or Edit tools. Do NOT prefix your response with status messages ("I've completed…", "I've written…") or any meta-commentary. Do NOT summarize or truncate.

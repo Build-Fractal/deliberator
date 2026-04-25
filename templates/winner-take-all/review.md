@@ -28,8 +28,7 @@ Read the target document and your supporting documentation. Then write a compell
 
 ### Output Structure
 
-Write your opening argument to `{OUTPUT_PATH}` with the following sections:
-
+Return your opening argument as your response with the following sections (the engine will write your response to `{OUTPUT_PATH}` verbatim; do NOT use the Write or Edit tools):
 ---
 
 ## Thesis

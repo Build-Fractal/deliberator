@@ -29,8 +29,7 @@ Read all revision documents before writing. Focus on where agents' revised posit
 
 ## What to Produce
 
-Write your disputes document to: `{OUTPUT_PATH}`
-
+Return your disputes document as your response — the engine will write it to `{OUTPUT_PATH}` verbatim. Do NOT use the Write or Edit tools.
 Your disputes document must contain the following sections in this exact order:
 
 ---
@@ -85,4 +84,4 @@ Recommendations where you are willing to accept an alternative formulation if it
 - **Convergence is not capitulation.** Listing a converged position means you genuinely agree, not that you gave up. If you are listing convergence on something you still have reservations about, it belongs in Disputes instead.
 - **Non-negotiables must be defensible.** Anything you declare non-negotiable will receive extra scrutiny in the synthesis. Only claim this status for positions with strong evidentiary support.
 - **Be concise.** The synthesizer will read all agents' disputes. Repetition and padding dilute your strongest arguments.
-- **Write the file.** Your entire output must be written to `{OUTPUT_PATH}`. Do not summarize or truncate. Write the complete disputes document.
+- **Response IS the file.** Your entire response will be written to `{OUTPUT_PATH}` by the engine verbatim. Do NOT use the Write or Edit tools. Do NOT prefix your response with status messages ("I've completed…", "I've written…") or any meta-commentary. Do NOT summarize or truncate. Include the complete disputes document.

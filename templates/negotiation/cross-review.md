@@ -27,8 +27,7 @@ Read all files before writing. Your counter-offer must reference specific claims
 
 ## What to Produce
 
-Write your counter-offer to: `{OUTPUT_PATH}`
-
+Return your counter-offer as your response — the engine will write it to `{OUTPUT_PATH}` verbatim. Do NOT use the Write or Edit tools.
 Your counter-offer must contain the following sections in this exact order:
 
 ---
@@ -74,4 +73,4 @@ Areas where both parties can gain — not just split the difference, but expand 
 - **Cite both positions.** Every item must reference specific sections from both position statements.
 - **Test their BATNA.** If their claimed BATNA seems inflated, explain why. If it seems credible, acknowledge it.
 - **Create value.** The best negotiation outcomes expand the total value rather than just redistributing it. Look for trades where you give something you value less for something you value more.
-- **Write the file.** Your entire output must be written to `{OUTPUT_PATH}`. Do not summarize or truncate. Write the complete counter-offer.
+- **Response IS the file.** Your entire response will be written to `{OUTPUT_PATH}` by the engine verbatim. Do NOT use the Write or Edit tools. Do NOT prefix your response with status messages ("I've completed…", "I've written…") or any meta-commentary. Do NOT summarize or truncate. Include the complete counter-offer.

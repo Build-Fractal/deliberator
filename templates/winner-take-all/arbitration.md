@@ -43,8 +43,7 @@ These are the positions you must resolve. If this section is empty, read the ful
 
 ## What to Produce
 
-Write your arbitration resolution to: `{OUTPUT_PATH}`
-
+Return your arbitration resolution as your response — the engine will write it to `{OUTPUT_PATH}` verbatim. Do NOT use the Write or Edit tools.
 Your resolution must contain the following sections in this exact order:
 
 ---
@@ -120,4 +119,4 @@ End with 1-2 paragraphs: whether the deliberation surfaced the right criteria fo
 - **Every ruling must cite the grounding document.** An override without a grounding citation is invalid. An affirmation should also cite grounding to strengthen the decision record.
 - **Respect the adversarial process.** The competitors attacked each other for three rounds. Claims that survived that process carry weight. Do not dismiss survived claims without citing operational evidence.
 - **The ADR must be updated.** If you override the verdict, the required changes must include an updated Decision Record that reflects your ruling and rationale.
-- **Write the file.** Your entire output must be written to `{OUTPUT_PATH}`. Do not summarize or truncate. Write the complete arbitration resolution.
+- **Response IS the file.** Your entire response will be written to `{OUTPUT_PATH}` by the engine verbatim. Do NOT use the Write or Edit tools. Do NOT prefix your response with status messages ("I've completed…", "I've written…") or any meta-commentary. Do NOT summarize or truncate. Include the complete arbitration resolution.

@@ -31,8 +31,7 @@ Read the files in phase order. This lets you trace how positions evolved through
 
 ## What to Produce
 
-Write the synthesis to: `{OUTPUT_PATH}`
-
+Return the synthesis as your response — the engine will write it to `{OUTPUT_PATH}` verbatim. Do NOT use the Write or Edit tools.
 Your synthesis must contain the following sections in this exact order:
 
 ---
@@ -159,4 +158,4 @@ If an agent made no concessions (all recommendations survived), note that and as
 - **Do not introduce new ideas.** You synthesize what the agents produced. If you notice something no agent raised, note it as an observation in the systemic contradictions section, not as a recommendation.
 - **Actionable output.** The spec changes section is the primary deliverable. A synthesis without clear, implementable changes has failed its purpose.
 - **Completeness over brevity.** This is the definitive record of the deliberation. Do not truncate, summarize, or skip sections. Every recommendation, every contradiction, every convergence point must be accounted for.
-- **Write the file.** Your entire output must be written to `{OUTPUT_PATH}`. Do not summarize or truncate. Write the complete synthesis.
+- **Response IS the file.** Your entire response will be written to `{OUTPUT_PATH}` by the engine verbatim. Do NOT use the Write or Edit tools. Do NOT prefix your response with status messages ("I've completed…", "I've written…") or any meta-commentary. Do NOT summarize or truncate. Include the complete synthesis.

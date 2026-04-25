@@ -27,8 +27,7 @@ The mechanism under review: `{TARGET_PATH}`
 
 ## What to Produce
 
-Write the cross-round synthesis to: `{OUTPUT_PATH}`
-
+Return the cross-round synthesis as your response — the engine will write it to `{OUTPUT_PATH}` verbatim. Do NOT use the Write or Edit tools.
 ---
 
 ### Process Summary
@@ -104,4 +103,4 @@ Vulnerabilities that survived the full multi-round process:
 - **Trace everything.** Reference specific round syntheses.
 - **The mechanism specification is the deliverable.**
 - **The vulnerability trajectory is the insight.** Show how mechanism analysis deepened across rounds.
-- **Write the file.** Your entire output must be written to `{OUTPUT_PATH}`. Do not summarize or truncate.
+- **Response IS the file.** Your entire response will be written to `{OUTPUT_PATH}` by the engine verbatim. Do NOT use the Write or Edit tools. Do NOT prefix your response with status messages ("I've completed…", "I've written…") or any meta-commentary. Do NOT summarize or truncate.

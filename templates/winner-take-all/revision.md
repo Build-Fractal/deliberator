@@ -40,8 +40,7 @@ Read all the cross-reviews — both the attacks on you and the attacks you made 
 
 ### Output Structure
 
-Write your defense to `{OUTPUT_PATH}` with the following sections:
-
+Return your defense as your response with the following sections (the engine will write your response to `{OUTPUT_PATH}` verbatim; do NOT use the Write or Edit tools):
 ---
 
 ## Position Summary

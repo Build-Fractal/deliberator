@@ -1327,3 +1327,62 @@ class TestCancellation:
         # Cross-review should not start (cancelled between phases)
         assert "synthesis" not in started_phases
 
+
+
+# ---------------------------------------------------------------------------
+# Synthesis metadata injection — engine must stamp authoritative values into
+# final.md so downstream parsers don't reconstruct them from LLM prose.
+# ---------------------------------------------------------------------------
+
+
+class TestMetadataBlock:
+    def test_metadata_block_format(self) -> None:
+        from engine.phases import _build_metadata_block
+
+        block = _build_metadata_block(
+            active_agents=["blue-advocate", "red-advocate"],
+            mode="red-blue",
+            phases_completed=5,
+            iterations=1,
+            round_num=1,
+        )
+        assert block.startswith("<!-- CONVERSUS:METADATA\n")
+        assert "agents: 2\n" in block
+        assert "agent_names: blue-advocate, red-advocate\n" in block
+        assert "mode: red-blue\n" in block
+        assert "phases_completed: 5\n" in block
+        assert "iterations: 1\n" in block
+        assert "round: 1\n" in block
+        assert block.endswith("-->\n\n")
+
+    def test_metadata_block_omits_round_when_none(self) -> None:
+        from engine.phases import _build_metadata_block
+
+        block = _build_metadata_block(
+            active_agents=["a", "b"],
+            mode="cooperative",
+            phases_completed=5,
+            iterations=1,
+            round_num=None,
+        )
+        assert "round:" not in block
+
+    def test_metadata_block_parses_back_via_linter(self) -> None:
+        """The engine's output and the linter's input must agree on format."""
+        from engine.phases import _build_metadata_block
+        from linter.output_contract import _extract_metadata
+
+        block = _build_metadata_block(
+            active_agents=["blue-advocate", "red-advocate"],
+            mode="red-blue",
+            phases_completed=6,
+            iterations=2,
+            round_num=1,
+        )
+        meta = _extract_metadata(block + "# body\n")
+        assert meta["agents"] == "2"
+        assert meta["agent_names"] == "blue-advocate, red-advocate"
+        assert meta["mode"] == "red-blue"
+        assert meta["phases_completed"] == "6"
+        assert meta["iterations"] == "2"
+        assert meta["round"] == "1"

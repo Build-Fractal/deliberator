@@ -43,8 +43,7 @@ These are the disputes you must resolve. If this section is empty, read the full
 
 ## What to Produce
 
-Write your arbitration resolution to: `{OUTPUT_PATH}`
-
+Return your arbitration resolution as your response — the engine will write it to `{OUTPUT_PATH}` verbatim. Do NOT use the Write or Edit tools.
 Your resolution must contain the following sections in this exact order:
 
 ---
@@ -128,4 +127,4 @@ End with 1-2 paragraphs: your overall assessment of the deliberation quality and
 - **Be concrete about changes.** The "Required changes" field in each ruling must be specific enough that an implementer can act on it without further clarification.
 - **Cite specific identifiers.** When target documents contain numbered requirements (FR-xxx, SC-xxx), your Required Changes must reference them by identifier. "Update the validation logic" is insufficient — "Update FR-004 validation in SKILL.md L179" is actionable.
 - **Attribute changes to specific files.** When multiple target files exist, every Required Changes entry must name the file it applies to. Do not leave the reader guessing which file to edit.
-- **Write the file.** Your entire output must be written to `{OUTPUT_PATH}`. Do not summarize or truncate. Write the complete arbitration resolution.
+- **Response IS the file.** Your entire response will be written to `{OUTPUT_PATH}` by the engine verbatim. Do NOT use the Write or Edit tools. Do NOT prefix your response with status messages ("I've completed…", "I've written…") or any meta-commentary. Do NOT summarize or truncate. Include the complete arbitration resolution.

@@ -32,8 +32,7 @@ Read all files. Pay particular attention to the cross-reviews of your work — t
 
 ## What to Produce
 
-Write your revised position to: `{OUTPUT_PATH}`
-
+Return your revised position as your response — the engine will write it to `{OUTPUT_PATH}` verbatim. Do NOT use the Write or Edit tools.
 ---
 
 **If your role is RED (attacker), produce a Revised Attack List:**
@@ -136,4 +135,4 @@ A summary of the current state: how many Red Team threats are mitigated, how man
 - **Intellectual honesty.** Withdraw or concede when the evidence demands it. Stubbornly defending a position that has been dismantled destroys credibility for your remaining positions.
 - **No new ground rules.** Respond to what was actually argued in cross-review. Do not introduce entirely new frameworks or shift the goalposts.
 - **Proportional updates.** Major challenges get detailed responses. Minor quibbles get brief acknowledgment.
-- **Write the file.** Your entire output must be written to `{OUTPUT_PATH}`. Do not summarize or truncate. Write the complete revision.
+- **Response IS the file.** Your entire response will be written to `{OUTPUT_PATH}` by the engine verbatim. Do NOT use the Write or Edit tools. Do NOT prefix your response with status messages ("I've completed…", "I've written…") or any meta-commentary. Do NOT summarize or truncate. Include the complete revision.

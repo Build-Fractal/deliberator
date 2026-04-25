@@ -31,8 +31,7 @@ Read all files before writing. Your cross-review must engage directly with the s
 
 ## What to Produce
 
-Write your cross-review to: `{OUTPUT_PATH}`
-
+Return your cross-review as your response — the engine will write it to `{OUTPUT_PATH}` verbatim. Do NOT use the Write or Edit tools.
 ---
 
 **If you are RED reviewing BLUE (attacking defenses):**
@@ -150,4 +149,4 @@ A brief summary of how the team's combined analysis is stronger than either indi
 - **Evidence required.** Every rebuttal must cite the target document, your documentation, or the reviewed document. Ungrounded rebuttals are noise.
 - **No ad hominem.** Attack arguments, not agents. "This analysis is flawed because..." not "This agent failed to..."
 - **Proportional response.** Spend more words on high-severity items. Do not write paragraphs rebutting minor points.
-- **Write the file.** Your entire output must be written to `{OUTPUT_PATH}`. Do not summarize or truncate. Write the complete cross-review.
+- **Response IS the file.** Your entire response will be written to `{OUTPUT_PATH}` by the engine verbatim. Do NOT use the Write or Edit tools. Do NOT prefix your response with status messages ("I've completed…", "I've written…") or any meta-commentary. Do NOT summarize or truncate. Include the complete cross-review.

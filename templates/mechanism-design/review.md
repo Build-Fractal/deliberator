@@ -28,8 +28,7 @@ Read every file listed above before writing your analysis. Ground every claim in
 
 ## What to Produce
 
-Write your analysis to: `{OUTPUT_PATH}`
-
+Return your analysis as your response — the engine will write it to `{OUTPUT_PATH}` verbatim. Do NOT use the Write or Edit tools.
 Your analysis must contain the following sections in this exact order:
 
 ---
@@ -87,4 +86,4 @@ Assess the mechanism's efficiency properties:
 - **Evidence over intuition.** Every claim must reference the mechanism spec or your documentation.
 - **Trade-offs are mandatory.** Every recommendation must acknowledge what it costs. There is no free lunch in mechanism design.
 - **Formal properties matter.** Use the language of mechanism design: incentive compatibility, individual rationality, budget balance, strategyproofness.
-- **Write the file.** Your entire output must be written to `{OUTPUT_PATH}`. Do not summarize or truncate.
+- **Response IS the file.** Your entire response will be written to `{OUTPUT_PATH}` by the engine verbatim. Do NOT use the Write or Edit tools. Do NOT prefix your response with status messages ("I've completed…", "I've written…") or any meta-commentary. Do NOT summarize or truncate.
