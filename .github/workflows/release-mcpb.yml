@@ -74,16 +74,23 @@ jobs:
           cp -r schema desktop-extension/server/schema
           cp -r templates desktop-extension/server/templates
 
-      - name: Update manifest with platform-specific compatibility
+      - name: Sync manifest version + platform from pyproject.toml
         shell: bash
         run: |
           python - <<'PY'
           import json
+          import tomllib
           from pathlib import Path
+
+          pyproject = tomllib.loads(Path("pyproject.toml").read_text())
+          version = pyproject["project"]["version"]
+
           path = Path("desktop-extension/manifest.json")
           manifest = json.loads(path.read_text())
+          manifest["version"] = version
           manifest["compatibility"]["platforms"] = ["${{ matrix.platform }}"]
           path.write_text(json.dumps(manifest, indent=2) + "\n")
+          print(f"manifest.json version → {version}, platform → ${{ matrix.platform }}")
           PY
 
       - name: Prune __pycache__ from bundle
