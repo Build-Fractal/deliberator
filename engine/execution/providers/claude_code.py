@@ -192,7 +192,7 @@ class ClaudeCodeProvider(SubprocessProvider):
         """
         # Try to parse JSON
         try:
-            messages = json.loads(stdout)
+            parsed = json.loads(stdout)
         except (json.JSONDecodeError, ValueError):
             # Fallback: if not valid JSON, treat stdout as raw text
             if returncode != 0:
@@ -215,22 +215,40 @@ class ClaudeCodeProvider(SubprocessProvider):
                 metadata={"returncode": returncode, "raw_output": True},
             )
 
-        # Extract text from assistant messages
-        text_parts: list[str] = []
-        for msg in messages:
-            if msg.get("type") == "assistant":
-                content_blocks = msg.get("message", {}).get("content", [])
-                for block in content_blocks:
-                    if block.get("type") == "text":
-                        text_parts.append(block["text"])
-
-        content = "\n\n".join(text_parts) if text_parts else None
-
-        # Extract result metadata
-        result_msg = next(
-            (m for m in messages if m.get("type") == "result"),
-            {},
-        )
+        # `claude -p --output-format json` historically returned an array
+        # of message objects (system/assistant/result).  Current `claude`
+        # (>= 2.x) returns a single result object with the assistant text
+        # in a top-level `result` field.  Support both shapes so the
+        # provider works across claude-code versions — and against the
+        # Max-plan OAuth surface where each subprocess is a fresh
+        # interactive session.
+        if isinstance(parsed, list):
+            messages = parsed
+            text_parts: list[str] = []
+            for msg in messages:
+                if isinstance(msg, dict) and msg.get("type") == "assistant":
+                    content_blocks = msg.get("message", {}).get("content", [])
+                    for block in content_blocks:
+                        if isinstance(block, dict) and block.get("type") == "text":
+                            text_parts.append(block["text"])
+            content = "\n\n".join(text_parts) if text_parts else None
+            result_msg = next(
+                (m for m in messages if isinstance(m, dict) and m.get("type") == "result"),
+                {},
+            )
+        elif isinstance(parsed, dict):
+            result_msg = parsed
+            result_text = result_msg.get("result")
+            content = result_text if isinstance(result_text, str) and result_text else None
+        else:
+            # JSON parsed to a scalar (unexpected shape).  Treat as raw.
+            return ExecutionResult(
+                success=returncode == 0,
+                output_path=task.output_path,
+                content=stdout.strip() or None,
+                provider=self.name,
+                metadata={"returncode": returncode, "raw_output": True},
+            )
 
         is_error = result_msg.get("is_error", False)
         cost_usd = result_msg.get("total_cost_usd")

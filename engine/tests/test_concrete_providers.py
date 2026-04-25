@@ -366,6 +366,86 @@ class TestClaudeCodeOutputParsing:
         assert result.success is False
         assert result.error is not None
 
+    # ----------------------------------------------------------------
+    # Current `claude` (>= 2.x) single-object JSON shape
+    #
+    # The CLI changed `--output-format json` from emitting an array of
+    # messages to emitting a single result object with `.result` holding
+    # the assistant text.  The parser must handle both shapes so
+    # conversus works across claude-code versions — and against the
+    # Max-plan OAuth path where each subprocess is a Claude Code
+    # interactive session.
+
+    def _make_json_single_object(
+        self,
+        text: str = "pong",
+        is_error: bool = False,
+        cost_usd: float = 0.075,
+        duration_ms: int = 1126,
+        input_tokens: int = 20097,
+        output_tokens: int = 5,
+    ) -> str:
+        """Build a synthetic single-object claude JSON response (v2+)."""
+        return json.dumps({
+            "type": "result",
+            "subtype": "error_max_budget_usd" if is_error else "success",
+            "is_error": is_error,
+            "api_error_status": None,
+            "duration_ms": duration_ms,
+            "duration_api_ms": duration_ms,
+            "num_turns": 1,
+            "result": text,
+            "stop_reason": "end_turn",
+            "session_id": "test-session",
+            "total_cost_usd": cost_usd,
+            "modelUsage": {
+                "claude-sonnet-4-6": {
+                    "inputTokens": 0,
+                    "outputTokens": output_tokens,
+                    "cacheCreationInputTokens": input_tokens,
+                    "cacheReadInputTokens": 0,
+                    "costUSD": cost_usd,
+                },
+            },
+        })
+
+    def test_single_object_success(self) -> None:
+        provider = ClaudeCodeProvider()
+        stdout = self._make_json_single_object(text="pong")
+        result = provider._parse_output(stdout, "", 0, _make_task())
+
+        assert result.success is True
+        assert result.content == "pong"
+        assert result.cost is not None
+        assert result.cost.usd == pytest.approx(0.075)
+        assert result.cost.output_tokens == 5
+        assert result.duration is not None
+        assert result.duration.total_seconds() == pytest.approx(1.126)
+
+    def test_single_object_error_without_content(self) -> None:
+        provider = ClaudeCodeProvider()
+        stdout = self._make_json_single_object(text="", is_error=True)
+        result = provider._parse_output(stdout, "", 1, _make_task())
+
+        assert result.success is False
+        assert result.error is not None
+
+    def test_single_object_metadata(self) -> None:
+        provider = ClaudeCodeProvider()
+        stdout = self._make_json_single_object()
+        result = provider._parse_output(stdout, "", 0, _make_task())
+
+        assert result.metadata["num_turns"] == 1
+        assert result.metadata["stop_reason"] == "end_turn"
+
+    def test_json_scalar_fallback(self) -> None:
+        """A JSON scalar (e.g. a bare string) should not crash the parser."""
+        provider = ClaudeCodeProvider()
+        result = provider._parse_output('"just a string"', "", 0, _make_task())
+
+        assert result.success is True
+        assert result.content == '"just a string"'
+        assert result.metadata.get("raw_output") is True
 
 # ═══════════════════════════════════════════════════════════════════════════
 # AiderProvider
