@@ -29,6 +29,7 @@ Usage:
 
 import asyncio
 import logging
+import os
 import shutil
 import sys
 import tempfile
@@ -73,6 +74,69 @@ logger.setLevel(logging.INFO)
 mcp = FastMCP("conversus")
 
 # ---------------------------------------------------------------------------
+# Tool filtering — CONVERSUS_DISABLED_TOOLS env var
+#
+# Operators (Desktop user_config, MCP launcher env, CI bundles) can hide
+# specific tools from the server by listing their names in
+# ``CONVERSUS_DISABLED_TOOLS`` (comma-separated, whitespace tolerant).
+# Disabled tools are simply not registered with FastMCP — they don't
+# appear in the tool listing returned to clients. Use cases: locked-down
+# Desktop installs, demo bundles that hide ``conversus_login``, CI
+# environments that disable network-bound tools.
+#
+# Filtering applies to the four hand-coded tools below. Runtime-discovered
+# tools (registered via spec 064.1 entry points in
+# ``register_discovered_mcp_tools``) are not yet filtered; a follow-up
+# can extend the filter by adding a ``disabled`` kwarg to the registry
+# helper.
+# ---------------------------------------------------------------------------
+
+
+def _parse_disabled_tools(raw: str | None) -> frozenset[str]:
+    """Parse ``CONVERSUS_DISABLED_TOOLS`` into a set of tool names.
+
+    Empty / missing input returns an empty frozenset. Whitespace around
+    each name is stripped; empty segments (from trailing commas) are
+    skipped silently.
+    """
+    if not raw:
+        return frozenset()
+    return frozenset(name.strip() for name in raw.split(",") if name.strip())
+
+
+_DISABLED_TOOLS: frozenset[str] = _parse_disabled_tools(
+    os.environ.get("CONVERSUS_DISABLED_TOOLS")
+)
+if _DISABLED_TOOLS:
+    logger.info(
+        "CONVERSUS_DISABLED_TOOLS active — hiding %d tool(s): %s",
+        len(_DISABLED_TOOLS),
+        ", ".join(sorted(_DISABLED_TOOLS)),
+    )
+
+
+def _optional_tool():
+    """``@mcp.tool()`` substitute that respects ``_DISABLED_TOOLS``.
+
+    For each decorated function, register with FastMCP unless the
+    function name appears in ``_DISABLED_TOOLS`` — in which case the
+    function is returned unchanged (and never registered). This keeps
+    the function importable for tests / direct calls while removing
+    it from the MCP tool listing.
+    """
+    def decorator(func):
+        if func.__name__ in _DISABLED_TOOLS:
+            logger.info(
+                "Tool %r disabled via CONVERSUS_DISABLED_TOOLS — skipping registration",
+                func.__name__,
+            )
+            return func
+        return mcp.tool()(func)
+
+    return decorator
+
+
+# ---------------------------------------------------------------------------
 # Pydantic models — auto-generate JSON schemas for MCP tool responses
 #
 # ``CostEstimate``, ``ValidateResult``, ``RunResult``, and ``DecideResult``
@@ -106,7 +170,7 @@ from engine.handlers import validate_mcp as _validate_config  # noqa: E402
 # ---------------------------------------------------------------------------
 
 
-@mcp.tool()
+@_optional_tool()
 def conversus_validate(config_yaml: str, question: str = "") -> ValidateResult:
     """Validate a conversus YAML configuration without executing.
 
@@ -143,7 +207,7 @@ from engine.handlers import _run_in_process  # noqa: E402
 from engine.handlers import run_mcp as _run_config  # noqa: E402
 
 
-@mcp.tool()
+@_optional_tool()
 def conversus_run(config_yaml: str, output_path: str = "", provider: str = "") -> RunResult:
     """Run or parse a full multi-agent deliberation from a YAML config.
 
@@ -241,7 +305,7 @@ def _find_conversus_root() -> Path:
 from engine.handlers import run_decide_mcp as _decide
 
 
-@mcp.tool()
+@_optional_tool()
 def conversus_decide(
     question: str,
     provider: str = "mock",
@@ -330,7 +394,7 @@ def conversus_decide(
 from engine.handlers import login_mcp as _login_mcp
 
 
-@mcp.tool()
+@_optional_tool()
 def conversus_login(provider: str) -> str:
     """Log in to a model provider via OAuth.
 
