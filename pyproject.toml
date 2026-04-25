@@ -116,6 +116,13 @@ packages = ["engine", "linter", "conversus"]
 "templates" = "conversus/templates"
 "presets" = "conversus/presets"
 "schema" = "conversus/schema"
+# mcp_server.py + capabilities.py live at the OSS repo root (not inside
+# any packaged dir). Force-include them so ``pip install conversus[mcp]``
+# ships the module and ``conversus mcp`` (engine.cli's mcp subcommand)
+# can resolve ``import mcp_server`` at runtime. Without this, the CLI
+# fails outside a source checkout with "mcp_server.py not found".
+"mcp_server.py" = "mcp_server.py"
+"capabilities.py" = "capabilities.py"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
