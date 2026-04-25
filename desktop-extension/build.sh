@@ -29,6 +29,30 @@ if [[ ! -d "$SCRIPT_DIR/server/lib" ]]; then
   exit 1
 fi
 
+# Sync manifest.json version from pyproject.toml — single source of truth.
+# Mirrors the .github/workflows/release-mcpb.yml step so local and CI builds
+# always emit a manifest with the current pyproject version.
+python3 - "$REPO_ROOT" "$SCRIPT_DIR/manifest.json" <<'PY'
+import json
+import sys
+import tomllib
+from pathlib import Path
+
+repo_root = Path(sys.argv[1])
+manifest_path = Path(sys.argv[2])
+
+pyproject = tomllib.loads((repo_root / "pyproject.toml").read_text())
+version = pyproject["project"]["version"]
+
+manifest = json.loads(manifest_path.read_text())
+if manifest.get("version") != version:
+    manifest["version"] = version
+    manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")
+    print(f"manifest.json version → {version}")
+else:
+    print(f"manifest.json already at {version}")
+PY
+
 # Zip from the desktop-extension directory so paths inside the archive are
 # manifest.json, server/main.py, server/mcp_server.py, server/lib/...
 cd "$SCRIPT_DIR"
