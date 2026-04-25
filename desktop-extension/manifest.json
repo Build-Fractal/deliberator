@@ -86,6 +86,13 @@
       "description": "URL for your local Ollama server (default: http://localhost:11434). Only needed if Ollama runs on a non-default port.",
       "default": "http://localhost:11434",
       "sensitive": false
+    },
+    "CONVERSUS_DISABLED_TOOLS": {
+      "type": "string",
+      "title": "Disabled Tools",
+      "description": "Comma-separated list of tool names to hide from this MCP server (e.g. 'conversus_login,conversus_run'). Disabled tools are not registered and don't appear in the tool list. Leave blank to expose all tools.",
+      "default": "",
+      "sensitive": false
     }
   },
   "prompts": [
