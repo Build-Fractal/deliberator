@@ -1,0 +1,123 @@
+mode: cooperative
+output: ./
+rounds: 1
+stagnation: detect
+
+# Verification run — spec 066 §7 acceptance bar: 0 disputes raised
+# by arbitration grounded in the amended constitution against itself.
+#
+# Single round is appropriate: this isn't a reform deliberation, it's
+# a check for inter-principle conflicts, wording drift, and scope creep
+# in the v2.3.0 amendments. Convergence on either "no issues" or
+# "specific issues X, Y, Z" should happen in round 1.
+
+target:
+  - ../../CONSTITUTION.md
+
+agents:
+  - name: wording-precision
+    prompt: |
+      You audit the amended CONSTITUTION.md (v2.3.0) for wording
+      precision. For each new or extended principle (XXII–XXVII,
+      plus IX and XI extensions), check:
+
+      1. Does the wording use MUST / SHOULD / MAY consistently with
+         the meaning intended? (MUST = no exceptions; SHOULD = strong
+         default with documented exceptions; MAY = permitted but not
+         required.)
+      2. Are operational definitions specific enough to flag a
+         hypothetical future PR as violating, or do they leave too
+         much room for "reviewer judgment"?
+      3. Did anything slip in that the originating spec (066) didn't
+         propose? (Scope creep check.)
+
+      Report findings as a list of *concrete* concerns with line
+      references. If you find none, say so explicitly — silence is
+      not the same as "looked but found nothing."
+
+  - name: cross-principle-coherence
+    prompt: |
+      You audit the amended CONSTITUTION.md (v2.3.0) for inter-
+      principle coherence. The v2.3.0 amendment adds 6 new principles
+      and 2 extensions. Check pairwise for:
+
+      1. **Contradictions**: does any new principle directly contradict
+         an existing one (I–XXI) or another new one (XXII–XXVII)?
+      2. **Redundancy**: does any new principle repeat what an existing
+         one already covers? (E.g., XXII single-sourcing vs XI single
+         source of truth.)
+      3. **Gap creation**: does adding a principle make an existing one
+         less coherent? (E.g., XXVII operator config interacts with XV
+         plugin isolation — is the boundary cleanly stated?)
+
+      The originating spec (066 §7) explicitly calls out XXII vs XXV
+      interaction (cost-bearing install tests must be `live`) — verify
+      this is correctly captured in the principle text and isn't
+      contradicted elsewhere.
+
+      Report findings concretely. Silence != "looked but found nothing."
+
+  - name: pr-evidence-grounding
+    prompt: |
+      You audit the amended CONSTITUTION.md (v2.3.0) for evidence
+      grounding. Each new principle has an *Origin* line citing PRs.
+      Check:
+
+      1. Does the cited PR's actual scope match the principle's
+         claimed coverage? (E.g., XXIII cites PR #5 for tool-use
+         response handling — does PR #5 actually evidence the
+         "structurally-valid response" requirement, or is the
+         citation a stretch?)
+      2. Is any principle missing PR evidence it should have? (E.g.,
+         is there a principle whose origin says only "the deliberation"
+         without naming the underlying PRs?)
+      3. Are there PRs in the deliberation seed (recent-changes.md
+         from the prior deliberation) whose lessons aren't reflected
+         in any principle?
+
+      You don't need to read the PRs — the deliberation seed already
+      summarized them in
+      `deliberations/constitution-gap-analysis-2026-04-25/recent-changes.md`.
+      Compare the principles' Origin attributions against that seed.
+
+      Report findings concretely.
+
+arbiter:
+  name: v2.3.0-self-arbiter
+  prompt: |
+    You ARE the conversus constitution at v2.3.0. The three review
+    agents (wording-precision, cross-principle-coherence, pr-evidence-
+    grounding) have audited you against yourself. Your job is to rule
+    on every concern they raised.
+
+    For each finding:
+
+    - If the finding identifies a real defect (wording ambiguity, an
+      inter-principle conflict, an unsupported PR citation), rule
+      ACCEPT and propose the minimum corrective edit.
+    - If the finding is a false positive (the agent misread the
+      principle, or the concern is outside scope), rule REJECT and
+      explain why.
+    - If the finding identifies a defect but fixing it would require
+      more than a wording tweak (e.g., re-running the deliberation),
+      rule DEFER and document what would unblock acceptance.
+
+    **Acceptance bar (per spec 066 §7)**: this PR (the v2.3.0
+    implementation) merges only if there are zero ACCEPT-level
+    findings — every concern raised must be either REJECT (false
+    positive) or DEFER (out of scope for this PR).
+
+    If any ACCEPT-level findings remain, list them at the top of your
+    ruling under "REQUIRED FIXES BEFORE MERGE" so a human reviewer
+    can apply them in a follow-up commit on this branch.
+
+    Conclude with a single line: "VERIFICATION VERDICT: PASS" (no
+    accepted fixes), "VERIFICATION VERDICT: PASS WITH FIXES" (accepted
+    fixes listed; PR mergeable after they land), or "VERIFICATION
+    VERDICT: FAIL" (so many issues that re-running the original
+    deliberation is warranted).
+
+  grounding: ../../CONSTITUTION.md
+  trigger: always
+  timing: final
+  influence: binding

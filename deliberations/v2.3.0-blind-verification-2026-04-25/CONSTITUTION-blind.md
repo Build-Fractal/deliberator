@@ -1,42 +1,3 @@
-<!--
-Sync Impact Report
-Version change: 2.2.0 → 2.3.0 (MINOR — 6 new principles + 2 extensions for
-constitutional gaps surfaced by 2026-04-25 deliberation)
-Added principles:
-  - XXII. Distribution Surface Integrity
-  - XXIII. Provider Robustness Contract
-  - XXIV. Safety-Critical Defense-in-Depth
-  - XXV. Live Test Cost Discipline
-  - XXVI. Meta-Testing for Parametrized Capabilities
-  - XXVII. Operator-Configurable Tool Surface
-Modified principles:
-  - IX. Functional Programming and Clean Code — extended to include
-    behavior-over-shape testing as general framework
-  - XI. Single Source of Truth — extended for Registry-First Declaration
-Removed sections: none
-Templates requiring updates:
-  - none in this repo (.specify/templates/* referenced in prior reports
-    do not exist here; the line is dropped per spec 066 §8 Q3)
-Follow-up TODOs:
-  - Spec 065 (path to open source) v2 references the new principles in
-    gates G2/G5/G6/G9 — ✅ already amended in PR #15
-  - Run a verification deliberation against this amended text to catch
-    inter-principle conflicts (per spec 066 §7); 0 disputes is the
-    acceptance bar before this PR merges
-  - Phase 1 (manifest tools[] from CAPABILITIES) operationalizes
-    Principle XXII — PR #18, awaiting CI
-Rationale: 2026-04-25 4-agent cooperative deliberation, 2 rounds, ~52
-launches. Arbiter (subject arbitration, binding) ruled on 6 disputes.
-Unanimous convergence on 4 P1 principles + Principle IX extension;
-majority convergence on 3 additional P2 principles + Principle XI
-extension. Full deliberation record:
-deliberations/constitution-gap-analysis-2026-04-25/. Spec 066 proposed
-the wording; this PR applies it. Governance log entry: 2026-04-25 in
-CONSTITUTIONAL_CONVERSATIONS.md.
-Prior amendment (v2.1.0 → 2.2.0): see git history for the SKILL.md
-decomposition principles (XVII-XXI) added on 2026-03-22.
--->
-
 # Conversus Constitution
 
 ## Core Principles
@@ -226,7 +187,7 @@ framework or domain modeling requires them.
   `StrEnum` subclasses with additional members. The factory pattern
   preserves runtime extensibility without sacrificing type safety.
 
-**Extension (v2.3.0): Behavior-over-shape testing.**
+**Extension: Behavior-over-shape testing.**
 
 Tests MUST assert behavioral properties (what the code *does*) rather
 than structural properties (what fields are populated, what classes
@@ -299,7 +260,7 @@ INFLUENCE_LEVEL typed differently in model vs schema, FR-018 text
 contradicted schema phases. All three were the same class of bug:
 information in two places that disagreed.*
 
-**Extension (v2.3.0): Registry-First Declaration.**
+**Extension: Registry-First Declaration.**
 
 The capability registry (`capabilities.py` + `conversus/registry/`)
 is the **single authoritative source** for tool, prompt, and
@@ -315,9 +276,6 @@ targets**. Until projection is complete, hand-written and projected
 declarations MUST agree — drift is detected by parity tests, not
 silently accepted.
 
-*Origin (v2.3.0): PR #4 (spec 064.1 runtime registration) and PR #18
-(manifest tools[] projection) both assume the registry is authoritative.
-This extension codifies that assumption.*
 
 ### XII. No Dead Infrastructure
 
@@ -616,10 +574,6 @@ plugin, generated SKILL.md) MUST satisfy three invariants:
    is not sufficient evidence that `pip install` or `.mcpb`
    installation will succeed.
 
-*Origin: PR #11 (mcp_server.py missing from wheel), PR #13
-(manifest.json drifted to 0.1.0 while pyproject was 0.3.0),
-PR #18 (manifest tools[] from CAPABILITIES). Distribution drift is
-build-time concern, not runtime.*
 
 ### XXIII. Provider Robustness Contract
 
@@ -648,9 +602,6 @@ guarantees:
    concurrency limits. Issuing N concurrent requests to a provider
    that allows N-1 is a contract violation, not a performance choice.
 
-*Origin: PR #5 (claude-code tool-use response), PR #6 (anthropic
-429 retry + concurrency), PR #8 (token tracking), PR #9 (claude-code
-single-object JSON parser).*
 
 ### XXIV. Safety-Critical Defense-in-Depth
 
@@ -675,13 +626,10 @@ three-layer defense:
    the original bug or failure pattern** the principle was created
    to prevent. The test asserts the bug does not recur.
 
-The 2026-04-25 deliberation arbiter explicitly extended this scope to
-provider protocols (not just synthesis logic) on the evidence that
+This principle's scope extends to provider protocols (not just synthesis logic) on the evidence that
 PRs #5, #6, #8, #9 produced the same class of silent failure as
 PR #10's false-PASS bug.
 
-*Origin: PR #10 (red-blue contract break → false-PASS); generalized
-over PRs #5, #6, #8, #9.*
 
 ### XXV. Live Test Cost Discipline
 
@@ -724,9 +672,6 @@ Robustness Contract) — provider contract tests are inherently live.
 Without cost discipline, provider testing becomes prohibitively
 expensive and the robustness contract goes untested.
 
-*Origin: PR #8 introduced `@pytest.mark.live` without codifying the
-discipline. The 2026-04-25 deliberation arbiter ruled this principle
-must precede provider contract testing requirements.*
 
 ### XXVI. Meta-Testing for Parametrized Capabilities
 
@@ -752,9 +697,6 @@ the new tool to the test list") into a CI failure with a specific
 message ("Expected 8 prompts, parametrize covers 7: …new prompt
 'estimate_complexity' missing").
 
-*Origin: PR #12 introduced the meta-test pattern for `@mcp.prompt()`
-definitions. The deliberation ruled this pattern should generalize
-to all parametrized capability sets.*
 
 ### XXVII. Operator-Configurable Tool Surface
 
@@ -778,19 +720,6 @@ how operators **subtract** capabilities. The two are complementary —
 plugins extend the registry; operators filter the registered set.
 Neither modifies core deliberation behavior.
 
-**Registry as configuration boundary**: registry modifications via
-this principle (operator subtraction) and Principle XV (plugin
-extension) are **configuration changes affecting tool availability**,
-not behavioral modifications to the deliberation process. The
-capability registry constitutes an explicit extension interface
-separate from core deliberation logic — changes inside the registry
-do not change how deliberation works, only which deliberation
-capabilities are exposed.
-
-*Origin: PR #14 (CONVERSUS_DISABLED_TOOLS). The 2026-04-25 deliberation
-arbiter ruled this should be a standalone principle (not a Principle
-XV extension) because operator configuration scope extends beyond
-plugin isolation to the core tool surface.*
 
 ## Development Workflow
 
@@ -840,4 +769,4 @@ justifies the deviation.
 - **Compliance**: The plan template includes a Constitution Check gate.
   Plans MUST pass this gate before proceeding to implementation.
 
-**Version**: 2.3.0 | **Ratified**: 2026-03-20 | **Last Amended**: 2026-04-25
+**Version**: (under review) | **Ratified**: 2026-03-20

@@ -114,9 +114,9 @@ spec 054 (public docs), spec 055 (capability registry), spec 064 (capability dis
 **Follow-up actions**:
 - [x] Draft `spec 066-constitution-v2.3.0` operationalizing the amendment package as concrete CONSTITUTION.md edits with sync impact report. — PR #17, merged 2026-04-25 (with reviewer-driven wording fixes)
 - [x] Apply v2 to `spec 065-path-to-open-source` referencing the new principles (Distribution Surface Integrity affects gates G2/G9; Provider Robustness affects G5/G6). — PR #15, merged 2026-04-25
-- [ ] Implementation PR — apply spec 066's wording to `CONSTITUTION.md` itself (Sync Impact Report bumped to v2.3.0, principles XXII-XXVII appended, IX + XI extended). — IN FLIGHT
-- [ ] Run a verification deliberation against the proposed v2.3.0 text before the implementation PR merges — the arbiter already grounded the rulings in v2.2.0; the *amended* constitution should pass its own arbitration before landing. Acceptance bar per spec 066 §7: 0 disputes raised.
-- [ ] Phase 1 (manifest tools[] from CAPABILITIES) operationalizes Principle XXII — PR #18, awaiting CI auto-merge.
+- [x] Phase 1 (manifest tools[] from CAPABILITIES) operationalizes Principle XXII — PR #18, merged 2026-04-25 (auto-merge after CI green).
+- [x] Implementation PR — apply spec 066's wording to `CONSTITUTION.md` itself (Sync Impact Report bumped to v2.3.0, principles XXII-XXVII appended, IX + XI extended). — PR #19, in review (with XXVII registry-boundary clarification from blind verification).
+- [x] Verification deliberations (BOTH self-consistency AND blind methodology) completed 2026-04-25. See entries below.
 
 **Self-referential observation from the deliberation**:
 > *"Future constitutional deliberations should focus on systematic
@@ -129,3 +129,61 @@ provided clear failure patterns) and stalled on coordination disputes
 packaging-distribution on whether "behavioral validation" was domain-
 specific or general). Apply this lesson to the next constitutional
 review: bigger PR record, fewer rounds, sharper seed framing.
+
+---
+
+## 2026-04-25 — v2.3.0 verification (self-consistency)
+
+**Type**: Deliberation
+**Trigger**: spec 066 §7 — re-run arbitration against the proposed v2.3.0 text before the implementation PR merges. Acceptance bar: 0 ACCEPT-level findings.
+
+**Mode**: cooperative
+**Agents (3)**: wording-precision, cross-principle-coherence, pr-evidence-grounding
+**Rounds**: 1 of 1 configured
+**Termination**: completed
+**Arbiter**: subject arbitration grounded in `CONSTITUTION.md` (v2.3.0 amended text), `trigger: always`, `timing: final`, `influence: binding`
+**Provider**: claude-code
+
+**Outputs**: [`deliberations/v2.3.0-verification-2026-04-25/`](deliberations/v2.3.0-verification-2026-04-25/)
+
+**Methodology flaw discovered mid-session**: agents and arbiter were given the *amended* constitution with all v2.3.0 markers visible (Sync Impact Report header, "Extension (v2.3.0)" labels, "Origin: PR #X" attributions). This anchored agents into "ratify the recent additions" mode rather than "audit the whole document." Result: agents spiraled into process-meta disputes (document version control, evidence classification) rather than concrete content critique. Verdict was `PASS WITH FIXES` but the fixes were process-level, not text-level.
+
+**Status**: `closed` — superseded by the blind run below for content-level verification.
+
+**Outcome**: useful as a self-consistency / wording-precision check, but does not constitute independent verification of the amendment package's merit. Future amendments should run BOTH a self-consistency check (this methodology) AND a blind check (next entry).
+
+---
+
+## 2026-04-25 — v2.3.0 verification (blind methodology)
+
+**Type**: Deliberation
+**Trigger**: ratification-bias concern flagged on the self-consistency run above. Run a *blind* verification — strip v2.3.0 markers, agents review the constitution as if from scratch, no anchoring.
+
+**Mode**: cooperative
+**Agents (3)**: skeptic, skeptic-2, practitioner — framed to argue for *removing* principles that don't earn their keep, not just to ratify
+**Rounds**: 1 of 1 configured
+**Termination**: completed
+**Arbiter**: independent arbiter grounded in stripped `CONSTITUTION-blind.md`, `trigger: always`, `timing: final`, `influence: binding`. Arbiter prompt explicitly stated "you do NOT know the history of this document."
+**Provider**: claude-code
+
+**Stripping methodology**: removed Sync Impact Report header, removed `**Extension (v2.3.0):**` markers, stripped `*Origin: PR #X*` attributions on the new principles, removed mentions of the 2026-04-25 deliberation. Verified 0 v2.3.0/2026-04-25 mentions remain in the target text.
+
+**Outputs**: [`deliberations/v2.3.0-blind-verification-2026-04-25/`](deliberations/v2.3.0-blind-verification-2026-04-25/)
+
+**Outcome**: 3 substantive findings, all in scope of architectural correctness rather than v2.3.0-specific:
+
+1. **Plugin Registry Boundary** — Principles XV and XXVII coordinate around the registry but neither explicitly defines the registry interface as an architectural boundary. **Required fix**: clarify XXVII (in scope for PR #19), defer XV addition to follow-up. ✅ Applied to PR #19 as "Registry as configuration boundary" sub-section.
+
+2. **Mathematical Reproducibility logical contradiction (Principle XVI)** — XVI requires "deterministic assembly" while acknowledging "LLM gap-filling". Direct logical contradiction within ONE PRINCIPLE that predates v2.3.0. ⏸ **Deferred** — out of v2.3.0 scope; deserves its own spec + deliberation. The blind verification would not have surfaced this without ratification-bias-free framing.
+
+3. **Mechanical Verification Requirement** — proposal that constitutional inclusion require mechanical verifiability (principles that fail this test belong in operational guidance). ⏸ **Deferred** — substantive governance change; needs its own amendment.
+
+**Status**: `open` — applied fix #1 to PR #19; deferred fixes #2 and #3 to future amendments.
+
+**Methodology lesson**:
+> Self-consistency verification anchors on "what changed"; blind verification audits "what's there". Both are valuable. Self-consistency catches wording drift in the recent additions; blind catches content-level problems anywhere in the document — including longstanding ones recent reviewers have stopped questioning. Spec 066 §7's acceptance protocol should be amended to require BOTH; running only self-consistency is insufficient.
+
+**Deferred follow-ups (from blind run, out of v2.3.0 scope)**:
+- [ ] Spec proposing Principle XVI logical-contradiction fix (LLM gap-filling vs determinism). Should run through full deliberation since it touches optimization architecture.
+- [ ] Spec proposing governance amendment: "mechanical verification capability is required for constitutional inclusion."
+- [ ] Spec 066 §7 amendment requiring both self-consistency AND blind verification methodologies for future amendments.
