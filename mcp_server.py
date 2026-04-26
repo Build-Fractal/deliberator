@@ -51,7 +51,9 @@ from engine.providers import ProviderError
 from engine.results import (
     CostEstimate,
     DecideResult,
+    ListResult,
     RunResult,
+    ShowResult,
     ValidateResult,
     _estimate_cost,
 )
@@ -411,6 +413,63 @@ def conversus_login(provider: str) -> str:
     """
     logger.info("conversus_login called (provider=%r)", provider)
     return _login_mcp(provider)
+
+
+# ---------------------------------------------------------------------------
+# conversus_list_deliberations / conversus_show_deliberation (spec 056)
+# ---------------------------------------------------------------------------
+from engine.handlers import list_deliberations_mcp as _list_deliberations_mcp
+from engine.handlers import show_deliberation_mcp as _show_deliberation_mcp
+
+
+@_optional_tool()
+def conversus_list_deliberations(project_root: str = "") -> ListResult:
+    """List past deliberations from the project's .conversus/deliberations/.
+
+    Scans the project's deliberation directory and returns each persisted
+    run's metadata: directory name (encodes timestamp + slug), timestamp,
+    question text, mode, and whether a synthesis is present. Use this
+    to browse history before reading individual files.
+
+    Args:
+        project_root: Project root path. Empty string means current
+            directory; the engine walks up to locate ``.conversus/``.
+
+    Returns:
+        ListResult with deliberations list and total count.
+    """
+    logger.info(
+        "conversus_list_deliberations called (project_root=%r)",
+        project_root,
+    )
+    return _list_deliberations_mcp(project_root)
+
+
+@_optional_tool()
+def conversus_show_deliberation(
+    deliberation_path: str, file_path: str
+) -> ShowResult:
+    """Read a file from a past deliberation's output directory.
+
+    Use after conversus_list_deliberations to inspect summaries, individual
+    agent reviews, synthesis documents, or any other artifact produced
+    during a deliberation.
+
+    Args:
+        deliberation_path: Path to the deliberation directory (e.g.
+            ``.conversus/deliberations/20260412T173000-timber/``).
+        file_path: Relative file path within the deliberation (e.g.
+            ``summary/final.md``, ``pragmatist/review.md``).
+
+    Returns:
+        ShowResult with file content (or empty content + errors on failure).
+    """
+    logger.info(
+        "conversus_show_deliberation called (deliberation_path=%r, file_path=%r)",
+        deliberation_path,
+        file_path,
+    )
+    return _show_deliberation_mcp(deliberation_path, file_path)
 
 
 # ---------------------------------------------------------------------------
