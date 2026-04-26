@@ -167,6 +167,21 @@ incur real-world cost MUST follow three discipline rules:
    gated behind a maintainer-supplied secret. PRs do not pay live
    test costs; only releases do (or scheduled smoke runs).
 
+4. **Test category taxonomy**: the permitted markers for
+   cost-bearing tests are `live` (consumes API credits or
+   subprocess spawning), `integration` (multi-component but
+   in-process), and `security` (path traversal, injection, input
+   validation surfaces). Adding a new top-level marker requires a
+   constitutional amendment — the taxonomy is the contract.
+
+**Interaction with Principle XXII (Distribution Surface Integrity)**:
+XXII's end-to-end install testing requirement (G9 in spec 065)
+runs in CI. Install tests that incur measurable cost (downloading
+wheels, spawning isolated environments) MUST be marked
+`@pytest.mark.live` and run under the gated job. Install tests that
+run in-process (e.g., `importlib.reload` against a built wheel)
+are not live and run on every PR.
+
 This principle is **foundational** for Principle XXIII (Provider
 Robustness Contract) — provider contract tests are inherently live.
 Without cost discipline, provider testing becomes prohibitively
@@ -196,11 +211,16 @@ behavior test. Shape tests pass when the bug is structurally invisible
 (field is set to a wrong-but-valid value); behavior tests catch
 the bug.
 
-**Operational test**: ask of every assertion, "if this assertion is
-false, what real-world behavior is broken?" If the answer is "I
-don't know" or "nothing the user notices", the assertion is shape,
-not behavior. Either delete it or replace it with a behavioral
-assertion.
+**Operational test**: an assertion that checks only field presence,
+type, or non-null status WITHOUT also constraining the value's
+*meaning* is a shape test. Examples of shape tests (prohibited
+on their own): `assert "headline" in result`, `assert
+isinstance(rounds_completed, int)`, `assert len(errors) >= 0`.
+Examples of behavior tests (required): `assert result["headline"]
+== expected_headline`, `assert rounds_completed == 2 because the
+config requested 2 rounds`, `assert errors == []` (when zero is
+the expected behavioral state). Shape tests are permitted only as
+preconditions inside a test that ALSO asserts behavior.
 ```
 
 ## 5. Stage 2 — Majority P2 (should implement)
@@ -218,13 +238,22 @@ cover the full set. Adding a new capability without updating the
 parametrize list trips the meta-test.
 
 This is foundational testing infrastructure: it prevents silent
-coverage gaps as the system grows. New capabilities arrive
-frequently; a coverage-drift guard converts an easy mistake
-("forgot to add the new tool to the test list") into a CI failure
-with a specific message ("Expected 8 prompts, parametrize covers 7:
-deliberate, challenge, force_decision, design_deliberation,
-analyze_documents, review_config, check_cost — new prompt
-'estimate_complexity' missing").
+coverage gaps as the system grows. The trigger is mechanical, not
+discretionary — any test module that uses `@pytest.mark.parametrize`
+to enumerate a *capability set* (MCP tools, MCP prompts, providers,
+plugin skills, registered modes, registry entry points) MUST also
+include a meta-test asserting the parametrize list has the same
+length as the authoritative capability source. Modules that
+parametrize over arbitrary values (e.g., `[None, 0, 1, "x"]` for
+input validation) are out of scope — meta-testing applies only to
+parametrized capability *sets*.
+
+A coverage-drift guard converts an easy mistake ("forgot to add
+the new tool to the test list") into a CI failure with a specific
+message ("Expected 8 prompts, parametrize covers 7: deliberate,
+challenge, force_decision, design_deliberation, analyze_documents,
+review_config, check_cost — new prompt 'estimate_complexity'
+missing").
 
 **Rationale (PR evidence)**: PR #12 introduced the meta-test pattern
 for `@mcp.prompt()` definitions. The deliberation ruled this pattern
@@ -312,9 +341,9 @@ principles, since each is a refinement rather than a new principle:
   or issue that documented the failure pattern. This forms the
   test-to-bug-history audit trail.
 
-- **Principle XXVI clarification**: "Test category taxonomy" — the
-  permitted markers are `live`, `integration`, `security`. New
-  markers require a constitutional amendment.
+- (Test category taxonomy moved to Principle XXV.4 — it belongs
+  with cost discipline, not meta-testing for parametrized
+  capabilities.)
 
 ## 6. Sync Impact Report (proposed)
 
