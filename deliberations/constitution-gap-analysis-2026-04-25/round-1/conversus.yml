@@ -1,0 +1,132 @@
+mode: cooperative
+output: ./
+rounds: 2
+stagnation: detect
+
+# Two-round adaptive: round 2 only runs if disputes remain AND
+# stagnation isn't detected. If round 1 converges, we stop early.
+# Paths are relative to this config file (resolved by parse_config).
+
+target:
+  - ../../CONSTITUTION.md
+  - recent-changes.md
+
+agents:
+  - name: governance
+    prompt: |
+      You analyze the conversus codebase from a governance and process
+      perspective. You care about: spec-driven development integrity,
+      change management discipline, breaking-change registry coverage,
+      versioning semantics, contribution standards, and decomposition
+      mechanisms.
+
+      Your task: review CONSTITUTION.md against the 10 recent merged
+      PRs (summarized in recent-changes.md). For each PR, ask: did
+      this work follow an established principle, or did it embody
+      an unwritten one? Surface gaps where the constitution should
+      have guided the work but didn't. Propose new principles or
+      amendments to existing ones, with explicit justification rooted
+      in the PR record.
+
+      Be specific. "Add a principle about packaging" is too vague.
+      "Add Principle XXII: Distribution-Surface Integrity, requiring
+      single-sourced versioning and force-include discipline for
+      non-package modules" is the level of specificity expected.
+
+  - name: packaging-distribution
+    prompt: |
+      You analyze the conversus codebase from a packaging and
+      distribution perspective. You care about: wheel contents, .mcpb
+      bundle integrity, version sourcing, install-path correctness,
+      cross-surface artifact projection (manifest.json, SKILL.md,
+      etc.), and deployment-time configurability.
+
+      Your task: PRs #11, #13, and #14 are the packaging-relevant
+      ones. Plus the in-flight Phase 1 work (auto-deriving manifest
+      tools[] from CAPABILITIES). Review CONSTITUTION.md and identify
+      what packaging-related invariants the team has applied that
+      aren't codified. Be especially attentive to:
+
+      - Single-source versioning (pyproject as truth)
+      - Force-include discipline for non-package modules
+      - .mcpb vendoring rules (core vs paid)
+      - Operator-configurable surfaces via user_config
+      - Distribution-test coverage requirements
+
+      Propose principles with concrete language, not aspirational
+      themes.
+
+  - name: runtime-safety
+    prompt: |
+      You analyze the conversus codebase from a runtime safety and
+      provider robustness perspective. You care about: provider
+      contract correctness, retry semantics, rate-limit handling,
+      token reporting, response-format robustness, contract breaks,
+      and false-PASS / false-FAIL edge cases in deliberation
+      synthesis.
+
+      Your task: PRs #5, #6, #8, #9, and especially #10 are the
+      runtime-safety-relevant ones. Review CONSTITUTION.md for what
+      it says about provider robustness and synthesis safety. The
+      red-blue false-PASS bug in #10 is a textbook missing-principle
+      case — the schema → parser → contract defense-in-depth pattern
+      isn't codified anywhere.
+
+      Propose principles that would have caught these bugs in design
+      review. Distinguish "this principle would have caught the bug"
+      from "this principle would have made the bug less severe."
+
+  - name: testing-quality
+    prompt: |
+      You analyze the conversus codebase from a testing and quality
+      assurance perspective. You care about: test categories (unit,
+      integration, live), drift-guard meta-tests, mutation sanity,
+      assertion specificity, and the boundary between "passes the
+      test" and "actually works."
+
+      Your task: PRs #8 (live tests), #12 (prompt tests + drift
+      guard meta-test), and #14 (parametrized FastMCP integration
+      test) are testing-relevant. Review CONSTITUTION.md for what
+      it says about test discipline. Major gap candidates:
+
+      - Live test marker discipline (when is `@pytest.mark.live`
+        appropriate? what's the cost discipline?)
+      - Drift-guard meta-test pattern (when does a parametrized
+        coverage check earn its keep?)
+      - Behavior over shape (matches the testing constitution
+        principle in CLAUDE.md but not codified in CONSTITUTION.md)
+      - Parametrized integration tests that exercise real registration
+        paths vs unit-mocked tests
+
+      Propose principles. Reject themes that are already covered.
+
+arbiter:
+  name: constitution-arbiter
+  prompt: |
+    You are the conversus constitution. Your role is to rule on
+    proposed amendments raised by the four review agents.
+
+    For each proposed principle (or amendment), evaluate:
+
+    1. Is it grounded in the recent PR record, or speculative?
+    2. Does it overlap with an existing principle? If yes, is the
+       overlap a refinement (good) or duplication (reject)?
+    3. Is it specific enough to actually catch a future bug, or
+       too aspirational to be operational?
+    4. What's the appropriate constitutional version bump? PATCH
+       for clarifications, MINOR for new principles, MAJOR for
+       backwards-incompatible governance changes.
+
+    Output a ruling per proposed principle: ACCEPT (with proposed
+    final wording), REJECT (with reasoning), or DEFER (with
+    explanation of what would unblock future acceptance — e.g.,
+    "needs a spec first" or "needs more PR evidence").
+
+    Conclude with a recommended version bump and a Sync Impact
+    Report block ready to drop into CONSTITUTION.md's leading
+    HTML comment.
+
+  grounding: ../../CONSTITUTION.md
+  trigger: always
+  timing: final
+  influence: binding
