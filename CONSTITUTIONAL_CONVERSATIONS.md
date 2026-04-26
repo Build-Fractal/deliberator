@@ -82,7 +82,7 @@ conversus deliberations reviewing decomposition changes."* Overdue.
 **Outputs**: [`deliberations/constitution-gap-analysis-2026-04-25/`](deliberations/constitution-gap-analysis-2026-04-25/)
 - Cross-round synthesis: `summary/final.md`
 - Final arbitration: `round-2/arbiter/resolution.md`
-- 41 phase artifacts across rounds (4 reviews + 12 cross-reviews + 4 revisions + 4 disputes per round + 1 synthesis per round)
+- 48 per-agent phase artifacts across rounds (4 reviews + 12 cross-reviews + 4 revisions + 4 disputes per round, ×2 rounds), plus per-round synthesis files, the cross-round synthesis, the arbitration resolution, and the seed inputs (`recent-changes.md`, `conversus.yml`). See the directory tree for the canonical count.
 
 **PRs informing the deliberation** (the "what changed" record):
 PR #4 (spec 064.1 runtime registration), #5 (claude-code tool-use response),
