@@ -109,12 +109,14 @@ spec 054 (public docs), spec 055 (capability registry), spec 064 (capability dis
 - Standalone Operator Configuration Principle (arbiter ruled standalone over Principle XV extension)
 - Retry-with-Jitter Standard Pattern, Token Consumption Transparency, Protocol Tolerance, Contract Test Coverage, Test Category Taxonomy.
 
-**Status**: `open`
+**Status**: `open` — implementation in flight
 
 **Follow-up actions**:
-- [ ] Draft `spec 066-constitution-v2.3.0` operationalizing the amendment package as concrete CONSTITUTION.md edits with sync impact report.
-- [ ] Apply v2 to `spec 065-path-to-open-source` referencing the new principles (Distribution Surface Integrity affects gates G2/G9; Provider Robustness affects G5/G6).
-- [ ] Run a follow-up deliberation against the proposed v2.3.0 text before merge — the arbiter already grounded today's rulings in the *current* constitution; the *amended* constitution should pass its own arbitration before landing.
+- [x] Draft `spec 066-constitution-v2.3.0` operationalizing the amendment package as concrete CONSTITUTION.md edits with sync impact report. — PR #17, merged 2026-04-25 (with reviewer-driven wording fixes)
+- [x] Apply v2 to `spec 065-path-to-open-source` referencing the new principles (Distribution Surface Integrity affects gates G2/G9; Provider Robustness affects G5/G6). — PR #15, merged 2026-04-25
+- [ ] Implementation PR — apply spec 066's wording to `CONSTITUTION.md` itself (Sync Impact Report bumped to v2.3.0, principles XXII-XXVII appended, IX + XI extended). — IN FLIGHT
+- [ ] Run a verification deliberation against the proposed v2.3.0 text before the implementation PR merges — the arbiter already grounded the rulings in v2.2.0; the *amended* constitution should pass its own arbitration before landing. Acceptance bar per spec 066 §7: 0 disputes raised.
+- [ ] Phase 1 (manifest tools[] from CAPABILITIES) operationalizes Principle XXII — PR #18, awaiting CI auto-merge.
 
 **Self-referential observation from the deliberation**:
 > *"Future constitutional deliberations should focus on systematic
