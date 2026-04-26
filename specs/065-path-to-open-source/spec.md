@@ -2,8 +2,8 @@
 
 **Feature ID**: `065-path-to-open-source`
 **Created**: 2026-04-25
-**Status**: Draft v1 — awaiting deliberation
-**Depends On**: `052-open-source-extraction`, `053-public-ci-pipeline`, `054-public-documentation`
+**Status**: Draft v2 — amended to reference constitution v2.3.0 principles proposed by spec 066
+**Depends On**: `052-open-source-extraction`, `053-public-ci-pipeline`, `054-public-documentation`, `066-constitution-v2.3.0` (proposed amendments referenced in gates G2/G5/G6/G9)
 **Governed by**: `CONSTITUTION.md` (principle II — Stable Interfaces, principle XI — Single Source of Truth)
 **Originating context**: Open-source readiness has been a moving target across multiple sessions. Specs 052/053/054 describe **what** to publish; this spec describes **the path** — gate ordering, decision criteria, and the readiness checklist to actually flip the repository from private to public.
 
@@ -80,6 +80,8 @@ Ordered. Each gate is **blocking** for the next unless explicitly marked paralle
 
 **Tooling**: `gitleaks` (Homebrew or release binary). Run as a one-time audit + add to CI per spec 053.
 
+**Constitutional alignment** (post-v2.3.0): G2 satisfies the security half of Principle XXII (Distribution Surface Integrity). The remaining halves of XXII — single-source versioning and force-include discipline — are already met (PR #11, PR #13). The end-to-end install testing half is enforced at G9.
+
 ### Gate G3 — License header sweep
 
 **Question**: Does every source file declare its license?
@@ -107,6 +109,8 @@ Ordered. Each gate is **blocking** for the next unless explicitly marked paralle
 - A test publish to TestPyPI succeeds end-to-end.
 - The published package's import surface matches the source — `pip install conversus` then `from conversus.registry import Capability` works without errors.
 
+**Constitutional alignment** (post-v2.3.0): G5 publishes a wheel whose providers satisfy Principle XXIII (Provider Robustness Contract) — token reporting, retry-with-jitter, protocol tolerance, structurally-valid response handling. PRs #5, #6, #8, #9 already established this baseline; G5 inherits these guarantees by virtue of publishing the wheel that contains them.
+
 ### Gate G6 — Public CI pipeline (spec 053)
 
 **Question**: Does the CI run successfully on a fresh clone with no Build-Fractal-specific environment?
@@ -117,6 +121,8 @@ Ordered. Each gate is **blocking** for the next unless explicitly marked paralle
 - Spec 053's prescribed `ci.yml` is in `.github/workflows/`.
 - Smoke test: open a PR from a fork-equivalent (a branch with no secret access). CI must pass.
 - All current secret references are scoped to optional jobs (e.g., live integration tests gated behind `secrets.ANTHROPIC_API_KEY` with a `continue-on-error` skip when absent).
+
+**Constitutional alignment** (post-v2.3.0): G6 enforces Principle XXV (Live Test Cost Discipline). CI runs `pytest -m "not live"` by default; live tests run in a separate manually-triggered or scheduled job, never on fork-PRs (which cannot reference Build-Fractal secrets). The default test surface for external contributors is free-tier — Principle XXV makes this a constitutional requirement, not just a nicety.
 
 ### Gate G7 — Issue templates, CONTRIBUTING, code of conduct
 
@@ -147,6 +153,8 @@ Ordered. Each gate is **blocking** for the next unless explicitly marked paralle
 - Both `release-mcpb.yml` and `publish-pypi.yml` workflows complete successfully.
 - The release page on GitHub shows: 3 `.mcpb` artifacts (darwin/linux/win), the release notes, and links to the PyPI page.
 - `pip install conversus` from a fresh venv succeeds and `conversus --help` works.
+
+**Constitutional alignment** (post-v2.3.0): G9 satisfies Principle XXII (Distribution Surface Integrity) end-to-end install testing requirement. "It works in my dev checkout" is not sufficient — G9's fresh-venv test on each platform (or a documented manual test for at least the maintainer's primary platform) is the constitutional bar.
 
 ### Gate G10 — Announcement (parallel to G9)
 
@@ -180,7 +188,8 @@ The spec itself is "done" when:
 2. The name decision (G1) is filed in §11 below.
 3. The security audit (G2) has been run at least once and the findings (zero or otherwise) are recorded.
 4. PyPI publishing (G5) has a draft workflow file in `.github/workflows/` (can be in a feature branch).
-5. The constitution gap analysis (running 2026-04-25) has been merged into any updates this spec needs — specifically, principles emerging from that deliberation that affect the path-to-public must be reflected here.
+5. The constitution gap analysis (2026-04-25) has been merged into this spec via v2 — principles XXII (Distribution Surface Integrity), XXIII (Provider Robustness), XXIV (Safety-Critical Defense-in-Depth), XXV (Live Test Cost Discipline), and XXVII (Operator-Configurable Tool Surface) are referenced where they govern specific gates. ✅ Done in v2.
+6. Spec 066 (constitution v2.3.0 amendment package) lands AND the implementation PR editing `CONSTITUTION.md` lands BEFORE G8 (visibility flip) — public-facing repo must reflect the constitution that governed the work it ships.
 
 ## 8. Risks
 
@@ -221,5 +230,7 @@ After G9, the project takes on these standing commitments — failure to meet th
 - Spec 053 — Public CI Pipeline (CI mechanics)
 - Spec 054 — Public Documentation (README content)
 - CONSTITUTION.md (governance principles)
-- `deliberations/constitution-gap-analysis-2026-04-25/` — concurrent deliberation on constitutional gaps; outputs may amend this spec
+- `deliberations/constitution-gap-analysis-2026-04-25/` — deliberation that produced the v2.3.0 amendment package referenced throughout v2
+- `CONSTITUTIONAL_CONVERSATIONS.md` — entry: 2026-04-25 (governance log)
+- Spec 066 — Constitution v2.3.0 Amendment Package (proposes the principles this spec references)
 - PyPI Trusted Publishing: https://docs.pypi.org/trusted-publishers/ (referenced for G5)
