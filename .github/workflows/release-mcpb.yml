@@ -74,23 +74,36 @@ jobs:
           cp -r schema desktop-extension/server/schema
           cp -r templates desktop-extension/server/templates
 
-      - name: Sync manifest version + platform from pyproject.toml
+      - name: Sync manifest version + platform + tools[] from registry
         shell: bash
         run: |
+          # Constitution Principle XXII (Distribution Surface Integrity, v2.3.0):
+          # version single-sourced from pyproject.toml; tools[] single-sourced
+          # from the capability registry. Hand-editing either is prohibited.
           python - <<'PY'
           import json
+          import sys
           import tomllib
           from pathlib import Path
 
+          # Repo root is the working dir at this CI step. Add it so we can
+          # import capabilities + conversus.registry.projector directly.
+          sys.path.insert(0, str(Path(".").resolve()))
+
+          from capabilities import CAPABILITIES
+          from conversus.registry.projector import project_to_mcpb_manifest_tools
+
           pyproject = tomllib.loads(Path("pyproject.toml").read_text())
           version = pyproject["project"]["version"]
+          projected_tools = [dict(e) for e in project_to_mcpb_manifest_tools(CAPABILITIES)]
 
           path = Path("desktop-extension/manifest.json")
           manifest = json.loads(path.read_text())
           manifest["version"] = version
           manifest["compatibility"]["platforms"] = ["${{ matrix.platform }}"]
+          manifest["tools"] = projected_tools
           path.write_text(json.dumps(manifest, indent=2) + "\n")
-          print(f"manifest.json version → {version}, platform → ${{ matrix.platform }}")
+          print(f"manifest.json synced — version={version}, platform=${{ matrix.platform }}, tools={len(projected_tools)}")
           PY
 
       - name: Prune __pycache__ from bundle
