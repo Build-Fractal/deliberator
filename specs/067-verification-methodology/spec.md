@@ -74,6 +74,20 @@ Blind-run agent prompts MUST NOT mention:
 
 Blind-run agent prompts SHOULD include explicit instructions to consider **removing** principles that don't earn their keep. The default conversus deliberation framing leans toward additive recommendations; blind verification needs prompts that empower subtractive judgments.
 
+### 4.3.1 Use existing role presets — do NOT hand-roll
+
+The conversus presets directory already supplies the role personas this methodology needs. Future blind verifications MUST use these presets rather than hand-roll new agent prompts:
+
+| Role purpose | Preset | Composable? |
+|---|---|---|
+| Skeptical reviewer that challenges agreed-upon positions | `preset: devils-advocate` | yes — compose with a domain modifier (e.g. `[devils-advocate, security]`) |
+| Adversarial reviewer that seeks to break a position | `preset: red-team` | yes |
+| Independent arbiter that issues binding rulings grounded in a declared framework | `preset: balanced-arbiter` | no — used standalone |
+
+Hand-rolled equivalents (e.g., the 2026-04-25 blind run's `skeptic` / `skeptic-2` / `practitioner` agents) duplicate work and produce inconsistent framing across amendment cycles. The presets exist precisely to make this methodology reusable. If a needed role is *not* in `presets/role/`, the appropriate move is to ADD it to the preset registry — not to inline a one-off prompt in the verification config.
+
+The 2026-04-25 blind run that motivated this spec did NOT use these presets — that was a methodology mistake the spec is correcting prospectively. The deliberation outputs remain valid, but future runs use the presets.
+
 ### 4.4 Combined acceptance bar
 
 The amendment's implementation PR may merge only if:
