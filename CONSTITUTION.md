@@ -1,5 +1,27 @@
 <!--
 Sync Impact Report
+Version change: 2.3.0 → 2.3.1 (PATCH — Principle XV clarification:
+registry as extension interface, completes blind-verification finding
+#1 whose XXVII half landed in 2.3.0)
+Added principles: none
+Modified principles:
+  - XV. Plugin Isolation — added "Clarification (v2.3.1): registry as
+    the extension interface" sub-section coordinating with XXVII
+Removed sections: none
+Templates requiring updates: none
+Rationale: 2026-04-25 blind verification deliberation (3 agents, no
+v2.3.0 markers visible to agents) recommended both XV and XXVII be
+clarified as defining the registry as the architectural extension
+boundary. XXVII received its half in 2.3.0 (PR #19); this PATCH adds
+the parallel XV clarification. Governance log entry: 2026-04-25 in
+CONSTITUTIONAL_CONVERSATIONS.md (blind verification entry, fix #1
+remainder).
+Prior amendment (v2.2.0 → 2.3.0): see git history for the 6 new
+principles + 2 extensions added on 2026-04-25.
+-->
+
+<!--
+Sync Impact Report (prior — preserved for audit trail)
 Version change: 2.2.0 → 2.3.0 (MINOR — 6 new principles + 2 extensions for
 constitutional gaps surfaced by 2026-04-25 deliberation)
 Added principles:
@@ -408,6 +430,16 @@ Plugin failure MUST NOT block core execution — warnings only.
 - Third-party plugins follow the same isolation rules. The plugin
   interface enforces this — `PluginResult` has no mechanism to modify
   core state.
+
+**Clarification (v2.3.1): registry as the extension interface.** The
+capability registry (`capabilities.py` + `conversus/registry/`)
+constitutes an explicit extension interface separate from core
+deliberation logic. Plugins extend conversus by registering new
+`Capability` objects via this interface; they do not patch, override,
+or otherwise modify the deliberation engine. The registry is the
+**only** sanctioned extension point. Operators (via Principle XXVII)
+filter the registered set — the two principles bracket the registry's
+read/write contract.
 
 *Origin: game engine vision (specs 016-020) — the paid optimization
 layer must not compromise the free deliberation core. A user who
@@ -840,4 +872,4 @@ justifies the deviation.
 - **Compliance**: The plan template includes a Constitution Check gate.
   Plans MUST pass this gate before proceeding to implementation.
 
-**Version**: 2.3.0 | **Ratified**: 2026-03-20 | **Last Amended**: 2026-04-25
+**Version**: 2.3.1 | **Ratified**: 2026-03-20 | **Last Amended**: 2026-04-26
