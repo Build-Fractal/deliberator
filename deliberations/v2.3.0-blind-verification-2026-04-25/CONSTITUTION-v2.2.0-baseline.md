@@ -1,40 +1,30 @@
 <!--
 Sync Impact Report
-Version change: 2.2.0 → 2.3.0 (MINOR — 6 new principles + 2 extensions for
-constitutional gaps surfaced by 2026-04-25 deliberation)
+Version change: 2.1.0 → 2.2.0 (MINOR — 5 new principles for SKILL.md decomposition)
 Added principles:
-  - XXII. Distribution Surface Integrity
-  - XXIII. Provider Robustness Contract
-  - XXIV. Safety-Critical Defense-in-Depth
-  - XXV. Live Test Cost Discipline
-  - XXVI. Meta-Testing for Parametrized Capabilities
-  - XXVII. Operator-Configurable Tool Surface
+  - XVII. Content Classification
+  - XVIII. Progressive Disclosure Contract
+  - XIX. Non-Extractable Core
+  - XX. Decomposition Mechanism Precedence
+  - XXI. Extraction Ordering
 Modified principles:
-  - IX. Functional Programming and Clean Code — extended to include
-    behavior-over-shape testing as general framework
-  - XI. Single Source of Truth — extended for Registry-First Declaration
+  - II. Stable Interfaces — expanded breaking change registry to include
+    reference file paths and dispatch table subcommand names
 Removed sections: none
 Templates requiring updates:
-  - none in this repo (.specify/templates/* referenced in prior reports
-    do not exist here; the line is dropped per spec 066 §8 Q3)
+  - .specify/templates/plan-template.md — ✅ no changes needed
+  - .specify/templates/spec-template.md — ✅ no changes needed
+  - .specify/templates/tasks-template.md — ✅ no changes needed
 Follow-up TODOs:
-  - Spec 065 (path to open source) v2 references the new principles in
-    gates G2/G5/G6/G9 — ✅ already amended in PR #15
-  - Run a verification deliberation against this amended text to catch
-    inter-principle conflicts (per spec 066 §7); 0 disputes is the
-    acceptance bar before this PR merges
-  - Phase 1 (manifest tools[] from CAPABILITIES) operationalizes
-    Principle XXII — PR #18, awaiting CI
-Rationale: 2026-04-25 4-agent cooperative deliberation, 2 rounds, ~52
-launches. Arbiter (subject arbitration, binding) ruled on 6 disputes.
-Unanimous convergence on 4 P1 principles + Principle IX extension;
-majority convergence on 3 additional P2 principles + Principle XI
-extension. Full deliberation record:
-deliberations/constitution-gap-analysis-2026-04-25/. Spec 066 proposed
-the wording; this PR applies it. Governance log entry: 2026-04-25 in
-CONSTITUTIONAL_CONVERSATIONS.md.
-Prior amendment (v2.1.0 → 2.2.0): see git history for the SKILL.md
-decomposition principles (XVII-XXI) added on 2026-03-22.
+  - Add a constitution-grounded agent to future conversus deliberations
+    reviewing decomposition changes
+Rationale: Spec 011a deliberation (5-agent cooperative, 2-round with
+inter-round arbitration) surfaced architectural invariants for SKILL.md
+decomposition. These principles prevent future drift between execution
+logic and contribution guidelines, establish progressive disclosure as
+the decomposition mechanism, and define the non-extractable core that
+must survive any restructuring. All 5 principles emerged from
+cross-review convergence across 20 agent pairs.
 -->
 
 # Conversus Constitution
@@ -226,32 +216,6 @@ framework or domain modeling requires them.
   `StrEnum` subclasses with additional members. The factory pattern
   preserves runtime extensibility without sacrificing type safety.
 
-**Extension (v2.3.0): Behavior-over-shape testing.**
-
-Tests MUST assert behavioral properties (what the code *does*) rather
-than structural properties (what fields are populated, what classes
-exist). Domain-specific testing requirements — distribution
-validation, provider robustness, synthesis correctness — reference
-this general framework rather than introducing parallel "behavioral
-validation" requirements per domain.
-
-A test that verifies `result.foo == 9` without verifying that the 9
-actually represents the right behavior is a shape test, not a
-behavior test. Shape tests pass when the bug is structurally invisible
-(field is set to a wrong-but-valid value); behavior tests catch
-the bug.
-
-**Operational test**: an assertion that checks only field presence,
-type, or non-null status WITHOUT also constraining the value's
-*meaning* is a shape test. Examples of shape tests (prohibited
-on their own): `assert "headline" in result`, `assert
-isinstance(rounds_completed, int)`, `assert len(errors) >= 0`.
-Examples of behavior tests (required): `assert result["headline"]
-== expected_headline`, `assert rounds_completed == 2 because the
-config requested 2 rounds`, `assert errors == []` (when zero is
-the expected behavioral state). Shape tests are permitted only as
-preconditions inside a test that ALSO asserts behavior.
-
 ### X. Zen of Python Output
 
 Output MUST be clean, readable, and unsurprising. Follow the
@@ -298,26 +262,6 @@ bug — and the fix is always to eliminate the duplicate, not reconcile it.
 INFLUENCE_LEVEL typed differently in model vs schema, FR-018 text
 contradicted schema phases. All three were the same class of bug:
 information in two places that disagreed.*
-
-**Extension (v2.3.0): Registry-First Declaration.**
-
-The capability registry (`capabilities.py` + `conversus/registry/`)
-is the **single authoritative source** for tool, prompt, and
-plugin-skill availability across all distribution surfaces. Hand-
-written tool decorations, manifest entries, or plugin SKILL.md
-files that conflict with the registry are violations of single-
-source-of-truth, not parallel declarations.
-
-Surface artifacts that today carry hand-written tool/prompt entries
-(`mcp_server.py` `@mcp.tool()` decorators, `manifest.json` `tools[]`
-array, `claude-code-plugin/skills/*/SKILL.md`) are **migration
-targets**. Until projection is complete, hand-written and projected
-declarations MUST agree — drift is detected by parity tests, not
-silently accepted.
-
-*Origin (v2.3.0): PR #4 (spec 064.1 runtime registration) and PR #18
-(manifest tools[] projection) both assume the registry is authoritative.
-This extension codifies that assumption.*
 
 ### XII. No Dead Infrastructure
 
@@ -592,206 +536,6 @@ that extracting multi-round orchestration splits a state machine at
 its midpoint. The ordering principle ensures high-risk extractions
 happen last, after the pattern is proven on safer targets.*
 
-### XXII. Distribution Surface Integrity
-
-Every distribution surface (PyPI wheel, .mcpb bundle, Claude Code
-plugin, generated SKILL.md) MUST satisfy three invariants:
-
-1. **Single-source versioning**: the version field appears in exactly
-   one source — `pyproject.toml` `[project] version`. All other
-   surfaces (`desktop-extension/manifest.json`, plugin manifests,
-   release artifacts) derive their version from this source at build
-   time. Hand-editing a derived version field is prohibited.
-
-2. **Force-include discipline**: any module that is shipped as part
-   of a distribution but does not live inside a packaged Python
-   directory (e.g., repo-root `mcp_server.py`, `capabilities.py`)
-   MUST be explicitly declared in `[tool.hatch.build.targets.wheel.force-include]`
-   or the equivalent for the targeted distribution. Implicit inclusion
-   via filesystem proximity is prohibited.
-
-3. **End-to-end install testing**: every distribution path MUST be
-   tested from a fresh environment in CI (or a documented manual
-   test) before tagging a release. "It works in my dev checkout"
-   is not sufficient evidence that `pip install` or `.mcpb`
-   installation will succeed.
-
-*Origin: PR #11 (mcp_server.py missing from wheel), PR #13
-(manifest.json drifted to 0.1.0 while pyproject was 0.3.0),
-PR #18 (manifest tools[] from CAPABILITIES). Distribution drift is
-build-time concern, not runtime.*
-
-### XXIII. Provider Robustness Contract
-
-Every execution provider implementation MUST satisfy four robustness
-guarantees:
-
-1. **Token consumption reporting**: every successful provider call
-   reports the tokens consumed via `_record_usage` (or the project's
-   equivalent telemetry hook). Cost visibility is a contract, not a
-   debugging convenience.
-
-2. **Retry-with-jitter for rate limits**: HTTP 429 / equivalent
-   rate-limit signals MUST trigger exponential backoff with jitter
-   up to a configured maximum attempt count. Bare retry loops without
-   jitter are prohibited (synchronized retry storms compound rate
-   pressure).
-
-3. **Protocol format tolerance**: parsers MUST tolerate documented
-   format variations from upstream APIs (single-object JSON vs JSONL,
-   tool-use-only responses without text content, etc.) and treat
-   them as success when the underlying response is structurally valid.
-   "Empty text content" is not a parse failure if the response carries
-   a tool call.
-
-4. **Concurrency respect**: providers MUST respect subscription-level
-   concurrency limits. Issuing N concurrent requests to a provider
-   that allows N-1 is a contract violation, not a performance choice.
-
-*Origin: PR #5 (claude-code tool-use response), PR #6 (anthropic
-429 retry + concurrency), PR #8 (token tracking), PR #9 (claude-code
-single-object JSON parser).*
-
-### XXIV. Safety-Critical Defense-in-Depth
-
-Safety-critical paths — defined as **synthesis verdict generation**
-(red-blue mode, arbitration rulings, false-PASS / false-FAIL
-boundary cases) AND **provider protocol implementation** (rate
-limiting, response handling, token reporting) — MUST implement
-three-layer defense:
-
-1. **Schema-level required fields**: the data structure declares
-   the field as required (Pydantic `Field(...)`, JSON Schema
-   `required: [...]`). Missing fields fail at deserialization, not
-   at use site.
-
-2. **Parser-level validation**: the parser that converts raw output
-   into the typed structure validates field presence and shape
-   independently of the schema. Schemas can be bypassed; parsers
-   cannot.
-
-3. **Contract test reproducing the failure scenario**: every
-   safety-critical path has at least one test that **reproduces
-   the original bug or failure pattern** the principle was created
-   to prevent. The test asserts the bug does not recur.
-
-The 2026-04-25 deliberation arbiter explicitly extended this scope to
-provider protocols (not just synthesis logic) on the evidence that
-PRs #5, #6, #8, #9 produced the same class of silent failure as
-PR #10's false-PASS bug.
-
-*Origin: PR #10 (red-blue contract break → false-PASS); generalized
-over PRs #5, #6, #8, #9.*
-
-### XXV. Live Test Cost Discipline
-
-Tests that consume API credits, spawn subprocesses, or otherwise
-incur real-world cost MUST follow four discipline rules:
-
-1. **Explicit marker**: `@pytest.mark.live` (or the project's
-   equivalent) on every test that incurs cost. Unmarked tests are
-   assumed free; introducing cost into an unmarked test is a
-   contract violation.
-
-2. **Cost justification in docstring**: every `@pytest.mark.live`
-   test has a docstring stating *what the test exercises that
-   cannot be tested cheaply*. "Tests that the provider actually
-   works" is not sufficient — the cost must buy something specific
-   the mock provider can't.
-
-3. **CI opt-out by default**: CI runs `pytest -m "not live"` by
-   default. Live tests run in a separate, manually-triggered job
-   gated behind a maintainer-supplied secret. PRs do not pay live
-   test costs; only releases do (or scheduled smoke runs).
-
-4. **Test category taxonomy**: the permitted markers for
-   cost-bearing tests are `live` (consumes API credits or
-   subprocess spawning), `integration` (multi-component but
-   in-process), and `security` (path traversal, injection, input
-   validation surfaces). Adding a new top-level marker requires a
-   constitutional amendment — the taxonomy is the contract.
-
-**Interaction with Principle XXII (Distribution Surface Integrity)**:
-XXII's end-to-end install testing requirement runs in CI. Install
-tests that incur measurable cost (downloading wheels, spawning
-isolated environments) MUST be marked `@pytest.mark.live` and run
-under the gated job. Install tests that run in-process (e.g.,
-`importlib.reload` against a built wheel) are not live and run on
-every PR.
-
-This principle is **foundational** for Principle XXIII (Provider
-Robustness Contract) — provider contract tests are inherently live.
-Without cost discipline, provider testing becomes prohibitively
-expensive and the robustness contract goes untested.
-
-*Origin: PR #8 introduced `@pytest.mark.live` without codifying the
-discipline. The 2026-04-25 deliberation arbiter ruled this principle
-must precede provider contract testing requirements.*
-
-### XXVI. Meta-Testing for Parametrized Capabilities
-
-Any test file that exercises a parametrized set of capabilities
-(MCP prompts, MCP tools, registered providers, plugin skills, etc.)
-MUST include a **meta-test** that asserts the parametrize lists
-cover the full set. Adding a new capability without updating the
-parametrize list trips the meta-test.
-
-This is foundational testing infrastructure: it prevents silent
-coverage gaps as the system grows. The trigger is mechanical, not
-discretionary — any test module that uses `@pytest.mark.parametrize`
-to enumerate a *capability set* (MCP tools, MCP prompts, providers,
-plugin skills, registered modes, registry entry points) MUST also
-include a meta-test asserting the parametrize list has the same
-length as the authoritative capability source. Modules that
-parametrize over arbitrary values (e.g., `[None, 0, 1, "x"]` for
-input validation) are out of scope — meta-testing applies only to
-parametrized capability *sets*.
-
-A coverage-drift guard converts an easy mistake ("forgot to add
-the new tool to the test list") into a CI failure with a specific
-message ("Expected 8 prompts, parametrize covers 7: …new prompt
-'estimate_complexity' missing").
-
-*Origin: PR #12 introduced the meta-test pattern for `@mcp.prompt()`
-definitions. The deliberation ruled this pattern should generalize
-to all parametrized capability sets.*
-
-### XXVII. Operator-Configurable Tool Surface
-
-The tool surface exposed by a deployed conversus instance MUST be
-configurable by the **operator** (the person installing or running
-the server) without source code changes. Configuration channels are:
-
-- **Environment variables** (e.g., `CONVERSUS_DISABLED_TOOLS`)
-- **Manifest `user_config` entries** for Desktop Extension installs
-- **CLI flags** for ad-hoc invocations
-
-Operators MAY restrict the available tool surface (hide tools they
-don't want exposed). They MAY NOT extend it (operators do not add
-tools — that's the registry's job). This asymmetry preserves
-deterministic capability discovery while allowing deployment-time
-hardening.
-
-**Coordination with Principle XV (Plugin Isolation)**: Principle XV
-governs how plugins **add** capabilities; Principle XXVII governs
-how operators **subtract** capabilities. The two are complementary —
-plugins extend the registry; operators filter the registered set.
-Neither modifies core deliberation behavior.
-
-**Registry as configuration boundary**: registry modifications via
-this principle (operator subtraction) and Principle XV (plugin
-extension) are **configuration changes affecting tool availability**,
-not behavioral modifications to the deliberation process. The
-capability registry constitutes an explicit extension interface
-separate from core deliberation logic — changes inside the registry
-do not change how deliberation works, only which deliberation
-capabilities are exposed.
-
-*Origin: PR #14 (CONVERSUS_DISABLED_TOOLS). The 2026-04-25 deliberation
-arbiter ruled this should be a standalone principle (not a Principle
-XV extension) because operator configuration scope extends beyond
-plugin isolation to the core tool surface.*
-
 ## Development Workflow
 
 The standard workflow for conversus feature development:
@@ -840,4 +584,4 @@ justifies the deviation.
 - **Compliance**: The plan template includes a Constitution Check gate.
   Plans MUST pass this gate before proceeding to implementation.
 
-**Version**: 2.3.0 | **Ratified**: 2026-03-20 | **Last Amended**: 2026-04-25
+**Version**: 2.2.0 | **Ratified**: 2026-03-20 | **Last Amended**: 2026-03-22

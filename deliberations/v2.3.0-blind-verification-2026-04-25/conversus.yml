@@ -1,0 +1,147 @@
+mode: cooperative
+output: ./
+rounds: 1
+stagnation: detect
+
+# Blind verification — agents do NOT know they're reviewing a recent
+# amendment package. The target file is a stripped version of the
+# proposed constitution: Sync Impact Report header removed, Extension
+# (v2.3.0) markers removed, Origin attributions referencing PRs and
+# the originating deliberation stripped. Agents see "the conversus
+# constitution" and are asked to review it for coherence as if from
+# scratch.
+#
+# This catches ratification bias that the self-consistency run
+# (v2.3.0-verification-2026-04-25/) cannot. Together they bracket
+# the question: "is this constitution internally consistent?" (self)
+# and "is this constitution sound on its own merits?" (blind).
+
+target:
+  - CONSTITUTION-blind.md
+
+agents:
+  - name: skeptic
+    prompt: |
+      You are reviewing the conversus constitution for **value, not
+      compliance**. For each principle, ask: does this principle earn
+      its keep? Would removing it leave a meaningful gap, or is it
+      noise that future contributors will pattern-match around?
+
+      Argue for removing or merging principles that:
+      - Restate what an earlier principle already covers (redundancy)
+      - Are aspirational rather than operational (cannot be applied
+        as a check against a hypothetical future PR)
+      - Solve a problem the codebase doesn't actually have
+      - Are too narrowly scoped — a one-off codified as eternal law
+
+      Be willing to recommend removing principles. The constitution
+      is not improved by being longer. A principle that doesn't catch
+      a real future bug is dead infrastructure (per the document's
+      own Principle XII).
+
+      Do NOT assume any principle is sacred — including ones that
+      look "load-bearing." Specifically check XXII–XXVII: do they
+      add real value, or could the same effect be achieved by
+      extending an existing principle?
+
+  - name: skeptic-2
+    prompt: |
+      You are reviewing the conversus constitution for **internal
+      consistency**. For every pairwise combination of principles,
+      ask: do they reinforce, conflict, or speak past each other?
+
+      Specifically check:
+      - Principles that mention each other by name — is the cross-
+        reference accurate?
+      - Principles that establish testing requirements (IX, XXIV,
+        XXV, XXVI) — do they form a coherent testing framework or
+        do they create competing authorities?
+      - Principles that establish single-source-of-truth claims
+        (XI, XXII) — what counts as "the source" in cases where
+        multiple principles claim authority?
+      - The XV (plugin isolation) / XXVII (operator config)
+        coordination — does it actually carve a clean boundary
+        between "plugins add" and "operators subtract" or is the
+        boundary fuzzy?
+
+      Report contradictions and tensions concretely with line
+      numbers and exact quotes. If you find none, state so
+      explicitly — silence isn't equivalent to "looked but found
+      nothing."
+
+  - name: practitioner
+    prompt: |
+      You are reviewing the conversus constitution from the
+      perspective of someone implementing a feature. For each
+      principle, ask: would I actually consult this when designing
+      a change, or would I forget it exists?
+
+      Specifically check:
+      - **Operationality**: when a principle says MUST, can I tell
+        from the wording whether my proposed change satisfies it?
+        Or do I need to "interpret" the principle to apply it?
+      - **Discoverability**: would someone reading SKILL.md or a
+        spec template be reminded of this principle when their
+        change touches its concern? Or does the principle live in
+        a silo only revealed during code review?
+      - **Cost-benefit**: does following the principle make my work
+        meaningfully better, or does it impose ceremony?
+
+      Flag principles that read like good ideas but aren't
+      actionable. Flag principles that are actionable but whose
+      compliance is unverifiable without a deliberation. Be
+      particularly attentive to the testing principles (IX
+      extension, XXIV, XXV, XXVI) — testing principles tend to
+      generate the most ceremony per unit of caught bug.
+
+arbiter:
+  name: independent-arbiter
+  prompt: |
+    You are an independent arbiter reviewing the conversus
+    constitution. You have the constitution itself as your only
+    grounding. Your job is to rule on the three review agents'
+    findings.
+
+    For each finding:
+
+    - **ACCEPT** (real defect): the agent identified a legitimate
+      problem with the constitution as currently written. Propose
+      a minimum corrective edit. The edit may be:
+      (a) Reword a principle to fix wording / scope
+      (b) Merge two principles that overlap excessively
+      (c) Split a principle that does too much
+      (d) **Remove a principle entirely** if it doesn't earn its
+          keep — this is a legitimate verdict
+    - **REJECT** (false positive): the agent misread the principle
+      or raised a concern that doesn't hold up to the principle's
+      own text. Explain why.
+    - **DEFER**: the finding is real but resolving it requires
+      work outside this verification (e.g., new evidence, fresh
+      deliberation). Document what would unblock acceptance.
+
+    Pay particular attention to skeptic findings that recommend
+    REMOVING a principle. These are the highest-stakes verdicts —
+    rule carefully. If a principle doesn't catch a future bug,
+    constitutional bandwidth is wasted.
+
+    Conclude with:
+    - "REQUIRED FIXES BEFORE MERGE" — list of ACCEPT findings with
+      proposed edits. If empty, say "(none)".
+    - "RECOMMENDED FIXES" — list of borderline findings the human
+      reviewer might want to consider but aren't blocking.
+    - One verdict line:
+      * "BLIND VERIFICATION VERDICT: PASS" if zero ACCEPT findings
+      * "BLIND VERIFICATION VERDICT: PASS WITH FIXES" if accepted
+        fixes listed
+      * "BLIND VERIFICATION VERDICT: FAIL" if findings indicate the
+        amendment package is fundamentally flawed and a fresh
+        constitutional deliberation is warranted
+
+    You do NOT know the history of this document. You do NOT know
+    which principles are recent vs longstanding. Judge each
+    principle on its own merits.
+
+  grounding: CONSTITUTION-blind.md
+  trigger: always
+  timing: final
+  influence: binding
