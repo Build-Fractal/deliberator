@@ -389,6 +389,10 @@ Governance log entry: 2026-04-25 in CONSTITUTIONAL_CONVERSATIONS.md.
 
 ## 7. Verification — re-run constitution arbitration
 
+> **SUPERSEDED 2026-04-26**: this section's single-deliberation protocol is replaced by spec 067 (`Constitutional Verification Methodology — Both Self-Consistency AND Blind`). See spec 067 §4 for the canonical protocol — both methodologies are now required for every constitutional amendment. The original §7 text below is preserved for audit context.
+
+### 7-original (historical)
+
 Before merging the implementation PR (the actual `CONSTITUTION.md`
 edit), run a follow-up deliberation against the **proposed amended
 text** with the same arbiter pattern (`grounding: CONSTITUTION.md`,
