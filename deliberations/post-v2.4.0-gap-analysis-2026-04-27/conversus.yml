@@ -1,0 +1,163 @@
+mode: cooperative
+output: ./
+rounds: 1
+stagnation: detect
+
+# Post-v2.4.0 gap analysis. Reviews changes since the 2026-04-25
+# gap analysis and tests proposed new principles against the v2.4.0
+# Constitutional Inclusion Criteria gate.
+
+target:
+  - ../../CONSTITUTION.md
+  - recent-changes.md
+
+agents:
+  - name: governance
+    prompt: |
+      You audit the conversus codebase from a governance and process
+      perspective. You care about: spec-driven development integrity,
+      change management discipline, breaking-change registry coverage,
+      versioning semantics, and the v2.4.0 Constitutional Inclusion
+      Criteria gate.
+
+      Your task: review the recent-changes.md against CONSTITUTION.md
+      v2.4.0. For each PR or theme, ask: did this work follow an
+      established principle, or did it embody an unwritten one? For
+      each unwritten invariant you propose to codify:
+
+      1. Test it against the v2.4.0 gate (mechanical verification
+         capability, falsifiable scope, distinct from existing
+         principles). Show your work for each criterion.
+      2. If it fails the gate, classify it as operational guidance
+         (CONTRIBUTING.md, spec, SKILL.md, memory entry) rather than
+         constitutional.
+      3. If it passes the gate, propose concrete principle wording.
+
+      Be willing to recommend NO new principles. The v2.4.0 gate is
+      designed to filter noise; many themes belong in operational
+      guidance, not the constitution.
+
+  - name: methodology
+    preset: devils-advocate
+    prompt: |
+      You audit the verification methodology codified in spec 067
+      and demonstrated four times this session (spec 068 self+blind,
+      spec 069 self+blind). You are the Devil's Advocate — challenge
+      the strongest claims about the methodology.
+
+      Specifically:
+
+      1. Spec 067 §4.4 says "0 ACCEPT-level findings" is the merge
+         bar. Spec 068 self landed 3 ACCEPT, blind landed 4 ACCEPT;
+         spec 069 self landed 0 ACCEPT, blind landed 3 ACCEPT. Both
+         specs merged with fixes folded in WITHOUT re-running
+         verification. Was that a methodology violation? Should
+         spec 067 require re-verification after fixes?
+      2. Spec 067 §4.3.1 prohibits hand-rolling personas when presets
+         exist. Today's verifications used `devils-advocate` for some
+         agents but inline prompts for others (governance, methodology,
+         etc.). Is that compliant or a loophole?
+      3. The 2-hour overnight stall recovery worked because agents
+         Write directly. Should the methodology mandate Write-direct
+         to harden against orchestrator failures?
+      4. Spec 067 mandates BOTH methodologies but doesn't require any
+         specific number of agents or rounds. Spec 068's deliberations
+         used 3 agents × 1 round; was that sufficient? Should there
+         be a minimum cost?
+
+      For each finding, test against the v2.4.0 gate. Argue for
+      tightening spec 067 OR for keeping it loose.
+
+  - name: distribution
+    prompt: |
+      You audit the packaging, distribution, and audit-trail work
+      shipped this session (PRs #11, #13, #14, #18, #22, #25, #28,
+      #31, #33). Plus the 75-file deliberation artifact commit and
+      the 4-entry governance log housekeeping.
+
+      Specifically:
+
+      1. Should "every constitutional deliberation MUST have its
+         artifacts committed to git before the implementation PR
+         merges" be codified? Spec 067 §4.5 mandates the governance
+         log entry but is silent on the underlying artifacts.
+      2. PR #28's naming deliberation prompt revealed that agents
+         can fail downstream if relevant docs aren't on main (the
+         "is this on a branch?" issue). Should this be codified?
+         Operational, or constitutional?
+      3. The strip script (PR #25) operationalizes spec 067 §4.2.
+         Should "every methodology described in a spec MUST have a
+         reference implementation" be codified? Test against the
+         gate.
+      4. The `.aider*` gitignore rule (PR #33) finally landed after
+         being a session-long stash floater. Lesson learnable but not
+         constitutional.
+
+      For each finding, test against the v2.4.0 gate.
+
+  - name: practitioner
+    preset: pragmatist
+    prompt: |
+      Apply pragmatist judgment to the operational footprint of this
+      session's changes. Ask:
+
+      1. The constitution went from v2.3.0 (5 SKILL.md decomposition
+         principles) to v2.4.0 (6 new + 2 extensions + 1 PATCH + 1
+         MINOR = 27 principles + 3 grandfathered failures). Is the
+         constitution still operational, or has it grown so large that
+         developers will stop consulting it?
+      2. Spec 067's BOTH-methodologies requirement adds ~34 agent
+         launches per amendment. Is the cost worth the bug-prevention
+         value? Or does it slow amendments enough that necessary fixes
+         get skipped?
+      3. The v2.4.0 gate creates a self-assessment requirement for
+         future amendments. Will amendment authors actually do it, or
+         will it become a copy-paste template?
+      4. Three principles (VI, X, XVI) are grandfathered as failing
+         the v2.4.0 gate. Should they be migrated to operational
+         guidance (spec 070), or grandfathered permanently?
+
+      For each finding, test against the v2.4.0 gate. Be willing to
+      recommend rolling back recent additions if they don't earn their
+      operational keep.
+
+arbiter:
+  name: post-v2.4.0-arbiter
+  preset: balanced-arbiter
+  prompt: |
+    You rule on findings raised by the four review agents against
+    CONSTITUTION.md v2.4.0. Your grounding document IS v2.4.0 — apply
+    the v2.4.0 Constitutional Inclusion Criteria gate to every
+    proposed amendment.
+
+    For each finding:
+
+    - **ACCEPT** (real defect, principle should be added/changed):
+      verify it passes the v2.4.0 gate. Propose minimum corrective
+      edit. Specify whether it's PATCH (clarification), MINOR (new
+      principle / material expansion), or operational guidance.
+    - **REJECT** (false positive or fails gate): explain why.
+    - **DEFER** (real concern but out of scope for current cycle):
+      document what would unblock and where the work belongs.
+    - **OPERATIONAL** (real but not constitutional): name the home
+      (CONTRIBUTING.md, spec, SKILL.md, memory entry) and what
+      should be written there.
+
+    Acceptance: this deliberation is a forward-looking gap analysis.
+    Findings can be ACCEPT, REJECT, DEFER, or OPERATIONAL. The
+    deliberation has no merge bar — it produces a list of
+    recommendations.
+
+    Conclude with:
+    - "Recommended new principles" (ACCEPT findings, with proposed
+      version bump)
+    - "Recommended operational changes" (OPERATIONAL findings)
+    - "Deferred" (DEFER with unblock conditions)
+    - "Rejected" (with reasoning)
+    - One verdict line: "POST-V2.4.0 GAP ANALYSIS: {N} ACCEPT, {M}
+      OPERATIONAL, {K} DEFER, {L} REJECT."
+
+  grounding: ../../CONSTITUTION.md
+  trigger: always
+  timing: final
+  influence: binding
