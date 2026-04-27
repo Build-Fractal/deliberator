@@ -1,5 +1,7 @@
 # Task: Make Conversus Executable
 
+**Status**: Done — closed 2026-04-27 per spec hygiene audit. Implemented by SKILL.md; conversus CLI executes deliberations from `conversus.yml` today.
+
 ## Goal
 
 Build a CLI skill that reads a `conversus.yml` config file and executes the full 5-phase deliberation process — launching parallel agents, collecting outputs, and producing the synthesis — without manual orchestration.
@@ -197,3 +199,17 @@ conversus/
 - [ ] Config validation catches missing files, invalid modes
 - [ ] A re-run of the speckit-orchestrator conversus using the skill produces equivalent output
 - [ ] `conversus.yml` is the single source of truth for a run — no manual prompt crafting needed
+
+---
+
+## Closure note (2026-04-27)
+
+**Why closed**: Implemented by `SKILL.md` and the conversus CLI (`/conversus run`). The CLI today reads a `conversus.yml`, dispatches agents in parallel through the 5-phase pipeline, collects outputs, and produces synthesis — exactly the goal stated above. `ideas.md` confirms: "008 was already implemented by SKILL.md."
+
+**Where the work lives**:
+- `SKILL.md` (repo root) — the executable skill definition
+- `engine/cli/` — `/conversus run`, `validate`, `init` commands
+- `engine/dispatch.py` — agent dispatch + events
+- `engine/phases.py` — 5-phase pipeline
+
+**Reference**: `specs/AUDIT-2026-04-27.md` §A "008-executable-conversus" — definitively shipped, recommended close.

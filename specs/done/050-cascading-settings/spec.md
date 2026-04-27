@@ -1,6 +1,6 @@
 # Spec 050: Cascading Settings System
 
-**Status**: Superseded by spec 057 (settings-architecture) — implemented 2026-04-12
+**Status**: Done — closed 2026-04-27 per spec hygiene audit. Superseded by spec 057 (settings-architecture) — implemented 2026-04-12.
 **Author**: Brian Slater + Claude Opus 4.6
 **Date**: 2026-04-06
 **Depends on**: 042 (execution providers), 048 (governance mode)
@@ -224,3 +224,16 @@ everything else is wiring existing code to read from it.
 1. **Should `.conversus/settings.json` be gitignored or committed?** Recommendation: committed (like `.claude/settings.json`). Project teams share provider and governance defaults.
 2. **Should we support `.conversus/settings.local.json` for local overrides?** Same pattern as `.env.local` — not committed, overrides the committed settings.
 3. **TOML vs JSON?** Claude Code uses JSON. Python ecosystem prefers TOML. Recommendation: JSON for consistency with Claude Code; TOML as optional alternative later.
+
+---
+
+## Closure note (2026-04-27)
+
+**Why closed**: Self-declared superseded — spec 057 (settings-architecture) replaced this design and was implemented 2026-04-12. The cascading-settings concept lives on through 057's `.conversus/` plumbing.
+
+**Where the work lives**:
+- `specs/057-settings-architecture.md` — the superseding spec
+- `.conversus/` directory plumbing in code (settings.json, settings.local.json)
+- `plugin-approach.md` (in this directory, moves with it) — preserved alternative approach considered during deliberation
+
+**Reference**: `specs/AUDIT-2026-04-27.md` §A "050-cascading-settings" — definitively shipped, recommended close.
