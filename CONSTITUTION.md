@@ -1,5 +1,57 @@
 <!--
 Sync Impact Report
+Version change: 2.3.1 → 2.3.2 (PATCH — Principle XVI determinism-scope
+clarification: 3-stage pipeline determinism properties, `objective.yml`-
+anchored pinning discipline, VII↔XVI bilateral carve-out, vocabulary
+alignment with spec 014 / `construction.py`)
+Added principles: none
+Modified principles:
+  - XVI. Mathematical Transparency — first bullet replaced with explicit
+    3-stage determinism breakdown (symbolic parsing → LLM gap-filling →
+    deterministic assembly); appended "Clarification (v2.3.2):
+    determinism scope" block including `objective.yml`-anchored MUSTs
+    (spec 014 FR-012), `GapFiller.fill()` protocol-boundary text,
+    deliberation-run definition, `SourceProvenance.filled_by` audit
+    hook, V observability obligation subordinate to VII reproducibility
+    pre-conditions, XXIV enforcement cross-reference, falsification
+    clause; stage 3 renamed "Mechanical assembly" → "Deterministic
+    assembly" for vocabulary alignment with spec 014 / `construction.py`
+  - VII. Reproducibility Over Inconsistency — line 163 receives a
+    parenthetical "(narrowed by Principle XVI for LLM gap-filling
+    output)" implementing the VII side of the bilateral carve-out
+  - VIII. Templating Engines Over Inference — line 178 receives a
+    one-line co-extensive parenthetical reconciling VIII's "mechanical"
+    vocabulary with XVI's renamed "deterministic" stage 3
+Removed sections: none
+Templates requiring updates: none
+Verification status of the pinning discipline: evidence-pending —
+pinning discipline assumes spec 014 FR-012/SC-004 enforcement; contract
+test per Principle XXIV filed as a follow-up to spec 014 (and CI lint
+detecting re-entrant `GapFiller.fill()` per spec 068 follow-up).
+Rationale: 2026-04-26 spec 068 self-consistency deliberation (3 agents
++ subject arbitration, binding) ruled on 4 disputes — 3 ACCEPT (P1-A
+SIR audit-status hedge, P1-B `GapFiller.fill()` boundary text, P1-C
+mechanical→deterministic rename + VIII parenthetical) plus 1 DEFER
+(II stable-interface sub-bullet for `objective.yml` schema, deferred
+to v2.3.3 unblock condition: second consumer of the schema lands).
+A parallel 2026-04-26 spec 068 BLIND verification deliberation (3
+agents + subject arbitration) ruled 4 ACCEPT findings, of which 2
+converge with self-consistency (B2 spec-013-routed test contract
+absorbed into the XXIV enforcement bullet, B3 V-emission subject to
+VII reproducibility pre-conditions absorbed into the V observability
+sub-bullet). The remaining 2 blind findings (B1 tightened-standalone
+rewrite, B4 drop XXIV citation) conflicted with self-consistency's
+stronger MUST/SHOULD discipline; per the conservative-wording rule the
+self-consistency wording is adopted. Governance log entry: 2026-04-26
+in CONSTITUTIONAL_CONVERSATIONS.md (spec 068 implementation).
+Prior amendment (v2.3.0 → 2.3.1): see git history for the XV
+"Clarification (v2.3.1)" registry-as-extension-interface sub-section.
+Prior amendment (v2.2.0 → 2.3.0): see git history for the 6 new
+principles + 2 extensions added on 2026-04-25.
+-->
+
+<!--
+Sync Impact Report (prior — preserved for audit trail)
 Version change: 2.3.0 → 2.3.1 (PATCH — Principle XV clarification:
 registry as extension interface, completes blind-verification finding
 #1 whose XXVII half landed in 2.3.0)
@@ -161,7 +213,8 @@ data — not prose that must be parsed ambiguously.
 ### VII. Reproducibility Over Inconsistency
 
 Given the same inputs, conversus MUST produce structurally
-identical output. Deterministic orchestration is non-negotiable.
+identical output (narrowed by Principle XVI for LLM gap-filling
+output). Deterministic orchestration is non-negotiable.
 
 - Template variable substitution is mechanical — same config
   produces same prompts. No ambient state or hidden context.
@@ -176,7 +229,10 @@ identical output. Deterministic orchestration is non-negotiable.
 ### VIII. Templating Engines Over Inference
 
 Prefer mechanical template-driven behavior over LLM inference
-and improvisation. When an outcome can be achieved by variable
+and improvisation. (In v2.3.2, Principle XVI uses "deterministic"
+for the post-pinning assembly stage; the term is co-extensive
+with VIII's "mechanical" — both denote rule-based, non-inference-
+driven execution.) When an outcome can be achieved by variable
 substitution, structured config, or deterministic rules, do NOT
 delegate it to agent reasoning.
 
@@ -454,10 +510,32 @@ constraints, criteria), not by opaque model internals.
 
 - The 3-stage pipeline (symbolic parsing → LLM gap-filling →
   deterministic assembly) ensures the math reflects user intent.
-  The LLM asks questions; the user's answers become parameters;
-  the math is pre-defined. The LLM does not generate the objective
-  function — it translates gap identifiers into natural-language
-  questions and answers into parameter values.
+  The three stages have different determinism properties, and
+  conflating them is the source of past wording confusion:
+
+    1. **Symbolic parsing**: deterministic — given a template ID,
+       the parser yields the same gap identifiers every time.
+    2. **LLM gap-filling**: stochastic at the `GapFiller.fill()`
+       boundary. The protocol entrypoint is one call; whether the
+       implementation makes one model invocation or several is an
+       implementation detail. All resulting parameter values **MUST**
+       be pinned together once `fill()` returns. Resolved parameter
+       values **MUST** be persisted to `objective.yml` (spec 014
+       FR-012) for the duration of the deliberation run; the LLM
+       **MUST NOT** be re-invoked for parameter resolution within
+       the same run; values **MUST** be re-loaded from `objective.yml`
+       rather than re-resolved.
+    3. **Deterministic assembly**: given a template and a
+       *fully-pinned parameter set* (every gap identifier produced by
+       stage 1 has an associated pinned value from stage 2), the
+       resulting objective function is identical bit-for-bit on
+       every assembly.
+
+  The math template is pre-defined at design time (spec 013). The
+  LLM does not generate the objective function — it translates gap
+  identifiers into natural-language questions and the user's
+  answers into parameter values. Once parameters are pinned, the
+  optimization is reproducible (Principle VII applies).
 - Every objective function template (spec 013) documents its
   mathematical form, its parameters, and what each parameter means
   in plain language. A user who reads the template understands what
@@ -467,15 +545,66 @@ constraints, criteria), not by opaque model internals.
   alongside numerical outputs. "Equilibrium quality: 0.87" is
   insufficient; "87% of agents are at their best possible position
   given others' positions" is required.
-- Solver choice (nashopt, AMPL, future alternatives) is an
-  implementation detail. The objective function is the contract
-  between user intent and mathematical optimization. Changing
-  solvers MUST NOT change what is being optimized.
+- The objective function — *what is being optimized* — is the
+  contract between user intent and mathematical optimization.
+  Changing solvers (nashopt, AMPL, future alternatives) MUST NOT
+  change the objective function (Principle VII applies to the
+  objective-function contract). Numerical optimization output may
+  vary across solvers within documented stability bounds; that
+  variance is solver behavior, not a violation of this principle.
 
-*Origin: game engine vision (specs 012-019) — the transition from
-template-driven prompts to mathematical optimization must not make
-the system opaque. Users parameterize the math; they do not need
-to understand it.*
+**Clarification (v2.3.2): determinism scope.** Principle XVI
+**requires** within-run determinism for the assembled objective
+function and cross-run reproducibility once parameters are pinned.
+This carves an explicit exception to Principle VII's unconditional
+"structurally identical output": the assembled objective function
+is the determinism boundary, not the LLM-resolved parameter values
+that feed into it. Principle XVI does NOT claim the LLM gap-filling
+step itself is deterministic; that step is allowed to be stochastic,
+and the discipline is in pinning its output rather than re-running
+it. Specifically: (a) the LLM MUST NOT be re-invoked for parameter
+resolution within a single deliberation run; (b) cross-run variance
+in resolved parameter *values* is acceptable (e.g., two
+`/conversus mode` invocations on the same `problem.md` MAY produce
+different `objective.yml` files); (c) cross-run variance in the
+assembled objective function's *shape* (parameter names, template
+selection, gap-identifier set) is prohibited.
+
+- *deliberation run*: the lifetime of one `objective.yml` artifact;
+  retries that reuse the same artifact are part of the same run,
+  separate `/conversus run` invocations producing new artifacts are
+  different runs. Cross-version replay (re-running after a
+  `conversus` upgrade) is out of scope of this principle.
+- The run orchestrator **MUST** persist resolved parameter values to
+  `objective.yml`; pinning is auditable via `SourceProvenance.filled_by`
+  (`conversus/schemas/construction.py:262-279`) — a sanctioned form of
+  explicit, keyed persistence distinguished from the ambient state
+  Principle VII prohibits.
+- **Observability (Principle V):** Stage 2 emits a Principle V phase
+  report line: ``{N} gap identifiers resolved ({K} from
+  `objective.yml`, {N-K} newly resolved via `GapFiller.fill()` and
+  recorded under `SourceProvenance.filled_by`)``. The phase-report
+  emission is meaningful only when VII's reproducibility pre-conditions
+  hold (config, template registry, capability registry byte-identical
+  between runs); a registry change between runs makes the emission
+  misleading rather than auditable.
+- **Enforcement:** Principle XXIV applies — a contract test
+  reproducing the re-resolution failure pattern is required, filed as
+  a follow-up to spec 014 FR-012/SC-004 acceptance criteria and to
+  spec 013's parameter-pinning contract test, plus a CI lint detecting
+  re-entrant `GapFiller.fill()` calls.
+- **Falsification:** A future PR that re-resolves parameters
+  mid-deliberation, or that lets parameter values drift during a
+  single optimization run, violates this principle.
+
+*Origin: game engine vision (specs 012-019) — pinning behavior is
+specified in **spec 014 FR-012/SC-004** (assembly determinism) and
+FR-020/FR-021 (artifact contract). Spec 013 supplies the template
+definitions stage 1 parses. Some referenced runtime layers (specs
+016-019, optimizer/nashopt/ampl) are spec'd but partly under
+construction; this principle codifies the discipline they will
+satisfy when implemented. Enforcement is verified by a contract test
+per Principle XXIV at the path declared in spec 014's contracts.*
 
 ### XVII. Content Classification
 
@@ -872,4 +1001,4 @@ justifies the deviation.
 - **Compliance**: The plan template includes a Constitution Check gate.
   Plans MUST pass this gate before proceeding to implementation.
 
-**Version**: 2.3.1 | **Ratified**: 2026-03-20 | **Last Amended**: 2026-04-26
+**Version**: 2.3.2 | **Ratified**: 2026-03-20 | **Last Amended**: 2026-04-26
