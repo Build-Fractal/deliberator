@@ -1,5 +1,81 @@
 <!--
 Sync Impact Report
+Version change: 2.3.2 → 2.4.0 (MINOR — new Governance gate:
+Constitutional Inclusion Criteria. A material expansion of the
+Governance section that adds a three-criterion test (mechanical
+verification capability, falsifiable scope, distinctness) that future
+amendments MUST satisfy. Existing principles I-XXVII are grandfathered.)
+Added principles: none (governance gate, not a new principle)
+Modified sections:
+  - Governance — inserted new "Constitutional Inclusion Criteria"
+    bullet between the existing **Versioning** and **Compliance**
+    bullets. Codifies the three-criterion gate from spec 069 §4.1
+    with the 3 ACCEPT findings from the 2026-04-26 blind verification
+    arbitration folded in: (a) Dispute 1 partial-ACCEPT — calibration
+    sentence (positive-examples-only footnote naming Principles XI,
+    XII, XIII, XXII, XXIV, XXVI as well-modeled patterns) appended
+    after the prospective-only paragraph; (b) Dispute 2 ACCEPT —
+    Practitioner middle ground: two worked examples in gate text
+    (mechanical-falsifiability rejection + distinctness/composition
+    rejection); (c) Dispute 3 ACCEPT — synthesizer middle position:
+    Extension blocks landing post-ratification MUST include
+    Verification artifact (Criterion 1) when introducing new normative
+    requirements; Criterion 3 does not apply to Extension blocks by
+    construction; wording-level clarifications exempt.
+Removed sections: none
+Templates requiring updates: none
+Grandfathering disclosure (per spec 069 §5): three pre-gate
+principles fail under the new criteria as drafted — VI (Scripts Over
+Markdown — judgment-laden "when the artifact drives behavior"),
+X (Zen of Python Output — irreducibly subjective "readability counts"),
+XVI (Mathematical Transparency — plain-language explanation
+requirement is unverifiable). All three retain ratified status. The
+gate applies prospectively; migration of any grandfathered principle
+to operational guidance is a separate, intentional act governed by
+the same amendment process with the receiving document identified
+explicitly in the migration spec.
+Follow-up TODOs:
+  - Verification-deliberation codification deferred to v2.5.0;
+    acceptance bar (substantive zero-disputes vs. documented-disputes)
+    to be resolved at that amendment with the panel-composition
+    disclosure and unanimous-out-of-scope escape hatch as candidate
+    inputs.
+  - Grandfathering disposition (whether to migrate VI, X, XVI to
+    operational guidance; tiering; deadlines) deferred to a follow-up
+    amendment per the gate's prospective-only scope clause.
+  - Form-only CI lint and PR template enforcement (synthesis P1
+    convergent fixes from both verification deliberations) ship as
+    paired follow-ups; the gate text in this amendment establishes
+    the substantive requirement, with mechanical enforcement to land
+    in a subsequent PR.
+  - Precedent log build step lands as part of the form-check lint CI
+    in the same PR sequence; if the lint ships before the rebuild
+    step, the rebuild MUST be added as a follow-up CI change before
+    the next MINOR amendment opens.
+Rationale: 2026-04-26 spec 069 self-consistency deliberation (3
+agents + subject arbitration, binding) on candidate v2.4.0 text
+produced 0 ACCEPT-level findings on the amendment as drafted (Dispute
+1 REJECT — AND-coupling unchanged; Dispute 2 DEFER — verification-
+deliberation acceptance bar deferred to v2.5.0; Dispute 3 ACCEPT —
+cooperative composition on precedent-log build moment, not a
+defect-correction edit). A parallel 2026-04-26 spec 069 BLIND
+verification deliberation (3 agents + subject arbitration) ruled 3
+ACCEPT findings on the gate text, all folded into this amendment per
+the listing above. Per the conservative-wording rule, the more
+rigorous gate text is adopted where the two deliberations diverged.
+Governance log entry: 2026-04-26 in CONSTITUTIONAL_CONVERSATIONS.md
+(spec 069 implementation).
+Prior amendment (v2.3.1 → 2.3.2): see git history for the XVI
+determinism-scope clarification (3-stage pipeline determinism
+properties, `objective.yml`-anchored pinning discipline).
+Prior amendment (v2.3.0 → 2.3.1): see git history for the XV
+"Clarification (v2.3.1)" registry-as-extension-interface sub-section.
+Prior amendment (v2.2.0 → 2.3.0): see git history for the 6 new
+principles + 2 extensions added on 2026-04-25.
+-->
+
+<!--
+Sync Impact Report (prior — preserved for audit trail)
 Version change: 2.3.1 → 2.3.2 (PATCH — Principle XVI determinism-scope
 clarification: 3-stage pipeline determinism properties, `objective.yml`-
 anchored pinning discipline, VII↔XVI bilateral carve-out, vocabulary
@@ -998,7 +1074,74 @@ justifies the deviation.
   impact on existing specs. Use `/speckit.constitution` to update.
 - **Versioning**: MAJOR for principle removals or redefinitions, MINOR
   for new principles or material expansions, PATCH for clarifications.
+- **Constitutional Inclusion Criteria** (added v2.4.0): a principle
+  qualifies for constitutional inclusion only if it satisfies all
+  three:
+
+  1. **Mechanical verification capability**: at least one form of
+     automated check (CI lint, parity test, structural assertion,
+     schema validation, or equivalent) MUST be feasible such that a
+     future PR violating the principle would fail the check. The
+     check does NOT have to exist at amendment time, but the path
+     to building it MUST be concrete enough that an engineer reading
+     the principle can sketch the check in one paragraph.
+
+  2. **Falsifiable scope**: the principle's wording MUST be specific
+     enough to flag a hypothetical future PR as violating, without
+     requiring "interpretation." If a reviewer must reason "well, X
+     might be okay if Y," the principle is too vague for the
+     constitution and belongs in operational guidance.
+
+  3. **Distinct from existing principles**: the principle MUST cover
+     concerns not already addressable by composing existing principles.
+     Restating an existing principle in different words is rejected
+     by this gate. Refining or extending an existing principle goes
+     in that principle's body, not as a new principle.
+
+  **Worked examples.** A principle proposing "code should be readable"
+  fails Criterion 1: no automated check is feasible. A principle
+  proposing "all template variables MUST be lowercase" fails Criterion
+  3: it composes from Principle IX (typing/style discipline) and
+  Principle XI (single source of truth in `schema/variables.yml`); the
+  refinement belongs in IX's body or as a schema constraint, not as a
+  new principle.
+
+  Principles that fail any criterion belong in **operational guidance**:
+  `AGENTS.md`, the relevant spec, `SKILL.md` instructions, or
+  domain-specific reference documents. Operational guidance is the
+  explicit home for "judgment calls" and "rules of thumb"; the
+  constitution is the home for invariants.
+
+  This gate applies **prospectively** — to amendments landing after
+  v2.4.0. Existing principles I-XXVII are grandfathered. Migrating
+  any of them to operational guidance is a separate, intentional act
+  governed by the same amendment process (with the receiving document
+  identified explicitly in the migration spec).
+
+  When drafting new principles, prefer the structural pattern of
+  principles whose verification artifact is named explicitly (e.g.,
+  Principles XI, XII, XIII, XXII, XXIV, XXVI). This is calibration
+  guidance only and does not affect the ratified status of any
+  pre-gate principle.
+
+  **Extension blocks.** Extension or Clarification blocks added to a
+  grandfathered principle after the gate's ratification MUST include
+  the structured `Verification:` block (Criterion 1) when they
+  introduce new normative requirements. The block MAY cite the parent
+  principle's verification artifact if the extension reuses it. The
+  Distinctness criterion (Criterion 3) does not apply to Extension
+  blocks — by construction, they are extensions of an existing
+  principle — but the Extension MUST declare in one sentence why the
+  new content belongs in the parent principle's body rather than as a
+  new principle. Wording-level clarifications (typo fixes,
+  reformattings, cross-references) are exempt from this rule.
+
+  **Coordination with Principle XVII (Content Classification).** The
+  gate inherits XVII's vocabulary; routing decisions to operational
+  guidance follow XVII's execution-logic vs. contribution-guidelines
+  distinction. The cross-reference flows gate → XVII (newer references
+  older), per the constitution's reference topology.
 - **Compliance**: The plan template includes a Constitution Check gate.
   Plans MUST pass this gate before proceeding to implementation.
 
-**Version**: 2.3.2 | **Ratified**: 2026-03-20 | **Last Amended**: 2026-04-26
+**Version**: 2.4.0 | **Ratified**: 2026-03-20 | **Last Amended**: 2026-04-26
