@@ -2,7 +2,7 @@
 
 **Feature ID**: `003-decision-framework`
 **Created**: 2026-03-19
-**Status**: Draft
+**Status**: Done — closed 2026-04-27 per spec hygiene audit. Decomposed into specs 007-010 (subcommand dispatch + define, interests mode, guided execution, antipattern steering / guided arbitration), all of which are in `specs/done/`.
 **Depends On**: `001-subject-arbitration` (optional Phase 6), `002-recursive-rounds` (optional multi-round)
 
 ---
@@ -629,3 +629,19 @@ Two disputes remain: cache invalidation ownership and materialized view refresh 
 ```
 
 The decision framework is the user-facing layer. The three specs below it are the engine layer. The framework generates configurations; the engines execute them.
+
+---
+
+## Closure note (2026-04-27)
+
+**Why closed**: Decomposed into smaller, ordered units. Per `ideas.md`: "Former spec 999 (decision framework) decomposed into specs 007-010 as smaller, ordered units." The 999 numbering pattern was a temporary reservation slot. All decomposed specs have shipped.
+
+**Where the work lives**:
+- `specs/done/007-subcommand-dispatch-define/` — `/conversus define` subcommand dispatch
+- `specs/done/008-interests-mode/` — `/conversus interests` mode
+- `specs/done/009-guided-execution/` — `/conversus converge` guided execution
+- `specs/done/010-guided-arbitration/` — `/conversus arbitrate` guided arbitration
+- `specs/done/010-antipattern-steering/` — antipattern steering for the guided workflow
+- The CLI subcommand surface (`/conversus define|interests|mode|converge|arbitrate`) is live
+
+**Reference**: `specs/AUDIT-2026-04-27.md` §D "999-decision-framework" — definitively decomposed, recommended close.

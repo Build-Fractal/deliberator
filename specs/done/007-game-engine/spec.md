@@ -2,7 +2,7 @@
 
 **Feature ID**: `007-game-engine`
 **Created**: 2026-03-20
-**Status**: Draft
+**Status**: Done — closed 2026-04-27 per spec hygiene audit. Decomposed into specs 012-020 (plugin substrate, equilibrium scorer, convergence predictor, config optimizer, scenario storage) which are all in `specs/done/`; original vision archived to `specs/archive/game-engine-vision/`.
 **Depends On**: `005-generalized-templates` (schema/linter foundation), `004-universal-rounds` (all-mode rounds/stagnation/arbitration)
 **Input**: Business model separation (free deliberation engine vs paid optimization layer) and long-term architectural vision to evolve from template-driven prompts to a pluggable game engine.
 
@@ -670,3 +670,24 @@ Plugin Output (scores, predictions, recommendations)
         ↓
 User Decision (act on recommendations or ignore)
 ```
+
+---
+
+## Closure note (2026-04-27)
+
+**Why closed**: Decomposed into smaller, ordered units. The original vision-level spec was broken down per `ideas.md`: "007 was decomposed into specs 012-020." The plugin/hook substrate and engine-layer pieces have shipped independently.
+
+**Where the work lives**:
+- `specs/done/016-plugin-system/` — pluggable plugin substrate
+- `specs/done/017-equilibrium-scorer/` — Nash equilibrium scoring
+- `specs/done/018-convergence-predictor/` — convergence prediction
+- `specs/done/019-config-optimizer/` — parametric config optimization
+- `specs/done/020-scenario-storage/` — scenario persistence
+- `specs/done/012-game-form-schemas/` — game form schemas
+- `specs/done/013-objective-function-templates/` — objective templates
+- `specs/done/014-guided-objective-construction/` — guided construction
+- `specs/done/015-feature-extraction/` — text-to-vectors extraction
+- `specs/archive/game-engine-vision/` — preserved long-term north-star vision
+- `DRIFT-REPORT.md` (in this directory, moves with it) — 2026-04-05 drift documentation confirming substrate already shipped
+
+**Reference**: `specs/AUDIT-2026-04-27.md` §A "007-game-engine" — definitively shipped, recommended close.

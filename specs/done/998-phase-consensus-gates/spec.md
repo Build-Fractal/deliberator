@@ -2,7 +2,7 @@
 
 **Feature ID**: `006-phase-consensus-gates`
 **Created**: 2026-03-20
-**Status**: Draft
+**Status**: Done — closed 2026-04-27 per spec hygiene audit. Folded into spec 011-phase-consensus-gates (now in `specs/done/`) with CI/CD-specific additions; the 998 numbering was a temporary reservation slot.
 **Depends On**: `003-decision-framework` (guided workflow commands that trigger phase transitions), `004-preset-agents` (preset agents for gate deliberation)
 **Input**: Automatically run a conversus deliberation at each phase boundary in a spec-driven workflow, using the phase's output as the deliberation target to validate quality and completeness before proceeding.
 
@@ -161,3 +161,15 @@ Most gates should use presets rather than inline agents. A "review/thorough" pre
 ### Advisory Mode
 
 The `pass: always` criterion creates advisory gates that run deliberation but never block. This is useful for implementation-phase gates where you want the review record but don't want to block deployment on agent disagreements. The deliberation output still provides value as a structured review artifact.
+
+---
+
+## Closure note (2026-04-27)
+
+**Why closed**: Folded into spec 011-phase-consensus-gates with CI/CD-specific additions. Per `ideas.md`: "Former spec 998 (phase consensus gates) folded into spec 011 with CI/CD-specific additions." The 998 numbering pattern was a temporary reservation slot that has been retired.
+
+**Where the work lives**:
+- `specs/done/011-phase-consensus-gates/` — the canonical, shipped spec
+- `DRIFT-REPORT.md` (in this directory, moves with it) — 2026-04-05 partial-implementation drift documentation, preserved as historical record
+
+**Reference**: `specs/AUDIT-2026-04-27.md` §D "998-phase-consensus-gates" — definitively folded, recommended close.

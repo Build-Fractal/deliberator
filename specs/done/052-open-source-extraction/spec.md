@@ -1,6 +1,6 @@
 # Spec 052: Open Source Extraction
 
-**Status**: Draft
+**Status**: Done — closed 2026-04-27 per spec hygiene audit. The OSS extraction has happened — this `conversus-oss` repo IS the public extraction; the private Build-Fractal/conversus repo holds the paid plugins.
 **Author**: Brian Slater + Claude Opus 4.6
 **Date**: 2026-04-07
 **Depends on**: 050 (cascading settings / plugin approach)
@@ -182,3 +182,17 @@ For future enterprise/commercial licensing:
 1. **Should specs/ be public?** They document the architecture openly — good for community trust. But they reference internal decisions. Recommendation: include specs, scrub internal refs.
 2. **Should the game engine plugin hooks stay in the public engine?** The hooks are in `phases.py` and cost nothing when no plugins are loaded. Keeping them lets the community write plugins. Recommendation: yes, keep hooks.
 3. **Monorepo vs standalone repo?** Currently conversus is a submodule in payer-index-mono. For OSS, it should be a standalone repo. Recommendation: make Build-Fractal/conversus the public repo, create a new private repo for internal plugins.
+
+---
+
+## Closure note (2026-04-27)
+
+**Why closed**: The repo split has happened. The directory containing this spec (`conversus-oss/`) IS the extracted OSS package. The split topology shipped per `feedback_conversus_oss_trunk_topology.md`: OSS-trunk + sibling-wheels (`conversus` core public + `conversus-enhanced` private with paid capabilities). This spec is now a historical record of the extraction plan.
+
+**Where the work lives**:
+- This repository (`conversus-oss`) — the extracted public package, published as `conversus` on PyPI
+- Build-Fractal org on GitHub — public repo home (per `project_conversus_org_move.md`)
+- `conversus-enhanced` (private) — sibling wheel containing paid plugins/domain-specific code
+- `specs/065-path-to-open-source/` — the active roadmap spec for ongoing OSS work
+
+**Reference**: `specs/AUDIT-2026-04-27.md` §A "052-open-source-extraction" — definitively shipped, recommended close.
