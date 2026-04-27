@@ -2,7 +2,7 @@
 
 **Feature ID**: `067-verification-methodology`
 **Created**: 2026-04-26
-**Status**: Draft v1
+**Status**: Draft v2 — re-verification trigger + cost reporting added 2026-04-27
 **Depends On**: `066-constitution-v2.3.0` (which §7 this spec supersedes)
 **Governed by**: `CONSTITUTION.md` Governance section — amendment process
 **Originating context**: 2026-04-25 v2.3.0 deliberation chain. Self-consistency verification (per spec 066 §7) ruled `PASS WITH FIXES` but with *process meta*, not content fixes — agents read the v2.3.0 markers and pivoted into "ratify the additions" mode. A subsequent blind verification (markers stripped) found 3 substantive content issues the self-consistency run missed, including a logical contradiction in Principle XVI that **predated the v2.3.0 amendment by months**. See `CONSTITUTIONAL_CONVERSATIONS.md` 2026-04-25 entries for full chain.
@@ -97,6 +97,12 @@ The amendment's implementation PR may merge only if:
 
 If either run produces ACCEPT-level findings on the amendment itself, the implementer applies fixes and re-runs the affected verification before merging. Re-running both is not required if only one run flagged the issue.
 
+**Re-verification after fixes** (added v2 2026-04-27): when ACCEPT-level findings are folded into the implementation PR, the affected methodology MUST be re-run before merge. The acceptance bar is "0 ACCEPT-level findings on the as-merged text," not "0 ACCEPT findings on the originally-deliberated text." A merge with fixes applied but not re-verified is a methodology violation.
+
+The 2026-04-27 post-v2.4.0 gap analysis surfaced this gap retroactively: the spec 068 (PR #29) and spec 069 (PR #32) implementations merged with 7 and 3 ACCEPT fixes respectively, without re-running the affected verification. Future implementation PRs MUST schedule re-verification before merge. Implementations already merged are grandfathered (the gap analysis doesn't retroactively block them) but the re-verification finding stands as a methodology lesson.
+
+**Practical implementation**: re-run only the methodology that produced ACCEPT findings. If self-consistency had 0 ACCEPT and blind had 4, only re-run blind after fixes. If both had ACCEPTs, re-run both. The cost of re-verification (~17 launches per methodology) is part of the methodology's discipline.
+
 ### 4.5 Documentation in `CONSTITUTIONAL_CONVERSATIONS.md`
 
 Both verification deliberations MUST be filed as separate entries in `CONSTITUTIONAL_CONVERSATIONS.md`. Each entry includes:
@@ -105,6 +111,8 @@ Both verification deliberations MUST be filed as separate entries in `CONSTITUTI
 - The arbiter's verdict line
 - Findings categorized as ACCEPT / REJECT / DEFER per arbiter ruling
 - For DEFER findings, what would unblock acceptance (e.g., "needs own spec," "needs more evidence")
+- The methodology cost (agent launches consumed across all phases including arbitration). Format: "Cost: ~N launches" inline with the verdict line.
+- Re-verification status (when the implementation PR included fixes): whether re-verification ran, what its verdict was, what its cost was. Format: a "Re-verification" sub-section after the main verdict.
 
 The 2026-04-25 entries (both methodologies) serve as the canonical example — see them for format.
 
@@ -138,4 +146,5 @@ This spec is "done" when:
 - `CONSTITUTIONAL_CONVERSATIONS.md` — 2026-04-25 entries (self-consistency + blind, the empirical motivation)
 - `deliberations/v2.3.0-verification-2026-04-25/` — self-consistency outputs (process-meta verdict)
 - `deliberations/v2.3.0-blind-verification-2026-04-25/` — blind outputs (3 substantive findings, including pre-existing XVI contradiction)
+- `deliberations/post-v2.4.0-gap-analysis-2026-04-27/` — source of v2 amendments (re-verification trigger §4.4 + cost reporting §4.5); see `arbitration/resolution.md` for the binding decisions and the spec 068/069 grandfathering note
 - CONSTITUTION.md Governance section — amendment process
