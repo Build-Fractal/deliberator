@@ -2,7 +2,7 @@
 
 **Feature ID**: `068-principle-xvi-fix`
 **Created**: 2026-04-26
-**Status**: Draft v1 — awaiting verification deliberations (per spec 067)
+**Status**: Done — implemented as CONSTITUTION.md v2.3.2 PATCH (PR #29) after both verifications passed (2026-04-26 self-consistency, 2026-04-26 blind). Closed 2026-04-27.
 **Depends On**: `CONSTITUTION.md` Principle XVI (target of this fix), `067-verification-methodology` (defines the verification protocol this spec must satisfy)
 **Governed by**: `CONSTITUTION.md` Governance section (PATCH for clarifications, MINOR for material expansions)
 **Originating context**: 2026-04-25 v2.3.0 blind verification deliberation surfaced a logical contradiction in Principle XVI that **predates v2.3.0** (added with the original game-engine vision in spec 016). The self-consistency verification could not have caught this — the principle was not under amendment review. The blind methodology surfaced it as a "review the whole document" finding. See `CONSTITUTIONAL_CONVERSATIONS.md` 2026-04-25 blind verification entry, finding #2.
@@ -188,3 +188,18 @@ This spec is "done" when:
 - Spec 067 — Verification methodology (the protocol this spec follows)
 - Spec 016 — game-engine vision (origin of Principle XVI)
 - Spec 013 — objective function templates (referenced in XVI)
+
+## Closure note (2026-04-27)
+
+**Implementation**: PR #29 — `feat(constitution): v2.3.1 → v2.3.2 — Principle XVI determinism-scope clarification`
+
+**Verification**:
+- Self-consistency: `deliberations/068-self-consistency-2026-04-26/` (PASS WITH FIXES, 3 ACCEPT)
+- Blind: `deliberations/068-blind-2026-04-26/` (PASS WITH FIXES, 4 ACCEPT)
+
+**Fixes folded in**: 7 ACCEPT findings (3 from self-consistency + 4 from blind)
+
+**Governance log**: 2026-04-26 self-consistency entry + 2026-04-26 blind entry in `CONSTITUTIONAL_CONVERSATIONS.md`
+
+Re-verification was NOT run after fixes were folded in — flagged retroactively as a methodology gap by the 2026-04-27 post-v2.4.0 gap analysis. Spec 067 v2 amendment (PR #35) addresses this for future amendments. This implementation is grandfathered.
+

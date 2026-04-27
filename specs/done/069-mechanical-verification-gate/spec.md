@@ -2,7 +2,7 @@
 
 **Feature ID**: `069-mechanical-verification-gate`
 **Created**: 2026-04-26
-**Status**: Draft v1 — awaiting verification deliberations (per spec 067)
+**Status**: Done — implemented as CONSTITUTION.md v2.4.0 MINOR (PR #32) after both verifications passed (2026-04-26 self-consistency, 2026-04-26 blind). Closed 2026-04-27.
 **Depends On**: `CONSTITUTION.md` Governance section (target of this amendment), `067-verification-methodology` (defines the verification protocol this spec must satisfy)
 **Governed by**: `CONSTITUTION.md` Governance section ("MINOR for new principles or material expansions") — this spec proposes a material expansion of the amendment criteria themselves
 **Originating context**: 2026-04-25 v2.3.0 blind verification deliberation, finding #3. The arbiter ruled: *"establish in the governance section that 'mechanical verification capability is required for constitutional inclusion — principles that cannot be automatically verified belong in operational guidance where human judgment is appropriate.'"* This spec proposes the wording that operationalizes that ruling.
@@ -219,3 +219,16 @@ This spec is "done" when:
 - `deliberations/v2.3.0-blind-verification-2026-04-25/round-2/arbiter/resolution.md` (the originating arbiter ruling)
 - Spec 067 — Verification methodology
 - Spec 068 — Principle XVI fix (sibling spec from the same blind verification)
+
+## Closure note (2026-04-27)
+
+**Implementation**: PR #32 — `feat(constitution): v2.3.2 → v2.4.0 — mechanical verification capability gate`
+
+**Verification**:
+- Self-consistency: `deliberations/069-self-consistency-2026-04-26/` (PASS WITH FIXES)
+- Blind: `deliberations/069-blind-2026-04-26/` (PASS WITH FIXES)
+
+**Governance log**: 2026-04-26 self-consistency entry + 2026-04-26 blind entry in `CONSTITUTIONAL_CONVERSATIONS.md`
+
+Re-verification was NOT run after fixes were folded in — flagged retroactively as a methodology gap by the 2026-04-27 post-v2.4.0 gap analysis. Spec 067 v2 amendment (PR #35) addresses this for future amendments. This implementation is grandfathered.
+
