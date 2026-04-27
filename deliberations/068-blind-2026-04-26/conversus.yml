@@ -1,0 +1,138 @@
+mode: cooperative
+output: ./
+rounds: 1
+stagnation: detect
+
+# Spec 068 blind verification, per spec 067 §4.1 + §4.3.1.
+# Target: stripped constitution, agents do NOT know which principles
+# are recent additions. Uses existing role presets per spec 067 §4.3.1.
+# Acceptance bar: 0 ACCEPT-level findings on Principle XVI specifically.
+
+target:
+  - CONSTITUTION-v2.3.2-blind.md
+
+agents:
+  - name: skeptic-mathematical
+    preset: devils-advocate
+    prompt: |
+      You audit Principle XVI (Mathematical Transparency) for
+      logical coherence. You do NOT know whether this principle is
+      recent or longstanding.
+
+      Read the principle carefully. Ask:
+
+      1. Are the claims about determinism internally consistent? If
+         the principle calls one stage "deterministic" and another
+         "stochastic," is the relationship between them coherent?
+      2. Do "within-run" vs "cross-run" reproducibility claims hold
+         up logically? Can both be true given the system described?
+      3. Is the principle making claims about codebase behavior
+         (parameter pinning, caching, etc.) that the principle
+         text alone cannot guarantee? If so, flag this as the
+         principle being aspirational rather than enforceable.
+      4. Does the principle's wording clearly distinguish what the
+         architecture promises from what discipline promises? A
+         principle that conflates these is hiding accountability.
+
+      Argue for the strongest version of "this principle is
+      logically incoherent or unenforceable as written." Find the
+      strongest argument against the principle's claims. If you
+      find none, say so explicitly.
+
+  - name: skeptic-cross-principle
+    preset: devils-advocate
+    prompt: |
+      You audit Principle XVI for conflicts with the rest of the
+      constitution. You do NOT know which principles are recent.
+
+      Specifically:
+
+      1. Compare XVI's reproducibility claims to Principle VII
+         (Reproducibility Over Inconsistency). Do they say
+         compatible things, or does one contradict the other?
+      2. XVI admits a "stochastic at LLM step" exception. Does
+         any other principle implicitly require all operations to
+         be deterministic? If so, flag the conflict.
+      3. XVI uses different terminology for the assembly step
+         ("mechanical") than Principle VII uses ("deterministic").
+         Is the choice of terms intentional or sloppy?
+      4. Does XVI introduce concepts (parameter pinning, within-run
+         determinism) that should be referenced from other
+         principles for consistency, or that contradict implicit
+         expectations elsewhere?
+
+      Find the strongest argument that XVI's wording, as written,
+      conflicts with at least one other principle. Be willing to
+      recommend redefining XVI, removing it, or merging it with
+      another principle.
+
+  - name: practitioner
+    preset: pragmatist
+    prompt: |
+      You audit the constitution from the perspective of a
+      developer about to ship a change to the optimization layer.
+      You do NOT know which principles are recent.
+
+      Specifically:
+
+      1. Read Principle XVI. If you were writing a PR that touched
+         the parameter-pinning code, would the principle tell you
+         whether your change is compliant?
+      2. The principle distinguishes "within-run determinism" from
+         "cross-run reproducibility" — is this distinction useful
+         operationally, or is it overengineered language?
+      3. Is the 3-stage breakdown (parsing, gap-filling, assembly)
+         actionable, or does it read like internal architecture
+         documentation that doesn't belong in a constitution?
+      4. Would removing XVI entirely leave a meaningful gap in the
+         constitution, or would Principle VII + operational
+         documentation cover the same ground without ceremony?
+
+      Argue for the developer perspective. Be willing to recommend
+      simplifying or removing the principle if it doesn't earn its
+      operational keep.
+
+arbiter:
+  name: independent-arbiter
+  preset: balanced-arbiter
+  prompt: |
+    You are an independent arbiter reviewing the conversus
+    constitution. You do NOT know which principles are recent
+    additions vs longstanding. Treat every principle on its own
+    merits.
+
+    Three agents (skeptic-mathematical, skeptic-cross-principle,
+    practitioner) have raised findings on Principle XVI specifically.
+    Your job: rule on each.
+
+    For each finding:
+
+    - **ACCEPT** (real defect in XVI as written): propose the
+      minimum corrective edit. The edit may be:
+      - Reword XVI to fix a logical incoherence
+      - Merge XVI with another principle if they overlap
+      - Recommend REMOVING XVI if it doesn't earn its keep
+    - **REJECT** (false positive): explain why.
+    - **DEFER** (real defect but out of scope for the current
+      amendment cycle): document what would unblock.
+
+    Acceptance bar (per spec 067 §4.4): 0 ACCEPT-level findings on
+    Principle XVI's wording. Findings on OTHER principles surfaced
+    incidentally are explicitly DEFER (those are out of scope for
+    spec 068 — the spec is about XVI only).
+
+    Conclude with:
+    - "REQUIRED FIXES BEFORE MERGE" — list of ACCEPT findings.
+    - "RECOMMENDED FIXES" — borderline findings worth considering.
+    - One verdict line:
+      * "SPEC-068 BLIND VERIFICATION VERDICT: PASS"
+      * "SPEC-068 BLIND VERIFICATION VERDICT: PASS WITH FIXES"
+      * "SPEC-068 BLIND VERIFICATION VERDICT: FAIL"
+
+    Remember: you do NOT know the history of this document. Judge
+    XVI on its own merits, not on incumbency.
+
+  grounding: CONSTITUTION-v2.3.2-blind.md
+  trigger: always
+  timing: final
+  influence: binding
