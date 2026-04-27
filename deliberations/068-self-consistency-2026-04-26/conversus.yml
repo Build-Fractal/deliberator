@@ -1,0 +1,121 @@
+mode: cooperative
+output: ./
+rounds: 1
+stagnation: detect
+
+# Spec 068 self-consistency verification, per spec 067 §4.1.
+# Target: candidate v2.3.2 with v-version markers visible.
+# Acceptance bar: 0 ACCEPT-level findings on the XVI changes.
+
+target:
+  - CONSTITUTION-v2.3.2-candidate.md
+
+agents:
+  - name: wording-precision
+    prompt: |
+      You audit Principle XVI in the candidate v2.3.2 constitution
+      for wording precision. The amendment replaces XVI's first
+      bullet with a 3-stage breakdown (symbolic parsing, LLM
+      gap-filling, mechanical assembly) and appends a
+      "Clarification (v2.3.2): determinism scope" paragraph.
+
+      For the new wording, check:
+
+      1. Are MUST/SHOULD/MAY used consistently with intent? (E.g.,
+         "MUST be pinned" vs "SHOULD be pinned" — which does the
+         spec actually claim?)
+      2. Are operational definitions specific enough to flag a
+         hypothetical future violating PR? "Pinned per deliberation
+         run" — would a reviewer know whether a specific code
+         change violates this?
+      3. Did anything slip in beyond what spec 068 proposed? (Scope
+         creep check.)
+      4. Does the new wording introduce any internal contradiction
+         within Principle XVI itself, even after fixing the
+         original determinism contradiction?
+
+      Report findings as a list of *concrete* concerns with line
+      references. Silence is not the same as "looked but found
+      nothing" — say so explicitly if no findings.
+
+  - name: cross-principle-coherence
+    prompt: |
+      You audit how the amended Principle XVI interacts with the
+      rest of the constitution.
+
+      Specifically check:
+
+      1. Does the new XVI conflict with Principle VII (Reproducibility
+         Over Inconsistency)? XVI claims "cross-run reproducibility
+         once parameters are pinned" — is that compatible with VII's
+         broader "structurally identical output" claim?
+      2. Does XVI's new "stochastic at LLM step" admission conflict
+         with any other principle that implies all conversus
+         operations are deterministic?
+      3. Does the addition of "mechanical assembly" terminology
+         (replacing "deterministic assembly" as the umbrella term)
+         conflict with the use of "deterministic" elsewhere in the
+         document?
+      4. Does the parameter-pinning discipline (within-run vs
+         cross-run) need a reference to any other principle, or
+         does it stand on its own?
+
+      Report contradictions and tensions concretely with line
+      numbers and exact quotes.
+
+  - name: pr-evidence-grounding
+    prompt: |
+      Spec 068 Q1 asks: does the actual codebase pin parameter
+      values per deliberation run, as the new wording claims? You
+      cannot answer this from the constitution text alone. Your
+      task: identify what evidence WOULD be needed to validate the
+      claim, and flag the wording as "evidence-pending" if the
+      check has not been performed.
+
+      Specifically:
+
+      1. Does the new XVI bullet make claims about code behavior
+         that should be verified against the codebase? List them.
+      2. If the codebase does NOT pin parameters in the way the
+         wording claims, is the principle wrong (and the code
+         right), or is the code wrong (and the principle a target
+         to migrate to)?
+      3. Are there spec references (013, 016-019) that should be
+         consulted to confirm or refute the claims?
+
+      Report the evidence gap explicitly. The arbiter will rule
+      on whether to require the check before merge or to defer it.
+
+arbiter:
+  name: spec-068-arbiter
+  preset: balanced-arbiter
+  prompt: |
+    You rule on findings raised by wording-precision,
+    cross-principle-coherence, and pr-evidence-grounding agents
+    against the candidate v2.3.2 constitution.
+
+    For each finding:
+
+    - **ACCEPT** (real defect in the v2.3.2 wording): propose the
+      minimum corrective edit the spec implementer should apply
+      before opening the implementation PR.
+    - **REJECT** (false positive): explain why.
+    - **DEFER** (real but out of scope for spec 068): document
+      what would unblock and where the work belongs.
+
+    Acceptance bar (per spec 067 §4.4): 0 ACCEPT-level findings on
+    the spec 068 amendment specifically. If any ACCEPT-level
+    findings remain on the XVI changes, the implementation PR for
+    spec 068 cannot merge until they are addressed.
+
+    Conclude with a verdict line:
+    - "SPEC-068 SELF-CONSISTENCY VERDICT: PASS" (no accepted fixes)
+    - "SPEC-068 SELF-CONSISTENCY VERDICT: PASS WITH FIXES" (fixes
+      listed; spec 068 implementation PR mergeable after they land)
+    - "SPEC-068 SELF-CONSISTENCY VERDICT: FAIL" (the amendment is
+      structurally flawed and needs reconsideration)
+
+  grounding: CONSTITUTION-v2.3.2-candidate.md
+  trigger: always
+  timing: final
+  influence: binding

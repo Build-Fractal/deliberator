@@ -187,3 +187,113 @@ review: bigger PR record, fewer rounds, sharper seed framing.
 - [ ] Spec proposing Principle XVI logical-contradiction fix (LLM gap-filling vs determinism). Should run through full deliberation since it touches optimization architecture.
 - [ ] Spec proposing governance amendment: "mechanical verification capability is required for constitutional inclusion."
 - [ ] Spec 066 §7 amendment requiring both self-consistency AND blind verification methodologies for future amendments.
+
+---
+
+## 2026-04-26 — Spec 068 verification (self-consistency)
+
+**Type**: Deliberation
+**Trigger**: spec 067 §4.1 — verification methodology required for spec 06X. Self-consistency check on the v2.3.2 candidate constitution (Principle XVI determinism-scope clarification, PATCH).
+
+**Mode**: cooperative
+**Agents (3)**: wording-precision, cross-principle-coherence, pr-evidence-grounding
+**Rounds**: 1 of 1 configured
+**Termination**: completed
+**Arbiter**: subject arbitration with `balanced-arbiter` preset, grounding the v2.3.2 candidate constitution, `trigger: always`, `timing: final`, `influence: binding`
+**Provider**: claude-code (host CLI subscription)
+
+**Outputs**: [`deliberations/068-self-consistency-2026-04-26/`](deliberations/068-self-consistency-2026-04-26/)
+- Final arbitration: `arbitration/resolution.md`
+- 17 per-agent phase artifacts (3 reviews + 6 cross-reviews + 3 revisions + 3 disputes + summary/final.md + arbitration/resolution.md), plus seed inputs (`CONSTITUTION-v2.3.2-candidate.md`, `conversus.yml`).
+
+**Verdict**: PASS WITH FIXES — 3 ACCEPT-level findings, 1 DEFER, 0 REJECT.
+
+**Findings (ACCEPT)**:
+- **P1-A (Dispute 1)** — v2.3.2 SIR bullet (e) MUST hedge as "evidence-pending" (pinning discipline assumes spec 014 FR-012/SC-004 enforcement; contract test per Principle XXIV filed as a follow-up to spec 014; CI lint detecting re-entrant `GapFiller.fill()` per spec 068 follow-up).
+- **P1-B (Dispute 2)** — Principle XVI stage 2 prose adopts the WP `GapFiller.fill()` protocol-boundary text composed with the synthesis `objective.yml` MUSTs (V observability via `SourceProvenance.filled_by` hook).
+- **P1-C (Dispute 3)** — Rename "Mechanical assembly" → "Deterministic assembly" in XVI stage 3 AND append a one-line VIII coordination parenthetical (mechanical/deterministic vocabulary alignment).
+
+**DEFER**: Dispute 4 — Principle II stable-interface sub-bullet for `objective.yml` schema deferred to v2.3.3 PATCH (unblock condition: a second consumer beyond spec 014 lands).
+
+**Status**: `closed` — fixes folded into PR #29 (v2.3.1 → v2.3.2 implementation).
+
+---
+
+## 2026-04-26 — Spec 068 verification (blind methodology)
+
+**Type**: Deliberation
+**Trigger**: spec 067 §4.1 — both self-consistency AND blind verification required for spec 06X. Blind run on the stripped v2.3.2 candidate (`CONSTITUTION-v2.3.2-blind.md`) with v2.3.2 markers removed so agents judge Principle XVI on its merits, not on incumbency.
+
+**Mode**: cooperative
+**Agents (3)**: skeptic-mathematical, skeptic-cross-principle, practitioner (using `devils-advocate` and `pragmatist` presets to argue for *removing* principles that don't earn their keep)
+**Rounds**: 1 of 1 configured
+**Termination**: completed
+**Arbiter**: subject arbitration with `balanced-arbiter` preset, grounding the stripped `CONSTITUTION-v2.3.2-blind.md`, `trigger: always`, `timing: final`, `influence: binding`. Arbiter prompt explicitly stated "you do NOT know the history of this document."
+**Provider**: claude-code (host CLI subscription)
+
+**Outputs**: [`deliberations/068-blind-2026-04-26/`](deliberations/068-blind-2026-04-26/)
+- Final arbitration: `arbitration/resolution.md`
+- 17 per-agent phase artifacts (same structure as the self-consistency run), plus stripped `CONSTITUTION-v2.3.2-blind.md` and `conversus.yml`.
+
+**Verdict**: PASS WITH FIXES — 4 ACCEPT-level findings on Principle XVI, 0 DEFER, 0 REJECT.
+
+**Findings (ACCEPT)**:
+- **Structural fork** — adopt tightened-standalone XVI (no new principle numbers, no full decomposition); body rewrite ~4–8 operational bullets.
+- **Test-contract sequencing** — route the parameter-pinning contract test through spec 013, not constitutional prose; spec 013 must ship first as a procedural merge gate (XII-safe).
+- **Cross-reference graph asymmetry** — wire the V-emission clause subordinate to VII's reproducibility pre-conditions in one composed rule (subordinate-clause edit, not relocation).
+- **XXIV scope residual** — drop the XXIV cross-reference from XVI; generic test-contract clause via spec 013 carries the verification load (XXIV's own scope text bounds it to synthesis verdicts + provider protocols; XI prohibits parallel doctrine).
+
+Plus three procedural required-fixes-before-merge: append VII bilateral cross-reference + reproducibility pre-conditions clause; add `pinning` term-of-art to II's stable-interface vocabulary with V cross-reference; spec 013 procedural merge gate.
+
+**Status**: `closed` — fixes folded into PR #29 (v2.3.1 → v2.3.2 implementation).
+
+---
+
+## 2026-04-26 — Spec 069 verification (self-consistency)
+
+**Type**: Deliberation
+**Trigger**: spec 067 §4.1 — verification methodology required for spec 06X. Self-consistency check on the v2.4.0 candidate constitution (Constitutional Inclusion Criteria gate, MINOR).
+
+**Mode**: cooperative
+**Agents (3)**: governance-skeptic, strictness-skeptic, practitioner
+**Rounds**: 1 of 1 configured
+**Termination**: completed
+**Arbiter**: subject arbitration with `balanced-arbiter` preset, grounding the v2.4.0 candidate constitution, `trigger: always`, `timing: final`, `influence: binding`
+**Provider**: claude-code (host CLI subscription)
+
+**Outputs**: [`deliberations/069-self-consistency-2026-04-26/`](deliberations/069-self-consistency-2026-04-26/)
+- Final arbitration: `arbitration/resolution.md`
+- 16 per-agent phase artifacts (3 reviews + 6 cross-reviews + 3 revisions + 3 disputes + summary/final.md + arbitration/resolution.md), plus seed inputs (`CONSTITUTION-v2.4.0-candidate.md`, `conversus.yml`).
+
+**Verdict**: PASS WITH FIXES — 0 ACCEPT-level findings on the candidate amendment as drafted (effectively PASS for spec 067 §4.4 acceptance bar).
+
+**Findings**: None against the candidate amendment. Three disputes resolved as: REJECT strictness-skeptic AND-coupling restructure (Dispute 1); DEFER verification-deliberation acceptance bar to v2.5.0 (Dispute 2); ACCEPT cooperative composition of precedent-log build-moment edits (Dispute 3 — operationalizes a convergent recommendation already in P2, not a defect-correction). Per the arbiter: "the candidate v2.4.0 amendment is shippable as drafted, with the convergent P1/P2 changes from the Phase 5 synthesis applied as already prioritized."
+
+**Status**: `closed` — no defect fixes needed. Convergent P1/P2 fixes from synthesis already on PR #30's edit set.
+
+---
+
+## 2026-04-26 — Spec 069 verification (blind methodology)
+
+**Type**: Deliberation
+**Trigger**: spec 067 §4.1 — both self-consistency AND blind verification required for spec 06X. Blind run on the stripped v2.4.0 candidate (`CONSTITUTION-v2.4.0-blind.md`) with v2.4.0 markers removed so the gate is judged on its own merits, not on incumbency.
+
+**Mode**: cooperative
+**Agents (3)**: skeptic-mathematical, skeptic-cross-principle, practitioner
+**Rounds**: 1 of 1 configured
+**Termination**: completed
+**Arbiter**: subject arbitration with `balanced-arbiter` preset, grounding the stripped `CONSTITUTION-v2.4.0-blind.md`, `trigger: always`, `timing: final`, `influence: binding`. Arbiter prompt: "the gate is judged on its own merits, with no incumbency advantage."
+**Provider**: claude-code (host CLI subscription)
+
+**Outputs**: [`deliberations/069-blind-2026-04-26/`](deliberations/069-blind-2026-04-26/)
+- Final arbitration: `arbitration/resolution.md`
+- 17 per-agent phase artifacts (same structure as the self-consistency run), plus stripped `CONSTITUTION-v2.4.0-blind.md` and `conversus.yml`.
+
+**Verdict**: PASS WITH FIXES — 3 ACCEPT-level findings on the gate subsection.
+
+**Findings (ACCEPT)**:
+- **Dispute 1 — Grandfathering disposition** — REJECT strictness-skeptic's tiered classification + v3.0.0 deadline (would violate gate's own Prospective-Only Migration clause on day one); ACCEPT light non-precedential calibration footnote naming positive-exemplar principles (XI, XII, XIII, XXII, XXIV, XXVI); DEFER full corpus disposition to a follow-up grandfathering spec.
+- **Dispute 2 — Criterion 3 operational test** — ACCEPT practitioner's middle ground: ship two worked examples in gate text (one Criterion-1 falsifiability rejection, one Criterion-3 distinctness rejection); PR template Distinctness section names closest existing principle + one-sentence insufficiency claim. Reject strictness-skeptic's three-part `(a)/(b)/(c)` block (the "novel predicate" sub-field inherits a known failure mode).
+- **Dispute 3 — Extension-block treatment** — ACCEPT synthesizer's middle position: Extension/Clarification blocks added to grandfathered principles after gate ratification MUST include the structured `Verification:` block (Criterion 1) when introducing new normative requirements; Criterion 3 does not apply (incoherent for Extensions); wording-level clarifications exempt. Closes the prose-only Extension loophole demonstrated by IX/XI/XV v2.3.0 extensions.
+
+**Status**: `closed` — fixes folded into PR #30 (v2.3.x → v2.4.0 implementation).
