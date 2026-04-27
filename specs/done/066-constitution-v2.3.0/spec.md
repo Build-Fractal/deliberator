@@ -2,7 +2,7 @@
 
 **Feature ID**: `066-constitution-v2.3.0`
 **Created**: 2026-04-25
-**Status**: Draft v1 — proposes constitutional amendments; **does NOT yet edit `CONSTITUTION.md`** (that is a follow-up implementation PR after this spec is reviewed)
+**Status**: Done — implemented as CONSTITUTION.md v2.3.0 (PR #19) and v2.3.1 PATCH (PR #20). Closed 2026-04-27.
 **Depends On**: `CONSTITUTION.md` (current v2.2.0), `CONSTITUTIONAL_CONVERSATIONS.md` (governance log)
 **Governed by**: `CONSTITUTION.md` Governance section — "MINOR for new principles or material expansions, PATCH for clarifications"
 **Originating context**: [`deliberations/constitution-gap-analysis-2026-04-25/`](../../deliberations/constitution-gap-analysis-2026-04-25/) — 4-agent cooperative deliberation, 2 rounds, ~52 launches, arbiter binding rulings on 6 disputes. Governance log entry: 2026-04-25 in `CONSTITUTIONAL_CONVERSATIONS.md`.
@@ -453,3 +453,17 @@ The spec itself is "done" when:
 4. The verification deliberation (§7) is queued or completed.
 5. A follow-up implementation PR is filed editing `CONSTITUTION.md`
    to v2.3.0.
+
+## Closure note (2026-04-27)
+
+**Implementation**:
+- PR #19 — `feat(constitution): v2.2.0 → v2.3.0 — amendment package`
+- PR #20 — `fix(constitution): v2.3.0 → v2.3.1 PATCH` (clarification follow-up)
+
+**Verification**:
+- Self-consistency: `deliberations/v2.3.0-verification-2026-04-25/`
+- Blind: `deliberations/v2.3.0-blind-verification-2026-04-25/`
+
+**Governance log**: 2026-04-25 self-consistency entry + 2026-04-25 blind entry in `CONSTITUTIONAL_CONVERSATIONS.md`.
+
+The v2.3.0 amendment package shipped after both verifications. The blind verification surfaced two follow-on findings — finding #2 (Principle XVI logical contradiction, addressed by spec 068 / PR #29 as v2.3.2 PATCH) and finding #3 (mechanical verification gate, addressed by spec 069 / PR #32 as v2.4.0 MINOR). PR #20 (v2.3.1 PATCH) folded in additional clarifications surfaced post-merge. The 2026-04-27 post-v2.4.0 gap analysis flagged that re-verification was not run after fixes were folded in — this implementation is grandfathered; spec 067 v2 amendment (PR #35) addresses re-verification for future amendments.
