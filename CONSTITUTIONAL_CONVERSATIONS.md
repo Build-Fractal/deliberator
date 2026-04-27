@@ -297,3 +297,36 @@ Plus three procedural required-fixes-before-merge: append VII bilateral cross-re
 - **Dispute 3 — Extension-block treatment** — ACCEPT synthesizer's middle position: Extension/Clarification blocks added to grandfathered principles after gate ratification MUST include the structured `Verification:` block (Criterion 1) when introducing new normative requirements; Criterion 3 does not apply (incoherent for Extensions); wording-level clarifications exempt. Closes the prose-only Extension loophole demonstrated by IX/XI/XV v2.3.0 extensions.
 
 **Status**: `closed` — fixes folded into PR #30 (v2.3.x → v2.4.0 implementation).
+
+---
+
+## 2026-04-27 — Post-v2.4.0 gap analysis
+
+**Type**: Deliberation
+**Trigger**: forward-looking gap analysis of changes since the 2026-04-25 gap analysis (PRs #15-#33, including v2.3.0 → v2.4.0 amendments) under the new v2.4.0 Constitutional Inclusion Criteria gate.
+
+**Mode**: cooperative
+**Agents (4)**: governance, methodology (preset: devils-advocate), distribution, practitioner (preset: pragmatist)
+**Rounds**: 1 of 1 configured
+**Termination**: completed
+**Arbiter**: subject arbitration with `balanced-arbiter` preset, grounding `CONSTITUTION.md` (v2.4.0), trigger always, timing final, influence binding
+**Provider**: claude-code (host CLI subscription)
+
+**Outputs**: [`deliberations/post-v2.4.0-gap-analysis-2026-04-27/`](deliberations/post-v2.4.0-gap-analysis-2026-04-27/)
+
+**Operational issue**: original Phase 5 synthesis hit a stream idle timeout mid-stream and only the metadata header landed. Recovered via Agent-tool-driven retry with Write-direct; full synthesis written.
+
+**Verdict**: 0 ACCEPT, 14 OPERATIONAL, 3 DEFER, 7 REJECT.
+
+**Why this matters**: 0 ACCEPT means the v2.4.0 gate filtered every proposal. Compare to the 2026-04-25 pre-gate gap analysis which produced 6 new principles + 2 extensions. The gate is doing exactly what spec 069 designed it to do: route operational concerns to operational documents instead of growing the constitution.
+
+**Top OPERATIONAL recommendations** (14 total):
+- **Spec 070** — audit grandfathered principles (VI, X, XVI) against the v2.4.0 gate; migrate failures to operational guidance.
+- **Spec 067 amendment** — add re-verification trigger: fixes folded into implementation PR MUST be re-verified by re-running the affected methodology before merge. (Today's spec 068 + 069 implementations merged ACCEPT fixes without re-verification — methodology violation.)
+- **Spec 067 amendment** — verification cost reporting: each governance log entry MUST include agent launches, not just verdict.
+- **CONTRIBUTING.md** (per spec 065 G7) — growth budget for constitutional content (e.g., max 1 new principle + 2 extensions per quarter); PR-replacement-after-force-push pattern; naming-deliberation-prerequisites pattern.
+- **Memory entries** — operational lessons: Write-direct discipline survives orchestrator stream failures; force-push closes PRs unexpectedly; parallel impl-subagent + verification deliberation pattern.
+
+**Status**: `open` — operational follow-ups not yet filed; this entry is the canonical record of the gap analysis output.
+
+**Methodology lesson**: the v2.4.0 gate's first real test ran cleanly. 14 OPERATIONAL routings is evidence of correct calibration. Future gap analyses should expect similar distributions — most session-end concerns are operational, not constitutional.
