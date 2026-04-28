@@ -1,5 +1,7 @@
 # Conversus Spec Status
 
+Drafts (idea-phase specs) live in `specs/draft/` per `specs/README.md`'s lifecycle convention.
+
 ## Taxonomy
 
 Status uses two tiers measuring different dimensions.
@@ -173,6 +175,24 @@ The tiers are orthogonal. A spec can be implementation-complete (all FRs in SKIL
 **Scope**: Store game configurations (mode, objective, parameters, agent roles) as reusable YAML scenarios. Swap data bindings for replay. Run history for audit. Commands: `/conversus save`, `/conversus replay`, `/conversus scenarios`. Cross-run analysis. ScenarioStore protocol for future database backends. File-based storage (decision Q7).
 **Risk-of-Gap**: Without scenario storage, recurring decision types require full reconfiguration each time. No institutional memory of how decisions are made.
 **Effort**: Medium — scenario schema, save/replay/list commands, run history append, cross-run analysis, ScenarioStore protocol.
+
+## Draft (in `specs/draft/`)
+
+Idea-phase specs not currently driving implementation. Status field in each spec.md is canonical; directory placement is a derived signal. Promoted to `specs/` when implementation begins or a deliberation is imminent.
+
+- `040-command-center/` — operator console concept
+- `043-ampl-game-solvers/` — AMPL solver integration
+- `044-ampl-model-templates/` — AMPL model template library
+- `046-commentator-agents/` — commentary/observer agent role
+- `047-duration-parser/` — duration string parsing utility
+- `048-autonomous-governance-mode/` — self-governing deliberation mode
+- `051-sandbox-test-harness/` — sandboxed test execution harness
+- `056-deliberation-persistence.md` — persistent deliberation state
+- `058-typed-pipeline-output.md` — typed pipeline outputs
+- `059-prompt-and-skill-interface.md` — prompt/skill interface boundary
+- `060-mcp-sampling-provider.md` — MCP sampling provider
+
+See `specs/AUDIT-2026-04-27.md` for the audit that established this set.
 
 ## SKILL.md Structure Plan
 
