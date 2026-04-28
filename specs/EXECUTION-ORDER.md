@@ -108,7 +108,7 @@ Conversus as a background quality gate. Project declares governance docs (CONSTI
 ### 049 — Conversus as Universal Skill & MCP Server
 Ships conversus to every IDE/agent host. Three artifacts: (a) `conversus-mcp-server` exposes 8 free + 4 paid MCP tools for any MCP-speaking host (Copilot, Cline, Continue, Roo Code, Augment, Cursor), (b) VSCode extension provides the rich UX (sidebar, command palette, diagnostics, arbitration renderer) — VSCode-first because it's the largest IDE audience and Microsoft-owned (same as GitHub which runs spec 048's CI gate), (c) APM cross-compiles single `.apm/` source tree to host-specific artifacts. Free-tier tools succeed with base install; paid-tier tools return structured `PAID_TIER_REQUIRED` error without paid package. HARD DEPENDENCY on 042. Runs in parallel with 042 implementation so both ship in the same sprint window. Spec 050 (JetBrains plugin + Agent Client Protocol) tracked as separate future work.
 
-### 041 — Plan of Attack
+### Plan of Attack (`specs/plan-of-attack.md`)
 Strategy document. Phases 0-1 map to waves 2-3 above. Phases 2+ are post-user-validation.
 
 ---

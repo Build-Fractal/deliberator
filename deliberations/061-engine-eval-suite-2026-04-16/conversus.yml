@@ -1,5 +1,5 @@
 mode: cooperative
-output: specs/061-engine-eval-suite/conversus-review/
+output: deliberations/061-engine-eval-suite-2026-04-16/conversus-review/
 rounds: 1
 validate_templates: false
 

@@ -29,6 +29,7 @@ change a spec's status; updating the field does.
 ## Out of scope (live workspaces, not specs)
 
 - `blog_posts.md`, `distribution-strategy.md`, `ideas.md`
+- `plan-of-attack.md`, `plan-of-attack.conversus.yml`, `plan-of-attack.conversus/`
 - `wave1-3-blog/`, `meta-review/`
 - `archive/` (superseded vision docs — distinct purpose from done/)
 
