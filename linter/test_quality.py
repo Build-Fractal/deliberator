@@ -42,7 +42,7 @@ except ImportError:
 # ---------------------------------------------------------------------------
 
 # Root of reference outputs relative to this file
-_REF_ROOT: Path = Path(__file__).resolve().parent.parent / "quality-floor" / "reference-outputs"
+_REF_ROOT: Path = Path(__file__).resolve().parent.parent / "conversus" / "quality_floor" / "reference-outputs"
 
 
 @pytest.fixture(scope="session")

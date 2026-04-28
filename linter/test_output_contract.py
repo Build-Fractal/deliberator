@@ -26,7 +26,7 @@ from linter.output_contract import (
 # Fixtures
 # ---------------------------------------------------------------------------
 
-REFERENCE_DIR = Path("quality-floor/reference-outputs")
+REFERENCE_DIR = Path("conversus/quality_floor/reference-outputs")
 MONOREPO_PATH = REFERENCE_DIR / "passing/monorepo-vs-polyrepo/summary/final.md"
 LEASE_PATH = REFERENCE_DIR / "passing/lease-vs-buy/summary/final.md"
 FACTUAL_PATH = REFERENCE_DIR / "failing/factual-capital/summary/final.md"

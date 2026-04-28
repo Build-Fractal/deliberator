@@ -37,8 +37,18 @@ _SETTINGS_FILE = _CONVERSUS_DIR / "settings.yml"
 # ---------------------------------------------------------------------------
 
 
-def find_project_root(start: Path | None = None) -> Path:
-    """Discover the conversus project root.
+def find_user_project_root(start: Path | None = None) -> Path:
+    """Discover the user's conversus *workspace* root.
+
+    This is the directory that holds (or should hold) the user's
+    ``.conversus/`` folder — i.e. the place where deliberation output,
+    project-level settings, and other persistent artifacts live. It is
+    distinct from :func:`engine._root.find_project_root`, which locates
+    the conversus *package install root* (the directory containing
+    ``presets/``, ``schema/``, and ``templates/``). Mixing the two roots
+    causes ``_parse_and_validate_config`` to look for ``schema/`` under
+    the user's home directory and raise ``SchemaLoadError`` whenever
+    ``~/.conversus/`` exists.
 
     Resolution order:
 
@@ -47,7 +57,8 @@ def find_project_root(start: Path | None = None) -> Path:
        directory. This is the highest priority because the bundle's
        runtime data (presets, schema, templates) is at a known path.
     2. Walk up from *start* (or CWD) looking for ``.conversus/`` or
-       ``conversus.yml`` — the standard marker-based discovery.
+       ``conversus.yml`` — the standard marker-based discovery for the
+       user workspace.
     3. Fall back to *start* (or CWD) — correct for first-run scenarios.
 
     This is critical for MCP servers: Claude Desktop may launch the

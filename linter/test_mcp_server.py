@@ -338,7 +338,8 @@ class TestPydanticModels:
 # Path to a real reference synthesis for parse-results mode testing
 REFERENCE_SYNTHESIS_PATH = str(
     Path(__file__).resolve().parent.parent
-    / "quality-floor"
+    / "conversus"
+    / "quality_floor"
     / "reference-outputs"
     / "passing"
     / "monorepo-vs-polyrepo"

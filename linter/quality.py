@@ -82,7 +82,7 @@ class QualityResult(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# Regex constants — adapted from quality-floor/structural-definitions.md
+# Regex constants — adapted from conversus/quality_floor/structural-definitions.md
 # ---------------------------------------------------------------------------
 
 # Dispute block boundaries

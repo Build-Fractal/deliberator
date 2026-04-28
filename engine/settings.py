@@ -137,21 +137,21 @@ def load_settings(project_root: Path | None = None) -> ConversusSettings:
     2. ``~/.conversus/settings.yml`` — global (user-level)
     3. Built-in defaults (Pydantic model defaults)
 
-    When *project_root* is ``None``, :func:`engine.persistence.find_project_root`
+    When *project_root* is ``None``, :func:`engine.persistence.find_user_project_root`
     is used to discover it.
 
     Args:
         project_root: Explicit project root.  ``None`` triggers automatic
-            discovery via ``find_project_root()``.
+            discovery via ``find_user_project_root()``.
 
     Returns:
         A frozen ``ConversusSettings`` instance.
     """
     # Resolve project root lazily so callers don't need to.
     if project_root is None:
-        from engine.persistence import find_project_root
+        from engine.persistence import find_user_project_root
 
-        project_root = find_project_root()
+        project_root = find_user_project_root()
 
     # Tier 3 → 2: start with global settings
     global_path = Path.home() / _SETTINGS_REL

@@ -50,11 +50,11 @@ from mcp_server import RunResult, ValidateResult, _run_config, _validate_config
 # ---------------------------------------------------------------------------
 
 _PROJECT_ROOT: Path = Path(__file__).resolve().parent.parent
-_REF_ROOT: Path = _PROJECT_ROOT / "quality-floor" / "reference-outputs"
+_REF_ROOT: Path = _PROJECT_ROOT / "conversus" / "quality_floor" / "reference-outputs"
 
 _PASSING_SYNTHESIS: Path = _REF_ROOT / "passing" / "monorepo-vs-polyrepo" / "summary" / "final.md"
 _FAILING_SYNTHESIS: Path = _REF_ROOT / "failing" / "factual-capital" / "summary" / "final.md"
-_QUESTION_FILE: Path = _PROJECT_ROOT / "quality-floor" / "questions" / "monorepo-vs-polyrepo.md"
+_QUESTION_FILE: Path = _PROJECT_ROOT / "conversus" / "quality_floor" / "questions" / "monorepo-vs-polyrepo.md"
 
 
 # ---------------------------------------------------------------------------
