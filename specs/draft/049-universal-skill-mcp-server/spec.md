@@ -3,6 +3,15 @@
 **Feature ID**: `049-universal-skill-mcp-server`
 **Created**: 2026-04-05
 **Status**: Draft
+
+**Partial-close note (2026-04-27 audit)**: MCP server core (FastMCP stdio,
+3 of 5 v1 tools, env auth, no host-cred handling) shipped via PRs #11/#14/#18/#22
+plus desktop-extension/.mcpb pipeline. Tier enforcement (FR-002/016-019)
+superseded by spec 064 capability discovery. Cascading-settings dependency
+fulfilled by spec 057 (closed). Residual vision in this spec: VSCode extension
+(FR-007 through FR-012) and Cursor/APM compile targets (FR-013-015) — unstarted,
+moved to draft until prioritized.
+
 **Depends On**: `042-execution-providers` (Accepted — provider protocol must be stable before MCP server can expose `conversus_run` as a tool), `033-monetization-partitioning` (free/paid tier boundary), `050-cascading-settings` (MCP server needs `find_conversus_dir()` + `read_settings()` from spec 050 for project config discovery and `default_provider` resolution)
 **Soft depends on**: `048-autonomous-governance-mode` (shares the "headless execution" use case; 048 is CI-first, 049 is IDE-first)
 

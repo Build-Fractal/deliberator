@@ -1,6 +1,16 @@
 # Spec 053: Public CI Pipeline
 
 **Status**: Draft
+
+**Partial-close note (2026-04-27 audit)**: Spec prescribed 3 workflows
+(`ci.yml`, `release.yml`, `sandbox.yml`); none shipped under those names.
+Two different workflows exist: `evals.yml` (covers PR test/lint intent +
+`workflow_dispatch` ollama job) and `release-mcpb.yml` (different
+distribution surface — desktop bundles, not PyPI). Gaps: lint job, codecov
+integration, coverage floor, weekly cron, `pytest -m "sandbox and free"`
+marker scheme, and PyPI release workflow. Moved to draft until those gaps
+are picked up.
+
 **Author**: Brian Slater + Claude Opus 4.6
 **Date**: 2026-04-07
 **Depends on**: 052 (open source extraction), 051 (sandbox test harness)
