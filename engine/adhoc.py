@@ -74,6 +74,8 @@ def build_adhoc_config(
     mode: str = "cooperative",
     output_dir: Path | None = None,
     agents: Sequence[AgentSpec] | None = None,
+    *,
+    auto_assign_red_blue_roles: bool = True,
 ) -> tuple[Path, Path, Path]:
     """Generate a temporary conversus config for an ad-hoc question.
 
@@ -89,6 +91,13 @@ def build_adhoc_config(
         agents: Optional list of :class:`AgentSpec` defining which agents
             to use. When ``None``, falls back to the default pair
             (pragmatist + devils-advocate).
+        auto_assign_red_blue_roles: When ``True`` (default), red-blue
+            mode auto-substitutes :data:`RED_BLUE_AGENTS` for missing
+            ``agents`` and tags the first/second agent with
+            ``role: red`` / ``role: blue``. The MCP surface passes
+            ``False`` (spec 045 REMAINING-PRODUCTION-GAPS.md — failure 3)
+            so the caller's ``mode`` flows through to config validation
+            instead of being silently fixed up.
 
     Returns:
         A tuple of ``(config_path, question_path, tmp_dir)`` where:
@@ -105,10 +114,13 @@ def build_adhoc_config(
         raise ConfigError("Question must not be empty.")
 
     # Red-blue mode needs agents with role: red/blue.  Use dedicated
-    # presets when the caller didn't supply custom agents.
+    # presets when the caller didn't supply custom agents — but only
+    # when ``auto_assign_red_blue_roles`` is True. Callers that want
+    # the role mismatch to surface as a config error (e.g. the MCP
+    # ``run_decide_mcp`` handler) pass ``auto_assign_red_blue_roles=False``.
     if agents:
         effective_agents = agents
-    elif mode == "red-blue":
+    elif mode == "red-blue" and auto_assign_red_blue_roles:
         effective_agents = RED_BLUE_AGENTS
     else:
         effective_agents = DEFAULT_AGENTS
@@ -158,8 +170,11 @@ def build_adhoc_config(
         seen_names.add(config_name)
         agents_yaml += f"  - name: {config_name}\n"
         agents_yaml += f"    preset: {agent.preset}\n"
-        # Red-blue role assignment for the default 2-agent pair
-        if mode == "red-blue":
+        # Red-blue role assignment for the default 2-agent pair.
+        # Skipped when ``auto_assign_red_blue_roles`` is False so the
+        # caller can surface a missing-role config error instead of
+        # silently satisfying the requirement.
+        if mode == "red-blue" and auto_assign_red_blue_roles:
             role = "red" if idx == 0 else "blue"
             agents_yaml += f"    role: {role}\n"
 

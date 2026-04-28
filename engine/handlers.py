@@ -76,6 +76,45 @@ logger = logging.getLogger("conversus.handlers")
 
 
 # ---------------------------------------------------------------------------
+# MCP surface — supported providers
+# ---------------------------------------------------------------------------
+#
+# The MCP entry points (``run_decide_mcp``, ``run_mcp``) accept a narrow,
+# documented set of providers — see the help text in ``mcp_server.py``
+# for ``conversus_run`` and ``conversus_decide``. Even though the engine
+# registry can resolve other names (e.g. ``gemini``, ``claude-code``,
+# ``opencode``), those rely on local CLIs / agent runtimes that are not
+# part of the MCP contract; admitting them silently would let the
+# pipeline launch and then fail deep in a subprocess instead of
+# surfacing a clear error to the caller.
+#
+# Validate the caller-supplied name against this allowlist *before* the
+# pipeline runs. Spec 045 ``REMAINING-PRODUCTION-GAPS.md`` documents the
+# silent-fallback bug this constant fixes.
+_MCP_SUPPORTED_PROVIDERS: frozenset[str] = frozenset(
+    {"mock", "demo", "anthropic", "openai", "claude-desktop"}
+)
+
+
+def _validate_mcp_provider(provider_name: str) -> str | None:
+    """Return an error string if *provider_name* is not MCP-supported.
+
+    Returns ``None`` when the provider is in the allowlist. The error
+    string format matches the test contract in
+    ``linter/test_mcp_server.py`` — it contains both the substring
+    ``"provider"`` and ``"Unknown provider"`` so callers can pattern-match
+    on either token.
+    """
+    if provider_name in _MCP_SUPPORTED_PROVIDERS:
+        return None
+    supported = ", ".join(sorted(_MCP_SUPPORTED_PROVIDERS))
+    return (
+        f"Provider error: Unknown provider {provider_name!r}. "
+        f"MCP-supported providers: {supported}."
+    )
+
+
+# ---------------------------------------------------------------------------
 # decide — MCP surface handler
 # ---------------------------------------------------------------------------
 
@@ -134,10 +173,36 @@ def run_decide_mcp(
             errors=[f"Question classification error: {exc}"],
         )
 
+    # Validate the requested provider against the MCP-supported allowlist
+    # *before* running the pipeline (spec 045 REMAINING-PRODUCTION-GAPS.md
+    # — failure 2). The engine registry resolves more names than the MCP
+    # surface contract documents; admitting them silently lets the
+    # pipeline launch and fail deep in a subprocess instead of surfacing
+    # a clear configuration error to the caller. ``claude-desktop`` is
+    # validated here even though it has special MCP-sampling handling
+    # below — the allowlist is the source of truth for what the surface
+    # accepts.
+    provider_error = _validate_mcp_provider(provider)
+    if provider_error is not None:
+        return DecideResult(
+            sufficient=True,
+            classification=classification,
+            errors=[provider_error],
+        )
+
     try:
+        # ``auto_assign_red_blue_roles=False`` disables the helpful (but
+        # silent) RED_BLUE_AGENTS substitution + role auto-tagging in
+        # build_adhoc_config. The MCP surface contract is: the caller
+        # picks ``mode``, the handler uses the default agent pair
+        # (pragmatist + devils-advocate), and config validation surfaces
+        # any role/mode mismatch (e.g. red-blue requires role:red /
+        # role:blue tags). Spec 045 REMAINING-PRODUCTION-GAPS.md
+        # — failure 3.
         config_path, question_path, tmp_dir = build_adhoc_config(
             question=stripped,
             mode=mode,
+            auto_assign_red_blue_roles=False,
         )
     except ConfigError as exc:
         return DecideResult(
@@ -472,6 +537,23 @@ def _run_in_process(
     (so relative paths in the config resolve correctly), creates the provider,
     runs the async pipeline synchronously, and parses the synthesis output.
     """
+    # Validate the provider against the MCP-supported allowlist *before*
+    # writing temp files or launching the pipeline (spec 045
+    # REMAINING-PRODUCTION-GAPS.md — failure 1). The execution registry
+    # resolves names like ``gemini`` and ``claude-code`` that depend on
+    # local CLIs and aren't part of the MCP surface contract; admitting
+    # them silently lets every agent fail deep in subprocess land
+    # ("All agents failed in Phase 1") instead of surfacing a clear
+    # provider error to the caller.
+    provider_error = _validate_mcp_provider(provider_name)
+    if provider_error is not None:
+        return RunResult(
+            mode="in_process",
+            validated=validated,
+            errors=errors + [provider_error],
+            cost_estimate=cost_estimate,
+        )
+
     tmp_path: Path | None = None
     try:
         fd, tmp_str = tempfile.mkstemp(
