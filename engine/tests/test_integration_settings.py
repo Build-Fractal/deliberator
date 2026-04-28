@@ -44,15 +44,15 @@ def _patch_roots(monkeypatch: pytest.MonkeyPatch, project: Path, home: Path) -> 
     """Monkeypatch both project-root discovery and Path.home() so the
     settings cascade resolves files from the test's temp directories.
 
-    ``engine.persistence.find_project_root`` is patched at the module
-    level so both the lazy import inside ``load_settings()`` and the
-    direct call in ``run_decide_mcp`` resolve to *project*.
+    ``engine.persistence.find_user_project_root`` is patched at the
+    module level so both the lazy import inside ``load_settings()`` and
+    the direct call in ``run_decide_mcp`` resolve to *project*.
 
     ``Path.home()`` is patched so the global settings tier reads from
     *home* instead of the real home directory.
     """
     monkeypatch.setattr(
-        "engine.persistence.find_project_root", lambda start=None: project
+        "engine.persistence.find_user_project_root", lambda start=None: project
     )
     monkeypatch.setattr(Path, "home", lambda: home)
 
