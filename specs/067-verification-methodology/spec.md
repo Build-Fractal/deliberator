@@ -116,6 +116,25 @@ Both verification deliberations MUST be filed as separate entries in `CONSTITUTI
 
 The 2026-04-25 entries (both methodologies) serve as the canonical example — see them for format.
 
+### 4.6 Test-fix discipline during verification
+
+*Added 2026-04-29 per spec 071 §8 (Principle XXVIII implementation).*
+
+When a verification deliberation surfaces failing tests in the deliberation's target codebase, the implementer MUST run the **4-subagent investigation pattern** (root-cause categorization per Principle XXVIII categories — fixture drift / production bug / legitimate test bug / defunct test) BEFORE proposing fixes.
+
+**Why this is binding**: a naive "make tests pass" sweep buries the failure mode this protocol exists to surface. The 2026-04-28 spec 045 verification (canonical exemplar) surfaced 95 failing tests, of which 1 was a production bug (engine/handlers.py import shadowing — PR #42), ~70 were mechanical fixture-path drifts, and 3 were legitimate test bugs. Without the discipline, the production bug would have been mislabeled as fixture drift and shipped silently. Categorization is the load-bearing primitive of Principle XXVIII; this section binds spec 067 verification deliberations to that primitive.
+
+**The pattern**:
+
+1. Dispatch one subagent per category (4 total, parallel) with read-only access to the failing-test surface. Each subagent triages each failing test against its assigned category, returning a per-test verdict ("yes this is fixture drift", "no this is actually a production bug", or "doesn't fit my category").
+2. The implementer collates the 4 verdicts. Tests with single-category consensus are categorized; tests with multi-category disagreement get a 5th investigation pass to resolve.
+3. Categorization MUST be ratified by the implementer BEFORE any fix lands. Diffs that change the categorization mid-PR violate Principle XXVIII clause 2's diff-shape consistency check.
+4. The PR description for the fix MUST cite this section (`spec 067 §4.6`) and link the categorization output (deliberation directory or equivalent artifact).
+
+**Reference implementation**: PR #42 (conversus-oss, merged 2026-04-28). Future PRs that exercise this pattern SHOULD link back to PR #42 as exemplar until enough exemplars exist (~3) to consolidate into a SKILL.md.
+
+**Out of scope for this section**: failing tests that arise outside a verification deliberation. The 4-subagent pattern is specifically scoped to verification-surfaced failures because that's the case where naive sweeping is most tempting (the implementer is under pressure to clear the verification gate). Other failing-test contexts retain their existing discipline (Principle XXVIII applies regardless; this section adds the verification-deliberation-specific pre-investigation requirement).
+
 ## 5. Acceptance criteria for this spec
 
 This spec is "done" when:
