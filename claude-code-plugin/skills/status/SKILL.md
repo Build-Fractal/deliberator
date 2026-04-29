@@ -9,7 +9,7 @@ Check which model providers conversus can use right now. Run this when you're no
 ## Step 0: Check installation
 
 ```bash
-conversus --version 2>/dev/null || echo "NOT_INSTALLED"
+command -v conversus >/dev/null 2>&1 || echo "NOT_INSTALLED"
 ```
 
 If `NOT_INSTALLED`, stop and tell the user to install:

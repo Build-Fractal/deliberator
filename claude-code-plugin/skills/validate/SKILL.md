@@ -9,7 +9,7 @@ Check a conversus.yml config for syntax errors and estimate the cost (total LLM 
 ## Step 0: Check installation
 
 ```bash
-conversus --version 2>/dev/null || echo "NOT_INSTALLED"
+command -v conversus >/dev/null 2>&1 || echo "NOT_INSTALLED"
 ```
 
 If `NOT_INSTALLED`, stop and tell the user:
@@ -52,6 +52,8 @@ If validation passes, tell the user:
 > Config is valid. Next steps:
 > - Dry-run with mock provider (free): `conversus run <config> --provider mock`
 > - Real run: `conversus run <config> --provider claude-code`
+
+Note on provider selection for the real run: if the user is on Anthropic OAuth (Claude Max / subscription) without `ANTHROPIC_API_KEY` set, the default `anthropic` provider 429s on a server-side concurrency policy gate. Use `--provider claude-code` to route through the OAuth-friendly subprocess path. The `/conversus:run` skill applies this preflight automatically; mirror that behavior if you launch the run directly here.
 
 If validation fails, show the specific error and suggest the fix. Common errors:
 - **"mode: required"** — add a `mode:` field at the top level

@@ -9,7 +9,7 @@ Run a full deliberation from a config file. Use `/conversus:decide` for ad-hoc q
 ## Step 0: Check installation
 
 ```bash
-conversus --version 2>/dev/null || echo "NOT_INSTALLED"
+command -v conversus >/dev/null 2>&1 || echo "NOT_INSTALLED"
 ```
 
 If `NOT_INSTALLED`, stop and tell the user:
@@ -37,7 +37,28 @@ conversus validate <config_path>
 This prints the mode, agent count, iterations, and total LLM launches. Show the output to the user. If the launch count looks surprisingly high (>30), ask:
 > This run will use N LLM launches. Is that expected, or want to reduce iterations/agents?
 
-## Step 3: Run
+## Step 3: Preflight — OAuth provider auto-selection
+
+The default `anthropic` provider hits Anthropic's API directly and requires `ANTHROPIC_API_KEY`. On Anthropic OAuth (Claude Max / subscription), that path 429s instantly on a server-side concurrency policy gate — retrying won't help. The fix is to route through `claude-code` instead, which spawns `claude -p` subprocesses (designed for OAuth).
+
+Before the run, auto-set `CONVERSUS_PROVIDER=claude-code` when ALL of:
+- The user did NOT pass `--provider` explicitly (let the operator's choice always win, even an empty string).
+- `CONVERSUS_PROVIDER` is unset in the environment.
+- `ANTHROPIC_API_KEY` is unset.
+- `~/.conversus/auth.json` exists and shows an OAuth marker.
+
+```bash
+if [ -z "${CONVERSUS_PROVIDER+set}" ] && [ -z "${ANTHROPIC_API_KEY:-}" ] && [ -f "$HOME/.conversus/auth.json" ]; then
+  if grep -qE '"(access_token|oauth|subscription)"' "$HOME/.conversus/auth.json" 2>/dev/null; then
+    export CONVERSUS_PROVIDER=claude-code
+    echo "note: detected Anthropic OAuth auth with no ANTHROPIC_API_KEY; auto-set CONVERSUS_PROVIDER=claude-code" >&2
+  fi
+fi
+```
+
+Skip this preflight when the user passed `--provider <X>` — their explicit value (including empty) wins.
+
+## Step 4: Run
 
 ```bash
 conversus run <config_path> --provider <provider> [--model <model>] [--rounds <n>] [--phase <phase>]
@@ -59,7 +80,7 @@ conversus run deliberations/auth-review/conversus.yml --provider mock
 conversus run deliberations/auth-review/conversus.yml --provider anthropic --phase review
 ```
 
-## Step 4: Display results
+## Step 5: Display results
 
 Show the CLI's progress output (phase checkmarks, agent dispatches, timings). After completion:
 

@@ -12,7 +12,7 @@ Remove stored OAuth credentials for a provider. Use this when:
 ## Step 0: Check installation
 
 ```bash
-conversus --version 2>/dev/null || echo "NOT_INSTALLED"
+command -v conversus >/dev/null 2>&1 || echo "NOT_INSTALLED"
 ```
 
 If `NOT_INSTALLED`, stop and tell the user to install:

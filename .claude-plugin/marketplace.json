@@ -11,7 +11,7 @@
       "name": "conversus",
       "source": "./claude-code-plugin",
       "description": "Run competitive multi-agent deliberations from Claude Code or Cowork. Includes the /conversus:design guided config wizard and wraps the full conversus CLI (run, decide, validate, init, mcp, status, login).",
-      "version": "0.1.0",
+      "version": "0.3.0",
       "author": {
         "name": "Build Fractal",
         "url": "https://buildfractal.com"

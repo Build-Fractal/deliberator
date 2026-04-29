@@ -13,7 +13,7 @@ A `decide` run dispatches 5-10 sub-agents. A full 4-agent mechanism-design run d
 ## Step 0: Check installation
 
 ```bash
-conversus --version 2>/dev/null || echo "NOT_INSTALLED"
+command -v conversus >/dev/null 2>&1 || echo "NOT_INSTALLED"
 ```
 
 If `NOT_INSTALLED`, stop and tell the user:

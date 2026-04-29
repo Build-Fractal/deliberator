@@ -11,7 +11,7 @@ Guide the user through building a `conversus.yml` file step by step. This is a *
 Before starting, verify conversus is installed:
 
 ```bash
-conversus --version 2>/dev/null || echo "NOT_INSTALLED"
+command -v conversus >/dev/null 2>&1 || echo "NOT_INSTALLED"
 ```
 
 If `NOT_INSTALLED`, stop and tell the user:
