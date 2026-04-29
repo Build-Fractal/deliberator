@@ -2,7 +2,7 @@
 
 **Feature ID**: `071-test-fix-boundary-preservation`
 **Created**: 2026-04-28
-**Status**: Draft v1 — awaiting verification deliberations (per spec 067)
+**Status**: Ratified-with-override 2026-04-29 — `CONSTITUTION.md` v2.5.0 added Principle XXVIII (v2 wording). Self-consistency PASS WITH FIXES (`deliberations/071-self-consistency-2026-04-28/`, all fixes addressed). Blind v1 prompted v2 refinement (`deliberations/071-blind-2026-04-28/`, dropped clause 1 + strengthened clause 3 with diff-shape consistency). Blind v2 PASS WITH FIXES (`deliberations/071-blind-v2-2026-04-29/`) — rulings 1 and 2 overridden with rationale logged in `CONSTITUTIONAL_CONVERSATIONS.md` 2026-04-29 entry. Three follow-up implementation PRs pending per §12 (PR template, lint script, spec 067 §4.6 amendment).
 **Depends On**: `067-verification-methodology` (defines the verification protocol the implementation PR must satisfy and the §4.6 amendment this spec proposes), `069-mechanical-verification-gate` (defines the v2.4.0 Constitutional Inclusion Criteria gate this principle must pass)
 **Governed by**: `CONSTITUTION.md` Governance section, especially the v2.4.0 Constitutional Inclusion Criteria gate. As a proposed new principle (post-v2.4.0), this spec is bound by the prospective inclusion gate; it must self-assess against the gate criteria before it can be ratified.
 **Originating context**: 2026-04-28 spec-045 coverage verification surfaced 95 failing tests in `conversus-oss`. A 4-subagent investigation (Categories A/B/C/D) found 1 production bug (engine/handlers.py import shadowing — landed in PR #42), 1 production bug candidate (engine/_root.find_project_root resolution fragility — Cat D), ~70 mechanical fixture-path drifts (Cat A), and 3 remaining failures the bug-fix subagent refused to "fix" because doing so would have weakened assertions. A naive "make tests pass" sweep would have buried the production bugs and the 3 genuine gaps behind the noise. The framework that prevented this was the user's binding instruction: "if a test passes after fix, it must have real boundaries." This spec proposes codifying that instruction as Principle XXVIII and operationalizing it via four enforcement layers.
@@ -35,45 +35,59 @@ The "why" is anchored in the 2026-04-28 PR #42 case study. Without the user's bi
 - **Not retroactive enforcement.** This principle applies prospectively, to PRs filed after it lands. Existing tests with vague skip markers or loose assertions are not in scope; an audit of existing test discipline is a separate spec if needed.
 - **Not a replacement for behavior-over-shape (Principle IX) or meta-testing (Principle XXVI).** Those principles govern *test authoring* and *coverage drift*; this principle governs *test-fix discipline* — the moment when a failing test is being made green. §5.3 substantiates the distinctness claim.
 
-## 4. Proposed Principle XXVIII
+## 4. Proposed Principle XXVIII (v2 — revised after blind verification 2026-04-28)
+
+> **Revision context**: v1 (with three clauses including "assertion fidelity") failed blind verification on three counts: (a) assertion fidelity duplicated Principle IX's behavior-over-shape extension; (b) format-checking the category label was theater rather than substantive verification of categorization correctness; (c) RFC 2119 "MAY NOT" was non-conformant. v2 drops clause 1 (deferred to IX), strengthens clause 3 with a diff-shape consistency check (mechanically substantive), and acknowledges the residual non-mechanical limit explicitly. See `deliberations/071-blind-2026-04-28/arbiter/resolution.md` for the v1 verdict.
 
 The proposed wording, to be inserted into `CONSTITUTION.md` after Principle XXVII (Operator-Configurable Tool Surface):
 
 ```markdown
 ### XXVIII. Test-Fix Boundary Preservation
 
-When fixing a failing test, the fix MUST preserve or strengthen the
-test's verification of real behavior. A fix that makes a test pass
-without it testing real functionality is a methodology violation.
+When fixing a failing test, the fix MUST preserve the test's
+verification of real behavior. Assertion-fidelity discipline is
+governed by Principle IX (behavior-over-shape extension); this
+principle adds two mechanically verifiable disciplines that
+operate at fix-time.
 
-1. **Assertion fidelity**: a fix MAY tighten an assertion; it MAY
-   NOT loosen one. Loosening includes: replacing `==` with `in`,
-   replacing exact value matches with type-only checks, adding
-   tolerated alternatives to expected outputs without justification.
+1. **Skip discipline**: any `pytest.skip()`, `@pytest.skip`, or
+   `@pytest.mark.skip` newly introduced in a PR MUST cite the bug
+   being skipped (issue or PR number) and a remediation timeline.
+   "Flaky", "slow", "broken", or similar without a citation is
+   prohibited.
+   *Mechanical check*: any newly added skip directive whose
+   adjacent comment or docstring does not match
+   `(issue|PR|#\d+|TODO\(.+\))` plus a timeline cue is a violation.
 
-2. **Skip discipline**: `pytest.skip()` / `@pytest.skip` /
-   `@pytest.mark.skip` MUST cite the bug being skipped (issue or
-   PR number) and a remediation timeline. "Flaky", "slow",
-   "broken", or similar without a citation is prohibited.
+2. **Test-or-bug categorization with diff-shape consistency**:
+   every PR that modifies a test file in a fix-time context MUST
+   declare each fix as exactly one of four categories, and the
+   PR's diff shape MUST match the declared category:
 
-3. **Test-or-bug categorization**: every PR fixing failing tests
-   MUST classify each fix as exactly one of:
-   - **fixture/path drift** — fix the test (intent preserved)
-   - **production bug** — fix the code (test stays as-is)
-   - **legitimate test bug** — fix the test (document the bug)
-   - **defunct test** — delete with explanation of why the behavior
-     is no longer relevant
-   The classification appears in the PR description and is verifiable
-   against the diff.
+   | Category | Required diff signature |
+   |---|---|
+   | fixture/path drift | only test files modified |
+   | production bug | ≥1 production-source file modified |
+   | legitimate test bug | only test files modified; PR body cites the test-side bug |
+   | defunct test | test deletion (not modification); PR body cites why the behavior is no longer relevant |
 
-*Origin*: 2026-04-28 spec-045 verification surfaced 95 failing tests;
-investigation found 1 production bug (engine/handlers.py import
-shadowing — PR #42) hiding behind ~70 mechanical failures and 3
-genuine production gaps. A naive sweep would have buried all of
-them. This principle codifies the discipline that surfaced them.
+   *Mechanical check*: the lint reads the declared category from
+   a structured PR-template field, computes the actual diff
+   shape, and flags any mismatch. A mismatch is the violation,
+   not the misjudgment that produced it — mismatch is
+   structurally detectable; misjudgment is not, and that limit
+   is acknowledged rather than papered over.
+
+*Origin*: 2026-04-28 spec-045 verification surfaced 95 failing
+tests; the 4-subagent investigation found 1 production bug
+(engine/handlers.py import shadowing — PR #42) hiding behind
+~70 mechanical failures. A naive sweep would have labeled the
+shadowing fix as "fixture drift" and shipped it; the diff-shape
+check (production-source edit incompatible with that label) is
+the discipline that catches that exact failure mode.
 ```
 
-The wording is deliberately compact. The four-clause structure mirrors the format of recent principles (XXIV, XXVI, XXVII): a one-sentence rule, a numbered enumeration of the discipline, and an *Origin* note that anchors the principle in a concrete case study.
+The wording is deliberately compact. The two-clause structure mirrors the format of recent principles (XXIV, XXVI, XXVII): a one-sentence rule with explicit cross-reference to IX, a numbered enumeration of the two mechanically verifiable disciplines, and an *Origin* note that anchors the principle in a concrete case study.
 
 ## 5. Constitutional inclusion gate self-assessment
 
@@ -83,7 +97,7 @@ Per spec 069's Constitutional Inclusion Criteria, every new principle proposed a
 
 **Verdict**: PASS.
 
-**Reasoning**: The principle's three clauses are mechanically checkable via the lint script described in §6 (`scripts/lint-test-fixes.py`). The script walks any PR diff for files matching `**/test_*.py` or `**/*_test.py`, parses old vs new with libcst, and flags: (a) assertion changes from equality to membership (`==` → `in`); (b) replacement of exact-value matches with type-only checks (`assert x == 5` → `assert isinstance(x, int)`); (c) dropped assertion statements within a test function; (d) added `pytest.skip` / `@pytest.mark.skip` decorators without an issue or PR citation in the adjacent comment or docstring; (e) added test functions decorated with skip markers carrying no citation. The categorization clause (test-or-bug) is verifiable by cross-referencing the PR description against the diff: if the PR claims "fixture drift" but the diff modifies a non-test source file, the claim is structurally inconsistent and the lint flags it. The lint is heuristic and will produce false positives — Q1 in §11 acknowledges this — but the *capability* exists and the script's outputs are line-cited and reviewable. That capability satisfies the v2.4.0 gate's "concrete sketch of a mechanical check" requirement.
+**Reasoning**: The principle's two clauses are mechanically checkable via the lint script described in §6 (`scripts/lint-test-fixes.py`). For clause 1 (skip discipline), the script walks the PR diff for files matching `**/test_*.py` or `**/*_test.py`, identifies newly added `pytest.skip(...)`, `@pytest.skip`, or `@pytest.mark.skip` directives, and flags any whose adjacent comment or docstring does not match `(issue|PR|#\d+|TODO\(.+\))` plus a remediation timeline cue. For clause 2 (categorization with diff-shape consistency), the script reads the structured category field from the PR body (per §7's template), computes the actual diff shape (which paths under `**/test_*.py|**/*_test.py` were modified vs which production-source paths were touched), and flags any mismatch — for example, a "fixture drift" claim accompanied by production-source edits, or a "defunct test" claim with no test deletions. The diff-shape check is substantively verifying, not format-checking: a PR mislabeling a production bug as fixture drift produces a structurally detectable mismatch (production source touched + "fixture drift" label), which the lint surfaces. What the lint cannot verify is *categorization correctness within the test-only quadrant* — i.e., whether a "fixture drift" claim with only test-file edits is in fact a "legitimate test bug" miscategorized. That residual is acknowledged in clause 2's text and Q1 in §11. The capability that exists (skip-citation enforcement + diff-shape consistency) satisfies the v2.4.0 gate's "future PR violating the principle would fail the check" standard for the dominant failure mode the principle was designed to catch (the PR #42 case study, where a naive sweep would have labeled a production bug as fixture drift).
 
 ### 5.2 Criterion 2 — Falsifiable scope
 
@@ -95,15 +109,15 @@ Per spec 069's Constitutional Inclusion Criteria, every new principle proposed a
 
 **Verdict**: PASS.
 
-**Reasoning**: The principle is adjacent to three existing principles but does not duplicate any of them.
+**Reasoning**: v1 of this spec proposed an "assertion fidelity" clause that the blind verification correctly identified as a restatement of Principle IX's v2.3.0 behavior-over-shape extension (which already prohibits `assert "headline" in result`, `assert isinstance(rounds_completed, int)`, and the "type-only check" patterns the v1 clause named). v2 drops that clause and explicitly cross-references IX in the principle headline; assertion-fidelity discipline at fix-time is now home to IX, not XXVIII. The remaining two clauses (skip discipline + categorization with diff-shape consistency) cover ground IX does not address:
 
-- **Principle IX (Functional Programming and Clean Code)** governs test *authoring* — when you write a new test, prefer behavioral assertions over structural ones, prefer pure-function tests over fixture-heavy ones, etc. It does not address the moment a previously authored test is failing and a contributor is choosing how to make it green. That moment is when assertion fidelity is most under threat (the path of least resistance is to weaken the assertion), and Principle IX has nothing to say about it.
+- **Principle IX (extended v2.3.0 — behavior-over-shape testing)** prohibits writing or rewriting an assertion in shape-only form. It does NOT govern the discipline of *declaring what kind of fix* a PR is performing (categorization), nor does it govern the discipline of *citing skipped bugs* (which is about test-suite hygiene, not assertion shape). v2 of XXVIII explicitly defers assertion fidelity to IX in its headline.
 
-- **Principle XXIV (Safety-Critical Defense-in-Depth)** requires contract tests reproducing failure scenarios for safety-critical synthesis paths. It is about *coverage* — that certain failure modes must have tests at all — not about *what to do when a test starts failing*. The two principles operate at different lifecycle stages.
+- **Principle XXIV (Safety-Critical Defense-in-Depth)** requires contract tests reproducing failure scenarios for safety-critical synthesis paths. It is about *coverage* — that certain failure modes must have tests at all — not about fix-time discipline.
 
-- **Principle XXVI (Meta-Testing for Parametrized Capabilities)** governs coverage drift across capability sets (e.g., when a new model is added, all capability tests must extend to it). It is about completeness over a parametrization axis, not about assertion-fidelity discipline at fix-time.
+- **Principle XXVI (Meta-Testing for Parametrized Capabilities)** governs coverage drift across capability sets (e.g., when a new model is added, all capability tests must extend to it). It is about completeness over a parametrization axis, not about test-fix categorization or skip hygiene.
 
-None of the three covers fix-time discipline — the moment a contributor opens a failing test file and decides how to make it pass. That gap is the niche Principle XXVIII fills, and it is genuinely empty in the current constitution. The distinctness claim holds.
+The niche XXVIII fills after the v2 revision is narrow but real: the moment a contributor opens a failing test file in a fix-time PR, declares why they're modifying it, and gets a mechanical check that the declaration is consistent with the diff. That niche is empty in IX, XXIV, and XXVI. The distinctness claim holds for v2 in a way it did not for v1.
 
 ### 5.4 Self-assessment conclusion
 
@@ -113,21 +127,22 @@ The principle passes all three criteria. It is admissible as a constitutional am
 
 This spec proposes a follow-up PR adding `scripts/lint-test-fixes.py`. That script is *not* implemented in this spec — only its contract is described, so the principle's mechanical-verification-capability claim in §5.1 has a concrete referent.
 
-**Behavior**:
+**Behavior** (v2 — narrowed after blind verification dropped assertion-loosening detection as IX's territory):
 
-- Walks the PR diff for files matching `**/test_*.py` or `**/*_test.py`.
-- For each modified hunk, parses old and new versions with `libcst` (or an equivalent CST-diff library) to identify changes at the AST level rather than line level.
-- Flags suspicious changes:
-  1. `assert x == y` rewritten to `assert x in (y, z, ...)` or `assert x in collection`.
-  2. `assert x == 5` rewritten to `assert isinstance(x, int)` or similar type-only checks.
-  3. An `assert` statement present in old, absent in new, with no compensating assertion added.
-  4. `pytest.skip(...)` / `@pytest.mark.skip` introduced without an adjacent comment or docstring containing a token matching `(issue|PR|#\d+|TODO\(.+\))` plus a remediation timeline cue.
-  5. New test functions added with skip markers and no citation.
-- Produces a CI annotation: warns with file paths and line numbers for each flag. Does not block merge automatically — the PR template (§7) carries the blocking requirement via the explicit reviewer sign-off.
+- Walks the PR diff in two passes: a *test-side pass* over files matching `**/test_*.py` or `**/*_test.py`, and a *production-side pass* over everything else excluding `docs/`, `specs/`, `deliberations/`, `.github/`.
+- **Skip-discipline check (clause 1)**: in the test-side pass, identifies newly added `pytest.skip(...)`, `@pytest.skip`, or `@pytest.mark.skip` directives. For each, walks adjacent comment lines and docstrings and matches against `(issue|PR|#\d+|TODO\(.+\))` plus a remediation cue (regex including `by \d{4}-\d{2}-\d{2}`, `next release`, `before merge`, etc.). Newly added skip directives without a citation are flagged as violations.
+- **Diff-shape-consistency check (clause 2)**: reads the declared category from a structured PR-template field (per §7 — the field is an HTML comment marker `<!-- test-fix-category: ... -->` or equivalent machine-readable form). Compares against the actual diff shape from the two passes:
+  - Claim "fixture/path drift" + production-side modifications detected → mismatch (flagged).
+  - Claim "production bug" + zero production-side modifications → mismatch (flagged).
+  - Claim "defunct test" + zero test-file deletions → mismatch (flagged).
+  - Claim "legitimate test bug" + missing PR-body bug citation (regex against PR body for issue/PR number) → mismatch (flagged).
+- Produces a CI annotation: warns with file paths and line numbers for each flag. Does not block merge automatically — the PR template (§7) carries the blocking requirement via explicit reviewer sign-off.
 
-**Heuristic, not perfect**: false positives are expected. A test author may legitimately tighten an assertion in a way that *looks like* loosening to the AST diff, or may legitimately replace an `==` with an `in` because the spec genuinely admits multiple acceptable values. The lint produces a flag, the author produces a one-line justification in the PR body, the reviewer accepts or rejects. The lint is *defense in depth*, not the primary enforcement.
+**Heuristic limit acknowledged**: the diff-shape check cannot detect a misjudgment within a category — for example, a "fixture drift" claim with only test-file edits that is actually a "legitimate test bug" miscategorized. That residual is exactly what the principle's clause 2 acknowledges and what reviewer judgment must catch. The lint catches the high-frequency, structurally detectable failure mode (label vs diff inconsistency); it is not a substitute for review.
 
 **Primary enforcement** is the PR template (§7) plus Principle XXVIII itself. The lint catches the cases the author or reviewer might miss; it does not replace either.
+
+**What v1's lint did and v2's does not**: v1 included AST-diff detection of assertion loosening (`==` → `in`, exact → type-only). Those checks now belong in a Principle IX lint (or are out of scope entirely if IX-violating assertions are caught at code review). Putting them in v2's XXVIII lint would re-create the distinctness conflict the blind verification flagged.
 
 ## 7. PR template additions
 
@@ -136,17 +151,26 @@ This spec proposes a follow-up PR adding the following section to `.github/pull_
 ```markdown
 ## Test fixes (required if any test file is modified)
 
-For any failing-test fix, classify each (Principle XXVIII):
+If this PR is fixing a failing test (Principle XXVIII), declare the
+category in the machine-readable marker below. If multiple test fixes
+in different categories, list one marker per fix.
 
-- [ ] All test-fixes are categorized as one of: fixture drift / production bug / legitimate test bug / defunct test
-- [ ] No assertions were loosened (== → in, exact → type-check, etc.)
-- [ ] Any new `pytest.skip` cites the bug + remediation timeline
-- [ ] If `lint-test-fixes.py` flagged anything, the flag is justified in the PR body
+<!-- test-fix-category: fixture-drift | production-bug | legitimate-test-bug | defunct-test -->
 
-If any box is unchecked, this PR violates Principle XXVIII.
+Self-check (each box must be ticked or the PR violates Principle XXVIII):
+
+- [ ] The category marker above declares each test fix
+- [ ] The diff shape matches the declared category
+  (fixture-drift: only test files; production-bug: ≥1 production-source
+  file; legitimate-test-bug: only test files + PR body cites the test-side
+  bug; defunct-test: test deletion + PR body explains why)
+- [ ] Any newly added `pytest.skip` cites the bug + remediation timeline
+- [ ] Assertion-fidelity discipline (Principle IX behavior-over-shape) was
+  preserved; loosened assertions, if any, are justified in the PR body
+- [ ] If `lint-test-fixes.py` flagged anything, the flag is justified
 ```
 
-The checkbox structure forces an explicit declaration. A reviewer encountering an un-checked box knows the PR is non-conforming on its face and can request the fix without having to first reverse-engineer the classification from the diff.
+The structured category marker (HTML comment with a known prefix) is what the lint script reads to perform the diff-shape consistency check (§6). The checkbox structure forces an explicit declaration; the marker makes that declaration machine-readable so the lint can act on it.
 
 ## 8. Spec 067 amendment (operational guidance for verification deliberations)
 

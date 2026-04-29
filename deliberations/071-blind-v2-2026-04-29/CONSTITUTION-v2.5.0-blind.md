@@ -1,79 +1,4 @@
 <!--
-Sync Impact Report
-Version change: 2.4.0 → 2.5.0 (MINOR — new principle: XXVIII Test-Fix
-Boundary Preservation. Codifies the discipline that when fixing a
-failing test, the fix MUST preserve the test's verification of real
-behavior. Per spec 071 Q4 and CONSTITUTION.md Versioning, adding a
-new principle is a MINOR bump.)
-Added principles:
-  - XXVIII. Test-Fix Boundary Preservation
-Modified principles: none (cross-reference to Principle IX in
-  XXVIII headline; IX text unchanged)
-Removed sections: none
-Templates requiring updates: none
-
-Constitutional Inclusion Criteria self-assessment (per the v2.4.0
-gate in Governance): Principle XXVIII passes all three criteria as
-documented in spec 071 §5.
-  - Criterion 1 (Mechanical verification): PASS. Skip-discipline
-    regex check + diff-shape consistency check are both feasible
-    and concretely sketchable.
-  - Criterion 2 (Falsifiable scope): PASS. The four categories
-    partition the legitimate fix space; mismatched diff shapes are
-    structurally detectable; uncited skips are unambiguous.
-  - Criterion 3 (Distinctness): PASS. v1's "assertion fidelity"
-    clause was withdrawn after blind verification flagged it as a
-    duplicate of Principle IX's behavior-over-shape extension; v2
-    explicitly cross-references IX for assertion-fidelity
-    discipline. Skip discipline + diff-shape categorization cover
-    ground IX, XXIV, and XXVI do not.
-
-Verification (per spec 067 §4):
-  - Self-consistency: deliberations/071-self-consistency-2026-04-28/
-    — PASS WITH FIXES (4 disputes ruled; all addressed in v2 or
-    out-of-scope).
-  - Blind v1: deliberations/071-blind-2026-04-28/ — "move to
-    operational guidance." Drove v1 → v2: dropped duplicate clause,
-    strengthened clause 3 with diff-shape consistency, fixed RFC
-    2119 "MAY NOT".
-  - Blind v2: deliberations/071-blind-v2-2026-04-29/ — PASS WITH
-    FIXES (3 rulings). Rulings 1 and 2 OVERRIDDEN with rationale
-    logged in CONSTITUTIONAL_CONVERSATIONS.md 2026-04-29 entry.
-    Ruling 3 (no emergency bypass) N/A — XXVIII never proposed any.
-
-Override-with-rationale: the blind v2 reviewing standard
-("acknowledged residual = operational guidance"), if applied
-uniformly, would relegate analogous extensions in Principle IX
-(behavior-over-shape) to operational guidance. Diff-shape
-consistency IS substantively verifying for the dominant failure
-mode this principle was designed to catch (PR #42 case study); the
-residual is honestly acknowledged in clause 2's text. The override
-precedent is established here for future reference.
-
-Follow-up TODOs:
-  - .github/pull_request_template.md addition (per spec 071 §7).
-  - scripts/lint-test-fixes.py implementation (per spec 071 §6).
-  - specs/067-verification-methodology/spec.md §4.6 amendment
-    (per spec 071 §8).
-
-Rationale: 2026-04-28 spec 045 verification surfaced 95 failing
-tests; 4-subagent investigation found 1 production bug
-(engine/handlers.py import-shadowing — PR #42, merged 2026-04-28)
-hiding behind ~70 mechanical failures. A naive sweep would have
-labeled the shadowing fix as "fixture drift" and shipped it. This
-principle codifies the discipline that surfaced it. Two refinement
-iterations driven by adversarial blind verification: v1 → v2
-dropped a duplicate clause (genuine distinctness fix); v2 → v2-
-final overrode further narrowing with rationale logged per
-established override precedent.
-
-Governance log entry: 2026-04-29 in CONSTITUTIONAL_CONVERSATIONS.md
-(spec 071 implementation).
-Prior amendment (v2.3.2 → v2.4.0): see prior SIR comment block
-below.
--->
-
-<!--
 Sync Impact Report (prior — preserved for audit trail)
 Version change: 2.3.2 → 2.4.0 (MINOR — new Governance gate:
 Constitutional Inclusion Criteria. A material expansion of the
@@ -110,11 +35,11 @@ to operational guidance is a separate, intentional act governed by
 the same amendment process with the receiving document identified
 explicitly in the migration spec.
 Follow-up TODOs:
-  - Verification-deliberation codification deferred to v2.5.0;
-    acceptance bar (substantive zero-disputes vs. documented-disputes)
-    to be resolved at that amendment with the panel-composition
-    disclosure and unanimous-out-of-scope escape hatch as candidate
-    inputs.
+  - Verification-deliberation codification deferred to a future
+    amendment; acceptance bar (substantive zero-disputes vs.
+    documented-disputes) to be resolved at that amendment with the
+    panel-composition disclosure and unanimous-out-of-scope escape
+    hatch as candidate inputs.
   - Grandfathering disposition (whether to migrate VI, X, XVI to
     operational guidance; tiering; deadlines) deferred to a follow-up
     amendment per the gate's prospective-only scope clause.
@@ -131,7 +56,7 @@ Rationale: 2026-04-26 spec 069 self-consistency deliberation (3
 agents + subject arbitration, binding) on candidate v2.4.0 text
 produced 0 ACCEPT-level findings on the amendment as drafted (Dispute
 1 REJECT — AND-coupling unchanged; Dispute 2 DEFER — verification-
-deliberation acceptance bar deferred to v2.5.0; Dispute 3 ACCEPT —
+deliberation acceptance bar deferred to a future amendment; Dispute 3 ACCEPT —
 cooperative composition on precedent-log build moment, not a
 defect-correction edit). A parallel 2026-04-26 spec 069 BLIND
 verification deliberation (3 agents + subject arbitration) ruled 3
@@ -1109,8 +1034,8 @@ plugin isolation to the core tool surface.*
 When fixing a failing test, the fix MUST preserve the test's
 verification of real behavior. Assertion-fidelity discipline is
 governed by Principle IX (behavior-over-shape extension); this
-principle adds two mechanically verifiable disciplines that
-operate at fix-time.
+principle adds two mechanically verifiable disciplines that operate
+at fix-time.
 
 1. **Skip discipline**: any `pytest.skip()`, `@pytest.skip`, or
    `@pytest.mark.skip` newly introduced in a PR MUST cite the bug
@@ -1140,13 +1065,13 @@ operate at fix-time.
    detectable; misjudgment is not, and that limit is acknowledged
    rather than papered over.
 
-*Origin: 2026-04-28 spec-045 verification surfaced 95 failing
-tests; the 4-subagent investigation found 1 production bug
-(engine/handlers.py import shadowing — PR #42) hiding behind ~70
-mechanical failures. A naive sweep would have labeled the
-shadowing fix as "fixture drift" and shipped it; the diff-shape
-check (production-source edit incompatible with that label) is
-the discipline that catches that exact failure mode.*
+*Origin: a coverage-verification deliberation surfaced ~95 failing
+tests; the investigation found 1 production bug (an import-shadowing
+defect in the engine handlers) hiding behind ~70 mechanical failures.
+A naive sweep would have labeled the shadowing fix as "fixture drift"
+and shipped it; the diff-shape check (production-source edit
+incompatible with that label) is the discipline that catches that
+exact failure mode.*
 
 ## Development Workflow
 
@@ -1263,4 +1188,4 @@ justifies the deviation.
 - **Compliance**: The plan template includes a Constitution Check gate.
   Plans MUST pass this gate before proceeding to implementation.
 
-**Version**: 2.5.0 | **Ratified**: 2026-03-20 | **Last Amended**: 2026-04-29
+**Version**: (under review) | **Ratified**: 2026-03-20

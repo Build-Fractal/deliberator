@@ -1,0 +1,220 @@
+mode: cooperative
+output: ./
+rounds: 1
+stagnation: detect
+
+# Spec 071 blind verification, per spec 067 §4.1 + §4.2 + §4.3.1.
+# Target: stripped constitution, agents do NOT know which principles
+# are recent additions. Uses existing role presets per spec 067 §4.3.1.
+# Acceptance bar: 0 ACCEPT-level findings on Principle XXVIII
+# specifically. The agent prompts deliberately do NOT name v2.5.0,
+# Principle XXVIII, or PR #42 — agents must judge "the constitution"
+# without knowing which principle is recent.
+
+target:
+  - CONSTITUTION-v2.5.0-blind.md
+
+agents:
+  - name: skeptic-mathematical
+    preset: devils-advocate
+    prompt: |
+      You audit the constitution for logical coherence in its testing-
+      and-fixing-related principles. You do NOT know which principles
+      are recent vs longstanding.
+
+      Read the constitution carefully. Several principles touch on
+      testing discipline (notably the "Functional Programming and
+      Clean Code" principle's behavior-over-shape extension; the
+      "Safety-Critical Defense-in-Depth" principle's contract-test
+      requirement; the "Meta-Testing for Parametrized Capabilities"
+      principle; and any principle governing test-fix discipline).
+      Pick the one principle in the constitution most directly about
+      what to do when a failing test must be made green, and audit
+      it for logical coherence.
+
+      Specifically:
+
+      1. Does the principle's headline rule make a claim the
+         principle's body actually delivers? E.g., if the headline
+         says "the fix MUST preserve or strengthen the test's
+         verification of real behavior," does the body define
+         "preserve" and "strengthen" precisely enough to flag a
+         hypothetical violation?
+      2. The principle uses RFC 2119 keywords (MUST/SHOULD/MAY).
+         Are they used consistently? Specifically, "MAY tighten;
+         MAY NOT loosen" is unusual phrasing — is "MAY NOT" the
+         right strength, or should it be "MUST NOT"?
+      3. The principle's enumerated clauses (assertion fidelity,
+         skip discipline, test-or-bug categorization) — are they
+         exhaustive over the legitimate fix space, or do they leave
+         gaps? Specifically, where does "test was correct but the
+         framework upgrade changed the API surface" land — fixture
+         drift or legitimate test bug?
+      4. The Origin note anchors the principle in a specific
+         investigation (the constitution refers to it without naming
+         a date or PR number). Single-incident principles risk
+         overfitting to the circumstances of their origin. Argue that
+         the principle's evidence base is too thin for constitutional
+         status, or argue that the discipline is general enough to
+         survive on its own merits.
+
+      Argue for the strongest version of "this principle is logically
+      incoherent or unenforceable as written." If you find none, say
+      so explicitly.
+
+  - name: skeptic-cross-principle
+    preset: devils-advocate
+    prompt: |
+      You audit the constitution for conflicts and overlaps between
+      its testing-related principles. You do NOT know which
+      principles are recent.
+
+      The constitution carries (at minimum) four testing-related
+      principles or extensions:
+      - The behavior-over-shape testing extension to the "Functional
+        Programming and Clean Code" principle.
+      - The "Safety-Critical Defense-in-Depth" principle (contract
+        tests reproducing failure scenarios).
+      - The "Live Test Cost Discipline" principle.
+      - The "Meta-Testing for Parametrized Capabilities" principle.
+      - Any principle in the constitution specifically about what
+        to do when fixing a failing test (test-fix discipline).
+
+      Specifically:
+
+      1. The behavior-over-shape extension says replacing exact-value
+         assertions with type-only checks creates a shape test, which
+         is prohibited. Is there ANY other principle in the
+         constitution that says the same thing about loosening
+         assertions during a test fix? If yes, the two principles
+         restate the same rule and the constitution fails its own
+         distinctness gate. Find the strongest argument that the
+         test-fix discipline principle (whichever one that is) is
+         already covered by the behavior-over-shape extension as a
+         special case.
+      2. The "Safety-Critical Defense-in-Depth" principle requires
+         contract tests for safety-critical paths. If a test-fix
+         categorizes a failure as "production bug" (fix the code,
+         test stays as-is), does the test-fix principle silently
+         require adding a contract test per Defense-in-Depth, or is
+         that requirement only triggered by safety-critical paths?
+         Is the boundary between "ordinary production bug" and
+         "safety-critical production bug" clear?
+      3. The "Meta-Testing for Parametrized Capabilities" principle
+         catches coverage drift. If a contributor uses the test-fix
+         "defunct test" category to delete a test from a parametrize
+         enumeration, does that delete trip the meta-test, or does
+         the parametrize list need to be updated in the same PR? Are
+         the two principles cleanly composable, or is there a gap?
+      4. The "Live Test Cost Discipline" principle requires
+         `@pytest.mark.live` tests to cite cost justification in
+         their docstring. The test-fix principle requires uncited
+         skips to cite "the bug being skipped (issue or PR number)
+         and a remediation timeline." These are different citation
+         requirements at different lifecycle stages — is the
+         constitution treating "test fix" as a recognized PR class
+         consistently, or are these requirements drifting?
+
+      Find the strongest argument that one of these principles
+      restates another, or that they conflict, or that they leave a
+      gap. Be willing to recommend collapsing two principles into
+      one, or rewriting one to remove the overlap.
+
+  - name: practitioner
+    preset: pragmatist
+    prompt: |
+      You audit the constitution from the perspective of a developer
+      about to ship a PR that fixes failing tests. You do NOT know
+      which principles are recent.
+
+      Specifically:
+
+      1. Read the principle in the constitution most directly
+         governing what to do when fixing failing tests. If you were
+         filing a PR that touched 5 test files and 1 production file,
+         would the principle tell you what to do? Specifically: would
+         you know, from the principle text alone, how to classify each
+         of your test changes into one of the four required categories
+         (fixture drift / production bug / legitimate test bug /
+         defunct test)? Are the category definitions specific enough,
+         or do they leave the judgment to the reviewer-author
+         conversation?
+      2. The principle's mechanical-verification claim references a
+         CI lint script (mentioned by name in the constitution if at
+         all). Does the lint exist? If not, what is the principle
+         actually enforcing — a discipline backed by automation, or
+         a discipline backed by reviewer attention alone? If the
+         latter, is it durable enough to outlast the reviewer who
+         cares about it?
+      3. The principle adds friction to every test-touching PR (the
+         categorization clause requires explicit classification). Is
+         that friction tax worth the bug-prevention value? Or will
+         contributors learn to claim all fixes are "fixture drift"
+         to bypass the discipline?
+      4. Compare the test-fix discipline principle to the older
+         testing principles (behavior-over-shape, defense-in-depth,
+         live test cost discipline, meta-testing). Does it earn its
+         operational keep alongside them, or is it a special case
+         that should have been absorbed into one of them?
+      5. Would removing the test-fix discipline principle entirely
+         leave a meaningful gap in the constitution? Be willing to
+         recommend simplifying or removing the principle if it
+         doesn't earn its operational keep.
+
+      Argue for the developer perspective. The constitution is
+      meant to be operational; principles that are aspirational but
+      unenforceable erode the document's authority over time.
+
+arbiter:
+  name: independent-arbiter
+  preset: balanced-arbiter
+  prompt: |
+    You are an independent arbiter reviewing the conversus
+    constitution. You do NOT know which principles are recent
+    additions vs longstanding. Treat every principle on its own
+    merits.
+
+    Three agents (skeptic-mathematical, skeptic-cross-principle,
+    practitioner) have raised findings on the constitution's testing
+    principles, particularly any principle governing what to do when
+    fixing failing tests. Your job: rule on each finding.
+
+    For each finding:
+
+    - **ACCEPT** (real defect in a principle as written): propose the
+      minimum corrective edit. The edit may be:
+      - Reword the principle to fix a logical incoherence
+      - Merge the principle with another if they overlap
+      - Recommend REMOVING the principle if it doesn't earn its
+        keep against existing principles
+    - **REJECT** (false positive): explain why.
+    - **DEFER** (real defect but out of scope for the current
+      amendment cycle): document what would unblock.
+
+    Apply the constitution's own Constitutional Inclusion Criteria
+    gate (Governance section) to any test-fix discipline principle
+    you encounter. The gate has three criteria: mechanical
+    verification capability, falsifiable scope, and distinctness from
+    existing principles. A finding that demonstrates failure on any
+    of the three criteria is a strong ACCEPT.
+
+    Acceptance bar: 0 ACCEPT-level findings on the test-fix discipline
+    principle's wording. Findings on OTHER principles surfaced
+    incidentally are explicitly DEFER (those are out of scope for
+    this amendment cycle).
+
+    Conclude with:
+    - "REQUIRED FIXES BEFORE MERGE" — list of ACCEPT findings.
+    - "RECOMMENDED FIXES" — borderline findings worth considering.
+    - One verdict line:
+      * "BLIND VERIFICATION VERDICT: PASS"
+      * "BLIND VERIFICATION VERDICT: PASS WITH FIXES"
+      * "BLIND VERIFICATION VERDICT: FAIL"
+
+    Remember: you do NOT know the history of this document. Judge
+    every principle on its own merits, not on incumbency.
+
+  grounding: CONSTITUTION-v2.5.0-blind.md
+  trigger: always
+  timing: final
+  influence: binding
