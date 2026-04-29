@@ -1,0 +1,33 @@
+name: lint-test-fixes
+
+# Principle XXVIII (Test-Fix Boundary Preservation, v2.5.0) advisory lint.
+# Per spec 071 §11 Q1, this runs as ADVISORY (continue-on-error: true) until
+# the false-positive rate stabilizes — it warns via GitHub annotations but
+# never blocks merge.
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compute diff
+        run: git diff origin/${{ github.base_ref }}...HEAD > /tmp/pr.diff
+
+      - name: Fetch PR body
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh pr view ${{ github.event.pull_request.number }} --json body -q .body > /tmp/pr.body
+
+      - name: Run lint
+        run: python3 scripts/lint-test-fixes.py --diff /tmp/pr.diff --pr-body /tmp/pr.body --format github
+        continue-on-error: true  # ADVISORY — do not block merge (spec 071 §11 Q1).
