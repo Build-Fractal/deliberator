@@ -2,75 +2,73 @@
 Sync Impact Report
 Version change: 2.4.0 → 2.5.0 (MINOR — new principle: XXVIII Test-Fix
 Boundary Preservation. Codifies the discipline that when fixing a
-failing test, the fix MUST preserve the test's verification of real
-behavior. Per spec 071 Q4 and CONSTITUTION.md Versioning, adding a
-new principle is a MINOR bump.)
+failing test, the fix MUST preserve or strengthen the test's
+verification of real behavior, never weaken it. Per spec 071 Q4 and
+CONSTITUTION.md Versioning, adding a new principle is a MINOR bump.)
 Added principles:
   - XXVIII. Test-Fix Boundary Preservation
-Modified principles: none (cross-reference to Principle IX in
-  XXVIII headline; IX text unchanged)
+Modified principles: none
 Removed sections: none
 Templates requiring updates: none
-
-Constitutional Inclusion Criteria self-assessment (per the v2.4.0
-gate in Governance): Principle XXVIII passes all three criteria as
+Constitutional Inclusion Criteria self-assessment (per the v2.4.0 gate
+in Governance): Principle XXVIII passes all three criteria as
 documented in spec 071 §5.
-  - Criterion 1 (Mechanical verification): PASS. Skip-discipline
-    regex check + diff-shape consistency check are both feasible
-    and concretely sketchable.
-  - Criterion 2 (Falsifiable scope): PASS. The four categories
-    partition the legitimate fix space; mismatched diff shapes are
-    structurally detectable; uncited skips are unambiguous.
-  - Criterion 3 (Distinctness): PASS. v1's "assertion fidelity"
-    clause was withdrawn after blind verification flagged it as a
-    duplicate of Principle IX's behavior-over-shape extension; v2
-    explicitly cross-references IX for assertion-fidelity
-    discipline. Skip discipline + diff-shape categorization cover
-    ground IX, XXIV, and XXVI do not.
-
-Verification (per spec 067 §4):
-  - Self-consistency: deliberations/071-self-consistency-2026-04-28/
-    — PASS WITH FIXES (4 disputes ruled; all addressed in v2 or
-    out-of-scope).
-  - Blind v1: deliberations/071-blind-2026-04-28/ — "move to
-    operational guidance." Drove v1 → v2: dropped duplicate clause,
-    strengthened clause 3 with diff-shape consistency, fixed RFC
-    2119 "MAY NOT".
-  - Blind v2: deliberations/071-blind-v2-2026-04-29/ — PASS WITH
-    FIXES (3 rulings). Rulings 1 and 2 OVERRIDDEN with rationale
-    logged in CONSTITUTIONAL_CONVERSATIONS.md 2026-04-29 entry.
-    Ruling 3 (no emergency bypass) N/A — XXVIII never proposed any.
-
-Override-with-rationale: the blind v2 reviewing standard
-("acknowledged residual = operational guidance"), if applied
-uniformly, would relegate analogous extensions in Principle IX
-(behavior-over-shape) to operational guidance. Diff-shape
-consistency IS substantively verifying for the dominant failure
-mode this principle was designed to catch (PR #42 case study); the
-residual is honestly acknowledged in clause 2's text. The override
-precedent is established here for future reference.
-
-Follow-up TODOs:
-  - .github/pull_request_template.md addition (per spec 071 §7).
-  - scripts/lint-test-fixes.py implementation (per spec 071 §6).
-  - specs/067-verification-methodology/spec.md §4.6 amendment
-    (per spec 071 §8).
-
-Rationale: 2026-04-28 spec 045 verification surfaced 95 failing
-tests; 4-subagent investigation found 1 production bug
-(engine/handlers.py import-shadowing — PR #42, merged 2026-04-28)
-hiding behind ~70 mechanical failures. A naive sweep would have
-labeled the shadowing fix as "fixture drift" and shipped it. This
-principle codifies the discipline that surfaced it. Two refinement
-iterations driven by adversarial blind verification: v1 → v2
-dropped a duplicate clause (genuine distinctness fix); v2 → v2-
-final overrode further narrowing with rationale logged per
-established override precedent.
-
-Governance log entry: 2026-04-29 in CONSTITUTIONAL_CONVERSATIONS.md
+  - Criterion 1 (Mechanical verification capability): PASS. The
+    proposed `scripts/lint-test-fixes.py` (filed as a follow-up PR per
+    spec 071 §6) provides AST-diff heuristics for assertion loosening
+    (== → in, exact → type-only checks, dropped assertions, uncited
+    skips). The script's contract is concrete enough that an engineer
+    reading the principle can sketch the check in one paragraph, which
+    is what the gate requires.
+  - Criterion 2 (Falsifiable scope): PASS. The four test-fix
+    categories (fixture/path drift, production bug, legitimate test
+    bug, defunct test) are exhaustive over the legitimate fix space.
+    A loosened assertion in service of "make it pass" maps to none of
+    them; the reviewer-author conversation terminates in a PR-level
+    pass/fail with no "well, X might be okay if Y" residue.
+  - Criterion 3 (Distinct from existing principles): PASS. Principle
+    IX governs test authoring; Principle XXIV governs safety-critical
+    test coverage; Principle XXVI governs parametrize-set completeness.
+    None of the three covers fix-time discipline — the moment a
+    contributor opens a failing test file and decides how to make it
+    pass. That gap is what XXVIII fills.
+Operational scaffolding (filed as separate follow-up PRs per spec
+071 acceptance criteria items 3-5):
+  - `scripts/lint-test-fixes.py` reference implementation of XXVIII's
+    mechanical-check substrate (spec 071 §6).
+  - `.github/pull_request_template.md` test-fix checklist additions
+    (spec 071 §7).
+  - `specs/067-verification-methodology/spec.md` §4.6 amendment
+    requiring the 4-subagent investigation pattern when verification
+    deliberations surface failing tests (spec 071 §8). PR #42 is the
+    canonical exemplar.
+Rationale: 2026-04-28 spec-045 coverage verification surfaced 95
+failing tests in conversus-oss. A 4-subagent investigation found 1
+production bug (engine/handlers.py import shadowing — landed in PR
+#42), 1 production bug candidate (engine/_root.find_project_root
+resolution fragility — Cat D), ~70 mechanical fixture-path drifts
+(Cat A), and 3 remaining failures the bug-fix subagent refused to
+"fix" because doing so would have weakened assertions. A naive "make
+tests pass" sweep would have buried the production bugs and the 3
+genuine gaps behind the noise. The framework that prevented this
+was the user's binding instruction: "if a test passes after fix, it
+must have real boundaries." Principle XXVIII codifies that
+instruction so the load-bearing discipline survives across sessions,
+agents, and future contributors. Three layers (principle + PR
+template + CI lint + spec 067 §4.6) all have to fail simultaneously
+for this class of regression to ship — that is the residual-risk
+floor this amendment accepts.
+Verification: per spec 067 §4 — both self-consistency
+(deliberations/071-self-consistency-2026-04-28/) and blind
+(deliberations/071-blind-2026-04-28/) verifications run before this
+amendment merges. Acceptance bar (spec 071 §9): 0 ACCEPT findings on
+Principle XXVIII wording specifically; REVISE-rated findings on
+operational scaffolding (§§6-8) addressable in their own follow-up
+PRs without blocking this MINOR.
+Governance log entry: 2026-04-28 in CONSTITUTIONAL_CONVERSATIONS.md
 (spec 071 implementation).
-Prior amendment (v2.3.2 → v2.4.0): see prior SIR comment block
-below.
+Prior amendment (v2.3.2 → 2.4.0): see the prior Sync Impact Report
+below for the Constitutional Inclusion Criteria gate.
 -->
 
 <!--
@@ -1106,47 +1104,35 @@ plugin isolation to the core tool surface.*
 
 ### XXVIII. Test-Fix Boundary Preservation
 
-When fixing a failing test, the fix MUST preserve the test's
-verification of real behavior. Assertion-fidelity discipline is
-governed by Principle IX (behavior-over-shape extension); this
-principle adds two mechanically verifiable disciplines that
-operate at fix-time.
+When fixing a failing test, the fix MUST preserve or strengthen the
+test's verification of real behavior. A fix that makes a test pass
+without it testing real functionality is a methodology violation.
 
-1. **Skip discipline**: any `pytest.skip()`, `@pytest.skip`, or
-   `@pytest.mark.skip` newly introduced in a PR MUST cite the bug
-   being skipped (issue or PR number) and a remediation timeline.
-   "Flaky", "slow", "broken", or similar without a citation is
-   prohibited.
-   *Mechanical check*: any newly added skip directive whose
-   adjacent comment or docstring does not match
-   `(issue|PR|#\d+|TODO\(.+\))` plus a timeline cue is a violation.
+1. **Assertion fidelity**: a fix MAY tighten an assertion; it MAY
+   NOT loosen one. Loosening includes: replacing `==` with `in`,
+   replacing exact value matches with type-only checks, adding
+   tolerated alternatives to expected outputs without justification.
 
-2. **Test-or-bug categorization with diff-shape consistency**:
-   every PR that modifies a test file in a fix-time context MUST
-   declare each fix as exactly one of four categories, and the
-   PR's diff shape MUST match the declared category:
+2. **Skip discipline**: `pytest.skip()` / `@pytest.skip` /
+   `@pytest.mark.skip` MUST cite the bug being skipped (issue or
+   PR number) and a remediation timeline. "Flaky", "slow",
+   "broken", or similar without a citation is prohibited.
 
-   | Category | Required diff signature |
-   |---|---|
-   | fixture/path drift | only test files modified |
-   | production bug | ≥1 production-source file modified |
-   | legitimate test bug | only test files modified; PR body cites the test-side bug |
-   | defunct test | test deletion (not modification); PR body cites why the behavior is no longer relevant |
+3. **Test-or-bug categorization**: every PR fixing failing tests
+   MUST classify each fix as exactly one of:
+   - **fixture/path drift** — fix the test (intent preserved)
+   - **production bug** — fix the code (test stays as-is)
+   - **legitimate test bug** — fix the test (document the bug)
+   - **defunct test** — delete with explanation of why the behavior
+     is no longer relevant
+   The classification appears in the PR description and is verifiable
+   against the diff.
 
-   *Mechanical check*: the lint reads the declared category from
-   a structured PR-template field, computes the actual diff shape,
-   and flags any mismatch. A mismatch is the violation, not the
-   misjudgment that produced it — mismatch is structurally
-   detectable; misjudgment is not, and that limit is acknowledged
-   rather than papered over.
-
-*Origin: 2026-04-28 spec-045 verification surfaced 95 failing
-tests; the 4-subagent investigation found 1 production bug
-(engine/handlers.py import shadowing — PR #42) hiding behind ~70
-mechanical failures. A naive sweep would have labeled the
-shadowing fix as "fixture drift" and shipped it; the diff-shape
-check (production-source edit incompatible with that label) is
-the discipline that catches that exact failure mode.*
+*Origin: 2026-04-28 spec-045 verification surfaced 95 failing tests;
+investigation found 1 production bug (engine/handlers.py import
+shadowing — PR #42) hiding behind ~70 mechanical failures and 3
+genuine production gaps. A naive sweep would have buried all of
+them. This principle codifies the discipline that surfaced them.*
 
 ## Development Workflow
 
@@ -1263,4 +1249,4 @@ justifies the deviation.
 - **Compliance**: The plan template includes a Constitution Check gate.
   Plans MUST pass this gate before proceeding to implementation.
 
-**Version**: 2.5.0 | **Ratified**: 2026-03-20 | **Last Amended**: 2026-04-29
+**Version**: 2.5.0 | **Ratified**: 2026-03-20 | **Last Amended**: 2026-04-28

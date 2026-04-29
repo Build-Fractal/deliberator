@@ -1,0 +1,257 @@
+mode: cooperative
+output: ./
+rounds: 1
+stagnation: detect
+
+# Spec 071 self-consistency verification, per spec 067 §4.1.
+# Target: candidate v2.5.0 with v-version markers visible.
+# The amendment adds Principle XXVIII (Test-Fix Boundary Preservation)
+# after Principle XXVII; it does NOT modify any existing principle.
+# Acceptance bar: 0 ACCEPT-level findings on Principle XXVIII wording
+# specifically (per spec 071 §9). REVISE-rated findings on the SIR
+# self-assessment, the principle origin note, or the cross-reference
+# claims to Principles IX/XXIV/XXVI are addressable as revisions.
+
+target:
+  - CONSTITUTION-v2.5.0-candidate.md
+
+agents:
+  - name: wording-precision
+    prompt: |
+      You audit Principle XXVIII (Test-Fix Boundary Preservation) in
+      the candidate v2.5.0 constitution for wording precision. The
+      principle is new (added at v2.5.0 per spec 071) and inserted
+      after Principle XXVII.
+
+      For the new wording, check:
+
+      1. Are MUST/SHOULD/MAY used consistently with intent? The
+         principle uses "MUST preserve or strengthen" in the headline,
+         "MAY tighten / MAY NOT loosen" in clause 1, "MUST cite" in
+         clause 2, and "MUST classify each fix as exactly one of" in
+         clause 3. Are the strength levels calibrated? Specifically,
+         is "MAY NOT loosen" the right level — or should it be "MUST
+         NOT loosen"? RFC 2119 distinguishes these.
+      2. Are operational definitions specific enough to flag a
+         hypothetical future violating PR? Clause 1's loosening
+         examples (== → in, exact → type-only checks, "tolerated
+         alternatives without justification") — would a reviewer know,
+         from this text alone, whether a specific assertion change
+         violates the principle?
+      3. Clause 2 requires citing "the bug being skipped (issue or PR
+         number) and a remediation timeline." What counts as a
+         "remediation timeline"? "Q3 2026"? "By v2.6.0"? "When the
+         upstream library ships fix X"? Is the principle specific
+         enough to flag uncited skips, or does it leave a definitional
+         gap?
+      4. Clause 3's four categories (fixture/path drift, production
+         bug, legitimate test bug, defunct test) claim to be
+         exhaustive over legitimate test fixes. Is that exhaustiveness
+         claim correct? Specifically, where does "test was correct but
+         the framework upgrade changed the API surface" land — fixture
+         drift (the test's environment changed) or legitimate test bug
+         (the test must be rewritten for the new API)?
+      5. The principle text itself does not name `lint-test-fixes.py`,
+         the PR template addition, or the spec 067 §4.6 amendment. The
+         SIR mentions them as operational scaffolding. Is the principle
+         standalone — does it work as a constitutional invariant
+         independent of whether the scaffolding ships? Or does it
+         depend on the scaffolding to be enforceable?
+      6. Did anything slip in beyond what spec 071 §4 proposed? (Scope
+         creep check against the spec wording.)
+      7. Does the new wording introduce any internal contradiction
+         within Principle XXVIII itself?
+
+      Report findings as a list of *concrete* concerns with line
+      references. Silence is not the same as "looked but found
+      nothing" — say so explicitly if no findings.
+
+  - name: cross-principle-coherence
+    prompt: |
+      You audit how Principle XXVIII interacts with the rest of the
+      candidate v2.5.0 constitution. Spec 071 §5 claims XXVIII is
+      distinct from Principles IX (Functional Programming and Clean
+      Code, including its Behavior-over-shape extension), XXIV
+      (Safety-Critical Defense-in-Depth), and XXVI (Meta-Testing for
+      Parametrized Capabilities). The SIR's self-assessment for
+      Criterion 3 echoes that claim.
+
+      Specifically check:
+
+      1. Read Principle IX's behavior-over-shape extension carefully.
+         The extension says "an assertion that checks only field
+         presence, type, or non-null status WITHOUT also constraining
+         the value's *meaning* is a shape test." Principle XXVIII
+         clause 1 says replacing exact value matches with type-only
+         checks is loosening. Are these the same rule stated twice, or
+         do they cover different lifecycle stages (authoring vs
+         fixing)? If the same rule, XXVIII fails Criterion 3 of the
+         v2.4.0 gate. If different stages, the principle text should
+         make that lifecycle distinction explicit — does it?
+      2. Principle XXIV (Safety-Critical Defense-in-Depth) requires a
+         "contract test reproducing the failure scenario" for safety-
+         critical paths. Principle XXVIII clause 3 includes a
+         "production bug" category that says "fix the code (test stays
+         as-is)." Is XXVIII silent about whether the production bug
+         category requires adding a contract test per XXIV, or does
+         XXIV's existing requirement cover that? Is there a gap
+         between the two, or are they cleanly composable?
+      3. Principle XXVI (Meta-Testing for Parametrized Capabilities)
+         governs coverage drift. If a contributor uses XXVIII's
+         "defunct test" category to delete a test from a parametrize
+         enumeration, does that delete drop the parametrize-set
+         coverage below the meta-test's minimum? Does XXVIII need a
+         cross-reference to XXVI clarifying that "defunct test" deletes
+         that affect a capability set must update the meta-test
+         counts?
+      4. Principle V (Observable Deliberation) requires errors not to
+         be silently swallowed. Clause 2's "MUST cite the bug" — is
+         that a V-style observability requirement (the skip MUST be
+         observable to reviewers) or a different concern? Is the
+         relationship to V worth a cross-reference?
+      5. The v2.4.0 Constitutional Inclusion Criteria gate (Governance
+         section) requires every new principle proposed after v2.4.0
+         to satisfy the three criteria. The SIR claims XXVIII passes
+         all three. Read the gate text and the SIR's Criterion 1/2/3
+         assessment. Does the assessment actually satisfy the gate as
+         written? Are there gaps where the SIR claims PASS but the
+         gate text would require more evidence?
+
+      Report contradictions and tensions concretely with line
+      numbers and exact quotes.
+
+  - name: pr-evidence-grounding
+    prompt: |
+      Spec 071's §1 and §4 anchor Principle XXVIII in PR #42 (the
+      2026-04-28 fix for engine/handlers.py import shadowing and
+      quality-floor path drift). The principle's *Origin* note in the
+      candidate constitution echoes this: "spec-045 verification
+      surfaced 95 failing tests; investigation found 1 production bug
+      (engine/handlers.py import shadowing — PR #42) hiding behind
+      ~70 mechanical failures and 3 genuine production gaps."
+
+      You cannot verify these claims against PR #42 itself from the
+      constitution text alone. Your task: identify what evidence WOULD
+      be needed to validate the *Origin* claim and the SIR rationale,
+      and flag the wording as "evidence-pending" if the check has not
+      been performed.
+
+      Specifically:
+
+      1. The principle's Origin note makes empirical claims (95
+         failing tests, 1 production bug, ~70 mechanical fixture-path
+         drifts, 3 genuine gaps). Are these claims testable against
+         the actual PR #42 diff and commit history? List what would
+         have to be checked to validate them.
+      2. The SIR rationale claims "the user's binding instruction:
+         'if a test passes after fix, it must have real boundaries'"
+         was the framework that prevented production bugs from
+         shipping. This is a counterfactual about what would have
+         happened with a naive sweep. Is the counterfactual
+         falsifiable from the actual investigation outputs? Spec 071
+         §13 references "2026-04-28 4-subagent investigation outputs"
+         (Cat A/B/C/D) as the supporting evidence; if those outputs
+         do not exist in the repo, the counterfactual is unprovable
+         and the principle's anchoring weakens.
+      3. The SIR's Criterion 1 assessment claims `scripts/lint-test-
+         fixes.py` "provides AST-diff heuristics" sufficient to
+         satisfy the gate's mechanical-verification requirement. The
+         script does not exist yet (per spec 071 §6, it is a follow-up
+         PR). Is the gate satisfied by a contract for a script, or
+         does it require the script to ship in the same PR as the
+         principle?
+      4. Are there spec references (045, 067, 069) that should be
+         consulted to confirm or refute the SIR's claims? Does the
+         SIR cite them correctly?
+
+      Report the evidence gap explicitly. The arbiter will rule on
+      whether to require the check before merge or to defer it.
+
+  - name: devils-advocate
+    preset: devils-advocate
+    prompt: |
+      You audit Principle XXVIII from the strongest contrarian
+      position. Argue that the principle is not ready for
+      constitutional ratification.
+
+      Specifically:
+
+      1. The principle is anchored in a single case study (PR #42).
+         One-data-point principles risk overfitting to the
+         circumstances of their origin. Argue that XXVIII either (a)
+         needs a second case study before ratification, or (b) is
+         already adequately covered by Principle IX's behavior-over-
+         shape extension and a contributor norm.
+      2. The principle's enforcement is layered (principle + PR
+         template + CI lint + spec 067 §4.6). The SIR claims "three
+         layers all have to fail simultaneously for this class of
+         regression to ship." But three of those four layers (PR
+         template, CI lint, spec 067 §4.6) are operational scaffolding
+         shipped in follow-up PRs, NOT in this amendment. If the
+         scaffolding doesn't ship, only the principle exists — and
+         the principle alone is just a moral exhortation. Argue that
+         the principle is incomplete without the scaffolding and the
+         amendment is premature.
+      3. Clause 3's "test-or-bug categorization" requires every PR
+         fixing failing tests to classify each fix into one of four
+         categories. This adds friction to every test-touching PR.
+         Argue that the friction tax is high enough to encourage
+         contributors to bypass the principle (e.g., by claiming all
+         fixes are "fixture drift" without proof) and the principle
+         will erode into checklist theater.
+      4. The principle uses RFC 2119 keywords inconsistently — "MAY
+         tighten; MAY NOT loosen" for assertions, but "MUST classify"
+         for categorization. Argue this asymmetry is a wording defect
+         that should be fixed before ratification.
+      5. The SIR claims Criterion 3 (distinctness from existing
+         principles) is satisfied. Argue the strongest version of "no,
+         it isn't — Principle IX's behavior-over-shape extension
+         covers fix-time discipline as a special case of authoring
+         discipline." If you find this argument convincing, the
+         amendment fails the v2.4.0 gate.
+
+      Find the strongest argument that XXVIII as drafted should NOT
+      be ratified. If you find none, say so explicitly.
+
+arbiter:
+  name: spec-071-arbiter
+  preset: balanced-arbiter
+  prompt: |
+    You rule on findings raised by wording-precision, cross-principle-
+    coherence, pr-evidence-grounding, and devils-advocate agents
+    against the candidate v2.5.0 constitution. Your grounding document
+    is the candidate file (`CONSTITUTION-v2.5.0-candidate.md`); apply
+    the v2.4.0 Constitutional Inclusion Criteria gate as it appears in
+    that file's Governance section.
+
+    For each finding:
+
+    - **ACCEPT** (real defect in Principle XXVIII wording or in the
+      SIR self-assessment): propose the minimum corrective edit the
+      spec 071 implementer should apply before opening the
+      implementation PR.
+    - **REJECT** (false positive): explain why.
+    - **DEFER** (real but out of scope for spec 071): document what
+      would unblock and where the work belongs (typically: a follow-up
+      PR for `scripts/lint-test-fixes.py`, the PR template addition,
+      or the spec 067 §4.6 amendment).
+
+    Acceptance bar (per spec 067 §4.4 and spec 071 §9): 0 ACCEPT-level
+    findings on Principle XXVIII wording specifically. REVISE-rated
+    findings on the SIR rationale, the operational scaffolding §§6-8
+    contracts, or the cross-reference claims (Criterion 3 distinctness
+    against IX/XXIV/XXVI) are addressable as revisions and do not
+    block. ACCEPT findings on Principle XXVIII's clauses 1-3 wording
+    or its *Origin* note DO block.
+
+    Conclude with a verdict line:
+    - "SPEC-071 SELF-CONSISTENCY VERDICT: PASS" (no accepted fixes)
+    - "SPEC-071 SELF-CONSISTENCY VERDICT: PASS WITH FIXES" (fixes
+      listed; spec 071 implementation PR mergeable after they land)
+    - "SPEC-071 SELF-CONSISTENCY VERDICT: FAIL" (the amendment is
+      structurally flawed and needs reconsideration)
+
+  grounding: CONSTITUTION-v2.5.0-candidate.md
+  trigger: always
+  timing: final
+  influence: binding

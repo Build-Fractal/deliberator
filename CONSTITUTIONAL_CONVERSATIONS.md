@@ -330,3 +330,64 @@ Plus three procedural required-fixes-before-merge: append VII bilateral cross-re
 **Status**: `open` — operational follow-ups not yet filed; this entry is the canonical record of the gap analysis output.
 
 **Methodology lesson**: the v2.4.0 gate's first real test ran cleanly. 14 OPERATIONAL routings is evidence of correct calibration. Future gap analyses should expect similar distributions — most session-end concerns are operational, not constitutional.
+
+---
+
+## 2026-04-29 — spec 071: Principle XXVIII (Test-Fix Boundary Preservation) ratified with override
+
+**Type**: Amendment (with blind-verdict override)
+
+**Trigger**: spec 071 §12 acceptance criteria; v2 blind verification PASS WITH FIXES required override decision
+
+**Mode + Agents + Rounds**: cooperative, 3 agents (skeptic-mathematical, skeptic-cross-principle, practitioner) + balanced-arbiter, 1 round, run twice (blind v1 + blind v2). Self-consistency run separately with 4 agents + balanced-arbiter.
+
+**Outputs**: [`deliberations/071-self-consistency-2026-04-28/`](deliberations/071-self-consistency-2026-04-28/), [`deliberations/071-blind-2026-04-28/`](deliberations/071-blind-2026-04-28/) (v1), [`deliberations/071-blind-v2-2026-04-29/`](deliberations/071-blind-v2-2026-04-29/) (v2)
+
+**Specs referenced**: spec 071 (proposing), spec 067 (verification methodology), spec 069 (Constitutional Inclusion Criteria gate), spec 045 (originating coverage verification, now in `specs/done/`)
+
+**PRs referenced**: PR #42 (case study — `find_project_root` import shadowing fix; merged 2026-04-28; verified merged with claimed content via `gh pr view 42`)
+
+**Outcome**: **Amendment landed** — `CONSTITUTION.md` v2.4.0 → v2.5.0, Principle XXVIII added.
+
+**Status**: `open` — pending three follow-up implementation PRs (PR template addition per spec 071 §7, lint-test-fixes.py per §6, spec 067 §4.6 amendment per §8).
+
+### What happened
+
+Spec 071 proposed Principle XXVIII codifying test-fix discipline, motivated by the 2026-04-28 PR #42 case study where a 4-subagent investigation surfaced 1 production bug + ~70 mechanical failures that a naive sweep would have buried. Per spec 067 §4, both self-consistency AND blind verification ran on the candidate constitution.
+
+**Self-consistency (2026-04-28)**: PASS WITH FIXES (4 disputes — evidence validation, criteria interpretation ambiguity, three-part justification criteria, AST-diff specification). All fixes addressed in v2 or absorbed by other v2 changes.
+
+**Blind v1 (2026-04-28)**: "move XXVIII to operational guidance" — three rulings: (a) clause 1 "assertion fidelity" duplicates Principle IX's behavior-over-shape extension (Criterion 3 distinctness fail); (b) format-checking categorization presence ≠ substantive verification (Criterion 1 fail); (c) RFC 2119 "MAY NOT" non-conformant.
+
+**v1 → v2 revision (2026-04-29)**: dropped clause 1 (deferred to IX), strengthened clause 3 with diff-shape consistency check (the lint reads category claim and verifies against actual diff shape), fixed RFC 2119 by removing "MAY NOT" with the dropped clause.
+
+**Blind v2 (2026-04-29)**: PASS WITH FIXES — three further rulings: (1) focus XXVIII on skip discipline only; drop categorization framework + headline behavioral preservation claim; (2) replace 4-category taxonomy with binary safety-critical vs non-safety-critical (derive from XXIV); (3) no emergency-bypass provisions.
+
+### Override-with-rationale
+
+Rulings 1 and 2 of the blind v2 verdict were overridden. Ruling 3 was N/A — v2 never proposed emergency-bypass provisions.
+
+**Override of ruling 1 (focus on skip discipline only)**: the arbiter's reasoning — "categorization with diff-shape check has acknowledged residuals, therefore belongs in operational guidance" — applies a strict reading that, if applied uniformly, would shrink Principle IX's behavior-over-shape extension as well (which has analogous acknowledged residuals — "looks like loosening to AST diff" appears in IX's prose). Diff-shape consistency IS substantively verifying for the dominant failure mode the principle is designed to catch: a production-source edit incompatible with a "fixture drift" label is structurally detectable, which is exactly what the PR #42 case study would have produced under a naive-sweep label. The residual (a "fixture drift" claim with only test-file edits that is actually a "legitimate test bug" miscategorized) is honestly acknowledged in clause 2's text. Removing categorization entirely would render XXVIII unable to address its motivating incident; the operational scaffolding (PR template + lint) without a constitutional anchor decays into checklist-no-one-reads territory over time.
+
+**Override of ruling 2 (binary safety-critical reframe)**: the arbiter proposed reframing categorization as binary safety-critical vs non-safety-critical (deriving the safety-critical definition from Principle XXIV). This solves a different problem — blast radius — than what XXVIII's originating incident (categorization-mode miscategorization) requires. A "production bug" miscategorized as "fixture drift" can occur on a non-safety-critical path and still hide a regression; reframing to safety-criticality leaves that failure mode unaddressed. The proposed reframe is a creative but orthogonal principle that does not displace the four-category framework's specific value.
+
+### Why override and not iterate
+
+Adversarial blind verification has now driven two principled refinements: v1 → v2 dropped a duplicate clause (genuine distinctness fix); v2 → v2-final further narrowing was rejected on the grounds above. Continued iteration would not converge — the arbiter's strict "acknowledged residual = operational guidance" reading, if applied uniformly, would relegate large portions of the existing constitution to operational guidance. That is a separate amendment cycle (grandfathering review per spec 069 §5), not a per-principle veto.
+
+This override is logged here as a precedent: blind verdicts are weighted heavily but not absolute; uniform-application stress-tests are a legitimate override criterion when the same standard would shrink existing ratified principles.
+
+### Acceptance bar disposition
+
+Spec 071 §9 set "0 ACCEPT findings on principle wording" as the bar. Self-consistency: 4 ACCEPT, all addressed in v2. Blind v1: 3 ACCEPT, all addressed in v2. Blind v2: 3 ACCEPT, of which 2 overridden with rationale logged here, 1 N/A. The bar is met substantively for v2 as ratified.
+
+### Follow-up TODOs (per spec 071 §12)
+
+1. PR adding `.github/pull_request_template.md` with the structured machine-readable category marker.
+2. PR adding `scripts/lint-test-fixes.py` with the skip-citation regex check + diff-shape consistency check.
+3. PR amending `specs/067-verification-methodology/spec.md` with §4.6 codifying the 4-subagent investigation pattern as the canonical first response when verification surfaces failing tests.
+4. Memory entry recording the override-precedent (the "uniform-application stress-test" criterion) for future amendment cycles.
+
+### Methodology lesson
+
+Adversarial blind review is rate-limited by uniform-application of its own standards. When a blind judge applies a standard whose uniform application would shrink existing ratified principles, the override-with-rationale pathway is the correct response — not continued iteration that would never converge, and not "demote the principle" that would silently embed asymmetric standards across the constitution. The override must be logged with the specific uniformity argument that justifies it; future amendments can cite this precedent or distinguish it.
