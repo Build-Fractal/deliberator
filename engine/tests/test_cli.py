@@ -396,6 +396,68 @@ class TestDecideCommand:
         assert result.exit_code == 0
         assert "quality indicators" in result.output.lower()
 
+    def test_decide_model_flag_propagates_to_run_engine(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """``decide --model X`` threads the value through to ``run_engine``.
+
+        Regression test for PR #52 Bug 3c (decide gained ``--model``).
+        Ensures a future click-stack refactor or ``run_engine`` signature
+        change cannot silently drop the kwarg without a test failure.
+
+        Tracks issue #55.
+        """
+        captured: dict[str, object] = {}
+
+        async def fake_run_engine(**kwargs: object) -> list[Path]:
+            captured.update(kwargs)
+            return []  # decide's downstream rendering tolerates an empty list
+
+        monkeypatch.setattr("engine.run.run_engine", fake_run_engine)
+        runner = CliRunner()
+        runner.invoke(
+            cli,
+            [
+                "decide",
+                "Should we test this?",
+                "--provider",
+                "mock",
+                "--model",
+                "claude-3-5-haiku-20241022",
+            ],
+        )
+        assert captured.get("model") == "claude-3-5-haiku-20241022", (
+            f"--model failed to propagate: kwarg was {captured.get('model')!r} "
+            f"(full captured kwargs: {captured})"
+        )
+
+    def test_decide_no_model_flag_propagates_none(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """``decide`` without ``--model`` passes ``model=None`` to
+        ``run_engine``, signaling "use the provider's default."
+
+        Companion to ``test_decide_model_flag_propagates_to_run_engine``.
+        Confirms the absence of the flag is communicated explicitly rather
+        than via a hardcoded fallback at the CLI layer.
+        """
+        captured: dict[str, object] = {}
+
+        async def fake_run_engine(**kwargs: object) -> list[Path]:
+            captured.update(kwargs)
+            return []
+
+        monkeypatch.setattr("engine.run.run_engine", fake_run_engine)
+        runner = CliRunner()
+        runner.invoke(
+            cli,
+            ["decide", "Should we test this?", "--provider", "mock"],
+        )
+        assert "model" in captured, f"model kwarg not passed at all (captured: {captured})"
+        assert captured["model"] is None, (
+            f"expected model=None when --model omitted; got {captured['model']!r}"
+        )
+
     def test_decide_no_ansi_in_piped_output(self) -> None:
         """Piped output from decide contains no ANSI escape codes.
 
