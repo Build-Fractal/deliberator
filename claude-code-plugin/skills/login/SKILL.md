@@ -9,7 +9,7 @@ Authenticate with a model provider so conversus can use it. Supports OAuth PKCE 
 ## Step 0: Check installation
 
 ```bash
-conversus --version 2>/dev/null || echo "NOT_INSTALLED"
+command -v conversus >/dev/null 2>&1 || echo "NOT_INSTALLED"
 ```
 
 If `NOT_INSTALLED`, stop and tell the user to install:
