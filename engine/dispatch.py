@@ -50,6 +50,47 @@ DEFAULT_MAX_TOKENS = 16384
 
 
 # ---------------------------------------------------------------------------
+# Fail-fast detection for provider error strings returned as agent content.
+# ---------------------------------------------------------------------------
+#
+# Some provider transports (notably the claude-code subprocess against an
+# OAuth session that lacks access to the requested model) return their error
+# message as the assistant's response text rather than as a structured error.
+# Without this guard, the engine writes the error string into every per-agent
+# artifact, the pipeline "completes" all 5 phases, and the user sees a
+# successful-looking deliberation built entirely on the same error message.
+#
+# Patterns must be specific enough not to false-positive on legitimate
+# discussions of LLM error handling. The substring is matched
+# case-insensitively against the leading 1KB of the response.
+
+PROVIDER_PASSTHROUGH_ERROR_PATTERNS: tuple[str, ...] = (
+    # claude-code OAuth: model id not reachable by the session
+    "there's an issue with the selected model",
+)
+
+
+class FatalProviderResponseError(Exception):
+    """Raised when a provider returns an error message in place of agent
+    content. Aborts the pipeline so the error doesn't propagate silently
+    into the synthesis as if it were valid deliberation output.
+    """
+
+
+def _detect_provider_passthrough_error(content: str | None) -> str | None:
+    """Return the matched pattern if *content* looks like a provider error
+    string masquerading as agent output, else ``None``.
+    """
+    if not content:
+        return None
+    head = content[:1000].lower()
+    for pattern in PROVIDER_PASSTHROUGH_ERROR_PATTERNS:
+        if pattern in head:
+            return pattern
+    return None
+
+
+# ---------------------------------------------------------------------------
 # ModelProvider → ExecutionProvider adapter (spec 042 Phase 2.2)
 # ---------------------------------------------------------------------------
 
@@ -317,6 +358,29 @@ async def dispatch_agent(
 
     if result.success:
         response_text = result.content or ""
+
+        # Fail-fast: if the provider returned an error message in place of
+        # agent content (e.g., claude-code OAuth on an unreachable model),
+        # surface it loudly rather than writing the error string into the
+        # artifact and letting the pipeline synthesize stub deliberation.
+        matched = _detect_provider_passthrough_error(response_text)
+        if matched is not None:
+            error_msg = (
+                f"Provider returned error message in place of agent response "
+                f"(matched pattern: {matched!r}). Verify the configured model "
+                f"is reachable from this session. First 500 chars: "
+                f"{response_text.strip()[:500]}"
+            )
+            emitter.emit(AgentCompleted(
+                phase=phase,
+                agent_name=agent_name,
+                success=False,
+                error=error_msg,
+                duration_ms=duration_ms,
+                timestamp=datetime.now(timezone.utc),
+            ))
+            raise FatalProviderResponseError(error_msg)
+
         emitter.emit(AgentCompleted(
             phase=phase,
             agent_name=agent_name,
@@ -453,6 +517,11 @@ async def dispatch_phase(
     output: list[tuple[str, str, str | None]] = []
     for i, result in enumerate(results):
         agent_name = agents[i][0]
+        if isinstance(result, FatalProviderResponseError):
+            # Provider returned an error string as agent content. Abort the
+            # whole pipeline rather than letting it propagate as valid
+            # deliberation output.
+            raise result
         if isinstance(result, BaseException):
             # Unexpected exception that wasn't caught by dispatch_agent
             output.append((agent_name, "", f"Unhandled: {type(result).__name__}: {result}"))

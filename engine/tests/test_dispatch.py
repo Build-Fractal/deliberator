@@ -7,7 +7,13 @@ from collections.abc import AsyncIterator
 
 import pytest
 
-from engine.dispatch import DEFAULT_MAX_TOKENS, DEFAULT_MODEL, dispatch_agent, dispatch_phase
+from engine.dispatch import (
+    DEFAULT_MAX_TOKENS,
+    DEFAULT_MODEL,
+    FatalProviderResponseError,
+    dispatch_agent,
+    dispatch_phase,
+)
 from engine.events import (
     AgentCompleted,
     AgentDispatched,
@@ -211,6 +217,97 @@ class TestDispatchPhase:
 
         # 3 agents × 50ms each = 150ms sequential; should be ~50ms concurrent
         assert elapsed < 0.15, f"Took {elapsed:.3f}s — agents may not be concurrent"
+
+
+# ---------------------------------------------------------------------------
+# Fail-fast on provider error strings returned as agent content (Bug 3a)
+# ---------------------------------------------------------------------------
+
+
+class TestFailFastOnProviderPassthroughError:
+    """When a provider returns an error string as the assistant's response
+    text (rather than raising), dispatch must abort the pipeline rather
+    than silently writing the error string into the agent artifact and
+    producing stub deliberation.
+    """
+
+    _ERROR_TEXT = (
+        "There's an issue with the selected model "
+        "(claude-sonnet-4-20250514). It may not exist or you may not have "
+        "access to it. Run --model to pick a different model."
+    )
+
+    @pytest.mark.asyncio
+    async def test_dispatch_agent_raises_on_passthrough_error(
+        self,
+        event_collector: tuple[CallbackEmitter, list[EngineEvent]],
+    ) -> None:
+        emitter, events = event_collector
+        provider = MockProvider(response_text=self._ERROR_TEXT)
+
+        with pytest.raises(FatalProviderResponseError) as exc_info:
+            await dispatch_agent(
+                prompt="Review this spec.",
+                agent_name="agent-a",
+                model=DEFAULT_MODEL,
+                max_tokens=DEFAULT_MAX_TOKENS,
+                provider=provider,
+                emitter=emitter,
+            )
+
+        # Diagnostic must name the matched pattern and include the response
+        # body so an operator can see exactly what came back.
+        msg = str(exc_info.value)
+        assert "there's an issue with the selected model" in msg.lower()
+        assert "Run --model" in msg or "--model" in msg
+
+        # AgentCompleted should record the failure — not a successful turn.
+        completed = [e for e in events if isinstance(e, AgentCompleted)]
+        assert len(completed) == 1
+        assert completed[0].success is False
+
+    @pytest.mark.asyncio
+    async def test_dispatch_phase_aborts_on_passthrough_error(
+        self,
+        event_collector: tuple[CallbackEmitter, list[EngineEvent]],
+    ) -> None:
+        """dispatch_phase must re-raise so the pipeline halts loudly
+        instead of returning an all-failed result that synthesizes nothing.
+        """
+        emitter, events = event_collector
+        provider = MockProvider(response_text=self._ERROR_TEXT)
+        agents = [
+            ("agent-a", "Prompt A"),
+            ("agent-b", "Prompt B"),
+        ]
+
+        with pytest.raises(FatalProviderResponseError):
+            await dispatch_phase(
+                agents=agents,
+                model=DEFAULT_MODEL,
+                max_tokens=DEFAULT_MAX_TOKENS,
+                provider=provider,
+                emitter=emitter,
+            )
+
+    @pytest.mark.asyncio
+    async def test_clean_response_does_not_trigger(
+        self,
+        mock_provider: MockProvider,
+        event_collector: tuple[CallbackEmitter, list[EngineEvent]],
+    ) -> None:
+        """Sanity check: normal responses are not falsely flagged."""
+        emitter, _ = event_collector
+        text, error = await dispatch_agent(
+            prompt="Review this.",
+            agent_name="agent-a",
+            model=DEFAULT_MODEL,
+            max_tokens=DEFAULT_MAX_TOKENS,
+            provider=mock_provider,
+            emitter=emitter,
+        )
+        assert error is None
+        assert text
 
 
 # ---------------------------------------------------------------------------

@@ -257,6 +257,7 @@ Examples:
     ),
     help="Deliberation mode (default: cooperative).",
 )
+@click.option("--model", default=None, help="Override the LLM model identifier.")
 @click.option(
     "--output",
     "output_dir",
@@ -271,7 +272,7 @@ Examples:
     type=click.Choice(["rich", "json"], case_sensitive=False),
     help="Output format (default: rich).",
 )
-def decide(question: str, provider: str, mode: str, output_dir: Path | None, output_format: str) -> None:
+def decide(question: str, provider: str, mode: str, model: str | None, output_dir: Path | None, output_format: str) -> None:
     """Run an ad-hoc deliberation on a natural-language question.
 
     Generates a temporary conversus config using pragmatist + devils-advocate
@@ -322,6 +323,7 @@ def decide(question: str, provider: str, mode: str, output_dir: Path | None, out
                 run_engine(
                     config_path=config_path.resolve(),
                     provider_name=provider,
+                    model=model,
                     emitter=rich_emitter,
                 )
             )
