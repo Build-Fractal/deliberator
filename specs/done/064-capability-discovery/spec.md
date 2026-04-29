@@ -2,7 +2,7 @@
 
 **Feature ID**: `064-capability-discovery`
 **Created**: 2026-04-18
-**Status**: Draft v2 — post-deliberation revisions applied; ready for implementation
+**Status**: Implemented 2026-04-29 (closed via PR #2 spec 064 discovery primitive + PR #4 spec 064.1 runtime registration). All 13 acceptance criteria covered by 18 tests in `conversus/registry/tests/`. Moved to `specs/done/`.
 **Depends On**: `055-capability-registry.md`
 **Governed by**: `CONSTITUTION.md` principle IX (no module-level mutable state), XI (single source of truth)
 **Originating context**: `payer-index-mono/deliberations/conversus-divergence/entrypoint-verification.md` (W0.2 of the divergence consolidation SPEC.md found the entry-point discovery the SPEC presumed does not exist)
