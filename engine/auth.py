@@ -1,20 +1,27 @@
 """Credential storage, OAuth PKCE flows, and provider resolution.
 
 Provides:
-- ``CredentialStore``: per-provider token persistence in ``~/.conversus/auth.json``
+- ``CredentialStore``: per-provider token persistence in ``~/.conversus/credentials/{provider}.json``
 - ``login`` / ``logout`` / ``get_credentials`` / ``refresh_token``: OAuth lifecycle
 - ``resolve_provider``: factory that maps provider name + credentials → ``ModelProvider``
+
+Spec 057 SC-004: each provider's credentials live in their own file under
+``~/.conversus/credentials/`` rather than the legacy monolithic
+``~/.conversus/auth.json``. ``CredentialStore`` lazily migrates from the legacy
+file on first read so existing OAuth users keep working with no manual action.
+The legacy file is preserved on disk after migration (users can ``rm`` it
+themselves); writes never touch it.
 """
 
 from __future__ import annotations
 
 import base64
+import errno
 import hashlib
 import json
 import logging
 import os
 import secrets
-import stat
 import time
 import webbrowser
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -27,6 +34,19 @@ import click
 import httpx
 
 from engine.providers import MockProvider, ModelProvider, ProviderError
+
+# fcntl is POSIX-only — wrap import for Windows support.
+# TODO: cross-platform locking (msvcrt.locking or portalocker) when Windows is
+# supported as a first-class target. For now, Windows skips locking — atomic
+# replace still guarantees the final file is consistent, only concurrent writers
+# may race on the *.tmp filename.
+try:
+    import fcntl  # type: ignore[import-not-found]
+
+    _HAS_FCNTL = True
+except ImportError:  # pragma: no cover — Windows
+    fcntl = None  # type: ignore[assignment]
+    _HAS_FCNTL = False
 
 logger = logging.getLogger("conversus.auth")
 
@@ -62,7 +82,87 @@ OAUTH_CONFIGS: dict[str, dict[str, str]] = {
 }
 
 DEFAULT_AUTH_PATH = Path.home() / ".conversus" / "auth.json"
+DEFAULT_CREDENTIALS_DIR = Path.home() / ".conversus" / "credentials"
 CALLBACK_TIMEOUT = 120  # seconds
+
+
+# ---------------------------------------------------------------------------
+# Atomic write helper
+# ---------------------------------------------------------------------------
+
+
+def _flock_with_timeout(fd: int, timeout_ms: int = 200) -> None:
+    """Acquire ``LOCK_EX`` non-blocking on *fd*, retrying up to *timeout_ms*.
+
+    Per the spec 057 SC-004 deliberation verdict
+    (``deliberations/057-sc4-migration-strategy-2026-04-30/arbitration/resolution.md``)
+    writes to a per-provider credential file must use a non-blocking, bounded
+    file lock. Two ``conversus`` invocations writing the same provider at the
+    same time should serialize, not interleave; the bounded timeout prevents a
+    crashed/hung writer from indefinitely blocking the second writer.
+
+    No-op on platforms without ``fcntl`` (Windows). The atomic ``os.replace``
+    still guarantees the final file is consistent — concurrent writers there
+    may race only on the ``.tmp`` filename.
+    """
+    if not _HAS_FCNTL:
+        return
+    deadline = time.monotonic() + (timeout_ms / 1000.0)
+    while True:
+        try:
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            return
+        except BlockingIOError:
+            if time.monotonic() >= deadline:
+                raise BlockingIOError(
+                    errno.EWOULDBLOCK,
+                    f"Could not acquire credential file lock within {timeout_ms}ms",
+                )
+            time.sleep(0.01)
+
+
+def _atomic_write_json(path: Path, data: dict[str, Any], mode: int = 0o600) -> None:
+    """Write *data* to *path* atomically with restrictive permissions.
+
+    Writes to ``{path}.tmp`` first (opened with ``O_TRUNC`` semantics via
+    Python's ``"w"`` mode — see verdict §"O_TRUNC over O_EXCL"), acquires a
+    bounded ``fcntl.LOCK_EX`` lock for concurrency safety, sets ``mode`` on
+    the tmp file *before* the rename (so the file is never world-readable in
+    plaintext, even briefly), then ``os.replace`` to swap into place. Survives
+    a crash mid-write — the final path either holds the previous contents or
+    the new ones, never a partial JSON document. If any error occurs between
+    open and replace, the ``.tmp`` file is removed in ``finally``.
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        path.parent.chmod(0o700)
+    except OSError:
+        # Some filesystems / mocks may reject chmod on the parent; the
+        # per-file mode below is the load-bearing protection.
+        pass
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    payload = json.dumps(data, indent=2)
+    try:
+        # ``"w"`` opens with O_TRUNC (Python's default for text-write) — per
+        # verdict, preferred over O_EXCL because the .tmp slot may legitimately
+        # exist from a prior crashed write and overwriting it is safe.
+        with open(tmp, "w", encoding="utf-8") as f:
+            _flock_with_timeout(f.fileno(), timeout_ms=200)
+            f.write(payload)
+            f.flush()
+            os.fsync(f.fileno())
+            # chmod must happen before replace so the swapped-in file is never
+            # world-readable in plaintext, even briefly.
+            os.chmod(tmp, mode)
+        # Lock released implicitly when the file descriptor closed above.
+        os.replace(tmp, path)
+    except Exception:
+        if tmp.exists():
+            try:
+                tmp.unlink()
+            except OSError:
+                pass
+        raise
 
 
 # ---------------------------------------------------------------------------
@@ -71,16 +171,53 @@ CALLBACK_TIMEOUT = 120  # seconds
 
 
 class CredentialStore:
-    """Read/write per-provider OAuth tokens in ``~/.conversus/auth.json``.
+    """Read/write per-provider OAuth tokens in ``~/.conversus/credentials/``.
 
-    The JSON file is ``chmod 600`` after every write to protect secrets.
+    Each provider lives in its own file at ``{credentials_dir}/{provider}.json``
+    holding only that provider's credential dict (not a nested
+    ``{provider: dict}`` mapping). Files are written atomically and ``chmod
+    600``-ed before the rename to keep secrets unreadable to other users.
+
+    The legacy monolithic ``~/.conversus/auth.json`` is read on a fallback path:
+    if a per-provider file is missing on first ``get()``, the credentials are
+    lazily migrated from the legacy file (if present) to the per-provider
+    location. The legacy file is preserved on disk afterward.
+
+    ``path`` parameter is preserved for backwards compatibility with code that
+    used to override the legacy auth file path. It still controls where the
+    legacy file is read from for migration purposes.
     """
 
-    def __init__(self, path: Path | None = None) -> None:
+    def __init__(
+        self,
+        path: Path | None = None,
+        *,
+        credentials_dir: Path | None = None,
+    ) -> None:
+        # ``path`` keeps the legacy keyword argument name some callers
+        # (CLI tests, integration tests, older docs) still use. It now refers
+        # solely to the legacy auth.json read path used during lazy migration.
         self.path = path or DEFAULT_AUTH_PATH
+        self._credentials_dir_override = credentials_dir
 
-    def _read_all(self) -> dict[str, Any]:
-        """Read the entire auth file, returning {} if missing or invalid."""
+    @property
+    def credentials_dir(self) -> Path:
+        """Directory holding per-provider credential files.
+
+        Resolved lazily so monkeypatching ``DEFAULT_CREDENTIALS_DIR`` (mirrors
+        how existing tests monkeypatch ``DEFAULT_AUTH_PATH``) works without
+        re-instantiating the store.
+        """
+        if self._credentials_dir_override is not None:
+            return self._credentials_dir_override
+        return DEFAULT_CREDENTIALS_DIR
+
+    def _credential_path(self, provider: str) -> Path:
+        """Return ``{credentials_dir}/{provider}.json``."""
+        return self.credentials_dir / f"{provider}.json"
+
+    def _read_legacy_all(self) -> dict[str, Any]:
+        """Read the legacy ``auth.json``, returning ``{}`` if missing or invalid."""
         if not self.path.exists():
             return {}
         try:
@@ -88,33 +225,155 @@ class CredentialStore:
         except (json.JSONDecodeError, OSError):
             return {}
 
-    def _write_all(self, data: dict[str, Any]) -> None:
-        """Write the full data dict and set restrictive permissions."""
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        self.path.write_text(json.dumps(data, indent=2), encoding="utf-8")
-        self.path.chmod(stat.S_IRUSR | stat.S_IWUSR)  # 600
+    def _read_provider_file(self, provider: str) -> dict[str, Any] | None:
+        """Read a per-provider file, returning ``None`` if missing or invalid."""
+        cred_path = self._credential_path(provider)
+        if not cred_path.exists():
+            return None
+        try:
+            return json.loads(cred_path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            return None
 
     def get(self, provider: str) -> dict[str, Any] | None:
-        """Return stored credentials for *provider*, or ``None``."""
-        data = self._read_all()
-        return data.get(provider)
+        """Return stored credentials for *provider*, or ``None``.
 
-    def save(self, provider: str, credentials: dict[str, Any]) -> None:
-        """Persist *credentials* under *provider*, merging with existing data."""
-        data = self._read_all()
-        data[provider] = credentials
-        self._write_all(data)
+        Reads the per-provider file first. If the per-provider file is missing
+        but the legacy ``auth.json`` contains the provider, lazily migrates the
+        credentials to the new location before returning. The legacy file is
+        not touched.
+        """
+        per_provider = self._read_provider_file(provider)
+        if per_provider is not None:
+            return per_provider
+
+        # Per-provider file missing — fall back to legacy auth.json and migrate.
+        # DEBUG-level so quiet by default but visible to anyone investigating
+        # an unexpected migration. Stateless — fires every fallback (verdict
+        # §"DEBUG fallback log").
+        logger.debug(
+            "credentials/%s.json not found; reading from legacy auth.json. "
+            "Run 'conversus migrate-credentials' to migrate.",
+            provider,
+        )
+        legacy = self._read_legacy_all()
+        legacy_creds = legacy.get(provider)
+        if legacy_creds is None:
+            return None
+
+        # Lazy-migrate: write to per-provider file but leave auth.json alone.
+        try:
+            _atomic_write_json(self._credential_path(provider), legacy_creds)
+        except OSError as exc:
+            # If migration write fails (read-only fs, etc.) we still want the
+            # caller to receive the credentials — degrade gracefully.
+            logger.warning(
+                "Lazy migration for %s failed (%s); returning legacy creds without persisting.",
+                provider,
+                exc,
+            )
+        return legacy_creds
+
+    def set(self, provider: str, credentials: dict[str, Any]) -> None:
+        """Persist *credentials* to the per-provider file.
+
+        Writes are atomic (tmp + ``os.replace``) and the resulting file is
+        ``chmod 600``. The legacy ``auth.json`` is never touched.
+        """
+        _atomic_write_json(self._credential_path(provider), credentials)
+
+    # ``save`` is preserved as an alias so internal callers (login flows,
+    # refresh_token, OAuth provider implementations) and existing tests keep
+    # working without churn. ``set`` is the spec-mandated name.
+    save = set
 
     def delete(self, provider: str) -> None:
-        """Remove credentials for a single *provider*."""
-        data = self._read_all()
-        data.pop(provider, None)
-        self._write_all(data)
+        """Remove the per-provider file for *provider*.
+
+        Does not touch the legacy ``auth.json`` — users can ``rm`` it manually
+        once they're confident the migration succeeded.
+        """
+        cred_path = self._credential_path(provider)
+        if cred_path.exists():
+            cred_path.unlink()
 
     def clear(self) -> None:
-        """Delete the entire auth file."""
+        """Delete every per-provider file and the legacy ``auth.json``.
+
+        Used by ``logout --all``-style operations. ``clear`` is the only
+        method that touches the legacy file, because the user has explicitly
+        asked to remove all credentials.
+        """
+        if self.credentials_dir.exists():
+            for entry in self.credentials_dir.iterdir():
+                if entry.is_file() and entry.suffix == ".json":
+                    try:
+                        entry.unlink()
+                    except OSError:
+                        pass
         if self.path.exists():
-            self.path.unlink()
+            try:
+                self.path.unlink()
+            except OSError:
+                pass
+
+    def list_providers(self) -> list[str]:
+        """Return the union of providers with a per-provider file or a legacy entry."""
+        providers: set[str] = set()
+        if self.credentials_dir.exists():
+            for entry in self.credentials_dir.iterdir():
+                if entry.is_file() and entry.suffix == ".json":
+                    providers.add(entry.stem)
+        legacy = self._read_legacy_all()
+        providers.update(legacy.keys())
+        return sorted(providers)
+
+
+# ---------------------------------------------------------------------------
+# Startup migration sweep (spec 057 SC-004 verdict)
+# ---------------------------------------------------------------------------
+
+
+def log_unmigrated_credentials_sweep() -> None:
+    """Diff legacy ``auth.json`` against ``credentials/`` files; log if any unmigrated.
+
+    Stateless. Fires once per CLI invocation (wired into the ``cli`` group
+    callback). No sentinel file, no in-memory dedup — re-running the CLI is
+    the only way to re-emit, so the sweep can't drift out of sync with disk
+    state. Per spec 057 SC-004 deliberation verdict 2026-04-30
+    (``deliberations/057-sc4-migration-strategy-2026-04-30/arbitration/resolution.md``).
+
+    Best-effort: any I/O error (auth.json unreadable, credentials dir missing)
+    fails silent. The sweep is observability, not a precondition.
+    """
+    try:
+        legacy_path = DEFAULT_AUTH_PATH
+        if not legacy_path.exists():
+            return
+        try:
+            legacy_data = json.loads(legacy_path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            return
+        if not isinstance(legacy_data, dict) or not legacy_data:
+            return
+        legacy_providers = set(legacy_data.keys())
+
+        migrated: set[str] = set()
+        cred_dir = DEFAULT_CREDENTIALS_DIR
+        if cred_dir.exists():
+            for entry in cred_dir.iterdir():
+                if entry.is_file() and entry.suffix == ".json":
+                    migrated.add(entry.stem)
+
+        unmigrated = sorted(legacy_providers - migrated)
+        if unmigrated:
+            logger.debug(
+                "Unmigrated credential providers found in auth.json: %s. "
+                "These will migrate lazily on first use.",
+                unmigrated,
+            )
+    except Exception:  # pragma: no cover — defensive, sweep must never raise
+        return
 
 
 # ---------------------------------------------------------------------------

@@ -990,6 +990,11 @@ def status_cli() -> None:
     # narrow terminal — debugging settings is the whole point of this
     # output, so truncating the path defeats the feature.
     console = Console(width=200)
+    # TODO(SC-005): display credential source per-provider in conversus status
+    # output (deferred from SC-004 per
+    # deliberations/057-sc4-migration-strategy-2026-04-30/arbitration/
+    # resolution.md — adding fields to a user-documented command interface
+    # requires its own spec).
     table = Table(title="Provider Authentication Status")
     table.add_column("Provider", style="bold")
     table.add_column("Status")

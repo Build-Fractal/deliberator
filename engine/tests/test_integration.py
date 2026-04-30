@@ -651,13 +651,19 @@ class TestProviderResolutionIntegration:
         monkeypatch.delenv("OPENAI_API_KEY", raising=False)
         monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
 
-        # Use a temp credential store with no tokens
+        # Use a temp credential store with no tokens — must override both the
+        # legacy auth.json path and the per-provider credentials dir
+        # (spec 057 SC-004) so the test can't pick up the user's real
+        # ``~/.conversus/credentials/`` contents.
         from engine.auth import CredentialStore
 
-        empty_store = CredentialStore(path=config_path.parent / ".empty_auth.json")
+        empty_store = CredentialStore(
+            path=config_path.parent / ".empty_auth.json",
+            credentials_dir=config_path.parent / ".empty_credentials",
+        )
         monkeypatch.setattr(
             "engine.auth.CredentialStore",
-            lambda path=None: empty_store,
+            lambda path=None, **_kwargs: empty_store,
         )
 
         with pytest.raises(ProviderError, match="No credentials available") as exc_info:
@@ -800,6 +806,16 @@ class TestMCPProviderResolution:
             )
 
         monkeypatch.setattr("engine.handlers.resolve_provider", _raise_no_creds)
+        # Isolate from the user's real ~/.conversus credentials so the test
+        # cannot pick up live OAuth tokens (spec 057 SC-004).
+        monkeypatch.setattr(
+            "engine.auth.DEFAULT_AUTH_PATH", tmp_path / ".empty_auth.json"
+        )
+        monkeypatch.setattr(
+            "engine.auth.DEFAULT_CREDENTIALS_DIR", tmp_path / ".empty_credentials"
+        )
+        monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+        monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
 
         from engine.config import EngineConfig, AgentConfig
 

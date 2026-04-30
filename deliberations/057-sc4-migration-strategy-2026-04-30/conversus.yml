@@ -1,0 +1,129 @@
+mode: cooperative
+output: ./
+rounds: 1
+stagnation: detect
+
+# Spec 057 SC-004 migration strategy deliberation. 2 agents + arbiter.
+# Question: how should the credential storage migration handle legacy
+# auth.json files belonging to current OAuth users? Decision points
+# Q1-Q4 listed in QUESTION.md.
+
+target:
+  - QUESTION.md
+
+agents:
+  - name: pragmatist-reviewer
+    preset: pragmatist
+    prompt: |
+      Review the SC-004 migration strategy proposal in QUESTION.md.
+
+      Evaluate the conservative strategy + the 4 decision points
+      (Q1 delete legacy / Q2 eager vs lazy / Q3 fallback duration /
+      Q4 partial-success failure mode).
+
+      Pragmatist lens: bias toward shipping with acceptable risk;
+      push back on aspirational concerns or hypothetical failure
+      modes that won't actually happen in practice.
+
+      Specifically:
+      1. Is the conservative strategy actually conservative enough?
+         Identify any hidden risks the proposal misses.
+      2. Q1: Should the legacy auth.json be deleted? Defend
+         "preserve" or "delete" with concrete reasoning grounded in
+         user impact.
+      3. Q2: Eager vs lazy migration — which has the smaller blast
+         radius? Consider: a user who has 3 providers configured
+         (Anthropic OAuth + OpenAI key in env + Gemini OAuth) —
+         what does each strategy do for them?
+      4. Q3: Time-bounded fallback creates maintenance burden;
+         permanent fallback creates legacy-debt accumulation. Pick
+         one and justify, or propose a third option.
+      5. Q4: Atomic rename via .tmp + os.rename — sufficient, or
+         is a transaction log warranted?
+
+      Return a clear directional verdict: "Ship the conservative
+      strategy as-is" OR "Modify it as follows: [list]".
+
+      Length cap: 1200 words.
+
+  - name: skeptical-reviewer
+    preset: devils-advocate
+    prompt: |
+      Review the SC-004 migration strategy proposal in QUESTION.md.
+
+      Argue for the strongest version of "this strategy will break
+      something." Specifically:
+
+      1. The conservative strategy claims to preserve user data.
+         Identify a scenario where it would silently corrupt or lose
+         credentials despite the safeguards. Be specific: name the
+         exact failure path.
+
+      2. Q1 (delete legacy): if legacy is preserved, what's the
+         attack/bug surface? E.g., a user manually edits auth.json
+         expecting it to take effect; conversus reads from the new
+         file; user is confused. Is this hypothetical or real?
+
+      3. Q2 (eager vs lazy): can either strategy create a
+         partial-state where some credentials work and others
+         silently fail? Construct the specific scenario.
+
+      4. Q3 (fallback duration): if the fallback is permanent, is
+         there an attack surface where a malicious local actor
+         writes a fake auth.json to override a per-provider file?
+         Be concrete about file permissions and ownership.
+
+      5. Q4 (partial-success): the atomic-rename pattern claims to
+         survive interrupt. What if `os.rename` fails on a network
+         filesystem (NFS, SMB)? What if the filesystem doesn't
+         support `O_TMPFILE`?
+
+      6. Are there cross-platform issues (Windows file locking,
+         macOS permissions)? Conversus runs on multiple OSes.
+
+      Be concrete and concrete-only. "Could break in some scenario"
+      is rejected; name the specific scenario.
+
+      Length cap: 1200 words.
+
+arbiter:
+  name: independent-arbiter
+  preset: balanced-arbiter
+  prompt: |
+    You are arbitrating a 2-agent review of the spec 057 SC-004
+    migration strategy. Pragmatist and skeptical reviewers have
+    raised findings.
+
+    For each finding, rule:
+    - **ACCEPT** — real risk; propose the minimum corrective edit
+      to the conservative strategy.
+    - **REJECT** — hypothetical or already mitigated.
+    - **DEFER** — real but out-of-scope for SC-004 (e.g.,
+      cross-platform file locking is its own spec).
+
+    Then issue a directional verdict on each of Q1/Q2/Q3/Q4 with
+    grounding from the conservative strategy proposal:
+
+    - Q1 verdict: delete legacy / preserve legacy / preserve with
+      explicit rm command / other
+    - Q2 verdict: eager / lazy / hybrid
+    - Q3 verdict: permanent fallback / time-bounded fallback /
+      explicit migrate command required
+    - Q4 verdict: atomic rename sufficient / transaction log needed
+      / other safety primitive
+
+    Conclude with:
+    - "REQUIRED CHANGES TO CONSERVATIVE STRATEGY" — list of ACCEPT
+      findings.
+    - "DIRECTIONAL VERDICTS" — one line each for Q1/Q2/Q3/Q4.
+    - One verdict line:
+      * "MIGRATION STRATEGY VERDICT: SHIP AS PROPOSED"
+      * "MIGRATION STRATEGY VERDICT: SHIP WITH MODIFICATIONS"
+      * "MIGRATION STRATEGY VERDICT: REWORK NEEDED"
+
+    Length cap: 800 words.
+
+  grounding: ../../CONSTITUTION.md
+  trigger: always
+  timing: final
+  influence: binding
