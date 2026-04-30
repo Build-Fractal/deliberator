@@ -31,8 +31,12 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel
+
+if TYPE_CHECKING:
+    from linter.models import InfluenceLevel
 
 
 # ---------------------------------------------------------------------------
@@ -525,8 +529,52 @@ _FALLBACK_DISPATCH: dict[str, object] = {
 }
 
 
+def _normalize_for_match(text: str) -> str:
+    """Normalize a dispute label or arbiter-addressed string for matching.
+
+    Lowercases, collapses whitespace, and strips leading list/markdown markers
+    (``-``, ``*``, ``#``) plus surrounding whitespace. Matching is intentionally
+    permissive so trivial formatting differences (extra spaces, leading dashes,
+    case) do not prevent an arbiter-addressed entry from matching its dispute.
+    """
+    stripped = text.strip()
+    # Strip leading markdown/list markers
+    while stripped and stripped[0] in {"-", "*", "#", ":", " ", "\t"}:
+        stripped = stripped[1:].lstrip()
+    # Collapse whitespace
+    return " ".join(stripped.lower().split())
+
+
+def _is_addressed(dispute: DisputeInfo, addressed: list[str]) -> bool:
+    """Return True if the dispute matches any arbiter-addressed entry.
+
+    Matching is case-insensitive and bidirectional substring: the dispute is
+    considered addressed if its normalized label contains any normalized
+    addressed-string OR any normalized addressed-string contains the dispute's
+    normalized label. This is robust to whitespace differences, leading list
+    markers, and minor formatting drift between the synthesis output and the
+    arbiter's resolution.md.
+    """
+    if not addressed:
+        return False
+    label_norm = _normalize_for_match(dispute.label)
+    if not label_norm:
+        return False
+    for entry in addressed:
+        entry_norm = _normalize_for_match(entry)
+        if not entry_norm:
+            continue
+        if entry_norm in label_norm or label_norm in entry_norm:
+            return True
+    return False
+
+
 def check_disagreement(
-    synthesis_text: str, mode: str = "cooperative"
+    synthesis_text: str,
+    mode: str = "cooperative",
+    *,
+    influence: "InfluenceLevel | None" = None,
+    arbiter_addressed: "list[str] | None" = None,
 ) -> DisagreementResult:
     """Check the substantive-disagreement quality gate.
 
@@ -538,43 +586,81 @@ def check_disagreement(
          mode-specific parser that uses the heading and entry patterns defined
          in ``schema/modes/*.yml``.
 
+    After the raw dispute list is produced, **influence-aware adjustment**
+    (spec 006 FR-009 to FR-012) optionally removes disputes the arbiter
+    already addressed:
+
+    - ``InfluenceLevel.BINDING``: disputes whose label matches an entry in
+      ``arbiter_addressed`` are removed (the arbiter's binding ruling resolves
+      them).
+    - ``InfluenceLevel.RECOMMENDED``: same removal as binding. Cross-round
+      re-opening (FR-012, when the addressed party re-raises the issue) is the
+      caller's responsibility — the function only respects what the caller
+      passes in ``arbiter_addressed``.
+    - ``InfluenceLevel.ADVISORY``: no removal (FR-011 — advisory never causes
+      early termination).
+    - ``influence is None`` (default) or ``arbiter_addressed`` empty/None: no
+      removal. Backward-compatible with pre-spec-006 behavior.
+
+    Matching strategy: case-insensitive bidirectional substring match between
+    normalized dispute labels and normalized arbiter-addressed entries
+    (whitespace collapsed, leading list markers stripped). See
+    :func:`_is_addressed` for details.
+
     Args:
         synthesis_text: Full text of the synthesis output.
         mode: Deliberation mode (``cooperative``, ``winner-take-all``,
               ``red-blue``, or ``prisoners-dilemma``).
+        influence: Optional arbiter influence level. When ``None`` (default),
+            no influence-aware adjustment is applied.
+        arbiter_addressed: Optional list of dispute identifiers/labels the
+            arbiter explicitly addressed in the prior round. When ``None`` or
+            empty, no removal occurs regardless of ``influence``.
 
     Returns:
-        DisagreementResult with ``passed=True`` if ≥1 dispute found.
+        DisagreementResult with ``passed=True`` if ≥1 (post-adjustment)
+        dispute found. ``dispute_count`` reflects the post-adjustment count.
     """
     _empty = DisagreementResult(passed=False, dispute_count=0, disputes=[])
 
     # --- Tier 1: marker-based parsing (mode-agnostic) ---
+    raw_disputes: list[DisputeInfo] = []
     block = _extract_dispute_block(synthesis_text)
     if block is not None:
-        disputes = _parse_marker_disputes(block)
-        if disputes:
-            return DisagreementResult(
-                passed=True,
-                dispute_count=len(disputes),
-                disputes=disputes,
-            )
-        # Markers present but empty/negated → no disputes
-        return _empty
+        raw_disputes = _parse_marker_disputes(block)
+        if not raw_disputes:
+            # Markers present but empty/negated → no disputes
+            return _empty
+    else:
+        # --- Tier 2: mode-specific heading-based fallback ---
+        fallback_fn = _FALLBACK_DISPATCH.get(mode)
+        if fallback_fn is None:
+            return _empty
+        raw_disputes = fallback_fn(synthesis_text)  # type: ignore[operator]
+        if not raw_disputes:
+            return _empty
 
-    # --- Tier 2: mode-specific heading-based fallback ---
-    fallback_fn = _FALLBACK_DISPATCH.get(mode)
-    if fallback_fn is None:
-        return _empty
+    # --- Influence-aware adjustment (spec 006 FR-009 to FR-012) ---
+    # Local import avoids circular-import risk and keeps the typing-only
+    # forward reference at module top.
+    from linter.models import InfluenceLevel
 
-    # All values in _FALLBACK_DISPATCH are callables that accept str
-    disputes = fallback_fn(synthesis_text)  # type: ignore[operator]
-    if not disputes:
+    adjusted = raw_disputes
+    if (
+        influence is not None
+        and arbiter_addressed
+        and influence in {InfluenceLevel.BINDING, InfluenceLevel.RECOMMENDED}
+    ):
+        adjusted = [d for d in raw_disputes if not _is_addressed(d, arbiter_addressed)]
+    # ADVISORY (and None) leave the list unchanged.
+
+    if not adjusted:
         return _empty
 
     return DisagreementResult(
         passed=True,
-        dispute_count=len(disputes),
-        disputes=disputes,
+        dispute_count=len(adjusted),
+        disputes=adjusted,
     )
 
 
