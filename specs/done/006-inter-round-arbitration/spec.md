@@ -3,7 +3,7 @@
 **Feature ID**: `006-inter-round-arbitration`
 **Created**: 2026-03-20
 **Revised**: 2026-03-21
-**Status**: **Half-shipped — reopened 2026-04-04**. Phase 1 (schema/template plumbing, config fields, dispute-parsing hooks) complete. Phase 2 (execution model — round-loop dispatch, influence-aware dispute counting, context carry-through via `prior_arbitration_path`) NOT complete. See `IMPLEMENTATION-GAP.md` for the 7-point finish-up checklist. Moved out of `done/` on 2026-04-04 after the spec 045 test coverage deliberation discovered the execution branch at `engine/phases.py:661` is unreachable.
+**Status**: Implemented 2026-04-30 — Phase 1 + Phase 2 complete (PRs #65, #66, #67, #69, this PR). Moving to specs/done/.
 **Depends On**: `001-subject-arbitration` (done), `004-universal-rounds` (done), `005-generalized-templates` (done — schema variables pre-provisioned)
 **Input**: Add an inter-round arbiter that reviews each round's synthesis and feeds decisions into the next round, with configurable influence level controlling whether rulings are binding, recommended, or advisory.
 
