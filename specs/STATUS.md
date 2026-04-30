@@ -16,9 +16,6 @@ Source of truth: each spec's Status field. This index summarizes current impleme
 ### 056 — Deliberation Persistence
 **Status**: Active 2026-04-29 (promoted from draft) — deliberation-revised, dependencies (055/057) closed, framing inverted to developer-first, workspace-scoped storage settled. Implementation-ready.
 
-### 057 — Settings Architecture
-**Status**: Reopened 2026-04-29 — moved back to active from `done/` after re-verification found 3 SCs not met: SC-001 (file format mismatch — code creates `settings.json`, spec requires `settings.yml`); SC-003 (status cascade display missing); SC-004 (credential structure — monolithic vs per-provider).
-
 ### 059 — Prompt and Skill Interface
 **Status**: Active 2026-04-29 (promoted from draft) — deliberation-amended 2026-04-13, depends on 055 (closed), 5-prompt decision final, hybrid registry integration accepted. Implementation-ready.
 
@@ -39,10 +36,10 @@ Source of truth: each spec's Status field. This index summarizes current impleme
 
 ---
 
-## Closed Specs (in `specs/done/`, 57 total)
+## Closed Specs (in `specs/done/`, 58 total)
 
 **Specs 001–069 (representative list):**  
-001-subject-arbitration, 004-preset-agents, 004-universal-rounds, 005-generalized-templates, 005-p2p3-backlog-hardening, 006-inter-round-arbitration (closed 2026-04-30 after Phase 2 — PRs #65/#66/#67/#69 + closing PR), 007-game-engine, 007-subcommand-dispatch-define, 008-executable-conversus, 008-interests-mode, 009-guided-execution, 010-antipattern-steering, 010-guided-arbitration, 011-adoption-harness, 011-phase-consensus-gates, 011a-skill-breakdown, 012-game-form-schemas, 012-spec-hygiene, 013-objective-function-templates, 014-guided-objective-construction, 015-feature-extraction, 016-plugin-system, 017-equilibrium-scorer, 018-convergence-predictor, 019-config-optimizer, 020-scenario-storage, 021-nashopt-integration, 022-kalman-convergence, 023-ampl-config-optimizer, 024-cross-plugin-interfaces, 025-game-form-expansion, 026-optimization-template-library, 027-solver-validation-flow, 028-mode-expansion, 029-code-review-domain, 030-domain-plugin-architecture, 031-docs-and-vercel-compliance, 032-package-splitting, 033-monetization-partitioning, 034-kalman-convergence-fixes, 035-plugin-framework-fixes, 036-mode-template-fixes, 037-validation-flow-fixes, 038-solver-equilibrium-fixes, 039-new-mode-payoffs, 042-execution-providers, 045-test-coverage-review, 050-cascading-settings, 052-open-source-extraction, 054-public-documentation, 055-capability-registry, 064-capability-discovery, 066-constitution-v2.3.0, 068-principle-xvi-fix, 069-mechanical-verification-gate, 998-phase-consensus-gates, 999-decision-framework.
+001-subject-arbitration, 004-preset-agents, 004-universal-rounds, 005-generalized-templates, 005-p2p3-backlog-hardening, 006-inter-round-arbitration (closed 2026-04-30 after Phase 2 — PRs #65/#66/#67/#69 + closing PR), 007-game-engine, 007-subcommand-dispatch-define, 008-executable-conversus, 008-interests-mode, 009-guided-execution, 010-antipattern-steering, 010-guided-arbitration, 011-adoption-harness, 011-phase-consensus-gates, 011a-skill-breakdown, 012-game-form-schemas, 012-spec-hygiene, 013-objective-function-templates, 014-guided-objective-construction, 015-feature-extraction, 016-plugin-system, 017-equilibrium-scorer, 018-convergence-predictor, 019-config-optimizer, 020-scenario-storage, 021-nashopt-integration, 022-kalman-convergence, 023-ampl-config-optimizer, 024-cross-plugin-interfaces, 025-game-form-expansion, 026-optimization-template-library, 027-solver-validation-flow, 028-mode-expansion, 029-code-review-domain, 030-domain-plugin-architecture, 031-docs-and-vercel-compliance, 032-package-splitting, 033-monetization-partitioning, 034-kalman-convergence-fixes, 035-plugin-framework-fixes, 036-mode-template-fixes, 037-validation-flow-fixes, 038-solver-equilibrium-fixes, 039-new-mode-payoffs, 042-execution-providers, 045-test-coverage-review, 050-cascading-settings, 052-open-source-extraction, 054-public-documentation, 055-capability-registry, 057-settings-architecture (re-closed 2026-04-30 after Phase 2 SCs — PRs #71/#72/#74), 064-capability-discovery, 066-constitution-v2.3.0, 068-principle-xvi-fix, 069-mechanical-verification-gate, 998-phase-consensus-gates, 999-decision-framework.
 
 (057 was previously here; reopened 2026-04-29 — see Active Specs above.)
 

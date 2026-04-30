@@ -2,7 +2,7 @@
 
 **Feature ID**: `057-settings-architecture`
 **Created**: 2026-04-12
-**Status**: Reopened 2026-04-29 — moved back to active from `done/` after re-verification found 3 SCs not met: SC-001 (file format mismatch — code creates `settings.json`, spec requires `settings.yml`); SC-003 (status cascade display missing — `status_cli` shows only auth credentials); SC-004 (credential structure — code stores monolithic `~/.conversus/auth.json`, spec requires per-provider files). See `engine/project.py`, `engine/handlers.py::status_cli`, `engine/auth.py` for current code state.
+**Status**: Implemented 2026-04-30 — all 3 unmet SCs closed via PR #71 (SC-003 cascade display), PR #72 (SC-001 settings.yml format), PR #74 (SC-004 per-provider credentials with deliberation-amended migration). SC-005 (credential-source display in `conversus status`) deferred to its own spec — see issue #73 + `deliberations/057-sc4-migration-strategy-2026-04-30/arbitration/resolution.md`. Moved to `specs/done/`.
 **Depends On**: `056-deliberation-persistence`, existing `conversus init` command
 **Motivated by**: spec 056 deliberation finding ("workspace-scoped persistence, not global") + analogy with `.claude/` directory convention
 
