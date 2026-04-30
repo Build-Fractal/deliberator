@@ -623,3 +623,210 @@ class TestRoundLoopParityInterRound:
             f"timing='final' must NOT populate prior_arbitration_path between "
             f"rounds (final-arb runs after the loop). Got {recorded[1]!r}."
         )
+
+
+# ===================================================================
+# FR-P2-6 / SC-007: Cross-round synthesis Resolution Attribution
+# ===================================================================
+
+
+class TestCrossRoundResolutionAttribution:
+    """FR-P2-6 / SC-007: when inter-round arbitration runs across multiple
+    rounds, the cross-round synthesis MUST receive the per-round arbitration
+    paths and rulings so its "Resolution Attribution" section can render with
+    non-empty data.
+
+    Failure mode caught: the fix at ``engine/phases.py`` accumulates
+    ``arbitration_paths`` across the round loop and passes them to
+    ``build_cross_round_synthesis_context``; if either the accumulator or
+    the call-site kwarg is dropped, the cross-round synthesis sees empty
+    ARBITRATION_PATHS / ARBITRATION_RULINGS and SC-007 fails.
+    """
+
+    def test_006_sc007_cross_round_synthesis_resolution_attribution(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Run a 2-round + arbiter (timing=inter-round) pipeline. Capture the
+        kwargs passed to ``build_cross_round_synthesis_context``. Assert:
+
+        1. ``arbitration_paths`` is non-empty and contains at least one path
+           pointing to ``round-1/arbitration/resolution.md`` (post-FR-P2-2).
+        2. ``arbitration_rulings`` is a non-empty string and references
+           Round 1 plus the actual content the arbiter wrote.
+        3. When the cooperative cross-round-synthesis template is filled
+           with the captured context, the rendered prompt contains the
+           Resolution Attribution section header AND the round-1
+           arbitration path AND the ruling content.
+        """
+        from engine import phases as _phases_mod
+        from engine.templates import (
+            build_cross_round_synthesis_context,
+            fill_template,
+            load_template,
+        )
+
+        # Spy on the context builder; record kwargs each call.
+        captured_kwargs: list[dict] = []
+        captured_contexts: list[object] = []
+        original_builder = _phases_mod.build_cross_round_synthesis_context
+
+        def spy_builder(*args: object, **kwargs: object):
+            captured_kwargs.append(dict(kwargs))
+            ctx = original_builder(*args, **kwargs)  # type: ignore[arg-type]
+            captured_contexts.append(ctx)
+            return ctx
+
+        monkeypatch.setattr(
+            _phases_mod,
+            "build_cross_round_synthesis_context",
+            spy_builder,
+        )
+
+        arbiter = _make_arbiter_config(tmp_path, timing="inter-round")
+        config = _make_multi_round_config(
+            tmp_path, rounds=2, arbiter=arbiter, stagnation="ignore",
+        )
+        # Disputes in round 1 and round 2 — keep arbitration triggering
+        # but avoid early convergence.
+        provider = _DisputeProvider([2, 1])
+        emitter, _events = _collect_events()
+
+        result = asyncio.run(
+            run_pipeline(config, provider, emitter, config_path=_config_path())
+        )
+
+        # Sanity: pipeline completed both rounds with inter-round arbitration.
+        assert result.rounds_completed == 2
+        assert result.arbitration_ran is True
+
+        # Cross-round synthesis was invoked exactly once.
+        assert len(captured_kwargs) == 1, (
+            f"Expected exactly one cross-round-synthesis context build, "
+            f"got {len(captured_kwargs)}"
+        )
+        kwargs = captured_kwargs[0]
+
+        # FR-P2-6 assertion 1: arbitration_paths is non-empty and contains
+        # the round-1 inter-round arbitration resolution path.
+        arb_paths = kwargs.get("arbitration_paths")
+        assert arb_paths, (
+            "arbitration_paths kwarg was empty/None — FR-P2-6 wiring is "
+            "broken. The accumulator in run_pipeline did not capture "
+            "Round 1's inter-round arbitration output, OR the call site "
+            "at engine/phases.py did not pass the kwarg through."
+        )
+        assert len(arb_paths) == 1, (
+            f"Expected 1 arbitration path (one inter-round gap between "
+            f"rounds 1 and 2), got {len(arb_paths)}: {arb_paths}"
+        )
+        round1_arb = arb_paths[0]
+        assert round1_arb.name == "resolution.md"
+        assert round1_arb.parent.name == "arbitration"
+        assert round1_arb.parent.parent.name == "round-1", (
+            f"Round 1 arbitration path is not under round-1/arbitration/: "
+            f"got {round1_arb}"
+        )
+        assert round1_arb.exists(), (
+            f"Round 1 arbitration path {round1_arb} does not exist; "
+            f"the accumulator captured a stale pre-retroactive-move path."
+        )
+
+        # FR-P2-6 assertion 2: arbitration_rulings is non-empty and includes
+        # a Round 1 header plus the actual content of the arbitration file.
+        arb_rulings = kwargs.get("arbitration_rulings")
+        assert isinstance(arb_rulings, str) and arb_rulings.strip(), (
+            f"arbitration_rulings must be a non-empty string, got "
+            f"{arb_rulings!r}"
+        )
+        assert "Round 1 Arbitration" in arb_rulings, (
+            f"arbitration_rulings should label content with 'Round 1 "
+            f"Arbitration'; got: {arb_rulings[:200]}"
+        )
+        # Content of the actual arbitration file should appear in rulings.
+        round1_arb_content = round1_arb.read_text(encoding="utf-8").strip()
+        assert round1_arb_content in arb_rulings, (
+            "arbitration_rulings does not contain the actual round-1 "
+            "arbitration file content; the loader in run_pipeline is not "
+            "reading the file before passing to the context builder."
+        )
+
+        # FR-P2-6 assertion 3: filling the cooperative cross-round-synthesis
+        # template with this context produces a prompt that renders the
+        # Resolution Attribution section header AND the arbitration path
+        # AND the ruling content. This verifies the spec FR-020 requirement
+        # that the section is structurally present in the prompt the
+        # cross-round-synthesizer agent receives.
+        ctx = captured_contexts[0]
+        templates_dir = PROJECT_ROOT / "templates"
+        template_text = load_template(
+            templates_dir, "cooperative", "cross-round-synthesis"
+        )
+        filled = fill_template(template_text, ctx)
+        assert "Resolution Attribution" in filled, (
+            "Filled cross-round-synthesis prompt is missing the "
+            "'Resolution Attribution' section header — spec FR-020 violated."
+        )
+        # The ARBITRATION_PATHS placeholder should have been replaced with
+        # the actual path string.
+        assert str(round1_arb) in filled, (
+            f"Filled prompt does not contain the round-1 arbitration path "
+            f"{round1_arb}; ARBITRATION_PATHS substitution failed."
+        )
+        # The ARBITRATION_RULINGS placeholder should have been replaced
+        # with the rulings block (containing the Round 1 header).
+        assert "Round 1 Arbitration" in filled, (
+            "Filled prompt does not contain the 'Round 1 Arbitration' "
+            "header from ARBITRATION_RULINGS; substitution failed."
+        )
+        # And no unfilled {VARIABLE} placeholders remain (fill_template
+        # raises if any do, but assert it explicitly for clarity).
+        assert "{ARBITRATION_PATHS}" not in filled
+        assert "{ARBITRATION_RULINGS}" not in filled
+
+    def test_006_cross_round_no_arbitration_omits_rulings(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Inverse: with NO arbiter configured, cross-round synthesis is
+        called with arbitration_paths=None / arbitration_rulings=None.
+
+        Guards FR-P2-6 against false positives where the kwargs are wired
+        unconditionally regardless of whether arbitration ran.
+        """
+        from engine import phases as _phases_mod
+
+        captured_kwargs: list[dict] = []
+        original_builder = _phases_mod.build_cross_round_synthesis_context
+
+        def spy_builder(*args: object, **kwargs: object):
+            captured_kwargs.append(dict(kwargs))
+            return original_builder(*args, **kwargs)  # type: ignore[arg-type]
+
+        monkeypatch.setattr(
+            _phases_mod,
+            "build_cross_round_synthesis_context",
+            spy_builder,
+        )
+
+        # No arbiter — pure 2-round deliberation.
+        config = _make_multi_round_config(
+            tmp_path, rounds=2, arbiter=None, stagnation="ignore",
+        )
+        provider = _DisputeProvider([2, 1])
+        emitter, _events = _collect_events()
+
+        asyncio.run(
+            run_pipeline(config, provider, emitter, config_path=_config_path())
+        )
+
+        assert len(captured_kwargs) == 1
+        kwargs = captured_kwargs[0]
+        # No inter-round arbitration ran → both kwargs must be None
+        # (or absent — but our wiring passes them as keyword args).
+        assert kwargs.get("arbitration_paths") is None, (
+            f"Expected arbitration_paths=None when no arbiter, got "
+            f"{kwargs.get('arbitration_paths')!r}"
+        )
+        assert kwargs.get("arbitration_rulings") is None, (
+            f"Expected arbitration_rulings=None when no arbiter, got "
+            f"{kwargs.get('arbitration_rulings')!r}"
+        )

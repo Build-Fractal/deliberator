@@ -769,6 +769,11 @@ async def run_pipeline(
     # round's Phase 6 when config.arbiter.timing == "inter-round".
     # For timing == "final" (default), this stays None for all rounds.
     prior_arbitration_path: Path | None = None
+    # FR-P2-6: accumulate per-round inter-round arbitration paths so the
+    # cross-round synthesis can render a Resolution Attribution section
+    # (spec 006 FR-020 / SC-007). Final-timing arbitrations are written
+    # AFTER the round loop and are not part of this list.
+    arbitration_paths: list[Path] = []
 
     # ── Outer round loop ─────────────────────────────────────────────
     for round_num in range(1, config.rounds + 1):
@@ -800,6 +805,19 @@ async def run_pipeline(
                 )
                 if moved.exists():
                     prior_arbitration_path = moved
+            # FR-P2-6: keep the cross-round accumulator in sync with the
+            # retroactive move so any Round 1 arbitration path appended
+            # before the move now points to its post-move location.
+            for _i, _p in enumerate(arbitration_paths):
+                if not _p.exists():
+                    _moved = (
+                        output_mgr._root_dir
+                        / "round-1"
+                        / "arbitration"
+                        / "resolution.md"
+                    )
+                    if _moved.exists():
+                        arbitration_paths[_i] = _moved
         elif round_num > 2:
             output_mgr.create_round_dirs(
                 round_num, config.agents, has_arbiter=config.arbiter is not None
@@ -930,6 +948,12 @@ async def run_pipeline(
                             arbitration_ran = True
                             # Feed this round's arbitration to the next round
                             prior_arbitration_path = _arb_path
+                            # FR-P2-6: accumulate per-round arbitration paths
+                            # for the cross-round synthesis Resolution
+                            # Attribution section. Round 1 paths may be
+                            # retroactively re-targeted on the round-2
+                            # transition above.
+                            arbitration_paths.append(_arb_path)
                         else:
                             _arb_failure += 1
                             _arb_path = output_mgr.get_arbitration_path(
@@ -1017,12 +1041,41 @@ async def run_pipeline(
         crs_template = load_template(
             templates_dir, config.mode, "cross-round-synthesis"
         )
+
+        # FR-P2-6: feed accumulated inter-round arbitration outputs into
+        # the cross-round synthesis so the Resolution Attribution section
+        # can render with non-empty data (spec 006 FR-020 / SC-007).
+        # arbitration_paths is the per-round list of resolution.md files;
+        # arbitration_rulings is a single pre-formatted block of each
+        # path's contents with round headers (matches the str|None shape
+        # the context model expects).
+        _crs_arb_paths: list[Path] | None = None
+        _crs_arb_rulings: str | None = None
+        if arbitration_paths:
+            _crs_arb_paths = list(arbitration_paths)
+            _ruling_blocks: list[str] = []
+            for _round_idx, _arb_p in enumerate(arbitration_paths, start=1):
+                try:
+                    _ruling_text = _arb_p.read_text(encoding="utf-8")
+                except OSError:
+                    # If the arbitration file is missing/unreadable, skip
+                    # it rather than abort the whole synthesis.
+                    continue
+                _ruling_blocks.append(
+                    f"## Round {_round_idx} Arbitration "
+                    f"({_arb_p})\n\n{_ruling_text.strip()}"
+                )
+            if _ruling_blocks:
+                _crs_arb_rulings = "\n\n---\n\n".join(_ruling_blocks)
+
         crs_context = build_cross_round_synthesis_context(
             config,
             config.output,
             round_syntheses,
             rounds_completed,
             termination_reason or "max_rounds",
+            arbitration_paths=_crs_arb_paths,
+            arbitration_rulings=_crs_arb_rulings,
         )
         filled = fill_template(crs_template, crs_context)
         prompt = _assemble_phase_prompt(
