@@ -29,6 +29,7 @@ from linter.models import (
     CrossReviewContext,
     CrossRoundSynthesisContext,
     DisputesContext,
+    InfluenceLevel,
     ReviewContext,
     RevisionContext,
     SynthesisContext,
@@ -763,6 +764,191 @@ class TestBuildArbitrationContext:
         config = _make_config_with_arbiter(tmp_path)
         ctx = build_arbitration_context(config, config.output, "Clean synthesis.", round_num=1)
         assert ctx.REMAINING_DISPUTES == ""
+
+
+# ---------------------------------------------------------------------------
+# FR-P2-5 — INFLUENCE_LEVEL wiring in build_arbitration_context
+# ---------------------------------------------------------------------------
+
+def _make_config_with_arbiter_influence(
+    tmp_path: Path, influence: str
+) -> EngineConfig:
+    """2-agent cooperative config with arbiter at a specific influence level."""
+    grounding = tmp_path / "grounding.md"
+    grounding.write_text("# Grounding\n\nDecision framework here.\n")
+
+    return EngineConfig(
+        mode="cooperative",
+        target_files=[Path("/spec.md")],
+        output=tmp_path / "out",
+        agents=[
+            AgentConfig(name="alpha", prompt="You are Alpha.", docs=[Path("/docs/alpha")]),
+            AgentConfig(name="beta", prompt="You are Beta.", docs=[Path("/docs/beta")]),
+        ],
+        rounds=2,
+        arbiter=ArbiterConfig(
+            name="judge",
+            prompt="You are the arbiter.",
+            docs=[],
+            grounding=grounding,
+            trigger="always",
+            timing="inter-round",
+            influence=influence,
+        ),
+    )
+
+
+class TestBuildArbitrationContextInfluenceLevel:
+    """FR-P2-5: build_arbitration_context populates INFLUENCE_LEVEL from
+    config.arbiter.influence so arbitration templates can branch on the
+    influence level."""
+
+    def test_build_arbitration_context_populates_influence_level_binding(
+        self, tmp_path: Path
+    ) -> None:
+        config = _make_config_with_arbiter_influence(tmp_path, "binding")
+        ctx = build_arbitration_context(config, config.output, "", round_num=1)
+        assert ctx.INFLUENCE_LEVEL == InfluenceLevel.BINDING
+        assert ctx.INFLUENCE_LEVEL == "binding"
+
+    def test_build_arbitration_context_populates_influence_level_recommended(
+        self, tmp_path: Path
+    ) -> None:
+        config = _make_config_with_arbiter_influence(tmp_path, "recommended")
+        ctx = build_arbitration_context(config, config.output, "", round_num=1)
+        assert ctx.INFLUENCE_LEVEL == InfluenceLevel.RECOMMENDED
+        assert ctx.INFLUENCE_LEVEL == "recommended"
+
+    def test_build_arbitration_context_populates_influence_level_advisory(
+        self, tmp_path: Path
+    ) -> None:
+        config = _make_config_with_arbiter_influence(tmp_path, "advisory")
+        ctx = build_arbitration_context(config, config.output, "", round_num=1)
+        assert ctx.INFLUENCE_LEVEL == InfluenceLevel.ADVISORY
+        assert ctx.INFLUENCE_LEVEL == "advisory"
+
+    def test_build_arbitration_context_default_influence_when_arbiter_omits_field(
+        self, tmp_path: Path
+    ) -> None:
+        """When the arbiter is configured without an explicit influence (defaults
+        to 'binding' per ArbiterConfig schema), INFLUENCE_LEVEL is BINDING.
+
+        FR-P2-5 spec: ``arbiter=None`` → INFLUENCE_LEVEL == BINDING — but
+        ``build_arbitration_context`` raises TemplateError when arbiter is None
+        (covered in test_no_arbiter_raises). The default-binding case is the
+        ArbiterConfig default itself.
+        """
+        config = _make_config_with_arbiter(tmp_path)  # uses ArbiterConfig defaults
+        ctx = build_arbitration_context(config, config.output, "", round_num=1)
+        # ArbiterConfig.influence defaults to "binding"
+        assert ctx.INFLUENCE_LEVEL == InfluenceLevel.BINDING
+
+    def test_build_arbitration_context_influence_level_renders_lowercase_in_template(
+        self, tmp_path: Path
+    ) -> None:
+        """When the context is filled into a template, INFLUENCE_LEVEL must
+        render as the lowercase string (templates do `if {INFLUENCE_LEVEL} is binding`)."""
+        config = _make_config_with_arbiter_influence(tmp_path, "advisory")
+        ctx = build_arbitration_context(config, config.output, "", round_num=1)
+        template = "Level: '{INFLUENCE_LEVEL}'"
+        filled = fill_template(template, ctx)
+        assert filled == "Level: 'advisory'"
+
+
+# ---------------------------------------------------------------------------
+# FR-P2-5 — PRIOR_ARBITRATION_SECTION wiring in build_review_context
+# ---------------------------------------------------------------------------
+
+
+class TestBuildReviewContextPriorArbitrationSection:
+    """FR-P2-5: build_review_context populates PRIOR_ARBITRATION_SECTION from
+    the prior round's arbitration resolution file when the path is supplied."""
+
+    def test_build_review_context_with_prior_arbitration_path_populates_section(
+        self, tmp_path: Path
+    ) -> None:
+        # Arrange — write a real prior-arbitration resolution file
+        prior = tmp_path / "round-1" / "arbitration" / "resolution.md"
+        prior.parent.mkdir(parents=True, exist_ok=True)
+        resolution_body = (
+            "# Round 1 Arbitration Resolution\n\n"
+            "Binding ruling: adopt position A on dispute X.\n"
+        )
+        prior.write_text(resolution_body, encoding="utf-8")
+
+        config = _make_cooperative_config(tmp_path)
+        # Act
+        ctx = build_review_context(
+            config,
+            config.agents[0],
+            config.output,
+            round=2,
+            prior_arbitration_path=prior,
+        )
+
+        # Assert — the section is populated with a header + file contents
+        section = ctx.PRIOR_ARBITRATION_SECTION
+        assert section.startswith("## Prior arbitration\n")
+        assert "Binding ruling: adopt position A on dispute X." in section
+        assert "# Round 1 Arbitration Resolution" in section
+        # Path field is preserved as-is
+        assert ctx.PRIOR_ARBITRATION_PATH == prior
+
+    def test_build_review_context_without_prior_arbitration_path_default_empty(
+        self, tmp_path: Path
+    ) -> None:
+        """Backward-compatibility guard: omitting prior_arbitration_path leaves
+        PRIOR_ARBITRATION_SECTION at its default empty string."""
+        config = _make_cooperative_config(tmp_path)
+        ctx = build_review_context(config, config.agents[0], config.output)
+        assert ctx.PRIOR_ARBITRATION_SECTION == ""
+        assert ctx.PRIOR_ARBITRATION_PATH is None
+
+    def test_build_review_context_with_missing_prior_arbitration_file_default_empty(
+        self, tmp_path: Path
+    ) -> None:
+        """When the supplied path does not exist, the section stays empty.
+
+        Defensive behavior: a missing prior file should not crash the engine
+        nor inject a "Prior arbitration" header with empty body. FR-P2-5
+        contract: section is non-empty *only* when the file exists.
+        """
+        missing = tmp_path / "does-not-exist" / "resolution.md"
+        config = _make_cooperative_config(tmp_path)
+        ctx = build_review_context(
+            config,
+            config.agents[0],
+            config.output,
+            round=2,
+            prior_arbitration_path=missing,
+        )
+        assert ctx.PRIOR_ARBITRATION_SECTION == ""
+
+    def test_prior_arbitration_section_renders_in_review_template(
+        self, tmp_path: Path, example_config_path: Path
+    ) -> None:
+        """End-to-end: filling a real review template with the populated
+        section produces output containing the resolution body and no
+        unfilled variables."""
+        prior = tmp_path / "round-1" / "arbitration" / "resolution.md"
+        prior.parent.mkdir(parents=True, exist_ok=True)
+        prior.write_text("Round 1 ruling: adopt position B.\n", encoding="utf-8")
+
+        config = _make_cooperative_config(tmp_path)
+        ctx = build_review_context(
+            config,
+            config.agents[0],
+            config.output,
+            round=2,
+            prior_arbitration_path=prior,
+        )
+
+        templates_dir = find_templates_dir(example_config_path)
+        template = load_template(templates_dir, "cooperative", "review")
+        filled = fill_template(template, ctx)
+        # Section content must appear; placeholders must be gone
+        assert "Round 1 ruling: adopt position B." in filled
+        assert "{PRIOR_ARBITRATION_SECTION}" not in filled
 
 
 # ---------------------------------------------------------------------------
