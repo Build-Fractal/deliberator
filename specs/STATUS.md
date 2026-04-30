@@ -1,331 +1,121 @@
-# Conversus Spec Status
+# Conversus Spec Status Index
 
-Drafts (idea-phase specs) live in `specs/draft/` per `specs/README.md`'s lifecycle convention.
-
-## Taxonomy
-
-Status uses two tiers measuring different dimensions.
-
-### Implementation Tier
-
-Tracks whether a spec's functional requirements (FRs) are represented in SKILL.md.
-
-- **Implementation-complete**: All FRs from this spec are represented in SKILL.md.
-- **Partially-complete**: Some FRs are implemented, others remain. Specific gaps listed.
-- **Not started**: No SKILL.md representation exists for this spec's features.
-
-Specs with independently-implementable subsystems may use compound labels composed of existing tier values (e.g., "Implementation-complete (core) / Not started (discovery)"). Each component must use a defined implementation-tier label.
-
-### Acceptance Tier
-
-Tracks whether a spec's own acceptance criteria are met.
-
-- **Feature-complete**: All major capabilities are present, but acceptance criteria gaps remain (e.g., missing template instructions, incomplete edge case documentation).
-- **Spec-complete**: All acceptance criteria are met. The spec is fully satisfied.
-- **Not assessed**: No acceptance criteria have been evaluated.
-
-Gap documentation uses FR identifiers as primary references; affected acceptance scenarios may be noted parenthetically for traceability.
-
-### Interpreting the Two Tiers
-
-The tiers are orthogonal. A spec can be implementation-complete (all FRs in SKILL.md) but only feature-complete (some acceptance criteria gaps remain). Conversely, a spec can be partially-complete in implementation but spec-complete for the subset it covers. Dependencies are also orthogonal — a spec can be implementation-complete while depending on another spec's correctness for composed behavior.
+**Generated 2026-04-29 from current repo state.**  
+Source of truth: each spec's Status field. This index summarizes current implementation and acceptance state.
 
 ---
 
-## Status
-
-### 001 — Subject Arbitration
-**Implementation**: Partially-complete | **Acceptance**: Feature-complete
-**Gaps**: FR-023 (output validation — SKILL.md validation logic exists but template-level heading instructions pending), FR-025 (per-FR citation instructions), FR-026 (per-file attribution instructions)
-**Notes**: Core Phase 6 execution, config validation, trigger evaluation, failure handling, and structural markers are all implemented. Remaining gaps are template-level behavioral instructions.
-**Risk-of-Gap**: Disputes remain unresolved after deliberation; manual post-processing needed to extract actionable decisions from raw synthesis output.
-**Effort**: Small — 2 FRs remain (template-level instructions for FR-025 per-FR citation and FR-026 per-file attribution). FR-023 engine logic exists; template instructions pending.
-
-### 002 — Recursive Rounds
-**Implementation**: Implementation-complete | **Acceptance**: Spec-complete
-**Depends On**: `001-subject-arbitration` (shared dispute-parsing subsystem — stagnation detection FR-021 reuses spec 001's structural markers and heading-based parsing per FR-011)
-**Notes**: All 36 FRs represented in SKILL.md. Cross-round synthesis template exists. Runtime correctness of stagnation detection depends on spec 001's parsing subsystem.
-**Risk-of-Gap**: Single-pass deliberation only; no iterative convergence improvement. Complex multi-perspective topics may not reach consensus in one round.
-**Effort**: None — complete. All 36 FRs implemented. No remaining work.
-
-### 004 — Preset Agents
-**Implementation**: Implementation-complete | **Acceptance**: Spec-complete
-**Core (FR-001–021)**: Engine-level preset resolution, composition, validation, caching, arbiter support — all implemented. 18 preset files across 6 categories.
-**Gaps**: None — all 21 core FRs satisfied. Discovery commands (former FR-022–024) tracked in ideas.md.
-**Notes**: US-6 (arbiter preset interaction) is implemented. US-5 (preset-aware guided workflow) belongs to spec 008.
-**Risk-of-Gap**: None — core engine complete.
-**Effort**: None — complete.
-
-### 005 — P2/P3 Backlog Hardening
-**Implementation**: Implementation-complete | **Acceptance**: Spec-complete
-**Gaps**: None — all 19 FRs satisfied.
-**Depends On**: `001-subject-arbitration` (documents spec 001 implementation state), `002-recursive-rounds` (documents spec 002 implementation state), `004-preset-agents` (documents spec 004 implementation state)
-**Notes**: All 19 FRs implemented. STATUS.md enriched with two-tier taxonomy, shared subsystems, dependencies, risk-of-gap, effort estimates, and SKILL.md structure plan.
-**Risk-of-Gap**: None — all documentation and validation gaps are closed.
-**Effort**: None — complete.
+## Active Specs (Top-Level, Numbered)
 
 ### 006 — Inter-Round Arbitration
-**Implementation**: Not started | **Acceptance**: Not assessed
-**Depends On**: `001-subject-arbitration` (Phase 6 engine), `004-universal-rounds` (multi-round execution), `005-generalized-templates` (schema variables pre-provisioned)
-**Scope**: Two new arbiter config fields: `timing` (final | inter-round) and `influence` (binding | recommended | advisory). Phase 6 fires between rounds when `timing: inter-round`. Influence level controls arbiter authority — from dictator (binding) to observer (advisory).
-**Risk-of-Gap**: Multi-round deliberations waste rounds on intractable disputes that an inter-round arbiter could clear early. Binary authority model (binding only) reduces agent incentive to self-resolve.
-**Effort**: Medium — 23 FRs across schema extension, execution model changes, influence-aware dispute counting, cross-round context injection, and template adaptations.
+**Status**: Half-shipped — reopened 2026-04-04. Phase 1 partial; Phase 2 specified at `specs/006-inter-round-arbitration/PHASE-2-SPEC.md` (drafted 2026-04-29) — codifies the 7-point IMPLEMENTATION-GAP into 7 FRs with sequencing.
 
-### 007 — Subcommand Dispatch & Problem Definition
-**Implementation**: Implementation-complete | **Acceptance**: Feature-complete
-**Gaps**: None — all 12 FRs satisfied.
-**Depends On**: None (foundational)
-**Notes**: Subcommand dispatch routing added to SKILL.md. `/conversus define` handler implemented with problem type classification, context ingestion, and structured problem.md output.
-**Risk-of-Gap**: None — foundational infrastructure complete.
-**Effort**: None — complete.
+### 047 — Duration Parser
+**Status**: Active 2026-04-29 (promoted from draft) — bug fix (#4) + architecture gap identified; structured output needed by 3 downstream consumers. Implementation-ready.
 
-### 008 — Interest Discovery & Mode Selection
-**Implementation**: Implementation-complete | **Acceptance**: Feature-complete
-**Depends On**: `007-subcommand-dispatch-define` (dispatch, problem.md), `004-preset-agents` (soft — preset suggestions)
-**Gaps**: None — all 13 FRs satisfied (FR-001 through FR-013).
-**Notes**: `/conversus interests` handler reads `problem.md`, generates calibrated interests with preset matching (spec 004), produces `interests.md`. `/conversus mode` handler reads both artifacts, applies decision matrix with heuristic fallback, generates valid `conversus.yml` using the same schema as hand-crafted configs. Both handlers include missing prerequisite routing, existing file checks, user confirmation, and post-write validation.
-**Risk-of-Gap**: None — both commands are fully implemented with all constraint handling.
-**Effort**: None — complete.
+### 048 — Autonomous Governance Mode
+**Status**: Active 2026-04-29 (promoted from draft) — drift-analyzed + 3-agent deliberation resolved dependencies; specs 042/050/057 closed; governance config settled; implementation blockers documented.
 
-### 009 — Guided Execution
-**Implementation**: Implementation-complete | **Acceptance**: Feature-complete
-**Depends On**: `008-interests-mode` (generates conversus.yml)
-**Gaps**: None — all 10 FRs satisfied (FR-001 through FR-010).
-**Notes**: `/conversus converge` handler implemented as thin UX wrapper around `/conversus run`. Pre-execution summary with plain-language mode explanation, agent summaries, and launch estimate. User confirmation gate. Missing prerequisite routing to define/interests/mode. Staleness warning for interests.md vs conversus.yml. Post-execution report with mode-specific interpretation guidance, dispute status, and suggested next steps.
-**Risk-of-Gap**: None — pure UX wrapper with no engine logic.
-**Effort**: None — complete.
+### 056 — Deliberation Persistence
+**Status**: Active 2026-04-29 (promoted from draft) — deliberation-revised, dependencies (055/057) closed, framing inverted to developer-first, workspace-scoped storage settled. Implementation-ready.
 
-### 010 — Guided Arbitration
-**Implementation**: Implementation-complete | **Acceptance**: Feature-complete
-**Depends On**: `001-subject-arbitration` (hard gate — spec-complete required), `006-inter-round-arbitration` (influence levels), `009-guided-execution`
-**Gaps**: None — all FRs satisfied.
-**Notes**: `/conversus arbitrate` handler implemented with dispute detection, guided arbiter configuration (identity, prompt generation, grounding document, influence level), config generation and append to `conversus.yml`, Phase 6 execution delegation, and post-arbitration plain-language ruling summaries. Supports `--force` flag for no-dispute arbitration and existing arbiter config detection with reuse/reconfigure/cancel flow. Grounding document generation from `problem.md` constraints and success criteria.
-**Review findings applied**: Conversus review P1s (YAML-aware serialization, template validation in Step 5, grounding document quality validation) and high-impact P2s (--force + existing arbiter, first-time guidance, config backup, name collision check, grounding overwrite protection, influence mapping table, timing field, structural ruling extraction, prerequisite check scope, Phase 6 failure handling in post-arbitration report, all arbiter fields in existing-config display) applied to SKILL.md.
-**Risk-of-Gap**: None — thin UX wrapper over Phase 6 engine with no new arbitration logic.
-**Effort**: None — complete.
+### 057 — Settings Architecture
+**Status**: Reopened 2026-04-29 — moved back to active from `done/` after re-verification found 3 SCs not met: SC-001 (file format mismatch — code creates `settings.json`, spec requires `settings.yml`); SC-003 (status cascade display missing); SC-004 (credential structure — monolithic vs per-provider).
 
-### 011 — Phase Consensus Gates
-**Implementation**: Implementation-complete | **Acceptance**: Feature-complete
-**Depends On**: `007-subcommand-dispatch-define` (dispatch), `004-preset-agents` (preset resolution)
-**Gaps**: None — all 12 FRs satisfied (FR-001 through FR-012).
-**Notes**: `/conversus gate` handler implemented with config-based and inline (ad-hoc) invocation, gate configuration parsing (`gates.yml` or `gates:` section in `conversus.yml`), three pass criteria (converged, max_disputes N, always), machine-readable `gate-result.md` output, exit codes (0/1/2) for CI/CD, re-run attempt history preservation, and engine-independent orchestration that generates standard `conversus.yml` configs.
-**Review findings applied**: Conversus review P1s (two-tier error handling for Dispute-Parsing failures, max_disputes non-negative integer validation, gate config example clarified for 2-agent minimum) and high-impact P2s (CLI flag override precedence, stagnation in gate config schema, --force-pass bypass with scope boundary, validate_templates pass-through) applied to SKILL.md.
-**Risk-of-Gap**: None — thin orchestration layer with no engine modifications.
-**Effort**: None — complete.
+### 059 — Prompt and Skill Interface
+**Status**: Active 2026-04-29 (promoted from draft) — deliberation-amended 2026-04-13, depends on 055 (closed), 5-prompt decision final, hybrid registry integration accepted. Implementation-ready.
 
-### 012 — Game Form Schema Library
-**Implementation**: Not started | **Acceptance**: Not assessed
-**Depends On**: `005-generalized-templates` (schema foundation)
-**Scope**: YAML schemas for standard game theory forms (normal-form, GNEP, parametric, Stackelberg) plus Pydantic validation models. Mode-to-form mapping. Ships in `conversus-schemas` package. Pure schema — no solver dependency.
-**Risk-of-Gap**: Without formal game form definitions, the plugin system has no shared vocabulary for game structure. Each plugin would define its own ad-hoc representations.
-**Effort**: Small — 4 YAML schema files, 4 Pydantic models, 1 mode-mapping file.
+### 061 — Engine Eval Suite
+**Status**: Active (steps 1-6 of 14 complete per 2026-04-29 investigation; status line in spec self-claims "1-4 complete" but code shows 5-6 + parts of 9, 10, 12 also implemented — refresh needed; next: step 7 deepeval quality layer).
 
-### 013 — Objective Function Template Library
-**Implementation**: Not started | **Acceptance**: Not assessed
-**Depends On**: `012-game-form-schemas` (game form Pydantic models, YAML conventions)
-**Scope**: ~20-30 curated objective function templates as YAML files with Pydantic validation. Per-mode templates (cooperative, WTA, PD, red-blue) plus cross-mode templates (budget-constrained, general quadratic/linear). Standard constraint templates (budget, capacity, mutual exclusivity). Ships in `conversus-schemas` package.
-**Risk-of-Gap**: Without templates, objective function construction (spec 014) would need to generate functions from scratch — unreliable and non-reproducible.
-**Effort**: Medium — ~25 YAML template files, constraint templates, Pydantic models, mathematical validation of each template.
+### 065 — Path to Open Source
+**Status**: Draft v2 — amended to reference constitution v2.3.0 principles proposed by spec 066. Defines launch-readiness gate sequence and readiness checklist for repository publication.
 
-### 014 — Guided Objective Function Construction
-**Implementation**: Not started | **Acceptance**: Not assessed
-**Depends On**: `013-objective-function-templates` (template library), `008-interests-mode` (mode selection)
-**Scope**: 3-stage pipeline: symbolic logic parsing (deterministic) -> LLM gap-filling (interactive) -> objective function assembly (deterministic). Produces `objective.yml`. Optional integration with `/conversus mode`. Ships in `conversus-schemas` package.
-**Risk-of-Gap**: Without guided construction, users must manually parameterize objective functions — requiring mathematical expertise that the guided workflow (007-010) was designed to eliminate.
-**Effort**: Medium — parsing rules, gap-filling pipeline, assembly logic, integration point with mode handler.
+### 067 — Verification Methodology
+**Status**: Active — re-verification trigger + cost reporting added 2026-04-27; §4.6 added 2026-04-29 (PR #47) binding 4-subagent investigation pattern as canonical first response when verification surfaces failing tests.
 
-### 015 — Feature Extraction Pipeline
-**Implementation**: Not started | **Acceptance**: Not assessed
-**Depends On**: `012-game-form-schemas` (game form definitions), `013-objective-function-templates` (parameter types)
-**Scope**: Deterministic text-to-vector extraction from deliberation artifacts. Per-mode feature schemas (cooperative, WTA, PD, red-blue). Parses Phase 3 revisions, Phase 4 disputes, Phase 5 synthesis. Produces `features.json`. Ships as `conversus-features` package. Dependencies: pyyaml, pydantic only.
-**Risk-of-Gap**: Without feature extraction, the equilibrium scorer and convergence predictor cannot operate — they need numerical vectors, not markdown text.
-**Effort**: Medium — per-mode extraction rules, structured parsing, Pydantic schemas, CLI interface.
+### 070 — Grandfathered Audit
+**Status**: Draft v1 with PASS WITH FIXES verdict applied 2026-04-29 (per `deliberations/070-spec-review-2026-04-28/`): SPLIT verdict on Principle XVI flipped to FAIL+Option A; Goal #6 added (operational impact assessment); §4 methodology statement added; §5.2 dual-purpose cost note added.
 
-### 016 — Plugin System Infrastructure
-**Implementation**: Not started | **Acceptance**: Not assessed
-**Depends On**: None (infrastructure foundation)
-**Scope**: Plugin base class, lifecycle hooks (PRE_EXECUTION, POST_PHASE_5, POST_DELIBERATION, POST_ARBITRATION), DeliberationState interface, PluginResult type, plugin loading via importlib, `plugins:` config section, `{output}/plugins/` output namespace. Constitution Principle XV grounding. Ships as `conversus-plugins` package.
-**Risk-of-Gap**: Without the plugin framework, specs 017-019 cannot exist. The game engine evolution has no extension point.
-**Effort**: Medium — base class, hook system, state interface, loading mechanism, config parsing, output namespacing.
-
-### 017 — Equilibrium Scorer Plugin (nashopt)
-**Implementation**: Not started | **Acceptance**: Not assessed
-**Depends On**: `015-feature-extraction` (feature vectors), `016-plugin-system` (Plugin base class, hooks)
-**Scope**: First paid plugin. Computes Nash equilibrium quality score (0.0-1.0) using nashopt's `check_equilibrium()`. Per-mode payoff functions. Hooks: POST_PHASE_5, POST_DELIBERATION. Ships as `conversus-nashopt` package. Dependencies: nashopt, jax, scipy, conversus-features.
-**Risk-of-Gap**: Without equilibrium scoring, deliberation quality is subjective — users read synthesis and guess whether the outcome is stable.
-**Effort**: Medium — payoff function definitions per mode, nashopt integration, plugin wiring, output formatting.
-
-### 018 — Convergence Predictor Plugin (nashopt)
-**Implementation**: Not started | **Acceptance**: Not assessed
-**Depends On**: `015-feature-extraction` (feature vectors), `016-plugin-system` (Plugin base class), `017-equilibrium-scorer` (same package, shared payoff functions)
-**Scope**: Predicts whether next round will reduce disputes. Uses gnep-learn Kalman-filtered surrogate models. Outputs: prediction (converge/stagnate/uncertain), confidence, estimated rounds remaining. Hook: POST_PHASE_5. Ships in `conversus-nashopt` package. Advisory only — recommend-then-confirm (decision Q2).
-**Risk-of-Gap**: Without convergence prediction, users guess whether additional rounds are worth the token cost. Wasted rounds on stagnated deliberations.
-**Effort**: Medium — surrogate model construction, fixed-point detection, confidence calibration, heuristic fallback.
-
-### 019 — Config Optimizer Plugin (AMPL)
-**Implementation**: Not started | **Acceptance**: Not assessed
-**Depends On**: `014-guided-objective-construction` (objective function input), `016-plugin-system` (Plugin base class, PRE_EXECUTION hook)
-**Scope**: Mixed-integer programming via AMPL to compute optimal conversus config (rounds, agents, mode, iterations) given budget and quality threshold. HiGHS solver bundled (free). Also supports general-purpose MIP/NLP/MINLP problems. Hook: PRE_EXECUTION. Ships as `conversus-ampl` package.
-**Risk-of-Gap**: Without config optimization, users manually guess config parameters. Suboptimal configs waste tokens or produce poor outcomes.
-**Effort**: Large — AMPL model formulation, quality estimation model, solver integration, general-purpose optimization API.
-
-### 020 — Scenario Storage & Replay
-**Implementation**: Not started | **Acceptance**: Not assessed
-**Depends On**: `016-plugin-system` (plugin hooks for save/load)
-**Scope**: Store game configurations (mode, objective, parameters, agent roles) as reusable YAML scenarios. Swap data bindings for replay. Run history for audit. Commands: `/conversus save`, `/conversus replay`, `/conversus scenarios`. Cross-run analysis. ScenarioStore protocol for future database backends. File-based storage (decision Q7).
-**Risk-of-Gap**: Without scenario storage, recurring decision types require full reconfiguration each time. No institutional memory of how decisions are made.
-**Effort**: Medium — scenario schema, save/replay/list commands, run history append, cross-run analysis, ScenarioStore protocol.
-
-## Draft (in `specs/draft/`)
-
-Idea-phase specs not currently driving implementation. Status field in each spec.md is canonical; directory placement is a derived signal. Promoted to `specs/` when implementation begins or a deliberation is imminent.
-
-- `040-command-center/` — operator console concept
-- `043-ampl-game-solvers/` — AMPL solver integration
-- `044-ampl-model-templates/` — AMPL model template library
-- `046-commentator-agents/` — commentary/observer agent role
-- `047-duration-parser/` — duration string parsing utility
-- `048-autonomous-governance-mode/` — self-governing deliberation mode
-- `051-sandbox-test-harness/` — sandboxed test execution harness
-- `056-deliberation-persistence.md` — persistent deliberation state
-- `058-typed-pipeline-output.md` — typed pipeline outputs
-- `059-prompt-and-skill-interface.md` — prompt/skill interface boundary
-- `060-mcp-sampling-provider.md` — MCP sampling provider
-
-See `specs/AUDIT-2026-04-27.md` for the audit that established this set.
-
-## SKILL.md Structure Plan
-
-Documents how SKILL.md accommodates future spec implementations.
-
-### 002 — Recursive Rounds
-**Status**: Already integrated
-**Sections**: Rounds configuration (Step 1 config parsing), round termination check, cross-round synthesis template, stagnation detection, multi-round completion report. Dispute-parsing subsystem section handles round-level dispute counting.
-
-### 006 — Inter-Round Arbitration
-**Status**: Needs new sections
-**Changes required**:
-- `timing` and `influence` fields in Step 1 config parsing
-- Phase 6 insertion in round loop (between Phase 5 synthesis and termination check)
-- Influence-aware dispute counting in termination check
-- `{PRIOR_ARBITRATION_SECTION}` and `{INFLUENCE_LEVEL}` template variables
-- Per-round arbitration output paths
-
-### 007 — Subcommand Dispatch & Define
-**Status**: Already integrated
-**Sections**: Subcommand dispatch routing before Step 1, entry point routing logic distinguishing subcommand invocations from `/conversus run`, `/conversus define` handler producing `problem.md` with problem type classification and context ingestion.
-
-### 008 — Interests & Mode
-**Status**: Already integrated
-**Sections**: `/conversus interests` handler with interest generation calibrated by problem type, preset matching (spec 004), ungrounded agent warnings, and `interests.md` output. `/conversus mode` handler with decision matrix, heuristic mode detection, mixed-signal handling, user override with trade-off explanation, and `conversus.yml` generation using the run engine's schema. Both handlers include missing prerequisite routing, existing file checks, user confirmation, and post-write validation.
-
-### 009 — Guided Execution
-**Status**: Already integrated
-**Sections**: `/conversus converge` handler with missing prerequisite routing, staleness warning, plain-language pre-execution summary with confirmation gate, delegation to `/conversus run`, and post-execution report with mode-specific interpretation guidance, dispute status assessment, and suggested next steps.
-
-### 010 — Guided Arbitration
-**Status**: Already integrated
-**Sections**: `/conversus arbitrate` handler with dispute detection via Dispute-Parsing Subsystem, guided arbiter configuration (identity prompt generation, grounding document setup with `problem.md` fallback, influence level selection), config generation and append to `conversus.yml`, Phase 6 execution delegation, and post-arbitration plain-language ruling summaries. Dispatch table updated with `arbitrate` routing.
-
-### 011 — Phase Consensus Gates
-**Status**: Already integrated
-**Sections**: `/conversus gate` handler with config-based and inline invocation, gate configuration parsing (`gates.yml` / `gates:` section), pass criteria evaluation via Dispute-Parsing Subsystem, `gate-result.md` structured output, exit codes, re-run attempt preservation, and post-execution reporting. Dispatch table updated with `gate` routing.
-
-### 004 — Preset Agents
-**Status**: Already integrated
-**Sections**: Preset resolution in Step 1 config parsing (single preset, composition, qualified/unqualified names), preset validation, caching, arbiter preset support. 18 preset files across 6 categories in `presets/` directory.
-
-## Shared Subsystems
-
-### Dispute-Parsing Subsystem
-**Location**: SKILL.md section "Dispute-Parsing Subsystem"
-**Stability**: Stable
-**Consumers**: spec 001 (trigger evaluation), spec 002 (stagnation detection), spec 010 (arbitrate dispute detection), spec 011 (gate pass/fail)
-**Interface**: Input — synthesis file path; Output — boolean (has disputes) for trigger evaluation, integer (dispute count) for stagnation detection and gate evaluation. Parsing rules: structural markers primary (`DISPUTES_BEGIN`/`DISPUTES_END`), heading-based fallback per mode.
-**Notes**: Stagnation detection (spec 002) does not support structural-marker parsing — it uses only heading-based parsing. Heading-match semantics for the dispute-parsing fallback are not explicitly specified in the subsystem documentation.
-
-### Structural Markers
-**Stability**: Stable
-
-- `DISPUTES_BEGIN` / `DISPUTES_END`: Delimit dispute sections in synthesis output. Consumers: spec 001, spec 002, synthesis templates.
-- `TEMPLATE_STATUS`: Marks non-production templates as draft. Consumers: spec 005, all arbitration templates.
-
-### Template Conventions
-**Stability**: Stable
-**Consumers**: All specs
-**Interface**: `{VARIABLE}` substitution syntax, mode-specific template selection (`templates/{mode}/`), standardized output sections per mode.
-
-## Cross-Spec Dependencies
-
-### Dependency Graph
-
-```
-Engine Layer (done/in-progress):
-001 Subject Arbitration ──→ (none — foundational)
-002 Recursive Rounds ────→ 001 (shared dispute-parsing subsystem)
-004 Preset Agents ───────→ (none — self-contained engine) ✓ complete
-005 P2/P3 Hardening ────→ 001, 002, 004 (documents existing implementations) ✓ complete
-006 Inter-Round Arb ─────→ 001, 004-universal-rounds, 005-generalized-templates
-
-Guided Workflow Layer (007-010):
-007 Dispatch & Define ───→ (none — foundational for workflow layer) ✓ complete
-008 Interests & Mode ────→ 007, 004 (soft: preset suggestions) ✓ complete
-009 Guided Execution ────→ 008 ✓ complete
-010 Guided Arbitration ──→ 001 (hard gate: spec-complete), 006, 009 ✓ complete
-
-Automation Layer:
-011 Phase Gates ─────────→ 007 (dispatch), 004 (presets) ✓ complete
-
-Game Engine Layer (012-020):
-012 Game Form Schemas ───→ 005 (schema foundation)
-013 Objective Templates ─→ 012
-014 Guided Objective ────→ 013, 008
-015 Feature Extraction ──→ 012, 013
-016 Plugin System ───────→ (none — infrastructure foundation)
-017 Equilibrium Scorer ──→ 015, 016
-018 Convergence Pred. ───→ 015, 016, 017
-019 Config Optimizer ────→ 014, 016
-020 Scenario Storage ────→ 016
-```
-
-### Recommended Implementation Order
-
-**Engine/Workflow/Automation (006-011):**
-
-**006 → 007 → 008 → 009 → 010 → 011**
-
-- **006 current**: Inter-round arbitration — establishes lifecycle hook pattern and influence levels.
-- **007 done**: Subcommand dispatch and `/conversus define` implemented.
-- **008 done**: Interest discovery and mode selection implemented. `/conversus interests` and `/conversus mode` transform problem.md into a runnable config.
-- **009 done**: Guided execution implemented. `/conversus converge` wraps the run engine with pre/post UX.
-- **010 done**: Guided arbitration implemented. `/conversus arbitrate` provides guided arbiter configuration and Phase 6 invocation.
-- **011 done**: Phase consensus gates implemented. `/conversus gate` provides config-based and inline gate execution with CI/CD exit codes.
-
-**Note**: All guided workflow specs (007-011) are implementation-complete. The only remaining spec in the implementation order is 006 (inter-round arbitration).
-
-**Game Engine (012-020):**
-
-**Phase 1 (schemas): 012 → 013 → 014**
-**Phase 2 (infrastructure): 016 (parallel with Phase 1)**
-**Phase 3 (extraction): 015 (after 012, 013)**
-**Phase 4 (plugins): 017 → 018, 019, 020 (after 015, 016)**
-
-- **012**: Game form schemas — mathematical vocabulary for all subsequent specs. Start here.
-- **013**: Objective function templates — curated library of ~25 parameterized forms. Builds on 012.
-- **014**: Guided objective construction — 3-stage pipeline from natural language to parameterized objectives. Builds on 013 and 008.
-- **016**: Plugin system infrastructure — can be built in parallel with 012-013. No dependencies.
-- **015**: Feature extraction — bridge between text and numbers. Needs 012 and 013 for schemas.
-- **017**: Equilibrium scorer — first paid plugin. Needs 015 and 016.
-- **018**: Convergence predictor — same package as 017. Needs 015, 016, 017.
-- **019**: Config optimizer — AMPL-based. Needs 014 and 016. Parallel with 017-018.
-- **020**: Scenario storage — file-based replay. Needs 016. Parallel with 017-019.
-
-**Note**: Game engine specs are code specs (Python packages, pip installable), not SKILL.md edits. They represent a future evolution of conversus from template orchestrator to pluggable game engine. See `specs/archive/game-engine-vision/` for the original monolithic vision that these specs decompose.
+### 071 — Test-Fix Boundary Preservation (Principle XXVIII)
+**Status**: Ratified-with-override 2026-04-29. `CONSTITUTION.md` v2.5.0 added Principle XXVIII (v2 wording). Self-consistency PASS WITH FIXES. Blind v2 PASS WITH FIXES — rulings 1 and 2 overridden with rationale in `CONSTITUTIONAL_CONVERSATIONS.md`. Three follow-up PRs (#47, #48, #49) merged.
 
 ---
 
-*Updated: 2026-03-22 (specs 010, 011 conversus review findings applied to SKILL.md)*
+## Closed Specs (in `specs/done/`, 56 total)
+
+**Specs 001–069 (representative list):**  
+001-subject-arbitration, 004-preset-agents, 004-universal-rounds, 005-generalized-templates, 005-p2p3-backlog-hardening, 007-game-engine, 007-subcommand-dispatch-define, 008-executable-conversus, 008-interests-mode, 009-guided-execution, 010-antipattern-steering, 010-guided-arbitration, 011-adoption-harness, 011-phase-consensus-gates, 011a-skill-breakdown, 012-game-form-schemas, 012-spec-hygiene, 013-objective-function-templates, 014-guided-objective-construction, 015-feature-extraction, 016-plugin-system, 017-equilibrium-scorer, 018-convergence-predictor, 019-config-optimizer, 020-scenario-storage, 021-nashopt-integration, 022-kalman-convergence, 023-ampl-config-optimizer, 024-cross-plugin-interfaces, 025-game-form-expansion, 026-optimization-template-library, 027-solver-validation-flow, 028-mode-expansion, 029-code-review-domain, 030-domain-plugin-architecture, 031-docs-and-vercel-compliance, 032-package-splitting, 033-monetization-partitioning, 034-kalman-convergence-fixes, 035-plugin-framework-fixes, 036-mode-template-fixes, 037-validation-flow-fixes, 038-solver-equilibrium-fixes, 039-new-mode-payoffs, 042-execution-providers, 045-test-coverage-review, 050-cascading-settings, 052-open-source-extraction, 054-public-documentation, 055-capability-registry, 064-capability-discovery, 066-constitution-v2.3.0, 068-principle-xvi-fix, 069-mechanical-verification-gate, 998-phase-consensus-gates, 999-decision-framework.
+
+(057 was previously here; reopened 2026-04-29 — see Active Specs above.)
 
 ---
 
-*Maintenance obligation: This document MUST be updated when any spec's implementation or acceptance status changes (FR-008a).*
+## Draft Specs (in `specs/draft/`, 8 total)
+
+### 043 — AMPL Game Solvers
+**Status**: Draft
+
+### 044 — AMPL Model Templates
+**Status**: Draft — likely needs breakdown into sub-specs (template infra, binding system, agent skill, self-modeling)
+
+### 046 — Commentator Agents
+**Status**: Draft
+
+### 049 — Universal Skill MCP Server
+**Status**: Draft — partial-close: FastMCP core + 3/5 v1 tools shipped; VSCode extension + APM targets unstarted; 6 drift vectors documented in DRIFT-REPORT.md (issues #62, #63 capture HIGH-severity remaining work).
+
+### 051 — Sandbox Test Harness
+**Status**: Draft
+
+### 053 — Public CI Pipeline
+**Status**: Draft — partial: 2 workflows exist but not under prescribed names; gaps: lint job, codecov, pytest markers, PyPI release.
+
+### 058 — Typed Pipeline Output
+**Status**: Draft (placeholder — implement after 057)
+
+### 060 — MCP Sampling Provider
+**Status**: Draft — Desktop Extension UX blocker; sampling/createMessage protocol defined; depends on 055 (closed) + MCP server.
+
+---
+
+## Archived Specs (in `specs/archive/`)
+
+### 001 — Speckit Orchestrator
+Empty stub; original orchestrator concept decomposed into specs 007-010 (now in done/).
+
+### 040 — Command Center
+Archived 2026-04-29 — vision-phase only with no DRIFT activity; 5 prior-spec dependencies all active/done; no code references found. Preserved in archive/ as historical product vision.
+
+### game-engine-vision
+Long-term north star, intentionally archived.
+
+---
+
+## Meta Files
+
+- **README.md**: Spec lifecycle rules and promotion guidance. Authoritative source for directory-to-status mapping.
+- **EXECUTION-ORDER.md**: Recommended sequencing for implementation work (last updated 2026-04-02; stale through Wave 4+).
+- **AUDIT-2026-04-27.md**: Hygiene audit (stale by 2 days; PR #39 closed multiple specs that the audit listed as active — now reflected in this STATUS.md rebuild).
+- **CONSTITUTION.md**: Governance framework (v2.5.0 as of 2026-04-29).
+- **CONSTITUTIONAL_CONVERSATIONS.md**: Deliberation logs for all constitutional amendments. Inaugural override-with-rationale entry 2026-04-29.
+- **plan-of-attack.md** / **plan-of-attack.conversus**: Operational roadmap (non-spec workspace).
+
+---
+
+## Landscape Summary
+
+**Active work**: 11 specs.
+- Constitutional/governance: 065, 067, 070, 071
+- Engine completion: 006 (Phase 2), 057 (reopened SCs), 061 (next: deepeval)
+- Promoted from draft 2026-04-29: 047, 048, 056, 059
+
+**Closed**: 56 specs across core engine, plugins, UX, platform compliance, and governance.
+
+**Drafts**: 8 specs in idea phase, mostly infrastructure (sandbox, CI, MCP sampling) and AMPL/optimization (043, 044, 060).
+
+**Archived**: 3 historical artifacts (001 stub, 040 vision-only, game-engine-vision).
+
+**Total**: 78 spec artifacts across the lifecycle.
+
+**Trajectory**: post-v2.5.0 landscape is split between **completion work** (006 Phase 2, 057 SCs, 061 deepeval) and **promoted-from-draft new feature work** (047, 048, 056, 059). Constitutional governance has stabilized at the v2.5.0 anchor; next amendment cycle will carry the deferred Q3 must-quote anchor (per `deliberations/session-review-2026-04-29/arbiter/resolution.md`).
