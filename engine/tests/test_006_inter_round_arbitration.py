@@ -509,3 +509,117 @@ class TestInterRoundPopulatesPriorArbitrationPath:
         ]
         # Two review phases — one per round
         assert len(review_events) == 2
+
+
+# ===================================================================
+# FR-P2-3: Round-loop parity test — Round 2 receives prior_arbitration_path
+# ===================================================================
+
+
+class TestRoundLoopParityInterRound:
+    """FR-P2-3 parity: with rounds=2 + arbiter.timing=inter-round, the Round 2
+    invocation of ``_run_single_round`` MUST receive ``prior_arbitration_path``
+    pointing to ``round-1/arbitration/resolution.md`` (post-FR-P2-2 path).
+
+    Round 1 must NOT receive a prior_arbitration_path (it is None, since no
+    earlier round produced an arbitration). The contract is direct: spy on
+    ``_run_single_round`` and read the recorded kwargs.
+    """
+
+    def test_006_round_loop_parity_inter_round(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        from engine import phases
+
+        recorded: list[Path | None] = []
+        original = phases._run_single_round
+
+        async def spy(*args: object, **kwargs: object):
+            recorded.append(kwargs.get("prior_arbitration_path"))
+            return await original(*args, **kwargs)  # type: ignore[arg-type]
+
+        monkeypatch.setattr(phases, "_run_single_round", spy)
+
+        arbiter = _make_arbiter_config(tmp_path, timing="inter-round")
+        config = _make_multi_round_config(
+            tmp_path, rounds=2, arbiter=arbiter, stagnation="ignore",
+        )
+        provider = _DisputeProvider([2, 1])
+        emitter, _events = _collect_events()
+
+        result = asyncio.run(
+            run_pipeline(config, provider, emitter, config_path=_config_path())
+        )
+
+        # Sanity: pipeline ran 2 rounds and arbitration fired between them.
+        assert result.rounds_completed == 2
+        assert result.arbitration_ran is True
+
+        # _run_single_round invoked exactly once per round
+        assert len(recorded) == 2, (
+            f"Expected 2 _run_single_round calls (one per round), got {len(recorded)}"
+        )
+
+        # Round 1: no prior arbitration exists yet → kwarg is None
+        assert recorded[0] is None, (
+            f"Round 1 must not receive a prior_arbitration_path, got {recorded[0]!r}"
+        )
+
+        # Round 2: kwarg is the FR-P2-2 path round-1/arbitration/resolution.md
+        round2_prior = recorded[1]
+        assert round2_prior is not None, (
+            "Round 2 _run_single_round did NOT receive prior_arbitration_path; "
+            "FR-P2-3 parity broken — inter-round arbitration result not "
+            "plumbed into the next round's context builders."
+        )
+        # Path must be exactly the post-FR-P2-2 location
+        assert round2_prior.name == "resolution.md"
+        assert round2_prior.parent.name == "arbitration"
+        assert round2_prior.parent.parent.name == "round-1", (
+            f"Round 2 prior_arbitration_path is not round-1/arbitration/resolution.md: "
+            f"got {round2_prior}"
+        )
+        # And it must point to a real file written by Round 1's arbiter
+        assert round2_prior.exists(), (
+            f"Round 2 received prior_arbitration_path={round2_prior!r}, but the "
+            f"file does not exist. Round 1's arbitration must have written it."
+        )
+
+    def test_006_round_loop_parity_final_timing_no_prior_arbitration(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Inverse parity: with timing='final', NO round receives a
+        prior_arbitration_path — final arbitration runs once after the loop,
+        not between rounds, so the round-loop kwarg stays None throughout.
+
+        This guards FR-P2-3 against false positives where the kwarg is being
+        populated unconditionally rather than only for inter-round timing.
+        """
+        from engine import phases
+
+        recorded: list[Path | None] = []
+        original = phases._run_single_round
+
+        async def spy(*args: object, **kwargs: object):
+            recorded.append(kwargs.get("prior_arbitration_path"))
+            return await original(*args, **kwargs)  # type: ignore[arg-type]
+
+        monkeypatch.setattr(phases, "_run_single_round", spy)
+
+        arbiter = _make_arbiter_config(tmp_path, timing="final")
+        config = _make_multi_round_config(
+            tmp_path, rounds=2, arbiter=arbiter, stagnation="ignore",
+        )
+        provider = _DisputeProvider([2, 1])
+        emitter, _events = _collect_events()
+
+        asyncio.run(
+            run_pipeline(config, provider, emitter, config_path=_config_path())
+        )
+
+        assert len(recorded) == 2
+        assert recorded[0] is None
+        assert recorded[1] is None, (
+            f"timing='final' must NOT populate prior_arbitration_path between "
+            f"rounds (final-arb runs after the loop). Got {recorded[1]!r}."
+        )

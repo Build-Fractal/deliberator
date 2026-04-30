@@ -779,6 +779,26 @@ async def run_pipeline(
                 2, config.agents, has_arbiter=config.arbiter is not None
             )
             round_base = output_mgr.get_round_base(2)
+            # FR-P2-3: Round 1 wrote its inter-round arbitration to the flat
+            # output dir (because Round 1 ran before retroactive_move). After
+            # the move, the file lives at round-1/arbitration/resolution.md.
+            # Re-target prior_arbitration_path to the post-move location so
+            # the next round's context builders see the actual file.
+            # Note: OutputManager.get_round_base(1) returns the flat root for
+            # legacy reasons; the actual round-1 directory after the move is
+            # always {root}/round-1/.
+            if (
+                prior_arbitration_path is not None
+                and not prior_arbitration_path.exists()
+            ):
+                moved = (
+                    output_mgr._root_dir
+                    / "round-1"
+                    / "arbitration"
+                    / "resolution.md"
+                )
+                if moved.exists():
+                    prior_arbitration_path = moved
         elif round_num > 2:
             output_mgr.create_round_dirs(
                 round_num, config.agents, has_arbiter=config.arbiter is not None

@@ -25,6 +25,7 @@ from linter.models import (
     CrossReviewContext,
     CrossRoundSynthesisContext,
     DisputesContext,
+    InfluenceLevel,
     PathList,
     ReviewContext,
     RevisionContext,
@@ -229,6 +230,28 @@ def fill_template(template: str, context: TemplateContext) -> str:
 # Phase 1 context construction
 # ---------------------------------------------------------------------------
 
+def _format_prior_arbitration_section(prior_arbitration_path: Path | None) -> str:
+    """Format the PRIOR_ARBITRATION_SECTION block for review templates.
+
+    Returns the file's contents wrapped in a "## Prior arbitration" header
+    when ``prior_arbitration_path`` is non-None and points to a readable
+    file. Returns ``""`` (the schema-defined default) otherwise.
+
+    Spec 006 Phase 2 FR-P2-5: this populates the schema-required
+    ``PRIOR_ARBITRATION_SECTION`` variable that review templates reference
+    when ``arbiter.timing == 'inter-round'``.
+    """
+    if prior_arbitration_path is None:
+        return ""
+    try:
+        if not prior_arbitration_path.exists():
+            return ""
+        content = prior_arbitration_path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        return ""
+    return f"## Prior arbitration\n\n{content.strip()}\n"
+
+
 def build_review_context(
     config: EngineConfig,
     agent: AgentConfig,
@@ -258,6 +281,13 @@ def build_review_context(
     """
     mgr = OutputManager(output_dir)
 
+    # FR-P2-5: when prior_arbitration_path points to an existing file,
+    # populate PRIOR_ARBITRATION_SECTION with a formatted block containing
+    # the resolution content. When path is None or missing, leave empty.
+    prior_arbitration_section = _format_prior_arbitration_section(
+        prior_arbitration_path
+    )
+
     return ReviewContext(
         OUTPUT_PATH=mgr.get_review_path(agent.name),
         TARGET_FILES=config.target_files,
@@ -267,6 +297,7 @@ def build_review_context(
         MODE=config.mode,
         PRIOR_FILES_SECTION="",
         PRIOR_ROUND_SECTION="",
+        PRIOR_ARBITRATION_SECTION=prior_arbitration_section,
         ROUND=round,
         MAX_ROUNDS=config.rounds,
         PRIOR_SYNTHESIS_PATH=prior_synthesis_path,
@@ -626,6 +657,12 @@ def build_arbitration_context(
 
     remaining = _extract_remaining_disputes(synthesis_text, config.mode)
 
+    # FR-P2-5: read arbiter.influence into INFLUENCE_LEVEL so templates
+    # can branch on the influence level (binding / recommended / advisory).
+    # InfluenceLevel is a StrEnum, so it accepts the literal string value
+    # from arbiter.influence ("binding"/"recommended"/"advisory").
+    influence_level = InfluenceLevel(arbiter.influence)
+
     return ArbitrationContext(
         OUTPUT_PATH=mgr.get_arbitration_path(round_base=round_base),
         TARGET_FILES=config.target_files,
@@ -639,6 +676,7 @@ def build_arbitration_context(
         REMAINING_DISPUTES=remaining,
         AGENT_NAMES=", ".join(agent_names),
         MODE=config.mode,
+        INFLUENCE_LEVEL=influence_level,
     )
 
 
