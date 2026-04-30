@@ -963,8 +963,16 @@ def logout_cli(provider: str) -> None:
 def status_cli() -> None:
     """Show authentication status for all providers (CLI surface).
 
-    Renders a Rich table with the auth state (logged in, env var
-    fallback, or not configured) for every known OAuth provider.
+    Renders two Rich tables:
+
+    1. Provider authentication status — logged in, env var fallback,
+       or not configured for every known OAuth provider.
+    2. Settings cascade — per-key effective value with the tier of
+       origin (env, project, global, default) and source path.
+
+    Spec 057 SC-003: surface which layer of the settings cascade
+    supplied each effective value so users can debug "why is my
+    config not taking effect?".
     """
     import os
     from datetime import datetime, timezone
@@ -974,9 +982,14 @@ def status_cli() -> None:
 
     from engine.auth import OAUTH_CONFIGS, CredentialStore
     from engine.providers.anthropic import is_oauth_token
+    from engine.settings import inspect_settings_cascade
 
     store = CredentialStore()
-    console = Console()
+    # Wide console keeps long source paths and env-var names from being
+    # truncated with an ellipsis when tools (or test runners) report a
+    # narrow terminal — debugging settings is the whole point of this
+    # output, so truncating the path defeats the feature.
+    console = Console(width=200)
     table = Table(title="Provider Authentication Status")
     table.add_column("Provider", style="bold")
     table.add_column("Status")
@@ -1009,6 +1022,52 @@ def status_cli() -> None:
             table.add_row(provider, "[red]not configured[/red]", "—")
 
     console.print(table)
+
+    # ----------------------------------------------------------------
+    # Settings cascade table (spec 057 SC-003)
+    # ----------------------------------------------------------------
+    _source_styles = {
+        "env": "yellow",
+        "project": "green",
+        "global": "blue",
+        "default": "dim",
+    }
+
+    cascade = inspect_settings_cascade()
+
+    settings_table = Table(title="Settings Cascade")
+    settings_table.add_column("Setting", style="bold")
+    settings_table.add_column("Effective value")
+    settings_table.add_column("Source")
+    settings_table.add_column("Source path")
+
+    # Map field name back to env var name for display (mirrors the
+    # mapping in engine.settings).  Imported lazily to avoid widening
+    # the public surface of settings.py.
+    from engine.settings import _ENV_VAR_FOR_FIELD
+
+    for entry in cascade:
+        style = _source_styles.get(entry.source, "white")
+        source_cell = f"[{style}]{entry.source}[/{style}]"
+
+        if entry.source == "env":
+            env_var = _ENV_VAR_FOR_FIELD.get(entry.key, "")
+            path_cell = f"({env_var})" if env_var else "(env)"
+        elif entry.source == "default":
+            path_cell = "(built-in)"
+        elif entry.source_path is not None:
+            path_cell = str(entry.source_path)
+        else:
+            path_cell = "—"
+
+        settings_table.add_row(
+            entry.key,
+            str(entry.value),
+            source_cell,
+            path_cell,
+        )
+
+    console.print(settings_table)
 
 
 # ---------------------------------------------------------------------------
