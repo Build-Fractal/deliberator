@@ -1144,7 +1144,7 @@ class TestArbitration:
         assert arb_completed[0].failure_count == 0
 
     def test_arbitration_output_file(self, tmp_path: Path) -> None:
-        """Arbitration writes resolution.md to arbiter/ directory."""
+        """Arbitration writes resolution.md to arbitration/ directory."""
         arbiter = _make_arbiter_config(tmp_path)
         config = _make_multi_round_config(tmp_path, rounds=1, arbiter=arbiter)
         provider = MockProvider()
@@ -1155,7 +1155,7 @@ class TestArbitration:
         )
 
         output_dir = config.output.resolve()
-        arb_path = output_dir / "arbiter" / "resolution.md"
+        arb_path = output_dir / "arbitration" / "resolution.md"
         assert arb_path.exists()
         assert arb_path in result.written_files
 

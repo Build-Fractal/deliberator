@@ -6,13 +6,12 @@ Covers:
 - Pipeline-level: timing=final runs arbitration once after loop
 - Pipeline-level: timing=inter-round runs arbitration between rounds
 - Pipeline-level: inter-round arbitration populates prior_arbitration_path
-- Cross-field warning: inter-round timing with single round
+- Cross-field validation: inter-round timing with single round is rejected
 """
 
 from __future__ import annotations
 
 import asyncio
-import logging
 
 import pytest
 
@@ -308,14 +307,12 @@ class TestInvalidInfluence:
             parse_config(cfg_path)
 
 
-class TestInterRoundWithSingleRoundWarns:
-    """timing=inter-round with rounds=1 logs a warning."""
+class TestInterRoundValidation:
+    """timing=inter-round requires rounds > 1; the parser rejects bad combos."""
 
-    def test_inter_round_timing_with_single_round_warns(
-        self, tmp_path: Path, caplog: pytest.LogCaptureFixture
-    ) -> None:
+    def test_inter_round_with_single_round_rejects(self, tmp_path: Path) -> None:
         """Parse a config with timing=inter-round and rounds=1.
-        Verify a warning is logged."""
+        Verify ConfigError is raised with an actionable message."""
         grounding = tmp_path / "grounding.md"
         grounding.write_text("# Constitution\n")
         cfg_path = _minimal_config(tmp_path, extra={
@@ -328,19 +325,41 @@ class TestInterRoundWithSingleRoundWarns:
                 "timing": "inter-round",
             },
         })
-        with caplog.at_level(logging.WARNING, logger="engine.config"):
-            config = parse_config(cfg_path)
+
+        with pytest.raises(ConfigError) as exc_info:
+            parse_config(cfg_path)
+
+        msg = str(exc_info.value)
+        assert "inter-round" in msg, (
+            f"Expected error message to mention 'inter-round', got: {msg!r}"
+        )
+        assert "rounds > 1" in msg or "rounds: 2" in msg or "rounds to 2" in msg, (
+            f"Expected error message to indicate rounds > 1 is required, "
+            f"got: {msg!r}"
+        )
+
+    def test_final_timing_with_single_round_does_not_raise(
+        self, tmp_path: Path
+    ) -> None:
+        """Sanity check the inverse: timing=final with rounds=1 must parse cleanly."""
+        grounding = tmp_path / "grounding.md"
+        grounding.write_text("# Constitution\n")
+        cfg_path = _minimal_config(tmp_path, extra={
+            "rounds": 1,
+            "arbiter": {
+                "name": "arbiter",
+                "prompt": "You decide.",
+                "grounding": "grounding.md",
+                "trigger": "always",
+                "timing": "final",
+            },
+        })
+
+        config = parse_config(cfg_path)
 
         assert config.arbiter is not None
-        assert config.arbiter.timing == "inter-round"
-        # Verify the warning was logged
-        warning_messages = [
-            r.message for r in caplog.records if r.levelno >= logging.WARNING
-        ]
-        assert any("inter-round" in msg for msg in warning_messages), (
-            f"Expected warning about inter-round timing with single round, "
-            f"got: {warning_messages}"
-        )
+        assert config.arbiter.timing == "final"
+        assert config.rounds == 1
 
 
 # ===================================================================
@@ -353,7 +372,7 @@ class TestTimingFinalRunsArbitrationAfterLoop:
 
     def test_timing_final_runs_arbitration_after_loop(self, tmp_path: Path) -> None:
         """timing=final, rounds=2: arbitration runs exactly once after all
-        rounds complete. Check that arbiter/resolution.md exists in the output."""
+        rounds complete. Check that arbitration/resolution.md exists in the output."""
         arbiter = _make_arbiter_config(tmp_path, timing="final")
         config = _make_multi_round_config(
             tmp_path, rounds=2, arbiter=arbiter, stagnation="ignore",
@@ -386,9 +405,9 @@ class TestTimingFinalRunsArbitrationAfterLoop:
         # resolution.md exists in the output
         output_dir = config.output.resolve()
         # For multi-round final arbitration, resolution is at the last round's base
-        arb_files = list(output_dir.rglob("arbiter/resolution.md"))
+        arb_files = list(output_dir.rglob("arbitration/resolution.md"))
         assert len(arb_files) >= 1, (
-            f"Expected arbiter/resolution.md in output, found: "
+            f"Expected arbitration/resolution.md in output, found: "
             f"{list(output_dir.rglob('*'))}"
         )
 
@@ -400,7 +419,7 @@ class TestTimingInterRoundRunsArbitrationBetweenRounds:
         self, tmp_path: Path
     ) -> None:
         """timing=inter-round, rounds=3: arbitration runs between rounds.
-        Check for round-based arbiter/resolution.md files."""
+        Check for round-based arbitration/resolution.md files."""
         arbiter = _make_arbiter_config(tmp_path, timing="inter-round")
         config = _make_multi_round_config(
             tmp_path, rounds=3, arbiter=arbiter, stagnation="ignore",
@@ -429,9 +448,9 @@ class TestTimingInterRoundRunsArbitrationBetweenRounds:
 
         # Verify resolution files exist in round directories
         output_dir = config.output.resolve()
-        arb_files = list(output_dir.rglob("arbiter/resolution.md"))
+        arb_files = list(output_dir.rglob("arbitration/resolution.md"))
         assert len(arb_files) >= 2, (
-            f"Expected at least 2 arbiter/resolution.md files (one per inter-round gap), "
+            f"Expected at least 2 arbitration/resolution.md files (one per inter-round gap), "
             f"found: {arb_files}"
         )
 
@@ -447,7 +466,7 @@ class TestInterRoundPopulatesPriorArbitrationPath:
         prior_arbitration_path was passed through.
 
         We verify this indirectly: after round 1's inter-round arbitration,
-        the arbiter/resolution.md is written. Round 2 then runs with that
+        the arbitration/resolution.md is written. Round 2 then runs with that
         path available. We check the arbitration file from round 1 exists
         and that the pipeline completes successfully with both rounds."""
         arbiter = _make_arbiter_config(tmp_path, timing="inter-round")
@@ -468,9 +487,9 @@ class TestInterRoundPopulatesPriorArbitrationPath:
         # Round 1's arbitration was produced (this is the prior_arbitration_path
         # that gets fed into round 2)
         output_dir = config.output.resolve()
-        round1_arb = output_dir / "round-1" / "arbiter" / "resolution.md"
+        round1_arb = output_dir / "round-1" / "arbitration" / "resolution.md"
         assert round1_arb.exists(), (
-            f"Expected round-1/arbiter/resolution.md to exist for prior "
+            f"Expected round-1/arbitration/resolution.md to exist for prior "
             f"arbitration context, but it does not. "
             f"Output tree: {list(output_dir.rglob('*'))}"
         )

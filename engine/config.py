@@ -9,7 +9,6 @@ model.
 
 from __future__ import annotations
 
-import logging
 import re
 from pathlib import Path
 from typing import Any, Literal
@@ -18,8 +17,6 @@ import yaml
 from pydantic import BaseModel
 
 from conversus.schemas.modes import VALID_MODES as _CANONICAL_MODES
-
-logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
@@ -724,12 +721,16 @@ def parse_config(config_path: Path) -> EngineConfig:
             raise ConfigError("arbiter: must be a YAML mapping.")
         arbiter = _resolve_arbiter(arbiter_raw, presets_root, base_path)
 
-        # Cross-field validation: inter-round timing with single round is a no-op
+        # Cross-field validation: inter-round timing requires more than one round.
+        # Inter-round arbitration runs *between* rounds, so a single-round run
+        # has no gap for it to occupy.  Reject the config rather than silently
+        # producing a no-op deliberation.
         if arbiter is not None and arbiter.timing == "inter-round" and rounds <= 1:
-            logger.warning(
-                "arbiter.timing is 'inter-round' but rounds=%d — "
-                "inter-round arbitration has no effect with a single round",
-                rounds,
+            raise ConfigError(
+                f"arbiter.timing is 'inter-round' but rounds={rounds}: "
+                "inter-round arbitration runs between rounds and requires "
+                "rounds > 1.  Either set rounds to 2 or more, or change "
+                "arbiter.timing to 'final' (or omit timing to use the default)."
             )
 
     # Parse plugins (optional)

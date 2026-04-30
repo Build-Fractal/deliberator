@@ -15,7 +15,7 @@ Directory layout for a single-round (flat) run::
     │   └── disputes.md
     ├── {agent-name-2}/
     │   └── ...
-    ├── arbiter/          (if arbiter configured)
+    ├── arbitration/      (if arbiter configured)
     └── summary/
         └── final.md
 
@@ -24,11 +24,11 @@ Multi-round layout (round 2+ triggers retroactive move)::
     {output}/
     ├── round-1/          (retroactively moved from flat layout)
     │   ├── {agent-name}/...
-    │   ├── arbiter/
+    │   ├── arbitration/
     │   └── summary/final.md
     ├── round-2/
     │   ├── {agent-name}/...
-    │   ├── arbiter/
+    │   ├── arbitration/
     │   └── summary/final.md
     └── summary/
         └── final.md      (cross-round synthesis, top-level)
@@ -47,7 +47,7 @@ from engine.config import AgentConfig
 
 # Directories that belong to the flat output layout and are subject
 # to retroactive move into ``round-1/``.
-_FLAT_LAYOUT_DIRS = frozenset({"summary", "arbiter"})
+_FLAT_LAYOUT_DIRS = frozenset({"summary", "arbitration"})
 
 
 class OutputManager:
@@ -76,11 +76,11 @@ class OutputManager:
         """Create the directory layout for Phase 1 (reviews).
 
         Creates per-agent directories with cross-reviews/ subdirectory,
-        a summary/ directory, and optionally an arbiter/ directory.
+        a summary/ directory, and optionally an arbitration/ directory.
 
         Args:
             agents: List of agent configurations to create directories for.
-            has_arbiter: Whether to create an arbiter output directory.
+            has_arbiter: Whether to create an arbitration output directory.
         """
         for agent in agents:
             agent_dir = self.output_dir / agent.name / "cross-reviews"
@@ -90,7 +90,7 @@ class OutputManager:
         summary_dir.mkdir(parents=True, exist_ok=True)
 
         if has_arbiter:
-            arbiter_dir = self.output_dir / "arbiter"
+            arbiter_dir = self.output_dir / "arbitration"
             arbiter_dir.mkdir(parents=True, exist_ok=True)
 
     # ------------------------------------------------------------------
@@ -202,7 +202,7 @@ class OutputManager:
         return self._root_dir / f"round-{round_num}"
 
     def retroactive_move_to_round_1(self) -> None:
-        """Move all flat agent directories, summary/, and arbiter/ into ``round-1/``.
+        """Move all flat agent directories, summary/, and arbitration/ into ``round-1/``.
 
         Called when round 2 begins, to retroactively organize round 1 output.
         Idempotent — if ``round-1/`` already exists, this is a no-op.
@@ -255,13 +255,13 @@ class OutputManager:
             self.output_dir = saved
 
     def get_arbitration_path(self, *, round_base: Path | None = None) -> Path:
-        """Return ``{base}/arbiter/resolution.md``.
+        """Return ``{base}/arbitration/resolution.md``.
 
         Args:
             round_base: Optional round directory.  Defaults to ``self.output_dir``.
         """
         base = round_base if round_base is not None else self.output_dir
-        return base / "arbiter" / "resolution.md"
+        return base / "arbitration" / "resolution.md"
 
     def get_cross_round_synthesis_path(self) -> Path:
         """Return ``{root}/summary/final.md`` (top-level, outside any round).
