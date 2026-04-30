@@ -980,7 +980,7 @@ def status_cli() -> None:
     from rich.console import Console
     from rich.table import Table
 
-    from engine.auth import OAUTH_CONFIGS, CredentialStore
+    from engine.auth import OAUTH_CONFIGS, CredentialStore, inspect_credential_source
     from engine.providers.anthropic import is_oauth_token
     from engine.settings import inspect_settings_cascade
 
@@ -990,18 +990,33 @@ def status_cli() -> None:
     # narrow terminal — debugging settings is the whole point of this
     # output, so truncating the path defeats the feature.
     console = Console(width=200)
-    # TODO(SC-005): display credential source per-provider in conversus status
-    # output (deferred from SC-004 per
-    # deliberations/057-sc4-migration-strategy-2026-04-30/arbitration/
-    # resolution.md — adding fields to a user-documented command interface
-    # requires its own spec).
+    # Spec 072 SC-005 (resolved): per-provider credential source attribution
+    # is rendered in the new "Source" column below.
     table = Table(title="Provider Authentication Status")
     table.add_column("Provider", style="bold")
     table.add_column("Status")
     table.add_column("Details")
+    table.add_column("Source")
+
+    _source_label_styles = {
+        "per-provider-file": "green",
+        "legacy-fallback": "yellow",
+        "env-var": "cyan",
+        "none": "dim",
+    }
 
     for provider, config in OAUTH_CONFIGS.items():
         creds = store.get(provider)
+
+        source_label, source_path = inspect_credential_source(provider, store)
+        source_style = _source_label_styles.get(source_label, "white")
+        if source_path is not None:
+            source_cell = (
+                f"[{source_style}]{source_label}[/{source_style}] "
+                f"[dim]{source_path}[/dim]"
+            )
+        else:
+            source_cell = f"[{source_style}]{source_label}[/{source_style}]"
 
         if creds and creds.get("access_token"):
             token = creds["access_token"]
@@ -1018,13 +1033,28 @@ def status_cli() -> None:
                 else:
                     details_parts.append(f"expires {expiry_dt:%Y-%m-%d %H:%M UTC}")
 
-            table.add_row(provider, "[green]logged in[/green]", ", ".join(details_parts))
+            table.add_row(
+                provider,
+                "[green]logged in[/green]",
+                ", ".join(details_parts),
+                source_cell,
+            )
 
         elif os.environ.get(config["env_var"]):
-            table.add_row(provider, "[yellow]env var[/yellow]", config["env_var"])
+            table.add_row(
+                provider,
+                "[yellow]env var[/yellow]",
+                config["env_var"],
+                source_cell,
+            )
 
         else:
-            table.add_row(provider, "[red]not configured[/red]", "—")
+            table.add_row(
+                provider,
+                "[red]not configured[/red]",
+                "—",
+                source_cell,
+            )
 
     console.print(table)
 
