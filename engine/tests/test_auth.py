@@ -22,6 +22,7 @@ from engine.auth import (
     _generate_pkce,
     _redact,
     get_credentials,
+    inspect_credential_source,
     login,
     logout,
     refresh_token,
@@ -1137,3 +1138,117 @@ class TestAtomicWriteAmendments:
                 contender.close()
         finally:
             holder.close()
+
+
+# ===================================================================
+# Source attribution (spec 072 SC-005)
+# ===================================================================
+
+
+class TestInspectCredentialSource:
+    """``inspect_credential_source`` reports where a provider's creds come from.
+
+    Spec 072 SC-005: ``conversus status`` needs to tell the user whether the
+    effective credentials for a provider live in the per-provider file, the
+    legacy ``auth.json`` fallback, an env var, or nowhere. The helper is pure
+    inspection — it must not trigger the lazy-migration write that
+    ``CredentialStore.get`` performs.
+    """
+
+    def test_inspect_credential_source_per_provider_file(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Per-provider file with access_token reports ``per-provider-file``."""
+        monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+        store = _make_store(tmp_path)
+        # Pre-create credentials/anthropic.json directly so the helper, not
+        # CredentialStore.set, plants the file.
+        cred_path = store._credential_path("anthropic")
+        cred_path.parent.mkdir(parents=True, exist_ok=True)
+        cred_path.write_text(
+            json.dumps({"access_token": "sk-ant-oat-test", "refresh_token": "rt"}),
+            encoding="utf-8",
+        )
+
+        label, path = inspect_credential_source("anthropic", store)
+
+        assert label == "per-provider-file"
+        assert path == cred_path
+
+    def test_inspect_credential_source_legacy_fallback(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Legacy auth.json provider entry, no per-provider file → ``legacy-fallback``."""
+        monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+        store = _make_store(tmp_path)
+        # Plant auth.json with a provider entry; do NOT create credentials/anthropic.json.
+        legacy = {
+            "anthropic": {
+                "access_token": "legacy-token",
+                "refresh_token": "rt",
+            }
+        }
+        store.path.parent.mkdir(parents=True, exist_ok=True)
+        store.path.write_text(json.dumps(legacy), encoding="utf-8")
+
+        label, path = inspect_credential_source("anthropic", store)
+
+        assert label == "legacy-fallback"
+        assert path == store.path
+        # Critical: inspection must not migrate. The per-provider file must
+        # remain absent after the call.
+        assert not store._credential_path("anthropic").exists()
+
+    def test_inspect_credential_source_env_var(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Env var with no files → ``env-var``, ``source_path`` is ``None``."""
+        store = _make_store(tmp_path)
+        # No per-provider file, no legacy file.
+        monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-api-from-env")
+
+        label, path = inspect_credential_source("anthropic", store)
+
+        assert label == "env-var"
+        assert path is None
+
+    def test_inspect_credential_source_none(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """No files, no env var → ``none``, ``source_path`` is ``None``."""
+        monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+        monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+        store = _make_store(tmp_path)
+
+        label, path = inspect_credential_source("anthropic", store)
+
+        assert label == "none"
+        assert path is None
+
+    def test_inspect_credential_source_per_provider_takes_precedence_over_legacy(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """When both file sources exist, the per-provider file wins."""
+        monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+        store = _make_store(tmp_path)
+
+        # Plant BOTH a per-provider file and a legacy entry, with distinct
+        # tokens so a buggy implementation that read the legacy file would
+        # still report the wrong source path even if the label happened to
+        # be right.
+        cred_path = store._credential_path("anthropic")
+        cred_path.parent.mkdir(parents=True, exist_ok=True)
+        cred_path.write_text(
+            json.dumps({"access_token": "per-provider-token"}),
+            encoding="utf-8",
+        )
+        store.path.parent.mkdir(parents=True, exist_ok=True)
+        store.path.write_text(
+            json.dumps({"anthropic": {"access_token": "legacy-token"}}),
+            encoding="utf-8",
+        )
+
+        label, path = inspect_credential_source("anthropic", store)
+
+        assert label == "per-provider-file"
+        assert path == cred_path

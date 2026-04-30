@@ -330,6 +330,61 @@ class CredentialStore:
 
 
 # ---------------------------------------------------------------------------
+# Source attribution (spec 072 SC-005)
+# ---------------------------------------------------------------------------
+
+
+def inspect_credential_source(
+    provider: str,
+    store: CredentialStore | None = None,
+) -> tuple[str, Path | None]:
+    """Return ``(source_label, source_path)`` for *provider*'s effective credentials.
+
+    Source labels:
+
+    - ``"per-provider-file"`` — ``credentials/{provider}.json`` exists and
+      contains an ``access_token``. ``source_path`` is the per-provider file.
+    - ``"legacy-fallback"`` — per-provider file is missing/empty and the
+      legacy ``auth.json`` contains a provider entry with ``access_token``.
+      ``source_path`` is the legacy auth file.
+    - ``"env-var"`` — neither file path supplies credentials and
+      ``OAUTH_CONFIGS[provider]["env_var"]`` is set in ``os.environ``.
+      ``source_path`` is ``None`` (env vars have no on-disk location).
+    - ``"none"`` — no credentials are available from any source.
+
+    Resolution order for files mirrors ``CredentialStore.get()``: per-provider
+    beats legacy. Env-var detection uses the OAuth config map only — a provider
+    not registered in ``OAUTH_CONFIGS`` simply cannot resolve to ``env-var``.
+
+    This is an inspection helper for ``conversus status`` (spec 072 SC-005);
+    it is intentionally read-only and **does not** trigger the lazy-migration
+    write that ``CredentialStore.get()`` performs.
+    """
+    store = store or CredentialStore()
+
+    # 1. Per-provider file with an access_token wins.
+    per_provider = store._read_provider_file(provider)
+    if per_provider is not None and per_provider.get("access_token"):
+        return "per-provider-file", store._credential_path(provider)
+
+    # 2. Legacy auth.json fallback.
+    legacy = store._read_legacy_all()
+    legacy_creds = legacy.get(provider) if isinstance(legacy, dict) else None
+    if isinstance(legacy_creds, dict) and legacy_creds.get("access_token"):
+        return "legacy-fallback", store.path
+
+    # 3. Environment variable.
+    config = OAUTH_CONFIGS.get(provider)
+    if config is not None:
+        env_var = config.get("env_var")
+        if env_var and os.environ.get(env_var):
+            return "env-var", None
+
+    # 4. Nothing configured.
+    return "none", None
+
+
+# ---------------------------------------------------------------------------
 # Startup migration sweep (spec 057 SC-004 verdict)
 # ---------------------------------------------------------------------------
 

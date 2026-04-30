@@ -837,3 +837,106 @@ class TestStatusCommand:
             assert field_name in result.output, (
                 f"Settings cascade table missing field {field_name!r}"
             )
+
+    # ----------------------------------------------------------------
+    # Credential source column (spec 072 SC-005)
+    # ----------------------------------------------------------------
+
+    def test_status_shows_credential_source_column(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """The auth-status table includes a ``Source`` column header (spec 072 SC-005).
+
+        The cascade table also has a ``Source`` column, so we additionally
+        assert that the ``none`` label (only emitted by the auth-status table
+        when nothing supplies credentials) appears — proof the new column is
+        wired into the *auth* table, not just inherited from the cascade table.
+        """
+        auth_path = tmp_path / "auth.json"
+        monkeypatch.setattr("engine.auth.DEFAULT_AUTH_PATH", auth_path)
+        monkeypatch.setattr(
+            "engine.auth.DEFAULT_CREDENTIALS_DIR", tmp_path / "credentials"
+        )
+        monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+        monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+
+        runner = CliRunner()
+        result = runner.invoke(cli, ["status"])
+        assert result.exit_code == 0
+        assert "Source" in result.output
+        # Both providers have no creds and no env vars → both render ``none``.
+        assert "none" in result.output
+
+    def test_status_credential_source_per_provider_file(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Per-provider file → ``per-provider-file`` label appears for that provider."""
+        import json as _json
+        import time as _time
+
+        cred_dir = tmp_path / "credentials"
+        cred_dir.mkdir(parents=True, exist_ok=True)
+        (cred_dir / "anthropic.json").write_text(
+            _json.dumps(
+                {
+                    "access_token": "sk-ant-oat-test",
+                    "refresh_token": "rt",
+                    "expires_at": int(_time.time()) + 3600,
+                    "token_type": "bearer",
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        monkeypatch.setattr(
+            "engine.auth.DEFAULT_AUTH_PATH", tmp_path / "auth.json"
+        )
+        monkeypatch.setattr("engine.auth.DEFAULT_CREDENTIALS_DIR", cred_dir)
+        monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+        monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+
+        runner = CliRunner()
+        result = runner.invoke(cli, ["status"])
+        assert result.exit_code == 0
+        # The per-provider label appears on the anthropic row. Find a line
+        # that contains both ``anthropic`` and the source label so we don't
+        # confuse the label appearing on a different row.
+        anthropic_row = next(
+            (
+                line for line in result.output.splitlines()
+                if "anthropic" in line and "per-provider-file" in line
+            ),
+            None,
+        )
+        assert anthropic_row is not None, (
+            f"Expected per-provider-file label on the anthropic row.\n"
+            f"Output:\n{result.output}"
+        )
+
+    def test_status_credential_source_env_var(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Env var only → ``env-var`` label appears for that provider."""
+        monkeypatch.setattr(
+            "engine.auth.DEFAULT_AUTH_PATH", tmp_path / "auth.json"
+        )
+        monkeypatch.setattr(
+            "engine.auth.DEFAULT_CREDENTIALS_DIR", tmp_path / "credentials"
+        )
+        monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-api-from-env")
+        monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+
+        runner = CliRunner()
+        result = runner.invoke(cli, ["status"])
+        assert result.exit_code == 0
+        anthropic_row = next(
+            (
+                line for line in result.output.splitlines()
+                if "anthropic" in line and "env-var" in line
+            ),
+            None,
+        )
+        assert anthropic_row is not None, (
+            f"Expected env-var label on the anthropic row.\n"
+            f"Output:\n{result.output}"
+        )
