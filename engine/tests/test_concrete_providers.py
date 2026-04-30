@@ -124,6 +124,60 @@ class TestClaudeCodeArgv:
         idx = argv.index("--model")
         assert argv[idx + 1] == "opus"
 
+    @pytest.mark.parametrize(
+        "model_alias",
+        [
+            "haiku",
+            "opus",
+            "claude-3-5-haiku-20241022",
+            "claude-3-7-sonnet-20250219",
+            "future-model-id-not-yet-shipped",
+        ],
+    )
+    def test_decide_unknown_model_does_not_trigger_blocklist_fallback(
+        self, model_alias: str
+    ) -> None:
+        """Models NOT on the blocklist pass through to argv unchanged.
+
+        Regression test for PR #52 Bug 3b's value-blocklist in
+        `_build_argv`. The blocklist substitutes the legacy literal
+        ``"claude-sonnet-4-20250514"`` with the provider's own
+        default; this test guards against drift where the conditional
+        becomes a substring/prefix match and starts swallowing
+        legitimate model aliases.
+
+        Per session-review deliberation P2 (issue #60). Lives in
+        parallel with issue #54 (Optional[str] refactor that would
+        retire the blocklist entirely).
+        """
+        provider = ClaudeCodeProvider(model="sonnet")
+        task = _make_task(model=model_alias)
+        argv = provider._build_argv(task)
+        idx = argv.index("--model")
+        # The exact alias the user passed must reach the subprocess.
+        # If this assertion ever fails for a non-blocklisted alias,
+        # the blocklist conditional has drifted to a non-exact match.
+        assert argv[idx + 1] == model_alias, (
+            f"Expected --model {model_alias!r}, got {argv[idx + 1]!r}. "
+            f"The blocklist may have drifted to non-exact matching."
+        )
+
+    def test_blocklist_legacy_literal_still_substitutes(self) -> None:
+        """Sanity check: PR #52's blocklist still fires on the exact literal.
+
+        The deliberate substitution that triggers when the dispatch
+        layer leaks the legacy ``DEFAULT_MODEL`` value into the
+        provider via task metadata. Companion to the parametrized
+        test above — this confirms the blocklist still does its
+        job for the case it was designed to catch.
+        """
+        provider = ClaudeCodeProvider(model="sonnet")
+        task = _make_task(model="claude-sonnet-4-20250514")
+        argv = provider._build_argv(task)
+        idx = argv.index("--model")
+        # Provider's own default ("sonnet") replaces the legacy literal.
+        assert argv[idx + 1] == "sonnet"
+
     def test_read_paths_as_add_dir(self) -> None:
         provider = ClaudeCodeProvider()
         task = _make_task(read_paths=["/path/to/spec.md", "/path/to/target.md"])
