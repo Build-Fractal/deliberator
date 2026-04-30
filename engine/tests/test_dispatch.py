@@ -307,7 +307,68 @@ class TestFailFastOnProviderPassthroughError:
             emitter=emitter,
         )
         assert error is None
-        assert text
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        "preamble_len, expected_to_fire",
+        [
+            # Pattern fully within the first 1000 chars → detection fires.
+            pytest.param(500, True, id="500-chars-pattern-in-head"),
+            pytest.param(900, True, id="900-chars-pattern-in-head"),
+            # Pattern starts at or past byte 1000 → detection does NOT fire.
+            # This documents the deliberate trade-off (1KB head bounds CPU
+            # vs. exhaustive scan). If a future provider buries error text
+            # past 1KB, the remedy is to update
+            # PROVIDER_PASSTHROUGH_ERROR_PATTERNS or raise the head limit
+            # explicitly — not to silently extend detection.
+            pytest.param(1024, False, id="1024-chars-pattern-past-head"),
+            pytest.param(2048, False, id="2048-chars-pattern-past-head"),
+            pytest.param(8192, False, id="8192-chars-very-long-preamble"),
+        ],
+    )
+    async def test_provider_passthrough_error_1kb_boundary(
+        self,
+        preamble_len: int,
+        expected_to_fire: bool,
+        event_collector: tuple[CallbackEmitter, list[EngineEvent]],
+    ) -> None:
+        """`_detect_provider_passthrough_error` reads only `content[:1000]`.
+
+        Per the 2026-04-29 session-review deliberation P1 finding (issue
+        #58): an adversarial response with the error indicator past byte
+        1000 is NOT caught by design. This test documents the boundary
+        explicitly so a future maintainer reading it understands the
+        head-only check is the way it is.
+        """
+        emitter, _ = event_collector
+        preamble = "x" * preamble_len
+        body = preamble + " " + self._ERROR_TEXT
+        provider = MockProvider(response_text=body)
+
+        if expected_to_fire:
+            with pytest.raises(FatalProviderResponseError):
+                await dispatch_agent(
+                    prompt="Review this.",
+                    agent_name="agent-a",
+                    model=DEFAULT_MODEL,
+                    max_tokens=DEFAULT_MAX_TOKENS,
+                    provider=provider,
+                    emitter=emitter,
+                )
+        else:
+            # Detection silent → returns body as content (treats as
+            # legitimate agent output). This is the deliberate trade-off
+            # the test documents.
+            text, error = await dispatch_agent(
+                prompt="Review this.",
+                agent_name="agent-a",
+                model=DEFAULT_MODEL,
+                max_tokens=DEFAULT_MAX_TOKENS,
+                provider=provider,
+                emitter=emitter,
+            )
+            assert error is None
+            assert preamble in text  # body was returned as content
 
 
 # ---------------------------------------------------------------------------
