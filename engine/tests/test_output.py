@@ -38,13 +38,13 @@ class TestCreatePhase1Dirs:
         mgr = OutputManager(tmp_output_dir)
         agents = [AgentConfig(name="a", prompt="A"), AgentConfig(name="b", prompt="B")]
         mgr.create_phase1_dirs(agents, has_arbiter=True)
-        assert (tmp_output_dir / "arbiter").is_dir()
+        assert (tmp_output_dir / "arbitration").is_dir()
 
     def test_no_arbiter_dir_by_default(self, tmp_output_dir: Path) -> None:
         mgr = OutputManager(tmp_output_dir)
         agents = [AgentConfig(name="a", prompt="A"), AgentConfig(name="b", prompt="B")]
         mgr.create_phase1_dirs(agents)
-        assert not (tmp_output_dir / "arbiter").exists()
+        assert not (tmp_output_dir / "arbitration").exists()
 
     def test_idempotent(self, tmp_output_dir: Path) -> None:
         mgr = OutputManager(tmp_output_dir)
@@ -331,13 +331,13 @@ class TestRetroactiveMoveToRound1:
 
     def test_moves_arbiter_dir(self, tmp_output_dir: Path) -> None:
         self._populate_flat_output(tmp_output_dir)
-        (tmp_output_dir / "arbiter").mkdir()
-        (tmp_output_dir / "arbiter" / "resolution.md").write_text("ruling")
+        (tmp_output_dir / "arbitration").mkdir()
+        (tmp_output_dir / "arbitration" / "resolution.md").write_text("ruling")
         mgr = OutputManager(tmp_output_dir)
         mgr.retroactive_move_to_round_1()
 
-        assert (tmp_output_dir / "round-1" / "arbiter" / "resolution.md").read_text() == "ruling"
-        assert not (tmp_output_dir / "arbiter").exists()
+        assert (tmp_output_dir / "round-1" / "arbitration" / "resolution.md").read_text() == "ruling"
+        assert not (tmp_output_dir / "arbitration").exists()
 
     def test_updates_output_dir(self, tmp_output_dir: Path) -> None:
         self._populate_flat_output(tmp_output_dir)
@@ -382,7 +382,7 @@ class TestCreateRoundDirs:
         assert (round_2 / "alpha" / "cross-reviews").is_dir()
         assert (round_2 / "beta" / "cross-reviews").is_dir()
         assert (round_2 / "summary").is_dir()
-        assert (round_2 / "arbiter").is_dir()
+        assert (round_2 / "arbitration").is_dir()
 
     def test_does_not_change_output_dir(self, tmp_output_dir: Path) -> None:
         mgr = OutputManager(tmp_output_dir)
@@ -393,16 +393,16 @@ class TestCreateRoundDirs:
 
 
 class TestGetArbitrationPath:
-    """get_arbitration_path returns {base}/arbiter/resolution.md."""
+    """get_arbitration_path returns {base}/arbitration/resolution.md."""
 
     def test_default_base(self, tmp_output_dir: Path) -> None:
         mgr = OutputManager(tmp_output_dir)
-        assert mgr.get_arbitration_path() == tmp_output_dir / "arbiter" / "resolution.md"
+        assert mgr.get_arbitration_path() == tmp_output_dir / "arbitration" / "resolution.md"
 
     def test_with_round_base(self, tmp_output_dir: Path) -> None:
         mgr = OutputManager(tmp_output_dir)
         rb = tmp_output_dir / "round-2"
-        assert mgr.get_arbitration_path(round_base=rb) == rb / "arbiter" / "resolution.md"
+        assert mgr.get_arbitration_path(round_base=rb) == rb / "arbitration" / "resolution.md"
 
 
 class TestGetCrossRoundSynthesisPath:

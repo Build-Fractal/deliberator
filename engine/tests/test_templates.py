@@ -717,7 +717,7 @@ class TestBuildArbitrationContext:
     def test_output_path_is_arbiter_resolution(self, tmp_path: Path) -> None:
         config = _make_config_with_arbiter(tmp_path)
         ctx = build_arbitration_context(config, config.output, "", round_num=1)
-        assert ctx.OUTPUT_PATH == config.output / "arbiter" / "resolution.md"
+        assert ctx.OUTPUT_PATH == config.output / "arbitration" / "resolution.md"
 
     def test_synthesis_path_set(self, tmp_path: Path) -> None:
         config = _make_config_with_arbiter(tmp_path)
@@ -745,7 +745,7 @@ class TestBuildArbitrationContext:
         ctx = build_arbitration_context(
             config, config.output, "", round_num=2, round_base=rb
         )
-        assert ctx.OUTPUT_PATH == rb / "arbiter" / "resolution.md"
+        assert ctx.OUTPUT_PATH == rb / "arbitration" / "resolution.md"
         assert ctx.SYNTHESIS_PATH == rb / "summary" / "final.md"
 
     def test_model_is_frozen(self, tmp_path: Path) -> None:
@@ -875,12 +875,12 @@ class TestRoundAwareExistingBuilders:
             round=2,
             prior_synthesis_path="/out/round-1/summary/final.md",
             prior_round_dir="/out/round-1",
-            prior_arbitration_path=Path("/out/round-1/arbiter/resolution.md"),
+            prior_arbitration_path=Path("/out/round-1/arbitration/resolution.md"),
         )
         assert ctx.ROUND == 2
         assert ctx.PRIOR_SYNTHESIS_PATH == "/out/round-1/summary/final.md"
         assert ctx.PRIOR_ROUND_DIR == "/out/round-1"
-        assert ctx.PRIOR_ARBITRATION_PATH == Path("/out/round-1/arbiter/resolution.md")
+        assert ctx.PRIOR_ARBITRATION_PATH == Path("/out/round-1/arbitration/resolution.md")
 
     def test_cross_review_context_with_round(self, tmp_path: Path) -> None:
         config = _make_cooperative_config(tmp_path)
