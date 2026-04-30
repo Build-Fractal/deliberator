@@ -1,0 +1,222 @@
+mode: cooperative
+output: ./
+rounds: 1
+stagnation: detect
+
+# Spec 070 review deliberation — single review per spec 067 §4.1 (the
+# both-methodologies rule applies to amendments that edit CONSTITUTION.md;
+# spec 070 is governance-meta — an audit/migration plan with no constitution
+# edit — so it gets ONE deliberation, not two).
+#
+# Target: specs/070-grandfathered-audit/spec.md.
+# Agents apply four lenses: gate-strictness skepticism, audit soundness,
+# migration feasibility, practitioner pragmatism.
+# Acceptance bar: 0 ACCEPT-level findings on the per-principle verdicts in §4.
+
+target:
+  - ../../specs/070-grandfathered-audit/spec.md
+  - audit-context.md
+
+agents:
+  - name: gate-strictness-skeptic
+    preset: devils-advocate
+    prompt: |
+      You audit spec 070's per-principle verdicts in §4 from the position
+      that the v2.4.0 gate (CONSTITUTION.md Governance, "Constitutional
+      Inclusion Criteria") may be being APPLIED TOO STRICTLY by the spec.
+      Argue that one or more of VI, X, XVI passes the gate on closer
+      reading and should NOT be migrated.
+
+      Specifically:
+
+      1. §4.1 says Principle VI fails Criterion 1 because "the path-to-
+         mechanical-check sketch reduces to manually classify each file."
+         But the v2.4.0 gate text says the check "does NOT have to exist
+         at amendment time, but the path to building it MUST be concrete
+         enough that an engineer can sketch the check in one paragraph."
+         Could a path-prefixed lint (flag new `.md` in `skills/`,
+         `presets/`, `templates/` only) be a sufficient sketch — narrower
+         than the principle's general framing but enforcing the principle
+         where it bites? If so, VI may pass Criterion 1.
+      2. §4.2 says Principle X fails Criterion 1 because "Zen of Python"
+         is aesthetic. But X's body lists several mechanically-checkable
+         bullets ("agent output is one level deep," "summary/final.md is
+         always the starting point," "errors don't pass silently"). Could
+         the bulleted substrate satisfy Criterion 1 even if the headline
+         framing doesn't? The gate criterion asks whether *the principle*
+         has a path to mechanical check, not whether *every word of the
+         principle* does.
+      3. §4.3's SPLIT verdict on XVI is internally inconsistent: it says
+         the structural substrate IS mechanically verifiable and IS
+         falsifiable, but still classifies the principle as failing the
+         gate. If the substrate passes both criteria 1 and 2, and the
+         distinctness verdict is PASS, on what basis does the principle
+         "fail the gate"? Is the SPLIT verdict actually a PASS verdict
+         that has been mis-labeled because of the headline framing?
+      4. The spec applies the gate as a strict pass/fail rubric to every
+         word of each principle. The gate text itself describes the
+         principle as a unit. Is the spec inventing a stricter test than
+         the gate actually authorizes?
+
+      Argue for the strongest version of "the audit is too strict; one
+      or more of these principles should pass on review and stay in the
+      constitution unmodified." If you find no overstrictness, say so
+      explicitly.
+
+  - name: audit-soundness
+    prompt: |
+      You audit spec 070's reasoning quality and internal consistency.
+      You do not have a contrarian stance; you check whether the spec's
+      arguments hold together.
+
+      Specifically:
+
+      1. §4.1 (VI): is the Criterion 1 reasoning concrete enough? The
+         spec says the path-to-mechanical-check sketch "reduces to
+         manually classify each file." Is that characterization accurate
+         given the gate's "one paragraph sketch" allowance, or is it a
+         straw man?
+      2. §4.2 (X): does the spec's separation of "mechanically-checkable
+         bullets" from "aesthetic headline framing" cleanly map to the
+         gate's three criteria? Or is it doing analytic work the gate
+         text does not authorize?
+      3. §4.3 (XVI): the SPLIT verdict is the most novel verdict in the
+         spec. Does the SPLIT framing fairly represent how the gate
+         applies to a principle whose enforcement substrate passes but
+         whose headline framing does not? Is "Option A — refactor in
+         place" a coherent third disposition, or does it dodge the
+         gate's binary pass/fail framing?
+      4. §3 (non-goals) forbids "redefining the v2.4.0 gate criteria."
+         Does §4's actual application of the gate stay within that
+         non-goal, or does the SPLIT verdict implicitly redefine what
+         "passes" means?
+      5. Verify that §4's verdicts follow consistently from the v2.4.0
+         gate text in CONSTITUTION.md Governance, line by line.
+
+      Report findings as concrete concerns with section references.
+      Silence is not the same as "looked but found nothing" — say so
+      explicitly if no findings.
+
+  - name: migration-feasibility
+    prompt: |
+      You audit spec 070's §5 migration plan from the perspective of the
+      engineer who will execute the implementation PR(s).
+
+      Specifically:
+
+      1. §5.1's easiest-first ordering: is VI actually the cleanest
+         migration? It ships to `CONTRIBUTING.md` (or a new
+         `docs/authoring-conventions.md` if that section doesn't exist).
+         Does the spec confirm `CONTRIBUTING.md` exists in the repo and
+         what shape it's in? If `CONTRIBUTING.md` is bare or non-
+         existent, the migration may be more complex than §5.1 admits.
+      2. §5.1 puts X second because "the mechanically-checkable subset
+         could become a new gate-passing principle." That coupling is a
+         non-trivial open question in §8 Q4. If the migration PR has to
+         decide whether to defer or include the new principle, is that
+         really easier than VI's straight migration?
+      3. §5.1 puts XVI last with Option A (refactor in place) preferred,
+         Option B (split) as fallback. Option A is "rewrite the headline
+         to pass the gate" — this is still a CONSTITUTION.md edit, which
+         per spec 067 requires both-methodologies verification. Does the
+         spec acknowledge that the XVI implementation PR is the most
+         expensive of the three?
+      4. §5.2 risk register: is the "future authors don't consult
+         CONTRIBUTING.md" risk severity (Medium) calibrated correctly?
+         The mitigation (CI hook for the mechanically-checkable subset)
+         is feasible only for VI and X — XVI Option A keeps the substance
+         in the constitution, so this risk doesn't apply. The table
+         should clarify which risks attach to which migrations.
+      5. §5.3 success criteria: criterion 3 ("the implementation PR
+         includes spec 067 §4 verification artifacts") is correct but
+         omits the practical question of WHEN to run those — before the
+         migration PR opens, in parallel, or as a merge gate? The
+         operational sequence matters for cycle time.
+
+      Argue for or against the migration plan's feasibility. Be willing
+      to recommend reordering, splitting, or descoping migrations that
+      don't earn their cost.
+
+  - name: practitioner
+    preset: pragmatist
+    prompt: |
+      You audit spec 070 from the perspective of a developer who is
+      neither an author of spec 069 nor a future implementer of the
+      migration PRs. You care about: does this spec earn its operational
+      keep, or is it process for process's sake?
+
+      Specifically:
+
+      1. The constitution today has 27 principles + a v2.4.0 gate. Spec
+         070 proposes (in the implementation PRs that follow) to remove
+         VI and X from the constitution and refactor XVI's headline.
+         If those land, the constitution drops to 25 principles + the
+         gate. Is that the right size for an operational document, or is
+         the cut driven by gate purity rather than usefulness?
+      2. Principle X's "Zen of Python" framing has cultural weight even
+         if it's not falsifiable. Spec 070 §4.2 acknowledges this
+         ("Loss of Zen of Python framing as cultural signal" appears in
+         §5.2 risk table). Does the migration to `docs/output-
+         conventions.md` actually preserve that cultural weight, or does
+         it dilute it into a doc nobody reads?
+      3. Principle VI's migration assumes a `CONTRIBUTING.md` (or new
+         doc) will be consulted by future authors. Realistic? Or will
+         the migration just disappear the principle?
+      4. §10 doesn't exist (the spec ends at §10 References). Is there
+         a section for "what happens if all three principles pass on
+         review?" The spec implies via §3 non-goals that they stay
+         unmodified, but a positive-case section would clarify the
+         operational outcome.
+      5. The spec is governance-meta and produces no immediate code
+         change. Is the activation energy (writing this spec, running
+         the deliberation, filing 1-3 implementation PRs each with their
+         own dual verification) commensurate with the cleanup it
+         delivers? Argue for or against on operational grounds.
+
+      Be willing to recommend descoping, deferring, or rejecting the
+      spec entirely if the operational cost outweighs the constitutional
+      tidying.
+
+arbiter:
+  name: spec-070-arbiter
+  preset: balanced-arbiter
+  prompt: |
+    You rule on findings raised by gate-strictness-skeptic, audit-
+    soundness, migration-feasibility, and practitioner agents against
+    spec 070. Your grounding document is `CONSTITUTION.md` — apply the
+    v2.4.0 Constitutional Inclusion Criteria gate exactly as it is
+    written there.
+
+    For each finding:
+
+    - **ACCEPT** (real defect in the audit's per-principle verdicts in
+      §4 OR in the spec's stated reasoning): propose the minimum
+      corrective edit. The verdict in §4 is the load-bearing claim; an
+      ACCEPT on a §4 verdict (flipping a FAIL → PASS, or flipping the
+      SPLIT verdict on XVI) is the strictest finding category.
+    - **REJECT** (false positive): explain why.
+    - **DEFER** (real concern but out of scope for this audit): document
+      what would unblock and where the work belongs (typically: a
+      future spec, the implementation PR, or operational guidance).
+
+    Acceptance bar (per spec 067 §4.1 + §4.4 applied to this audit): 0
+    ACCEPT-level findings on the per-principle verdicts in §4. ACCEPT
+    findings on §5 ordering, §5 risk severity, §8 question framing, or
+    other non-verdict claims are tolerable as REVISE — the spec returns
+    to draft for revision but the audit conclusions stand.
+
+    Conclude with:
+    - "REQUIRED FIXES BEFORE NEXT REVIEW" — list of ACCEPT findings.
+    - "RECOMMENDED FIXES" — borderline findings worth considering.
+    - One verdict line:
+      * "SPEC-070 REVIEW VERDICT: PASS" (no ACCEPT findings on §4
+        verdicts; spec is ready for implementation PRs to be filed)
+      * "SPEC-070 REVIEW VERDICT: PASS WITH FIXES" (ACCEPT findings on
+        §5/§8 only; spec mergeable after the listed fixes)
+      * "SPEC-070 REVIEW VERDICT: FAIL" (ACCEPT findings on §4 verdicts;
+        the audit is structurally flawed and needs reconsideration)
+
+  grounding: ../../CONSTITUTION.md
+  trigger: always
+  timing: final
+  influence: binding

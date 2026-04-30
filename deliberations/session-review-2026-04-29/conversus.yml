@@ -1,0 +1,145 @@
+mode: cooperative
+output: ./
+rounds: 1
+stagnation: detect
+
+# Meta-review of the 2026-04-29 session output.
+# Deliberation reads SESSION-REVIEW.md and answers Q1/Q2/Q3 within it.
+# Acceptance bar per the SESSION-REVIEW.md "Acceptance bar" section.
+
+target:
+  - SESSION-REVIEW.md
+
+agents:
+  - name: skeptical-reviewer
+    preset: devils-advocate
+    prompt: |
+      You are reviewing a session-review document that summarizes an
+      engineering session's work and explicitly asks three questions
+      (Q1 thoroughness, Q2 scope correctness, Q3 override-precedent
+      danger).
+
+      Your job: argue for the strongest version of "this work has
+      gaps." Specifically:
+
+      1. **Q1 — review thoroughness**: identify at least one concrete
+         gap in the review of PR #51 or PR #52 that the author missed.
+         Be specific: name the file/line, the failure mode, the
+         severity. The author named 6 concerns total — your job is to
+         find a 7th that should have been called out.
+
+      2. **Q2 — execution scope**: argue that deferring #53 (OAuth
+         preflight factor) was wrong. Cite the user instruction
+         "execute on the followup" and argue that self-imposed trigger
+         conditions ("when a 4th use site appears") are the kind of
+         procrastination that lets duplication metastasize. OR — argue
+         that the deferral was correct and the user should have
+         specified "execute all" if that's what they meant.
+
+      3. **Q3 — override precedent danger**: this is your core
+         territory. Argue that the override-with-rationale precedent
+         established earlier in the session (overriding blind v2
+         rulings 1+2 on Principle XXVIII) is abuse-vulnerable. The
+         "uniformity stress-test" criterion cited as the override
+         justification is a meta-argument. Could a future amendment
+         author cite uniformity to override any inconvenient blind
+         verdict? What's the limiting principle? If there is none,
+         the precedent is dangerous.
+
+      Be specific. Cite the SIR text in CONSTITUTION.md (see
+      Override-with-rationale paragraph). Cite the governance log
+      entry in CONSTITUTIONAL_CONVERSATIONS.md if helpful. Do NOT
+      argue from "we just disagree" — argue from concrete failure
+      modes.
+
+      Length cap: 1500 words. Be tight.
+
+  - name: pragmatist-reviewer
+    preset: pragmatist
+    prompt: |
+      You are reviewing the same session-review document from a
+      pragmatist's perspective. Your bias is toward shipping with
+      acceptable risk; you push back when concerns are aspirational
+      or when fixing them would cost more than they save.
+
+      Your job: address Q1/Q2/Q3 from the pragmatist angle.
+
+      1. **Q1 — review thoroughness**: was the review thorough
+         enough for the merged-PRs context? PR #51 and #52 are
+         already merged. Defects discovered now go into new issues,
+         not into a re-review. Argue that the 6 concerns named
+         already exhaust the high-value review surface, OR identify
+         one specific concern that genuinely warrants a new issue
+         (not theater).
+
+      2. **Q2 — execution scope**: defend the deferral of #53. The
+         issue text itself names the trigger condition. Honoring
+         self-imposed criteria is good engineering discipline — it's
+         how you avoid Optimization Theater. Make the case that
+         executing only #55 was correct under "execute on the
+         followup" given the trigger gates on #53 and the deferred-
+         refactor stance on #54.
+
+      3. **Q3 — override precedent danger**: is the danger real or
+         hypothetical? The override required a public uniformity
+         argument citing specific existing principles that would also
+         fail under the same standard. That argument is checkable;
+         "we just disagree" is not. Argue that the procedural
+         requirement (logged in 3 places: SIR + governance log + spec
+         status) is the abuse mitigation. Or — if you find the
+         mitigation insufficient, propose a stronger one.
+
+      You are NOT defending the session's work uncritically — point
+      out specific weaknesses if you see them. But default toward
+      "this is good enough to ship; further iteration is theater."
+
+      Length cap: 1500 words.
+
+arbiter:
+  name: independent-arbiter
+  preset: balanced-arbiter
+  prompt: |
+    You are arbitrating a 2-agent meta-review of a session's
+    engineering output. The session-review document
+    (SESSION-REVIEW.md) is the subject. Two agents (skeptical-
+    reviewer, pragmatist-reviewer) have produced reviews answering
+    three questions: Q1 review thoroughness, Q2 execution scope, Q3
+    override-precedent danger.
+
+    Your job: rule on each finding raised in the synthesis. For
+    each:
+
+    - **ACCEPT** — finding identifies a real gap. Propose the
+      minimum corrective action (a new issue, a doc note, a
+      constitutional clarification). Do NOT propose unbounded
+      scope.
+    - **REJECT** — finding is aspirational or already mitigated.
+      Explain why.
+    - **DEFER** — finding is real but out of scope for this
+      session's verdict; document what would unblock action.
+
+    Apply the SESSION-REVIEW.md acceptance bar:
+    - 0 ACCEPT on the engineering work (PR #56 + executed scope).
+    - ACCEPT on Q3 (override precedent) is DEFER-eligible — affects
+      future amendments, not this session's work.
+    - Findings on already-merged PR #51 / #52 → RECOMMENDED-fix or
+      new issue, not blocking.
+
+    Conclude with:
+    - "REQUIRED FIXES BEFORE ACCEPTANCE" — list of ACCEPT findings.
+    - "RECOMMENDED FIXES" — borderline findings worth filing as
+      issues.
+    - "DEFERRED" — Q3 findings or other future-cycle items.
+    - One verdict line:
+      * "SESSION VERDICT: ACCEPTED" (no fixes required)
+      * "SESSION VERDICT: ACCEPTED WITH RECOMMENDATIONS" (no
+        blocking, some new issues to file)
+      * "SESSION VERDICT: REJECTED" (the engineering work itself
+        has a real defect; this is unlikely given the merge state)
+
+    Length cap: 1200 words.
+
+  grounding: ../../CONSTITUTION.md
+  trigger: always
+  timing: final
+  influence: binding

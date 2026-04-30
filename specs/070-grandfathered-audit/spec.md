@@ -32,6 +32,7 @@ This spec performs a formal, criterion-by-criterion audit of VI, X, and XVI. For
 3. **Risk register for migration** — surface the risks that come with moving a principle out of the constitution (loss of enforcement weight, future authors not consulting the new home, fragmentation of guidance across many documents) with proposed mitigations.
 4. **Preserve audit trail for principles that pass review** — if closer analysis flips a spec 069 §5 "would fail" verdict to "actually passes," document that reasoning explicitly so the precedent is on the record.
 5. **Authorize, but do not perform, the implementation PR** — this spec produces the audit and the migration plan; the implementation PR (the actual `CONSTITUTION.md` edit + operational-guidance content addition) is filed separately and verified per spec 067.
+6. **Operational impact assessment** (added 2026-04-29 per `deliberations/070-spec-review-2026-04-28/` PASS WITH FIXES) — for each principle that fails the audit, demonstrate operational justification alongside the constitutional non-compliance finding. Migration proceeds only if BOTH constitutional non-compliance AND operational benefit are demonstrated; constitutional process legitimacy is necessary but not sufficient.
 
 ## 3. Non-goals
 
@@ -44,6 +45,8 @@ This spec performs a formal, criterion-by-criterion audit of VI, X, and XVI. For
 ## 4. Per-principle audit
 
 Each subsection restates the principle, applies the three v2.4.0 criteria, gives a verdict per criterion, and either proposes a migration target (if the principle fails) or documents the pass-on-review reasoning.
+
+**Methodology** (added 2026-04-29 per `deliberations/070-spec-review-2026-04-28/` PASS WITH FIXES): systematic criterion-by-criterion evaluation is mandatory; the v2.4.0 gate's binary structure ("only if it satisfies all three") prohibits SPLIT verdicts at the top level. Where structural enforcement substrate satisfies a criterion but the headline framing does not, **Criterion 3's refinement provision** ("refining or extending an existing principle goes in that principle's body") allows gate-compliant headline rewriting as an alternative to migration to operational guidance. The audit MUST resolve any per-criterion split into a top-level FAIL with Option A (refactor in place) or Option B (split + migrate) explicitly named.
 
 ### 4.1 Principle VI — Scripts Over Markdown
 
@@ -104,7 +107,7 @@ Each subsection restates the principle, applies the three v2.4.0 criteria, gives
 - **Verdict**: PASS.
 - **Reasoning**: No other principle covers the user-intent-to-objective-function contract or the parameter-pinning discipline. Principle VII (Reproducibility) is adjacent — XVI explicitly carves an exception to VII for the LLM gap-filling stage — but the carve-out itself proves they are distinct.
 
-**Audit verdict**: SPLIT — fails on the headline framing, passes on the structural substrate. The spec 069 §5 verdict ("WOULD FAIL") is correct about the *wording as written*. But the principle is doing real, mechanically-verifiable work in its structural bullets.
+**Audit verdict**: FAIL with Option A refactoring as the preferred remedy (revised 2026-04-29 per `deliberations/070-spec-review-2026-04-28/` PASS WITH FIXES). The headline framing fails Criterion 1 (mechanical verification capability) and Criterion 2 (falsifiable scope) — "user understanding" cannot be mechanically verified or falsifiably scoped. The structural substrate passes (parameter pinning, plain-language pairing, shape determinism). Per the v2.4.0 gate's binary structure, a SPLIT verdict at the top level is not authorized: principles either pass all three criteria or fail. Criterion 3's refinement provision allows the headline to be rewritten in place to elevate the structural substrate as the load-bearing claim, retaining the principle's constitutional status. Spec 069 §5's "WOULD FAIL" classification stands for the wording as written; Option A is the path that brings the wording into compliance.
 
 **Proposed migration path** (most nuanced of the three):
 - **Option A — Refactor in place** (preferred): Rewrite Principle XVI so its headline claim is the falsifiable structural contract (parameter pinning, shape determinism, plain-language output pairing) and the "user understanding" language is repositioned as design intent in the body. The principle stays in the constitution but with a headline that passes the v2.4.0 gate. This is technically a refinement, which the v2.4.0 gate's criterion 3 says "goes in that principle's body." Refactoring the principle's wording without changing its enforcement is a PATCH-level edit.
@@ -130,6 +133,8 @@ Ordering, risk, and per-principle success criteria for the **implementation PR(s
 | X → docs/output-conventions.md | Loss of "Zen of Python" framing as cultural signal. | Preserve the headline phrasing in the operational-guidance doc; cite it in PR review when relevant. Optionally split the mechanically-checkable subset into a new gate-passing principle (deferred to its own spec). |
 | XVI Option A (refactor in place) | Reviewer consensus rejects "headline framing change" as a PATCH and demands MINOR. | The implementation PR self-assesses the version bump and surfaces it for review. If MINOR is required, the same PR can carry the bump. |
 | XVI Option B (split) | Cross-references from Principle VII break; v2.3.2 enforcement clauses lose their containing principle's headline. | Implementation PR updates VII's reference, preserves the v2.3.2 enforcement clauses verbatim under the new headline, and verifies cross-references via existing structural checks. |
+
+> **Note on verification costs** (added 2026-04-29 per `deliberations/070-spec-review-2026-04-28/` PASS WITH FIXES): the ~34 LLM launches per principle migration cited in this spec serve **dual purposes**: (a) execution-feasibility planning if migration proceeds, and (b) cost-benefit / proportionality assessment of whether migration is justified relative to operational benefits. Framing the cost as exclusively justificatory or exclusively planning-related artificially constrains legitimate analytical use; the same data informs both decisions.
 
 ### 5.3 Success criteria per principle migrated
 

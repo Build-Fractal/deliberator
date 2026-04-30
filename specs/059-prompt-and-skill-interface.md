@@ -2,7 +2,7 @@
 
 **Feature ID**: `059-prompt-and-skill-interface`
 **Created**: 2026-04-13
-**Status**: Draft (revised after deliberation)
+**Status**: Active 2026-04-29 (promoted from draft) — deliberation-amended 2026-04-13, depends on 055 (closed), 5-prompt decision final, hybrid registry integration accepted. Implementation-ready.
 **Depends On**: `055-capability-registry`, existing plugin SKILL.md files, MCP server
 **Motivated by**: Desktop Extension users can't reliably trigger conversus — Claude gives its own answer instead of invoking the deliberation tools
 

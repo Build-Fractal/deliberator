@@ -2,7 +2,7 @@
 
 **Feature ID**: `056-deliberation-persistence`
 **Created**: 2026-04-12
-**Status**: Draft (revised after spec 056 deliberation)
+**Status**: Active 2026-04-29 (promoted from draft) — deliberation-revised, dependencies (055/057) closed, framing inverted to developer-first, workspace-scoped storage settled. Implementation-ready.
 **Depends On**: `055-capability-registry`, `057-settings-architecture`
 **Motivated by**: Desktop Extension gap (ephemeral output) + developer workflow needs
 

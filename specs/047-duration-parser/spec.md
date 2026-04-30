@@ -2,7 +2,7 @@
 
 **Feature ID**: `047-duration-parser`
 **Created**: 2026-04-04
-**Status**: Draft
+**Status**: Active 2026-04-29 (promoted from draft) — bug fix (#4) + architecture gap identified; structured output needed by 3 downstream consumers. Implementation-ready.
 **Depends On**: `linter/question_classifier.py` (current regex-based temporal detection)
 **Docs Update**: New docs/developer-guide/duration-parsing.md; update linter docs with the new classifier API
 **Origin**: Bug #4 fix (plural time units) exposed a deeper architectural gap. The regex-based `_CONSTRAINT_PATTERN` detects a limited vocabulary and returns no structured data. Downstream consumers (AMPL negotiation solver, scenario storage, feature extraction) need durations as **structured values**, not just pattern matches.
