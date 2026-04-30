@@ -567,6 +567,9 @@ class TestStatusCommand:
         """Status with no stored credentials and no env vars shows 'not configured'."""
         auth_path = tmp_path / "auth.json"
         monkeypatch.setattr("engine.auth.DEFAULT_AUTH_PATH", auth_path)
+        monkeypatch.setattr(
+            "engine.auth.DEFAULT_CREDENTIALS_DIR", tmp_path / "credentials"
+        )
         # Clear env vars so they don't interfere
         monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
         monkeypatch.delenv("OPENAI_API_KEY", raising=False)
@@ -593,6 +596,9 @@ class TestStatusCommand:
         auth_path.parent.mkdir(parents=True, exist_ok=True)
         auth_path.write_text(json.dumps(creds), encoding="utf-8")
         monkeypatch.setattr("engine.auth.DEFAULT_AUTH_PATH", auth_path)
+        monkeypatch.setattr(
+            "engine.auth.DEFAULT_CREDENTIALS_DIR", tmp_path / "credentials"
+        )
         monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
         monkeypatch.delenv("OPENAI_API_KEY", raising=False)
 
@@ -605,6 +611,9 @@ class TestStatusCommand:
         """Status with env var set shows 'env var'."""
         auth_path = tmp_path / "auth.json"
         monkeypatch.setattr("engine.auth.DEFAULT_AUTH_PATH", auth_path)
+        monkeypatch.setattr(
+            "engine.auth.DEFAULT_CREDENTIALS_DIR", tmp_path / "credentials"
+        )
         monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-api-test-key")
         monkeypatch.delenv("OPENAI_API_KEY", raising=False)
 
@@ -629,6 +638,9 @@ class TestStatusCommand:
         auth_path.parent.mkdir(parents=True, exist_ok=True)
         auth_path.write_text(json.dumps(creds), encoding="utf-8")
         monkeypatch.setattr("engine.auth.DEFAULT_AUTH_PATH", auth_path)
+        monkeypatch.setattr(
+            "engine.auth.DEFAULT_CREDENTIALS_DIR", tmp_path / "credentials"
+        )
         monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
         monkeypatch.delenv("OPENAI_API_KEY", raising=False)
 
@@ -647,6 +659,9 @@ class TestStatusCommand:
         """Status output mentions both anthropic and openai providers."""
         auth_path = tmp_path / "auth.json"
         monkeypatch.setattr("engine.auth.DEFAULT_AUTH_PATH", auth_path)
+        monkeypatch.setattr(
+            "engine.auth.DEFAULT_CREDENTIALS_DIR", tmp_path / "credentials"
+        )
         monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
         monkeypatch.delenv("OPENAI_API_KEY", raising=False)
 
@@ -673,6 +688,9 @@ class TestStatusCommand:
         auth_path.parent.mkdir(parents=True, exist_ok=True)
         auth_path.write_text(json.dumps(creds), encoding="utf-8")
         monkeypatch.setattr("engine.auth.DEFAULT_AUTH_PATH", auth_path)
+        monkeypatch.setattr(
+            "engine.auth.DEFAULT_CREDENTIALS_DIR", tmp_path / "credentials"
+        )
         monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
         monkeypatch.delenv("OPENAI_API_KEY", raising=False)
 
@@ -695,6 +713,9 @@ class TestStatusCommand:
         """
         auth_path = tmp_path / "auth.json"
         monkeypatch.setattr("engine.auth.DEFAULT_AUTH_PATH", auth_path)
+        monkeypatch.setattr(
+            "engine.auth.DEFAULT_CREDENTIALS_DIR", tmp_path / "credentials"
+        )
         monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
         monkeypatch.delenv("OPENAI_API_KEY", raising=False)
 

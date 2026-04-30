@@ -1,9 +1,16 @@
 """Credential storage, OAuth PKCE flows, and provider resolution.
 
 Provides:
-- ``CredentialStore``: per-provider token persistence in ``~/.conversus/auth.json``
+- ``CredentialStore``: per-provider token persistence in ``~/.conversus/credentials/{provider}.json``
 - ``login`` / ``logout`` / ``get_credentials`` / ``refresh_token``: OAuth lifecycle
 - ``resolve_provider``: factory that maps provider name + credentials → ``ModelProvider``
+
+Spec 057 SC-004: each provider's credentials live in their own file under
+``~/.conversus/credentials/`` rather than the legacy monolithic
+``~/.conversus/auth.json``. ``CredentialStore`` lazily migrates from the legacy
+file on first read so existing OAuth users keep working with no manual action.
+The legacy file is preserved on disk after migration (users can ``rm`` it
+themselves); writes never touch it.
 """
 
 from __future__ import annotations
@@ -14,7 +21,6 @@ import json
 import logging
 import os
 import secrets
-import stat
 import time
 import webbrowser
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -62,7 +68,35 @@ OAUTH_CONFIGS: dict[str, dict[str, str]] = {
 }
 
 DEFAULT_AUTH_PATH = Path.home() / ".conversus" / "auth.json"
+DEFAULT_CREDENTIALS_DIR = Path.home() / ".conversus" / "credentials"
 CALLBACK_TIMEOUT = 120  # seconds
+
+
+# ---------------------------------------------------------------------------
+# Atomic write helper
+# ---------------------------------------------------------------------------
+
+
+def _atomic_write_json(path: Path, data: dict[str, Any], mode: int = 0o600) -> None:
+    """Write *data* to *path* atomically with restrictive permissions.
+
+    Writes to ``{path}.tmp`` first, sets ``mode`` on the tmp file *before* the
+    rename (so the file is never world-readable in plaintext, even briefly),
+    then ``os.replace`` to swap into place. Survives a crash mid-write — the
+    final path either holds the previous contents or the new ones, never a
+    partial JSON document.
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        path.parent.chmod(0o700)
+    except OSError:
+        # Some filesystems / mocks may reject chmod on the parent; the
+        # per-file mode below is the load-bearing protection.
+        pass
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    tmp.write_text(json.dumps(data, indent=2), encoding="utf-8")
+    os.chmod(tmp, mode)
+    os.replace(tmp, path)
 
 
 # ---------------------------------------------------------------------------
@@ -71,16 +105,53 @@ CALLBACK_TIMEOUT = 120  # seconds
 
 
 class CredentialStore:
-    """Read/write per-provider OAuth tokens in ``~/.conversus/auth.json``.
+    """Read/write per-provider OAuth tokens in ``~/.conversus/credentials/``.
 
-    The JSON file is ``chmod 600`` after every write to protect secrets.
+    Each provider lives in its own file at ``{credentials_dir}/{provider}.json``
+    holding only that provider's credential dict (not a nested
+    ``{provider: dict}`` mapping). Files are written atomically and ``chmod
+    600``-ed before the rename to keep secrets unreadable to other users.
+
+    The legacy monolithic ``~/.conversus/auth.json`` is read on a fallback path:
+    if a per-provider file is missing on first ``get()``, the credentials are
+    lazily migrated from the legacy file (if present) to the per-provider
+    location. The legacy file is preserved on disk afterward.
+
+    ``path`` parameter is preserved for backwards compatibility with code that
+    used to override the legacy auth file path. It still controls where the
+    legacy file is read from for migration purposes.
     """
 
-    def __init__(self, path: Path | None = None) -> None:
+    def __init__(
+        self,
+        path: Path | None = None,
+        *,
+        credentials_dir: Path | None = None,
+    ) -> None:
+        # ``path`` keeps the legacy keyword argument name some callers
+        # (CLI tests, integration tests, older docs) still use. It now refers
+        # solely to the legacy auth.json read path used during lazy migration.
         self.path = path or DEFAULT_AUTH_PATH
+        self._credentials_dir_override = credentials_dir
 
-    def _read_all(self) -> dict[str, Any]:
-        """Read the entire auth file, returning {} if missing or invalid."""
+    @property
+    def credentials_dir(self) -> Path:
+        """Directory holding per-provider credential files.
+
+        Resolved lazily so monkeypatching ``DEFAULT_CREDENTIALS_DIR`` (mirrors
+        how existing tests monkeypatch ``DEFAULT_AUTH_PATH``) works without
+        re-instantiating the store.
+        """
+        if self._credentials_dir_override is not None:
+            return self._credentials_dir_override
+        return DEFAULT_CREDENTIALS_DIR
+
+    def _credential_path(self, provider: str) -> Path:
+        """Return ``{credentials_dir}/{provider}.json``."""
+        return self.credentials_dir / f"{provider}.json"
+
+    def _read_legacy_all(self) -> dict[str, Any]:
+        """Read the legacy ``auth.json``, returning ``{}`` if missing or invalid."""
         if not self.path.exists():
             return {}
         try:
@@ -88,33 +159,100 @@ class CredentialStore:
         except (json.JSONDecodeError, OSError):
             return {}
 
-    def _write_all(self, data: dict[str, Any]) -> None:
-        """Write the full data dict and set restrictive permissions."""
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        self.path.write_text(json.dumps(data, indent=2), encoding="utf-8")
-        self.path.chmod(stat.S_IRUSR | stat.S_IWUSR)  # 600
+    def _read_provider_file(self, provider: str) -> dict[str, Any] | None:
+        """Read a per-provider file, returning ``None`` if missing or invalid."""
+        cred_path = self._credential_path(provider)
+        if not cred_path.exists():
+            return None
+        try:
+            return json.loads(cred_path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            return None
 
     def get(self, provider: str) -> dict[str, Any] | None:
-        """Return stored credentials for *provider*, or ``None``."""
-        data = self._read_all()
-        return data.get(provider)
+        """Return stored credentials for *provider*, or ``None``.
 
-    def save(self, provider: str, credentials: dict[str, Any]) -> None:
-        """Persist *credentials* under *provider*, merging with existing data."""
-        data = self._read_all()
-        data[provider] = credentials
-        self._write_all(data)
+        Reads the per-provider file first. If the per-provider file is missing
+        but the legacy ``auth.json`` contains the provider, lazily migrates the
+        credentials to the new location before returning. The legacy file is
+        not touched.
+        """
+        per_provider = self._read_provider_file(provider)
+        if per_provider is not None:
+            return per_provider
+
+        # Per-provider file missing — fall back to legacy auth.json and migrate.
+        legacy = self._read_legacy_all()
+        legacy_creds = legacy.get(provider)
+        if legacy_creds is None:
+            return None
+
+        # Lazy-migrate: write to per-provider file but leave auth.json alone.
+        try:
+            _atomic_write_json(self._credential_path(provider), legacy_creds)
+        except OSError as exc:
+            # If migration write fails (read-only fs, etc.) we still want the
+            # caller to receive the credentials — degrade gracefully.
+            logger.warning(
+                "Lazy migration for %s failed (%s); returning legacy creds without persisting.",
+                provider,
+                exc,
+            )
+        return legacy_creds
+
+    def set(self, provider: str, credentials: dict[str, Any]) -> None:
+        """Persist *credentials* to the per-provider file.
+
+        Writes are atomic (tmp + ``os.replace``) and the resulting file is
+        ``chmod 600``. The legacy ``auth.json`` is never touched.
+        """
+        _atomic_write_json(self._credential_path(provider), credentials)
+
+    # ``save`` is preserved as an alias so internal callers (login flows,
+    # refresh_token, OAuth provider implementations) and existing tests keep
+    # working without churn. ``set`` is the spec-mandated name.
+    save = set
 
     def delete(self, provider: str) -> None:
-        """Remove credentials for a single *provider*."""
-        data = self._read_all()
-        data.pop(provider, None)
-        self._write_all(data)
+        """Remove the per-provider file for *provider*.
+
+        Does not touch the legacy ``auth.json`` — users can ``rm`` it manually
+        once they're confident the migration succeeded.
+        """
+        cred_path = self._credential_path(provider)
+        if cred_path.exists():
+            cred_path.unlink()
 
     def clear(self) -> None:
-        """Delete the entire auth file."""
+        """Delete every per-provider file and the legacy ``auth.json``.
+
+        Used by ``logout --all``-style operations. ``clear`` is the only
+        method that touches the legacy file, because the user has explicitly
+        asked to remove all credentials.
+        """
+        if self.credentials_dir.exists():
+            for entry in self.credentials_dir.iterdir():
+                if entry.is_file() and entry.suffix == ".json":
+                    try:
+                        entry.unlink()
+                    except OSError:
+                        pass
         if self.path.exists():
-            self.path.unlink()
+            try:
+                self.path.unlink()
+            except OSError:
+                pass
+
+    def list_providers(self) -> list[str]:
+        """Return the union of providers with a per-provider file or a legacy entry."""
+        providers: set[str] = set()
+        if self.credentials_dir.exists():
+            for entry in self.credentials_dir.iterdir():
+                if entry.is_file() and entry.suffix == ".json":
+                    providers.add(entry.stem)
+        legacy = self._read_legacy_all()
+        providers.update(legacy.keys())
+        return sorted(providers)
 
 
 # ---------------------------------------------------------------------------

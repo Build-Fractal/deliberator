@@ -50,11 +50,24 @@ def _patch_roots(monkeypatch: pytest.MonkeyPatch, project: Path, home: Path) -> 
 
     ``Path.home()`` is patched so the global settings tier reads from
     *home* instead of the real home directory.
+
+    ``engine.auth.DEFAULT_AUTH_PATH`` and ``DEFAULT_CREDENTIALS_DIR`` are
+    captured at module import time using the *real* ``Path.home()``, so
+    patching ``Path.home`` alone is not enough to isolate the credential
+    store from the user's real ``~/.conversus`` (spec 057 SC-004 — per-
+    provider files at ``~/.conversus/credentials/``). Pin both constants
+    to the test home explicitly.
     """
     monkeypatch.setattr(
         "engine.persistence.find_user_project_root", lambda start=None: project
     )
     monkeypatch.setattr(Path, "home", lambda: home)
+    monkeypatch.setattr(
+        "engine.auth.DEFAULT_AUTH_PATH", home / ".conversus" / "auth.json"
+    )
+    monkeypatch.setattr(
+        "engine.auth.DEFAULT_CREDENTIALS_DIR", home / ".conversus" / "credentials"
+    )
 
 
 # A question that passes the classifier's sufficiency check — complex
