@@ -74,7 +74,12 @@ Examples:
 )
 def cli() -> None:
     """Conversus — competitive multi-agent deliberation engine."""
-    pass
+    # Spec 057 SC-004 verdict: emit a DEBUG-level sweep diff of legacy
+    # auth.json keys vs. credentials/ files once per invocation. Stateless
+    # — no sentinel file, no in-memory dedup. Best-effort, never raises.
+    from engine.auth import log_unmigrated_credentials_sweep
+
+    log_unmigrated_credentials_sweep()
 
 
 # ---------------------------------------------------------------------------

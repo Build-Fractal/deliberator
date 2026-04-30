@@ -911,3 +911,229 @@ class TestResolveProvider:
         store = _make_store(tmp_path)
         provider = resolve_provider("openai", credential_store=store)
         assert isinstance(provider, ModelProvider)
+
+
+# ===================================================================
+# Spec 057 SC-004 verdict amendments (2026-04-30)
+# ===================================================================
+#
+# These tests cover the amendments mandated by the binding deliberation at
+# ``deliberations/057-sc4-migration-strategy-2026-04-30/arbitration/
+# resolution.md``: DEBUG fallback log on lazy migration, stateless startup
+# sweep, ``.tmp`` cleanup on exception, and per-provider file lock.
+
+
+import logging  # noqa: E402 — late import keeps amendment-block self-contained
+
+
+class TestFallbackDebugLog:
+    """``CredentialStore.get`` must emit a DEBUG log every fallback to legacy auth.json."""
+
+    def test_get_fallback_emits_debug_log(
+        self, tmp_path: Path, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        store = _make_store(tmp_path)
+        # Plant a legacy auth.json entry but NO per-provider file.
+        store.path.parent.mkdir(parents=True, exist_ok=True)
+        store.path.write_text(
+            json.dumps({"anthropic": {"access_token": "legacy-tok"}}),
+            encoding="utf-8",
+        )
+
+        with caplog.at_level(logging.DEBUG, logger="conversus.auth"):
+            result = store.get("anthropic")
+
+        assert result == {"access_token": "legacy-tok"}
+        # Find the DEBUG record from the fallback path.
+        fallback_records = [
+            r for r in caplog.records
+            if r.levelno == logging.DEBUG
+            and "credentials/anthropic.json not found" in r.getMessage()
+        ]
+        assert len(fallback_records) == 1
+        msg = fallback_records[0].getMessage()
+        assert "legacy auth.json" in msg
+        assert "conversus migrate-credentials" in msg
+
+    def test_get_no_fallback_no_debug_log(
+        self, tmp_path: Path, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """Per-provider file present → no fallback log."""
+        store = _make_store(tmp_path)
+        store.set("anthropic", {"access_token": "fresh"})
+
+        with caplog.at_level(logging.DEBUG, logger="conversus.auth"):
+            store.get("anthropic")
+
+        fallback_records = [
+            r for r in caplog.records
+            if "credentials/anthropic.json not found" in r.getMessage()
+        ]
+        assert fallback_records == []
+
+
+class TestUnmigratedSweep:
+    """``log_unmigrated_credentials_sweep`` — stateless startup diff of legacy vs migrated."""
+
+    def test_log_unmigrated_credentials_sweep_emits_debug_when_unmigrated(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        from engine import auth
+
+        # Two legacy providers; only one migrated.
+        legacy_path = tmp_path / "auth.json"
+        legacy_path.write_text(
+            json.dumps(
+                {
+                    "anthropic": {"access_token": "a"},
+                    "openai": {"access_token": "o"},
+                }
+            ),
+            encoding="utf-8",
+        )
+        cred_dir = tmp_path / "credentials"
+        cred_dir.mkdir(parents=True)
+        (cred_dir / "anthropic.json").write_text(
+            json.dumps({"access_token": "a"}), encoding="utf-8"
+        )
+
+        monkeypatch.setattr(auth, "DEFAULT_AUTH_PATH", legacy_path)
+        monkeypatch.setattr(auth, "DEFAULT_CREDENTIALS_DIR", cred_dir)
+
+        with caplog.at_level(logging.DEBUG, logger="conversus.auth"):
+            auth.log_unmigrated_credentials_sweep()
+
+        sweep_records = [
+            r for r in caplog.records
+            if r.levelno == logging.DEBUG
+            and "Unmigrated credential providers" in r.getMessage()
+        ]
+        assert len(sweep_records) == 1
+        msg = sweep_records[0].getMessage()
+        # ``openai`` is unmigrated; ``anthropic`` already migrated.
+        assert "openai" in msg
+        assert "anthropic" not in msg
+
+    def test_log_unmigrated_credentials_sweep_silent_when_all_migrated(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        from engine import auth
+
+        legacy_path = tmp_path / "auth.json"
+        legacy_path.write_text(
+            json.dumps({"anthropic": {"access_token": "a"}}), encoding="utf-8"
+        )
+        cred_dir = tmp_path / "credentials"
+        cred_dir.mkdir(parents=True)
+        (cred_dir / "anthropic.json").write_text(
+            json.dumps({"access_token": "a"}), encoding="utf-8"
+        )
+
+        monkeypatch.setattr(auth, "DEFAULT_AUTH_PATH", legacy_path)
+        monkeypatch.setattr(auth, "DEFAULT_CREDENTIALS_DIR", cred_dir)
+
+        with caplog.at_level(logging.DEBUG, logger="conversus.auth"):
+            auth.log_unmigrated_credentials_sweep()
+
+        sweep_records = [
+            r for r in caplog.records
+            if "Unmigrated credential providers" in r.getMessage()
+        ]
+        assert sweep_records == []
+
+    def test_log_unmigrated_credentials_sweep_silent_when_no_legacy(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+        caplog: pytest.LogCaptureFixture,
+    ) -> None:
+        from engine import auth
+
+        # No auth.json on disk.
+        legacy_path = tmp_path / "missing-auth.json"
+        cred_dir = tmp_path / "credentials"
+
+        monkeypatch.setattr(auth, "DEFAULT_AUTH_PATH", legacy_path)
+        monkeypatch.setattr(auth, "DEFAULT_CREDENTIALS_DIR", cred_dir)
+
+        with caplog.at_level(logging.DEBUG, logger="conversus.auth"):
+            auth.log_unmigrated_credentials_sweep()
+
+        sweep_records = [
+            r for r in caplog.records
+            if "Unmigrated credential providers" in r.getMessage()
+        ]
+        assert sweep_records == []
+
+
+class TestAtomicWriteAmendments:
+    """``_atomic_write_json`` cleanup-on-exception and file-lock behavior (verdict §4-5)."""
+
+    def test_atomic_write_cleans_up_tmp_on_exception(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """If ``os.replace`` fails, the orphaned ``.tmp`` file must be removed."""
+        target = tmp_path / "out.json"
+        # Pre-existing original content.
+        target.write_text(json.dumps({"original": True}), encoding="utf-8")
+
+        def boom(src: Any, dst: Any) -> None:
+            raise OSError("simulated replace failure")
+
+        monkeypatch.setattr("engine.auth.os.replace", boom)
+
+        with pytest.raises(OSError, match="simulated replace failure"):
+            _atomic_write_json(target, {"new": True})
+
+        # The .tmp must be cleaned up.
+        tmp_file = target.with_suffix(target.suffix + ".tmp")
+        assert not tmp_file.exists()
+        # Original content untouched.
+        assert json.loads(target.read_text(encoding="utf-8")) == {"original": True}
+
+    @pytest.mark.skipif(
+        os.name == "nt",
+        reason="fcntl is POSIX-only; Windows skips file locking",
+    )
+    def test_atomic_write_acquires_file_lock(self, tmp_path: Path) -> None:
+        """Smoke test: an unrelated write completes successfully on POSIX with fcntl wired."""
+        target = tmp_path / "locked.json"
+        _atomic_write_json(target, {"k": "v"})
+        assert json.loads(target.read_text(encoding="utf-8")) == {"k": "v"}
+
+    @pytest.mark.skipif(
+        os.name == "nt",
+        reason="fcntl is POSIX-only; Windows skips file locking",
+    )
+    def test_flock_with_timeout_raises_when_contended(self, tmp_path: Path) -> None:
+        """A held LOCK_EX on the same fd should cause _flock_with_timeout to raise after the bound."""
+        from engine.auth import _flock_with_timeout
+        import fcntl as _fcntl  # type: ignore[import-not-found]
+
+        path = tmp_path / "contended.tmp"
+        path.write_text("x")
+        # Hold an exclusive lock on a separate fd to the same file.
+        holder = open(path, "w")
+        try:
+            _fcntl.flock(holder.fileno(), _fcntl.LOCK_EX | _fcntl.LOCK_NB)
+
+            # Now try to acquire on a different fd; bounded retry should give up.
+            contender = open(path, "w")
+            try:
+                start = time.monotonic()
+                with pytest.raises(BlockingIOError):
+                    _flock_with_timeout(contender.fileno(), timeout_ms=50)
+                elapsed = time.monotonic() - start
+                # Should respect the timeout bound — give a generous upper limit
+                # to avoid flake on slow CI but still prove it's bounded.
+                assert elapsed < 1.0
+            finally:
+                contender.close()
+        finally:
+            holder.close()

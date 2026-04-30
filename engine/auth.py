@@ -16,6 +16,7 @@ themselves); writes never touch it.
 from __future__ import annotations
 
 import base64
+import errno
 import hashlib
 import json
 import logging
@@ -33,6 +34,19 @@ import click
 import httpx
 
 from engine.providers import MockProvider, ModelProvider, ProviderError
+
+# fcntl is POSIX-only — wrap import for Windows support.
+# TODO: cross-platform locking (msvcrt.locking or portalocker) when Windows is
+# supported as a first-class target. For now, Windows skips locking — atomic
+# replace still guarantees the final file is consistent, only concurrent writers
+# may race on the *.tmp filename.
+try:
+    import fcntl  # type: ignore[import-not-found]
+
+    _HAS_FCNTL = True
+except ImportError:  # pragma: no cover — Windows
+    fcntl = None  # type: ignore[assignment]
+    _HAS_FCNTL = False
 
 logger = logging.getLogger("conversus.auth")
 
@@ -77,14 +91,47 @@ CALLBACK_TIMEOUT = 120  # seconds
 # ---------------------------------------------------------------------------
 
 
+def _flock_with_timeout(fd: int, timeout_ms: int = 200) -> None:
+    """Acquire ``LOCK_EX`` non-blocking on *fd*, retrying up to *timeout_ms*.
+
+    Per the spec 057 SC-004 deliberation verdict
+    (``deliberations/057-sc4-migration-strategy-2026-04-30/arbitration/resolution.md``)
+    writes to a per-provider credential file must use a non-blocking, bounded
+    file lock. Two ``conversus`` invocations writing the same provider at the
+    same time should serialize, not interleave; the bounded timeout prevents a
+    crashed/hung writer from indefinitely blocking the second writer.
+
+    No-op on platforms without ``fcntl`` (Windows). The atomic ``os.replace``
+    still guarantees the final file is consistent — concurrent writers there
+    may race only on the ``.tmp`` filename.
+    """
+    if not _HAS_FCNTL:
+        return
+    deadline = time.monotonic() + (timeout_ms / 1000.0)
+    while True:
+        try:
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            return
+        except BlockingIOError:
+            if time.monotonic() >= deadline:
+                raise BlockingIOError(
+                    errno.EWOULDBLOCK,
+                    f"Could not acquire credential file lock within {timeout_ms}ms",
+                )
+            time.sleep(0.01)
+
+
 def _atomic_write_json(path: Path, data: dict[str, Any], mode: int = 0o600) -> None:
     """Write *data* to *path* atomically with restrictive permissions.
 
-    Writes to ``{path}.tmp`` first, sets ``mode`` on the tmp file *before* the
-    rename (so the file is never world-readable in plaintext, even briefly),
-    then ``os.replace`` to swap into place. Survives a crash mid-write — the
-    final path either holds the previous contents or the new ones, never a
-    partial JSON document.
+    Writes to ``{path}.tmp`` first (opened with ``O_TRUNC`` semantics via
+    Python's ``"w"`` mode — see verdict §"O_TRUNC over O_EXCL"), acquires a
+    bounded ``fcntl.LOCK_EX`` lock for concurrency safety, sets ``mode`` on
+    the tmp file *before* the rename (so the file is never world-readable in
+    plaintext, even briefly), then ``os.replace`` to swap into place. Survives
+    a crash mid-write — the final path either holds the previous contents or
+    the new ones, never a partial JSON document. If any error occurs between
+    open and replace, the ``.tmp`` file is removed in ``finally``.
     """
     path.parent.mkdir(parents=True, exist_ok=True)
     try:
@@ -94,9 +141,28 @@ def _atomic_write_json(path: Path, data: dict[str, Any], mode: int = 0o600) -> N
         # per-file mode below is the load-bearing protection.
         pass
     tmp = path.with_suffix(path.suffix + ".tmp")
-    tmp.write_text(json.dumps(data, indent=2), encoding="utf-8")
-    os.chmod(tmp, mode)
-    os.replace(tmp, path)
+    payload = json.dumps(data, indent=2)
+    try:
+        # ``"w"`` opens with O_TRUNC (Python's default for text-write) — per
+        # verdict, preferred over O_EXCL because the .tmp slot may legitimately
+        # exist from a prior crashed write and overwriting it is safe.
+        with open(tmp, "w", encoding="utf-8") as f:
+            _flock_with_timeout(f.fileno(), timeout_ms=200)
+            f.write(payload)
+            f.flush()
+            os.fsync(f.fileno())
+            # chmod must happen before replace so the swapped-in file is never
+            # world-readable in plaintext, even briefly.
+            os.chmod(tmp, mode)
+        # Lock released implicitly when the file descriptor closed above.
+        os.replace(tmp, path)
+    except Exception:
+        if tmp.exists():
+            try:
+                tmp.unlink()
+            except OSError:
+                pass
+        raise
 
 
 # ---------------------------------------------------------------------------
@@ -182,6 +248,14 @@ class CredentialStore:
             return per_provider
 
         # Per-provider file missing — fall back to legacy auth.json and migrate.
+        # DEBUG-level so quiet by default but visible to anyone investigating
+        # an unexpected migration. Stateless — fires every fallback (verdict
+        # §"DEBUG fallback log").
+        logger.debug(
+            "credentials/%s.json not found; reading from legacy auth.json. "
+            "Run 'conversus migrate-credentials' to migrate.",
+            provider,
+        )
         legacy = self._read_legacy_all()
         legacy_creds = legacy.get(provider)
         if legacy_creds is None:
@@ -253,6 +327,53 @@ class CredentialStore:
         legacy = self._read_legacy_all()
         providers.update(legacy.keys())
         return sorted(providers)
+
+
+# ---------------------------------------------------------------------------
+# Startup migration sweep (spec 057 SC-004 verdict)
+# ---------------------------------------------------------------------------
+
+
+def log_unmigrated_credentials_sweep() -> None:
+    """Diff legacy ``auth.json`` against ``credentials/`` files; log if any unmigrated.
+
+    Stateless. Fires once per CLI invocation (wired into the ``cli`` group
+    callback). No sentinel file, no in-memory dedup — re-running the CLI is
+    the only way to re-emit, so the sweep can't drift out of sync with disk
+    state. Per spec 057 SC-004 deliberation verdict 2026-04-30
+    (``deliberations/057-sc4-migration-strategy-2026-04-30/arbitration/resolution.md``).
+
+    Best-effort: any I/O error (auth.json unreadable, credentials dir missing)
+    fails silent. The sweep is observability, not a precondition.
+    """
+    try:
+        legacy_path = DEFAULT_AUTH_PATH
+        if not legacy_path.exists():
+            return
+        try:
+            legacy_data = json.loads(legacy_path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            return
+        if not isinstance(legacy_data, dict) or not legacy_data:
+            return
+        legacy_providers = set(legacy_data.keys())
+
+        migrated: set[str] = set()
+        cred_dir = DEFAULT_CREDENTIALS_DIR
+        if cred_dir.exists():
+            for entry in cred_dir.iterdir():
+                if entry.is_file() and entry.suffix == ".json":
+                    migrated.add(entry.stem)
+
+        unmigrated = sorted(legacy_providers - migrated)
+        if unmigrated:
+            logger.debug(
+                "Unmigrated credential providers found in auth.json: %s. "
+                "These will migrate lazily on first use.",
+                unmigrated,
+            )
+    except Exception:  # pragma: no cover — defensive, sweep must never raise
+        return
 
 
 # ---------------------------------------------------------------------------
