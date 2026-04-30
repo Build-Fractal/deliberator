@@ -483,6 +483,33 @@ async def dispatch_phase(
         prompt: str,
         prov: AnyProvider,
     ) -> tuple[str, str | None]:
+        """Per-agent dispatch wrapped in optional provider concurrency gate.
+
+        **Concurrency model** (issue #61): this function IS invoked
+        concurrently across agents. The caller builds one coroutine per
+        agent (line ~510 below) and runs them all through
+        ``asyncio.gather(*tasks, return_exceptions=True)``. Concurrency is
+        bounded per-provider by the ``provider_sems`` semaphore (capped at
+        the provider's ``effective_concurrency`` if it exposes one), not
+        sequential.
+
+        **Fail-fast invariant**: ``FatalProviderResponseError`` is raised
+        from inside ``dispatch_agent`` when the provider returns an error
+        string as content (PR #52 Bug 3a). With ``return_exceptions=True``
+        the exception is collected as a result value, then the
+        post-``gather`` loop (below) re-raises the FIRST occurrence.
+        Concurrent peers complete before the re-raise — their results are
+        discarded but their side-effects (events emitted, sub-tasks
+        already in flight) cannot be undone. Acceptable trade-off given
+        ``effective_concurrency`` caps the blast radius.
+
+        The 2026-04-29 session-review deliberation characterized this as
+        "_gated_dispatch is not invoked concurrently in the current
+        engine" — that statement is structurally incorrect against the
+        code as it stands; the fail-fast pattern works because of
+        ``return_exceptions=True`` + sequential post-processing, not
+        because dispatch is sequential.
+        """
         sem = _sem_for(prov)
         if sem is None:
             return await dispatch_agent(
