@@ -2,7 +2,7 @@
 
 **Feature ID**: `072-credential-source-display`
 **Created**: 2026-04-28
-**Status**: Active 2026-04-30 — implementation PR (this branch).
+**Status**: Implemented 2026-04-30 — closes issue #73 via PR #76. `inspect_credential_source` helper + 4-column auth status table (Provider, Status, Details, Source) shipped. 8 new tests. Moved to `specs/done/`.
 **Depends On**: `057-settings-architecture` (SC-004 — per-provider credential files)
 **Motivated by**: SC-004 deliberation verdict deferred per-provider source attribution to a follow-on spec because adding a column to a user-documented command interface requires its own contract.
 
