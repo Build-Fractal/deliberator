@@ -48,6 +48,7 @@ from engine.templates import (
     load_template,
     _extract_remaining_disputes,
 )
+from linter.arbitration_parser import extract_addressed_disputes
 from linter.models import InfluenceLevel
 from linter.quality import check_disagreement
 
@@ -996,11 +997,20 @@ async def run_pipeline(
                     InfluenceLevel(config.arbiter.influence)
                     if config.arbiter else None
                 ),
-                # FR-P2-4: parsing arbiter-addressed disputes from
-                # resolution.md is deferred to a follow-up FR. Until then,
-                # pass None so the function falls back to the no-op
-                # (count-as-shipped) path.
-                arbiter_addressed=None,
+                # FR-P2-4 (issue #68): parse arbiter-addressed disputes
+                # from the most recent ``resolution.md``. When inter-round
+                # arbitration ran in this round, ``prior_arbitration_path``
+                # points at that file and influence-aware adjustment in
+                # check_disagreement() suppresses the matching disputes
+                # (binding/recommended) or ignores them (advisory/None).
+                # When no prior arbitration exists, we fall back to None,
+                # preserving the pre-issue-#68 no-op path.
+                arbiter_addressed=(
+                    extract_addressed_disputes(prior_arbitration_path)
+                    if prior_arbitration_path is not None
+                    and prior_arbitration_path.exists()
+                    else None
+                ),
             )
             current_dispute_count = disagree.dispute_count
 

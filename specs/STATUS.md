@@ -7,9 +7,6 @@ Source of truth: each spec's Status field. This index summarizes current impleme
 
 ## Active Specs (Top-Level, Numbered)
 
-### 006 — Inter-Round Arbitration
-**Status**: Half-shipped — reopened 2026-04-04. Phase 1 partial; Phase 2 specified at `specs/006-inter-round-arbitration/PHASE-2-SPEC.md` (drafted 2026-04-29) — codifies the 7-point IMPLEMENTATION-GAP into 7 FRs with sequencing.
-
 ### 047 — Duration Parser
 **Status**: Active 2026-04-29 (promoted from draft) — bug fix (#4) + architecture gap identified; structured output needed by 3 downstream consumers. Implementation-ready.
 
@@ -42,10 +39,10 @@ Source of truth: each spec's Status field. This index summarizes current impleme
 
 ---
 
-## Closed Specs (in `specs/done/`, 56 total)
+## Closed Specs (in `specs/done/`, 57 total)
 
 **Specs 001–069 (representative list):**  
-001-subject-arbitration, 004-preset-agents, 004-universal-rounds, 005-generalized-templates, 005-p2p3-backlog-hardening, 007-game-engine, 007-subcommand-dispatch-define, 008-executable-conversus, 008-interests-mode, 009-guided-execution, 010-antipattern-steering, 010-guided-arbitration, 011-adoption-harness, 011-phase-consensus-gates, 011a-skill-breakdown, 012-game-form-schemas, 012-spec-hygiene, 013-objective-function-templates, 014-guided-objective-construction, 015-feature-extraction, 016-plugin-system, 017-equilibrium-scorer, 018-convergence-predictor, 019-config-optimizer, 020-scenario-storage, 021-nashopt-integration, 022-kalman-convergence, 023-ampl-config-optimizer, 024-cross-plugin-interfaces, 025-game-form-expansion, 026-optimization-template-library, 027-solver-validation-flow, 028-mode-expansion, 029-code-review-domain, 030-domain-plugin-architecture, 031-docs-and-vercel-compliance, 032-package-splitting, 033-monetization-partitioning, 034-kalman-convergence-fixes, 035-plugin-framework-fixes, 036-mode-template-fixes, 037-validation-flow-fixes, 038-solver-equilibrium-fixes, 039-new-mode-payoffs, 042-execution-providers, 045-test-coverage-review, 050-cascading-settings, 052-open-source-extraction, 054-public-documentation, 055-capability-registry, 064-capability-discovery, 066-constitution-v2.3.0, 068-principle-xvi-fix, 069-mechanical-verification-gate, 998-phase-consensus-gates, 999-decision-framework.
+001-subject-arbitration, 004-preset-agents, 004-universal-rounds, 005-generalized-templates, 005-p2p3-backlog-hardening, 006-inter-round-arbitration (closed 2026-04-30 after Phase 2 — PRs #65/#66/#67/#69 + closing PR), 007-game-engine, 007-subcommand-dispatch-define, 008-executable-conversus, 008-interests-mode, 009-guided-execution, 010-antipattern-steering, 010-guided-arbitration, 011-adoption-harness, 011-phase-consensus-gates, 011a-skill-breakdown, 012-game-form-schemas, 012-spec-hygiene, 013-objective-function-templates, 014-guided-objective-construction, 015-feature-extraction, 016-plugin-system, 017-equilibrium-scorer, 018-convergence-predictor, 019-config-optimizer, 020-scenario-storage, 021-nashopt-integration, 022-kalman-convergence, 023-ampl-config-optimizer, 024-cross-plugin-interfaces, 025-game-form-expansion, 026-optimization-template-library, 027-solver-validation-flow, 028-mode-expansion, 029-code-review-domain, 030-domain-plugin-architecture, 031-docs-and-vercel-compliance, 032-package-splitting, 033-monetization-partitioning, 034-kalman-convergence-fixes, 035-plugin-framework-fixes, 036-mode-template-fixes, 037-validation-flow-fixes, 038-solver-equilibrium-fixes, 039-new-mode-payoffs, 042-execution-providers, 045-test-coverage-review, 050-cascading-settings, 052-open-source-extraction, 054-public-documentation, 055-capability-registry, 064-capability-discovery, 066-constitution-v2.3.0, 068-principle-xvi-fix, 069-mechanical-verification-gate, 998-phase-consensus-gates, 999-decision-framework.
 
 (057 was previously here; reopened 2026-04-29 — see Active Specs above.)
 
