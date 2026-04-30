@@ -13,8 +13,10 @@ import pytest
 import yaml
 
 from engine.settings import (
+    CascadeEntry,
     ConversusSettings,
     PersistenceSettings,
+    inspect_settings_cascade,
     load_settings,
     resolve_setting,
 )
@@ -211,3 +213,172 @@ class TestResolveSetting:
         settings = ConversusSettings(default_provider="anthropic")
         result = resolve_setting(settings, "", "default_provider")
         assert result == "anthropic"
+
+
+# ===================================================================
+# inspect_settings_cascade  (spec 057 SC-003)
+# ===================================================================
+
+
+class TestInspectSettingsCascade:
+    """inspect_settings_cascade returns per-field source attribution."""
+
+    @staticmethod
+    def _clear_env(monkeypatch: pytest.MonkeyPatch) -> None:
+        for var in (
+            "CONVERSUS_DEFAULT_PROVIDER",
+            "CONVERSUS_DEFAULT_MODE",
+            "CONVERSUS_DEFAULT_MODEL",
+            "CONVERSUS_MAX_LAUNCHES",
+        ):
+            monkeypatch.delenv(var, raising=False)
+
+    def test_inspect_cascade_default_only(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """No YAML, no env vars -> every entry has source='default'."""
+        self._clear_env(monkeypatch)
+        home = tmp_path / "home"
+        home.mkdir()
+        monkeypatch.setattr(Path, "home", lambda: home)
+
+        entries = inspect_settings_cascade(project_root=tmp_path / "project")
+
+        assert all(isinstance(e, CascadeEntry) for e in entries)
+        assert all(e.source == "default" for e in entries)
+        assert all(e.source_path is None for e in entries)
+
+        # Defaults match ConversusSettings()
+        defaults = ConversusSettings()
+        for entry in entries:
+            assert entry.value == getattr(defaults, entry.key)
+
+    def test_inspect_cascade_global_only(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Global YAML supplies values; project absent."""
+        self._clear_env(monkeypatch)
+        home = tmp_path / "home"
+        home.mkdir()
+        monkeypatch.setattr(Path, "home", lambda: home)
+
+        global_file = _write_settings(home, {
+            "default_provider": "anthropic",
+            "default_model": "sonnet",
+        })
+
+        entries = inspect_settings_cascade(project_root=tmp_path / "project")
+        by_key = {e.key: e for e in entries}
+
+        assert by_key["default_provider"].source == "global"
+        assert by_key["default_provider"].value == "anthropic"
+        assert by_key["default_provider"].source_path == global_file
+
+        assert by_key["default_model"].source == "global"
+        assert by_key["default_model"].value == "sonnet"
+
+        # Untouched fields fall through to defaults
+        assert by_key["default_mode"].source == "default"
+        assert by_key["max_launches"].source == "default"
+
+    def test_inspect_cascade_project_overrides_global(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Project YAML wins over global for the same key."""
+        self._clear_env(monkeypatch)
+        home = tmp_path / "home"
+        home.mkdir()
+        monkeypatch.setattr(Path, "home", lambda: home)
+
+        _write_settings(home, {"default_provider": "anthropic"})
+        project = tmp_path / "project"
+        project_file = _write_settings(project, {"default_provider": "claude-code"})
+
+        entries = inspect_settings_cascade(project_root=project)
+        by_key = {e.key: e for e in entries}
+
+        assert by_key["default_provider"].source == "project"
+        assert by_key["default_provider"].value == "claude-code"
+        assert by_key["default_provider"].source_path == project_file
+
+    def test_inspect_cascade_env_overrides_yaml(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Environment variables win over both project and global YAML."""
+        self._clear_env(monkeypatch)
+        home = tmp_path / "home"
+        home.mkdir()
+        monkeypatch.setattr(Path, "home", lambda: home)
+
+        _write_settings(home, {"default_provider": "anthropic"})
+        project = tmp_path / "project"
+        _write_settings(project, {"default_provider": "claude-code"})
+
+        monkeypatch.setenv("CONVERSUS_DEFAULT_PROVIDER", "openai")
+
+        entries = inspect_settings_cascade(project_root=project)
+        by_key = {e.key: e for e in entries}
+
+        assert by_key["default_provider"].source == "env"
+        assert by_key["default_provider"].value == "openai"
+        assert by_key["default_provider"].source_path is None
+
+    def test_inspect_cascade_env_max_launches_coerced_to_int(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """CONVERSUS_MAX_LAUNCHES is parsed as int when set via env."""
+        self._clear_env(monkeypatch)
+        home = tmp_path / "home"
+        home.mkdir()
+        monkeypatch.setattr(Path, "home", lambda: home)
+        monkeypatch.setenv("CONVERSUS_MAX_LAUNCHES", "77")
+
+        entries = inspect_settings_cascade(project_root=tmp_path / "project")
+        by_key = {e.key: e for e in entries}
+
+        assert by_key["max_launches"].source == "env"
+        assert by_key["max_launches"].value == 77
+
+    def test_inspect_cascade_env_invalid_int_falls_through(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Invalid int env value falls through to lower tiers."""
+        self._clear_env(monkeypatch)
+        home = tmp_path / "home"
+        home.mkdir()
+        monkeypatch.setattr(Path, "home", lambda: home)
+        monkeypatch.setenv("CONVERSUS_MAX_LAUNCHES", "not-an-int")
+
+        entries = inspect_settings_cascade(project_root=tmp_path / "project")
+        by_key = {e.key: e for e in entries}
+
+        assert by_key["max_launches"].source == "default"
+        assert by_key["max_launches"].value == 20
+
+    def test_inspect_cascade_returns_all_field_count(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Result has exactly one entry per ConversusSettings.model_fields key."""
+        self._clear_env(monkeypatch)
+        home = tmp_path / "home"
+        home.mkdir()
+        monkeypatch.setattr(Path, "home", lambda: home)
+
+        entries = inspect_settings_cascade(project_root=tmp_path / "project")
+
+        assert len(entries) == len(ConversusSettings.model_fields)
+        keys_in_result = {e.key for e in entries}
+        assert keys_in_result == set(ConversusSettings.model_fields.keys())
+
+    def test_inspect_cascade_handles_missing_yaml_files(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Missing global and project YAML paths don't raise."""
+        self._clear_env(monkeypatch)
+        home = tmp_path / "home"
+        home.mkdir()
+        monkeypatch.setattr(Path, "home", lambda: home)
+
+        # nonexistent project path
+        entries = inspect_settings_cascade(project_root=tmp_path / "does-not-exist")
+        assert all(e.source == "default" for e in entries)

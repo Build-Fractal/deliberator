@@ -36,7 +36,7 @@ from __future__ import annotations
 import logging
 import os
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal, NamedTuple
 
 import yaml
 from pydantic import BaseModel, ConfigDict
@@ -222,3 +222,130 @@ def resolve_setting(
     value = getattr(settings, setting_name)
     # Coerce to str for callers that expect a string return.
     return str(value) if value is not None else ""
+
+
+# ---------------------------------------------------------------------------
+# Cascade introspection (spec 057 SC-003)
+# ---------------------------------------------------------------------------
+
+
+# Map ConversusSettings field names to the env vars that override them.
+# Kept in lockstep with the env_overrides logic in load_settings(). When you
+# add a new env-overridable field there, add it here too.
+_ENV_VAR_FOR_FIELD: dict[str, str] = {
+    "default_provider": "CONVERSUS_DEFAULT_PROVIDER",
+    "default_mode": "CONVERSUS_DEFAULT_MODE",
+    "default_model": "CONVERSUS_DEFAULT_MODEL",
+    "max_launches": "CONVERSUS_MAX_LAUNCHES",
+}
+
+
+class CascadeEntry(NamedTuple):
+    """A single resolved setting with the layer it came from.
+
+    Used by ``conversus status`` to show which tier of the cascade
+    supplied each effective value.
+    """
+
+    key: str
+    value: Any
+    source: Literal["default", "global", "project", "env"]
+    source_path: Path | None
+
+
+def _coerce_env_value(field_name: str, raw: str) -> Any:
+    """Coerce a raw environment-variable string into the field's type.
+
+    Mirrors the int-parsing branch in ``load_settings`` for
+    ``CONVERSUS_MAX_LAUNCHES``.  Returns ``None`` if coercion fails so
+    the caller can fall through to the next tier.
+    """
+    if field_name == "max_launches":
+        try:
+            return int(raw)
+        except ValueError:
+            return None
+    return raw
+
+
+def inspect_settings_cascade(
+    project_root: Path | None = None,
+) -> list[CascadeEntry]:
+    """Return per-key resolution of every ``ConversusSettings`` field.
+
+    Walks the cascade tiers (env → project → global → default) and
+    determines, for each field declared on ``ConversusSettings``, which
+    tier supplied the effective value.  Used by ``conversus status`` to
+    show users where each setting came from.
+
+    Args:
+        project_root: Explicit project root.  ``None`` triggers
+            automatic discovery via ``find_user_project_root()``.
+
+    Returns:
+        A list of ``CascadeEntry`` tuples — one per field on
+        ``ConversusSettings`` — preserving model field order.
+    """
+    if project_root is None:
+        from engine.persistence import find_user_project_root
+
+        project_root = find_user_project_root()
+
+    global_path = Path.home() / _SETTINGS_REL
+    project_path = project_root / _SETTINGS_REL
+
+    global_data = _read_yaml(global_path)
+    project_data = _read_yaml(project_path)
+
+    defaults = ConversusSettings()
+
+    entries: list[CascadeEntry] = []
+    for field_name in ConversusSettings.model_fields:
+        env_var = _ENV_VAR_FOR_FIELD.get(field_name)
+        env_raw = os.environ.get(env_var) if env_var else None
+
+        if env_raw:
+            coerced = _coerce_env_value(field_name, env_raw)
+            if coerced is not None:
+                entries.append(
+                    CascadeEntry(
+                        key=field_name,
+                        value=coerced,
+                        source="env",
+                        source_path=None,
+                    )
+                )
+                continue
+
+        if field_name in project_data:
+            entries.append(
+                CascadeEntry(
+                    key=field_name,
+                    value=project_data[field_name],
+                    source="project",
+                    source_path=project_path,
+                )
+            )
+            continue
+
+        if field_name in global_data:
+            entries.append(
+                CascadeEntry(
+                    key=field_name,
+                    value=global_data[field_name],
+                    source="global",
+                    source_path=global_path,
+                )
+            )
+            continue
+
+        entries.append(
+            CascadeEntry(
+                key=field_name,
+                value=getattr(defaults, field_name),
+                source="default",
+                source_path=None,
+            )
+        )
+
+    return entries

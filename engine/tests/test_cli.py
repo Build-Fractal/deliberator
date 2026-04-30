@@ -680,3 +680,139 @@ class TestStatusCommand:
         result = runner.invoke(cli, ["status"])
         assert result.exit_code == 0
         assert "subscription" in result.output.lower()
+
+    # ----------------------------------------------------------------
+    # Settings cascade table  (spec 057 SC-003)
+    # ----------------------------------------------------------------
+
+    @staticmethod
+    def _isolate_settings(
+        tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> Path:
+        """Pin auth + Path.home() to tmp_path and clear cascade env vars.
+
+        Returns the simulated home directory so tests can plant YAML.
+        """
+        auth_path = tmp_path / "auth.json"
+        monkeypatch.setattr("engine.auth.DEFAULT_AUTH_PATH", auth_path)
+        monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+        monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+
+        home = tmp_path / "home"
+        home.mkdir()
+        monkeypatch.setattr(Path, "home", lambda: home)
+
+        for var in (
+            "CONVERSUS_DEFAULT_PROVIDER",
+            "CONVERSUS_DEFAULT_MODE",
+            "CONVERSUS_DEFAULT_MODEL",
+            "CONVERSUS_MAX_LAUNCHES",
+        ):
+            monkeypatch.delenv(var, raising=False)
+
+        # Pin project root discovery to a known empty directory.
+        project = tmp_path / "project"
+        project.mkdir()
+        monkeypatch.setattr(
+            "engine.persistence.find_user_project_root",
+            lambda: project,
+        )
+        return home
+
+    @staticmethod
+    def _write_yaml(directory: Path, data: dict) -> Path:
+        settings_dir = directory / ".conversus"
+        settings_dir.mkdir(parents=True, exist_ok=True)
+        out = settings_dir / "settings.yml"
+        out.write_text(yaml.dump(data, sort_keys=False), encoding="utf-8")
+        return out
+
+    def test_status_shows_settings_cascade_table(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Status output includes the new 'Settings Cascade' table."""
+        self._isolate_settings(tmp_path, monkeypatch)
+
+        runner = CliRunner()
+        result = runner.invoke(cli, ["status"])
+        assert result.exit_code == 0
+        assert "Settings Cascade" in result.output
+        # Headers appear in the table
+        assert "Setting" in result.output
+        assert "Effective value" in result.output
+        assert "Source" in result.output
+
+    def test_status_cascade_default_when_no_yaml(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """When no YAML files and no env vars, sources show 'default'."""
+        self._isolate_settings(tmp_path, monkeypatch)
+
+        runner = CliRunner()
+        result = runner.invoke(cli, ["status"])
+        assert result.exit_code == 0
+        assert "default" in result.output.lower()
+        assert "(built-in)" in result.output
+
+    def test_status_cascade_env_overrides_project(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Env var beats project YAML; env var name is shown as source path."""
+        home = self._isolate_settings(tmp_path, monkeypatch)
+        project = tmp_path / "project"
+
+        self._write_yaml(home, {"default_provider": "anthropic"})
+        self._write_yaml(project, {"default_provider": "claude-code"})
+        monkeypatch.setenv("CONVERSUS_DEFAULT_PROVIDER", "openai")
+
+        runner = CliRunner()
+        result = runner.invoke(cli, ["status"])
+        assert result.exit_code == 0
+        # The env-resolved value renders, with the env var name annotated.
+        assert "openai" in result.output
+        assert "CONVERSUS_DEFAULT_PROVIDER" in result.output
+
+    def test_status_cascade_project_overrides_global(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Project YAML beats global YAML; the project tier is shown.
+
+        We verify the resolved value and the ``project`` source label
+        appear together on the same row.  Source-path text may be
+        truncated by Rich on very long tmp paths — what matters for
+        debuggability is that the user sees the layer.
+        """
+        home = self._isolate_settings(tmp_path, monkeypatch)
+        project = tmp_path / "project"
+
+        self._write_yaml(home, {"default_provider": "anthropic"})
+        self._write_yaml(project, {"default_provider": "claude-code"})
+
+        runner = CliRunner()
+        result = runner.invoke(cli, ["status"])
+        assert result.exit_code == 0
+        assert "claude-code" in result.output
+        # Verify the project source label appears on the same row as
+        # the value (rather than just somewhere in the output).
+        row_lines = [
+            line for line in result.output.splitlines()
+            if "default_provider" in line and "claude-code" in line
+        ]
+        assert row_lines, "default_provider row not found in cascade table"
+        assert "project" in row_lines[0]
+
+    def test_status_cascade_shows_all_setting_keys(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Every ConversusSettings.model_fields key appears in the table."""
+        from engine.settings import ConversusSettings
+
+        self._isolate_settings(tmp_path, monkeypatch)
+
+        runner = CliRunner()
+        result = runner.invoke(cli, ["status"])
+        assert result.exit_code == 0
+        for field_name in ConversusSettings.model_fields:
+            assert field_name in result.output, (
+                f"Settings cascade table missing field {field_name!r}"
+            )

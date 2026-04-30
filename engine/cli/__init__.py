@@ -433,51 +433,15 @@ Examples:
 """,
 )
 def status() -> None:
-    """Show authentication status for all providers."""
-    from datetime import datetime, timezone
+    """Show authentication status and the effective settings cascade.
 
-    from rich.console import Console
-    from rich.table import Table
+    Delegates to ``engine.handlers.status_cli`` which is the canonical
+    surface-aware handler (constitution principle XI — single source
+    of truth).  See spec 057 SC-003 for the settings-cascade table.
+    """
+    from engine.handlers import status_cli
 
-    from engine.auth import OAUTH_CONFIGS, CredentialStore
-    from engine.providers.anthropic import is_oauth_token
-
-    store = CredentialStore()
-    console = Console()
-    table = Table(title="Provider Authentication Status")
-    table.add_column("Provider", style="bold")
-    table.add_column("Status")
-    table.add_column("Details")
-
-    for provider, config in OAUTH_CONFIGS.items():
-        creds = store.get(provider)
-
-        if creds and creds.get("access_token"):
-            # Stored OAuth credentials
-            token = creds["access_token"]
-            token_type = "subscription" if is_oauth_token(token) else "OAuth token"
-
-            details_parts = [token_type]
-
-            expires_at = creds.get("expires_at")
-            if expires_at is not None:
-                expiry_dt = datetime.fromtimestamp(expires_at, tz=timezone.utc)
-                now = datetime.now(tz=timezone.utc)
-                if expiry_dt < now:
-                    details_parts.append(f"expired {expiry_dt:%Y-%m-%d %H:%M UTC}")
-                else:
-                    details_parts.append(f"expires {expiry_dt:%Y-%m-%d %H:%M UTC}")
-
-            table.add_row(provider, "[green]logged in[/green]", ", ".join(details_parts))
-
-        elif os.environ.get(config["env_var"]):
-            # Environment variable fallback
-            table.add_row(provider, "[yellow]env var[/yellow]", config["env_var"])
-
-        else:
-            table.add_row(provider, "[red]not configured[/red]", "—")
-
-    console.print(table)
+    status_cli()
 
 
 # ---------------------------------------------------------------------------
