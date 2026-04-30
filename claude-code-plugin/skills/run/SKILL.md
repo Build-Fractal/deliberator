@@ -49,7 +49,7 @@ Before the run, auto-set `CONVERSUS_PROVIDER=claude-code` when ALL of:
 
 ```bash
 if [ -z "${CONVERSUS_PROVIDER+set}" ] && [ -z "${ANTHROPIC_API_KEY:-}" ] && [ -f "$HOME/.conversus/auth.json" ]; then
-  if grep -qE '"(access_token|oauth|subscription)"' "$HOME/.conversus/auth.json" 2>/dev/null; then
+  if grep -qE '"(access_token|oauth)"' "$HOME/.conversus/auth.json" 2>/dev/null; then
     export CONVERSUS_PROVIDER=claude-code
     echo "note: detected Anthropic OAuth auth with no ANTHROPIC_API_KEY; auto-set CONVERSUS_PROVIDER=claude-code" >&2
   fi
