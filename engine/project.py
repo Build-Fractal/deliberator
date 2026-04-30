@@ -3,7 +3,8 @@
 Handles creation, reading, and updating of the ``.conversus/`` directory
 convention for conversus projects.  This directory contains:
 
-- ``settings.json`` — provider defaults, model preferences
+- ``settings.yml`` — provider defaults, model preferences (YAML; read by
+  the settings cascade in :mod:`engine.settings`)
 - ``output/`` — deliberation output (gitignored)
 - Runtime-specific config dirs for permission grants
 
@@ -22,8 +23,13 @@ using those runtimes run without interactive permission prompts.
 from __future__ import annotations
 
 import json
+import logging
 from pathlib import Path
 from typing import Any
+
+import yaml
+
+logger = logging.getLogger("conversus.project")
 
 
 # ---------------------------------------------------------------------------
@@ -31,7 +37,8 @@ from typing import Any
 # ---------------------------------------------------------------------------
 
 CONVERSUS_DIR = ".conversus"
-SETTINGS_FILE = "settings.json"
+SETTINGS_FILE = "settings.yml"
+LEGACY_SETTINGS_FILE = "settings.json"
 GITIGNORE_FILE = ".gitignore"
 
 GITIGNORE_CONTENT = """\
@@ -242,17 +249,47 @@ def init_project(
 
     created: dict[str, Path] = {}
 
-    # Write .conversus/settings.json
+    # Write .conversus/settings.yml (the cascade reader expects YAML; spec 057
+    # SC-001 — fix writer/reader format mismatch that was shipping orphan
+    # settings.json files).
     settings_path = conversus_dir / SETTINGS_FILE
+    legacy_settings_path = conversus_dir / LEGACY_SETTINGS_FILE
     if not settings_path.exists() or force:
-        settings = {
+        settings: dict[str, Any] = {
             **DEFAULT_SETTINGS,
             "default_provider": default_provider,
             "default_model": default_model,
             "runtimes": runtimes,
         }
+
+        # Best-effort migration from a legacy orphan settings.json. We only
+        # *read* from it — the legacy file is left in place so the user can
+        # confirm and remove it themselves (no destructive ops without
+        # explicit confirmation).
+        if legacy_settings_path.is_file():
+            try:
+                legacy_data = json.loads(
+                    legacy_settings_path.read_text(encoding="utf-8")
+                )
+                if isinstance(legacy_data, dict):
+                    # Preserve user-added custom keys from the legacy file but
+                    # let fresh init args win for shared keys.
+                    settings = {**legacy_data, **settings}
+                    created["legacy_migrated"] = legacy_settings_path
+                else:
+                    logger.warning(
+                        "Legacy %s is not a JSON object — skipping migration",
+                        legacy_settings_path,
+                    )
+            except (json.JSONDecodeError, OSError) as exc:
+                logger.warning(
+                    "Could not read legacy settings at %s: %s — writing fresh defaults",
+                    legacy_settings_path,
+                    exc,
+                )
+
         settings_path.write_text(
-            json.dumps(settings, indent=2) + "\n",
+            yaml.safe_dump(settings, default_flow_style=False, sort_keys=False),
             encoding="utf-8",
         )
         created["settings"] = settings_path
@@ -295,17 +332,23 @@ def init_project(
 
 
 def read_settings(project_root: Path) -> dict[str, Any]:
-    """Read ``.conversus/settings.json`` from the project root.
+    """Read ``.conversus/settings.yml`` from the project root.
 
-    Returns default settings if the file doesn't exist.
+    Returns default settings if the file doesn't exist or is malformed.
+
+    Note: this is a thin loader for ``init``-related helpers. The full
+    settings cascade lives in :mod:`engine.settings` (``load_settings``).
     """
     settings_path = project_root / CONVERSUS_DIR / SETTINGS_FILE
     if not settings_path.exists():
         return dict(DEFAULT_SETTINGS)
     try:
-        return json.loads(settings_path.read_text(encoding="utf-8"))
-    except (json.JSONDecodeError, OSError):
+        data = yaml.safe_load(settings_path.read_text(encoding="utf-8"))
+    except (yaml.YAMLError, OSError):
         return dict(DEFAULT_SETTINGS)
+    if not isinstance(data, dict):
+        return dict(DEFAULT_SETTINGS)
+    return data
 
 
 def find_conversus_dir(start: Path) -> Path | None:

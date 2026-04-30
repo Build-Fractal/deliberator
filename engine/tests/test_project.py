@@ -10,12 +10,14 @@ import json
 from pathlib import Path
 
 import pytest
+import yaml
 
 from engine.project import (
     AVAILABLE_RUNTIMES,
     CONVERSUS_DIR,
     DEFAULT_SETTINGS,
     GITIGNORE_CONTENT,
+    LEGACY_SETTINGS_FILE,
     RUNTIME_CONFIGS,
     SETTINGS_FILE,
     _aider_config,
@@ -286,15 +288,17 @@ class TestInitProjectCreatesStructure:
         init_project(tmp_path)
         assert (tmp_path / CONVERSUS_DIR / "output").is_dir()
 
-    def test_creates_settings_json(self, tmp_path: Path) -> None:
+    def test_creates_settings_yml(self, tmp_path: Path) -> None:
         init_project(tmp_path)
         settings_path = tmp_path / CONVERSUS_DIR / SETTINGS_FILE
         assert settings_path.is_file()
+        # Filename must match what engine.settings.load_settings reads.
+        assert settings_path.name == "settings.yml"
 
-    def test_settings_json_is_valid(self, tmp_path: Path) -> None:
+    def test_settings_yml_is_valid(self, tmp_path: Path) -> None:
         init_project(tmp_path)
         settings_path = tmp_path / CONVERSUS_DIR / SETTINGS_FILE
-        data = json.loads(settings_path.read_text(encoding="utf-8"))
+        data = yaml.safe_load(settings_path.read_text(encoding="utf-8"))
         assert data["default_provider"] == "claude-code"
         assert data["default_model"] == "sonnet"
         assert data["runtimes"] == ["claude-code"]
@@ -330,14 +334,14 @@ class TestInitProjectCustomSettings:
 
     def test_custom_provider(self, tmp_path: Path) -> None:
         init_project(tmp_path, default_provider="opencode")
-        data = json.loads(
+        data = yaml.safe_load(
             (tmp_path / CONVERSUS_DIR / SETTINGS_FILE).read_text(encoding="utf-8")
         )
         assert data["default_provider"] == "opencode"
 
     def test_custom_model(self, tmp_path: Path) -> None:
         init_project(tmp_path, default_model="opus")
-        data = json.loads(
+        data = yaml.safe_load(
             (tmp_path / CONVERSUS_DIR / SETTINGS_FILE).read_text(encoding="utf-8")
         )
         assert data["default_model"] == "opus"
@@ -357,7 +361,7 @@ class TestInitProjectCustomSettings:
     def test_runtimes_recorded_in_settings(self, tmp_path: Path) -> None:
         runtimes = ["claude-code", "copilot"]
         init_project(tmp_path, runtimes=runtimes)
-        data = json.loads(
+        data = yaml.safe_load(
             (tmp_path / CONVERSUS_DIR / SETTINGS_FILE).read_text(encoding="utf-8")
         )
         assert data["runtimes"] == runtimes
@@ -391,15 +395,15 @@ class TestInitProjectIdempotent:
         init_project(tmp_path, default_model="sonnet")
         # Manually alter the settings file
         settings_path = tmp_path / CONVERSUS_DIR / SETTINGS_FILE
-        original_content = settings_path.read_text(encoding="utf-8")
-        settings_path.write_text('{"custom": true}\n', encoding="utf-8")
+        sentinel = "custom: true\n"
+        settings_path.write_text(sentinel, encoding="utf-8")
 
         # Re-run without force
         created = init_project(tmp_path, default_model="opus")
         # settings key should NOT be in created (file was not overwritten)
         assert "settings" not in created
         # Content should be the manually-written version
-        assert settings_path.read_text(encoding="utf-8") == '{"custom": true}\n'
+        assert settings_path.read_text(encoding="utf-8") == sentinel
 
     def test_gitignore_not_overwritten(self, tmp_path: Path) -> None:
         init_project(tmp_path)
@@ -435,11 +439,11 @@ class TestInitProjectForce:
     def test_settings_overwritten_with_force(self, tmp_path: Path) -> None:
         init_project(tmp_path, default_model="sonnet")
         settings_path = tmp_path / CONVERSUS_DIR / SETTINGS_FILE
-        settings_path.write_text('{"custom": true}\n', encoding="utf-8")
+        settings_path.write_text("custom: true\n", encoding="utf-8")
 
         created = init_project(tmp_path, default_model="opus", force=True)
         assert "settings" in created
-        data = json.loads(settings_path.read_text(encoding="utf-8"))
+        data = yaml.safe_load(settings_path.read_text(encoding="utf-8"))
         assert data["default_model"] == "opus"
 
     def test_gitignore_overwritten_with_force(self, tmp_path: Path) -> None:
@@ -463,12 +467,135 @@ class TestInitProjectForce:
 
 
 # ===================================================================
+# Spec 057 SC-001 — settings YAML format / legacy JSON migration
+# ===================================================================
+
+
+class TestInitProjectSettingsYAML:
+    """Spec 057 SC-001: writer must match the cascade reader (YAML).
+
+    Before SC-001, ``init_project`` wrote ``settings.json`` while
+    ``engine.settings.load_settings`` read ``settings.yml`` — the init
+    file was orphan data the cascade never saw.
+    """
+
+    def test_init_writes_settings_yml_not_json(self, tmp_path: Path) -> None:
+        init_project(tmp_path)
+        yml_path = tmp_path / CONVERSUS_DIR / "settings.yml"
+        assert yml_path.is_file(), "settings.yml must exist after init"
+
+        # Content parses as YAML AND contains the expected keys.
+        data = yaml.safe_load(yml_path.read_text(encoding="utf-8"))
+        assert isinstance(data, dict)
+        assert data["default_provider"] == "claude-code"
+        assert data["default_model"] == "sonnet"
+        assert data["runtimes"] == ["claude-code"]
+        assert data["output_dir"] == "output"
+
+    def test_init_does_not_write_settings_json(self, tmp_path: Path) -> None:
+        """No legacy settings.json should be created by a fresh init."""
+        init_project(tmp_path)
+        json_path = tmp_path / CONVERSUS_DIR / "settings.json"
+        assert not json_path.exists(), (
+            "init must not create settings.json (the cascade reads YAML; "
+            "legacy JSON would be orphan data)"
+        )
+
+    def test_init_migrates_legacy_settings_json_to_yml(
+        self, tmp_path: Path
+    ) -> None:
+        """A pre-existing legacy settings.json is read, merged, and preserved."""
+        conversus_dir = tmp_path / CONVERSUS_DIR
+        conversus_dir.mkdir()
+        legacy_path = conversus_dir / "settings.json"
+        legacy_payload = {
+            "default_provider": "stale-value-should-lose",
+            "default_model": "stale-model-should-lose",
+            "runtimes": ["stale"],
+            "output_dir": "output",
+            "user_custom_field": "preserve-me",
+        }
+        legacy_path.write_text(
+            json.dumps(legacy_payload, indent=2), encoding="utf-8"
+        )
+
+        created = init_project(
+            tmp_path,
+            default_provider="claude-code",
+            default_model="opus",
+            runtimes=["claude-code"],
+        )
+
+        # (a) settings.yml exists with content merged from legacy
+        yml_path = conversus_dir / "settings.yml"
+        assert yml_path.is_file()
+        data = yaml.safe_load(yml_path.read_text(encoding="utf-8"))
+        # Fresh init args win for overlapping keys
+        assert data["default_provider"] == "claude-code"
+        assert data["default_model"] == "opus"
+        assert data["runtimes"] == ["claude-code"]
+        # User-added custom keys from the legacy file are preserved
+        assert data["user_custom_field"] == "preserve-me"
+
+        # (b) settings.json is left in place — NOT deleted
+        assert legacy_path.is_file(), (
+            "legacy settings.json must be preserved; we don't delete user "
+            "data without explicit confirmation"
+        )
+
+        # The return dict notes the migration
+        assert "legacy_migrated" in created
+        assert created["legacy_migrated"] == legacy_path
+
+    def test_init_handles_corrupt_legacy_settings_json(
+        self, tmp_path: Path, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """A malformed legacy file must not raise — log warning, write defaults."""
+        conversus_dir = tmp_path / CONVERSUS_DIR
+        conversus_dir.mkdir()
+        legacy_path = conversus_dir / "settings.json"
+        legacy_path.write_text("{ this is not valid json !!!", encoding="utf-8")
+
+        with caplog.at_level("WARNING", logger="conversus.project"):
+            created = init_project(tmp_path)
+
+        # init did NOT raise and produced a fresh YAML with defaults
+        yml_path = conversus_dir / "settings.yml"
+        assert yml_path.is_file()
+        data = yaml.safe_load(yml_path.read_text(encoding="utf-8"))
+        assert data["default_provider"] == "claude-code"
+        assert data["default_model"] == "sonnet"
+
+        # A warning was logged
+        warning_messages = [r.message for r in caplog.records if r.levelname == "WARNING"]
+        assert any(
+            "legacy settings" in m.lower() or "settings.json" in m
+            for m in warning_messages
+        ), f"Expected a warning about legacy settings; got {warning_messages!r}"
+
+        # Migration marker is NOT present (we couldn't read the legacy file)
+        assert "legacy_migrated" not in created
+
+    def test_init_force_overwrites_settings_yml(self, tmp_path: Path) -> None:
+        """force=True replaces an existing settings.yml."""
+        init_project(tmp_path, default_model="sonnet")
+        yml_path = tmp_path / CONVERSUS_DIR / SETTINGS_FILE
+        # User mutation on disk
+        yml_path.write_text("default_model: hand-edited\n", encoding="utf-8")
+
+        created = init_project(tmp_path, default_model="opus", force=True)
+        assert "settings" in created
+        data = yaml.safe_load(yml_path.read_text(encoding="utf-8"))
+        assert data["default_model"] == "opus"
+
+
+# ===================================================================
 # read_settings
 # ===================================================================
 
 
 class TestReadSettings:
-    """read_settings reads .conversus/settings.json correctly."""
+    """read_settings reads .conversus/settings.yml correctly."""
 
     def test_returns_defaults_when_file_missing(self, tmp_path: Path) -> None:
         result = read_settings(tmp_path)
@@ -487,11 +614,12 @@ class TestReadSettings:
         assert result["default_provider"] == "opencode"
         assert result["default_model"] == "opus"
 
-    def test_handles_malformed_json(self, tmp_path: Path) -> None:
+    def test_handles_malformed_yaml(self, tmp_path: Path) -> None:
         settings_dir = tmp_path / CONVERSUS_DIR
         settings_dir.mkdir()
         settings_path = settings_dir / SETTINGS_FILE
-        settings_path.write_text("{not valid json!!!", encoding="utf-8")
+        # Tab-indent in a block mapping is a YAML scanner error.
+        settings_path.write_text("foo:\n\t- bad\n: : :", encoding="utf-8")
 
         result = read_settings(tmp_path)
         assert result == DEFAULT_SETTINGS
@@ -510,7 +638,7 @@ class TestReadSettings:
         settings_dir.mkdir()
         settings_path = settings_dir / SETTINGS_FILE
         custom = {"custom_key": "custom_value", "number": 42}
-        settings_path.write_text(json.dumps(custom), encoding="utf-8")
+        settings_path.write_text(yaml.safe_dump(custom), encoding="utf-8")
 
         result = read_settings(tmp_path)
         assert result["custom_key"] == "custom_value"
