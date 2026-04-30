@@ -198,6 +198,130 @@ class TestDisagreementGate:
 
 
 # ---------------------------------------------------------------------------
+# TestInfluenceAwareDisputeCounting — spec 006 FR-P2-4 (FR-009 to FR-012)
+#
+# Accounting-only tests: exercise the influence + arbiter_addressed kwargs of
+# check_disagreement directly. End-to-end pipeline tests for SC-002 (advisory
+# leaves disputes counted across rounds) and SC-003 (recommended re-opens when
+# the addressed party re-raises) require the resolution.md parser and live in
+# the follow-up FR.
+#
+# TODO(spec-006-FR-P2-4-followup): once the resolution.md parser ships and
+# populates `arbiter_addressed` from the prior round, add round-level tests for
+# SC-002 (advisory) and SC-003 (recommended re-open) in
+# engine/tests/test_006_inter_round_arbitration.py.
+# ---------------------------------------------------------------------------
+
+
+class TestInfluenceAwareDisputeCounting:
+    """Tests for the influence + arbiter_addressed kwargs on check_disagreement."""
+
+    # Three-dispute fixture — all three named "D1", "D2", "D3" inside their
+    # labels so a substring match against ["D2"] removes exactly one.
+    _THREE_DISPUTE_TEXT: str = (
+        "<!-- CONVERSUS:DISPUTES_BEGIN -->\n"
+        "**Dispute: D1 — first disagreement**\n\n"
+        "*Pragmatist:* Position A\n"
+        "*Devil's Advocate:* Position B\n\n"
+        "**Dispute: D2 — second disagreement**\n\n"
+        "*Pragmatist:* Position C\n"
+        "*Devil's Advocate:* Position D\n\n"
+        "**Dispute: D3 — third disagreement**\n\n"
+        "*Pragmatist:* Position E\n"
+        "*Devil's Advocate:* Position F\n"
+        "<!-- CONVERSUS:DISPUTES_END -->\n"
+    )
+
+    def test_check_disagreement_binding_removes_addressed_disputes(self) -> None:
+        """BINDING + arbiter_addressed=['D2'] removes exactly the matching dispute."""
+        from linter.models import InfluenceLevel
+
+        result = check_disagreement(
+            self._THREE_DISPUTE_TEXT,
+            influence=InfluenceLevel.BINDING,
+            arbiter_addressed=["D2"],
+        )
+        assert result.passed is True
+        assert result.dispute_count == 2
+        labels = [d.label for d in result.disputes]
+        assert not any("D2" in lbl for lbl in labels)
+        assert any("D1" in lbl for lbl in labels)
+        assert any("D3" in lbl for lbl in labels)
+
+    def test_check_disagreement_recommended_removes_addressed_disputes(self) -> None:
+        """RECOMMENDED also removes addressed disputes (caller handles re-open)."""
+        from linter.models import InfluenceLevel
+
+        result = check_disagreement(
+            self._THREE_DISPUTE_TEXT,
+            influence=InfluenceLevel.RECOMMENDED,
+            arbiter_addressed=["D2"],
+        )
+        assert result.passed is True
+        assert result.dispute_count == 2
+        assert not any("D2" in d.label for d in result.disputes)
+
+    def test_check_disagreement_advisory_leaves_disputes_counted(self) -> None:
+        """ADVISORY: even with arbiter_addressed populated, no disputes removed."""
+        from linter.models import InfluenceLevel
+
+        result = check_disagreement(
+            self._THREE_DISPUTE_TEXT,
+            influence=InfluenceLevel.ADVISORY,
+            arbiter_addressed=["D2"],
+        )
+        assert result.passed is True
+        assert result.dispute_count == 3
+
+    def test_check_disagreement_no_influence_backward_compat(self) -> None:
+        """influence=None (default) preserves existing behavior exactly."""
+        baseline = check_disagreement(self._THREE_DISPUTE_TEXT)
+        with_kwargs = check_disagreement(
+            self._THREE_DISPUTE_TEXT,
+            influence=None,
+            arbiter_addressed=None,
+        )
+        assert baseline.passed is with_kwargs.passed
+        assert baseline.dispute_count == with_kwargs.dispute_count == 3
+        assert [d.label for d in baseline.disputes] == [
+            d.label for d in with_kwargs.disputes
+        ]
+
+    def test_check_disagreement_empty_arbiter_addressed(self) -> None:
+        """BINDING + arbiter_addressed=None or [] → no removal (no info to act on)."""
+        from linter.models import InfluenceLevel
+
+        result_none = check_disagreement(
+            self._THREE_DISPUTE_TEXT,
+            influence=InfluenceLevel.BINDING,
+            arbiter_addressed=None,
+        )
+        assert result_none.dispute_count == 3
+
+        result_empty = check_disagreement(
+            self._THREE_DISPUTE_TEXT,
+            influence=InfluenceLevel.BINDING,
+            arbiter_addressed=[],
+        )
+        assert result_empty.dispute_count == 3
+
+    def test_check_disagreement_substring_matching_robust(self) -> None:
+        """Substring matching tolerates whitespace, leading dashes, and case drift."""
+        from linter.models import InfluenceLevel
+
+        # Each addressed entry has different formatting but should still match.
+        result = check_disagreement(
+            self._THREE_DISPUTE_TEXT,
+            influence=InfluenceLevel.BINDING,
+            arbiter_addressed=[
+                "  - d2 — second disagreement  ",  # leading dash + lowercase
+            ],
+        )
+        assert result.dispute_count == 2
+        assert not any("D2" in d.label for d in result.disputes)
+
+
+# ---------------------------------------------------------------------------
 # TestAttributionGate — Gate 2: Agent Attributions Present
 # ---------------------------------------------------------------------------
 

@@ -48,6 +48,7 @@ from engine.templates import (
     load_template,
     _extract_remaining_disputes,
 )
+from linter.models import InfluenceLevel
 from linter.quality import check_disagreement
 
 
@@ -964,7 +965,19 @@ async def run_pipeline(
 
         # ── Stagnation / convergence detection ───────────────────────
         if config.rounds > 1:
-            disagree = check_disagreement(synthesis_text, config.mode)
+            disagree = check_disagreement(
+                synthesis_text,
+                config.mode,
+                influence=(
+                    InfluenceLevel(config.arbiter.influence)
+                    if config.arbiter else None
+                ),
+                # FR-P2-4: parsing arbiter-addressed disputes from
+                # resolution.md is deferred to a follow-up FR. Until then,
+                # pass None so the function falls back to the no-op
+                # (count-as-shipped) path.
+                arbiter_addressed=None,
+            )
             current_dispute_count = disagree.dispute_count
 
             if current_dispute_count == 0:
