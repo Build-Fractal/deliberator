@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": 1,
+  "description": "Standard test questions for spec 061 step 8 baseline calibration. These five questions exercise different deliberation shapes (binary tech-stack, build-vs-buy, adoption strategy, organisational topology, product timing). Drawn from the existing evals/promptfooconfig.yaml test bank for consistency.",
+  "questions": [
+    {
+      "slug": "postgres-vs-mongodb",
+      "shape": "binary-tech-stack",
+      "prompt": "Should we use Postgres or MongoDB for our metadata store?"
+    },
+    {
+      "slug": "llm-code-review-readiness",
+      "shape": "tech-readiness",
+      "prompt": "Are LLM-based code reviews ready to replace human reviewers?"
+    },
+    {
+      "slug": "formal-verification-adoption",
+      "shape": "adoption-strategy",
+      "prompt": "How should a small team adopt formal verification for safety-critical code?"
+    },
+    {
+      "slug": "monorepo-vs-polyrepo",
+      "shape": "organisational-topology",
+      "prompt": "Is monorepo or polyrepo the right call for a 30-person engineering org?"
+    },
+    {
+      "slug": "public-api-v1-timing",
+      "shape": "product-timing",
+      "prompt": "Should we ship a public API in v1 or wait until our internal contracts stabilize?"
+    }
+  ]
+}
