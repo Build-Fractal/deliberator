@@ -25,15 +25,12 @@ Source of truth: each spec's Status field. This index summarizes current impleme
 ### 067 — Verification Methodology
 **Status**: Active — re-verification trigger + cost reporting added 2026-04-27; §4.6 added 2026-04-29 (PR #47) binding 4-subagent investigation pattern as canonical first response when verification surfaces failing tests.
 
-### 070 — Grandfathered Audit
-**Status**: Draft v1 with PASS WITH FIXES verdict applied 2026-04-29 (per `deliberations/070-spec-review-2026-04-28/`): SPLIT verdict on Principle XVI flipped to FAIL+Option A; Goal #6 added (operational impact assessment); §4 methodology statement added; §5.2 dual-purpose cost note added.
-
 ---
 
-## Closed Specs (in `specs/done/`, 61 total)
+## Closed Specs (in `specs/done/`, 62 total)
 
 **Specs 001–069 (representative list):**  
-001-subject-arbitration, 004-preset-agents, 004-universal-rounds, 005-generalized-templates, 005-p2p3-backlog-hardening, 006-inter-round-arbitration (closed 2026-04-30 after Phase 2 — PRs #65/#66/#67/#69 + closing PR), 007-game-engine, 007-subcommand-dispatch-define, 008-executable-conversus, 008-interests-mode, 009-guided-execution, 010-antipattern-steering, 010-guided-arbitration, 011-adoption-harness, 011-phase-consensus-gates, 011a-skill-breakdown, 012-game-form-schemas, 012-spec-hygiene, 013-objective-function-templates, 014-guided-objective-construction, 015-feature-extraction, 016-plugin-system, 017-equilibrium-scorer, 018-convergence-predictor, 019-config-optimizer, 020-scenario-storage, 021-nashopt-integration, 022-kalman-convergence, 023-ampl-config-optimizer, 024-cross-plugin-interfaces, 025-game-form-expansion, 026-optimization-template-library, 027-solver-validation-flow, 028-mode-expansion, 029-code-review-domain, 030-domain-plugin-architecture, 031-docs-and-vercel-compliance, 032-package-splitting, 033-monetization-partitioning, 034-kalman-convergence-fixes, 035-plugin-framework-fixes, 036-mode-template-fixes, 037-validation-flow-fixes, 038-solver-equilibrium-fixes, 039-new-mode-payoffs, 042-execution-providers, 045-test-coverage-review, 050-cascading-settings, 052-open-source-extraction, 054-public-documentation, 055-capability-registry, 056-deliberation-persistence (verified-already-shipped 2026-05-01 — Phase 1+2 infrastructure landed earlier in session as side-effect of spec 055/057 work), 057-settings-architecture (re-closed 2026-04-30 after Phase 2 SCs — PRs #71/#72/#74), 064-capability-discovery, 066-constitution-v2.3.0, 068-principle-xvi-fix, 069-mechanical-verification-gate, 071-test-fix-boundary-preservation (Principle XXVIII ratified-with-override 2026-04-29; closed 2026-04-30 after follow-on PRs #47/#48/#49 merged), 072-credential-source-display (shipped 2026-04-30 — PR #76), 998-phase-consensus-gates, 999-decision-framework.
+001-subject-arbitration, 004-preset-agents, 004-universal-rounds, 005-generalized-templates, 005-p2p3-backlog-hardening, 006-inter-round-arbitration (closed 2026-04-30 after Phase 2 — PRs #65/#66/#67/#69 + closing PR), 007-game-engine, 007-subcommand-dispatch-define, 008-executable-conversus, 008-interests-mode, 009-guided-execution, 010-antipattern-steering, 010-guided-arbitration, 011-adoption-harness, 011-phase-consensus-gates, 011a-skill-breakdown, 012-game-form-schemas, 012-spec-hygiene, 013-objective-function-templates, 014-guided-objective-construction, 015-feature-extraction, 016-plugin-system, 017-equilibrium-scorer, 018-convergence-predictor, 019-config-optimizer, 020-scenario-storage, 021-nashopt-integration, 022-kalman-convergence, 023-ampl-config-optimizer, 024-cross-plugin-interfaces, 025-game-form-expansion, 026-optimization-template-library, 027-solver-validation-flow, 028-mode-expansion, 029-code-review-domain, 030-domain-plugin-architecture, 031-docs-and-vercel-compliance, 032-package-splitting, 033-monetization-partitioning, 034-kalman-convergence-fixes, 035-plugin-framework-fixes, 036-mode-template-fixes, 037-validation-flow-fixes, 038-solver-equilibrium-fixes, 039-new-mode-payoffs, 042-execution-providers, 045-test-coverage-review, 050-cascading-settings, 052-open-source-extraction, 054-public-documentation, 055-capability-registry, 056-deliberation-persistence (verified-already-shipped 2026-05-01 — Phase 1+2 infrastructure landed earlier in session as side-effect of spec 055/057 work), 057-settings-architecture (re-closed 2026-04-30 after Phase 2 SCs — PRs #71/#72/#74), 064-capability-discovery, 066-constitution-v2.3.0, 068-principle-xvi-fix, 069-mechanical-verification-gate, 071-test-fix-boundary-preservation (Principle XXVIII ratified-with-override 2026-04-29; closed 2026-04-30 after follow-on PRs #47/#48/#49 merged), 070-grandfathered-audit (closed 2026-05-01 after cycle 1 #95 + cycle 2A #98 — full v2.4.0 → v3.0.0 grandfathered-principle migration arc; cycle 2B/2C tracked as issues #96/#97), 072-credential-source-display (shipped 2026-04-30 — PR #76), 998-phase-consensus-gates, 999-decision-framework.
 
 (057 was previously here; reopened 2026-04-29 — see Active Specs above.)
 
@@ -93,14 +90,14 @@ Long-term north star, intentionally archived.
 
 ## Landscape Summary
 
-**Last refreshed**: 2026-05-01 after the 2026-04-29 → 2026-05-01 multi-day session that closed 5 specs (006, 057, 064, 071, 072) and shipped Principle XXVIII (CONSTITUTION.md v2.5.0) + operational scaffolding.
+**Last refreshed**: 2026-05-01 after the 2026-04-29 → 2026-05-01 multi-day session that closed 6 specs (006, 057, 064, 070, 071, 072) and shipped Principles XXVIII + governance refactors (CONSTITUTION.md v2.5.0 → v2.6.0 → v3.0.0) + operational scaffolding (CONTRIBUTING.md, docs/output-conventions.md).
 
-**Active work**: 7 specs.
-- **Constitutional/governance**: 065 (path-to-open-source roadmap), 067 (verification methodology — evergreen), 070 (grandfathered audit — implementation cycle pending)
-- **Engine completion**: 061 (eval suite — steps 1-7 done after PRs #83/#85/#86/#89; steps 8-14 remain — next gate is step 8 baseline snapshots)
-- **Promoted from draft 2026-04-29 (still implementation-ready)**: 047 (Phase 1-4 shipped via #82; Phase 5 downstream integration deferred), 048 (autonomous governance mode — implementation pending), 056 (deliberation persistence — implementation pending), 059 (prompt and skill interface — implementation pending)
+**Active work**: 6 specs.
+- **Constitutional/governance**: 065 (path-to-open-source roadmap), 067 (verification methodology — evergreen)
+- **Engine completion**: 061 (eval suite — steps 1-8 infrastructure done after PRs #83/#85/#86/#89/#93; steps 9-14 remain)
+- **Promoted from draft 2026-04-29 (still implementation-ready)**: 047 (Phase 1-4 shipped via #82; Phase 5 downstream integration deferred), 048 (autonomous governance mode — implementation pending), 059 (prompt and skill interface — implementation pending)
 
-**Closed**: 60+ specs (60 in `done/` per latest count after #84 closed 071 and #77 closed 072).
+**Closed**: 62 specs in `done/` after #98 closed 070 and the v2.4.0 → v3.0.0 governance arc.
 
 **Drafts**: 8 specs in idea phase, mostly infrastructure (sandbox, CI, MCP sampling) and AMPL/optimization (043, 044, 060).
 
@@ -108,9 +105,11 @@ Long-term north star, intentionally archived.
 
 **Total**: ~80 spec artifacts across the lifecycle.
 
-**Trajectory**: post-v2.5.0 landscape is split between **completion work** (047 Phase 5, 061 steps 8-14) and **promoted-from-draft new feature work** (048, 056, 059). Constitutional governance has stabilized at the v2.5.0 anchor; next amendment cycle will carry the deferred Q3 must-quote anchor (per `deliberations/session-review-2026-04-29/arbiter/resolution.md`) + spec 070's grandfathered-principle migration plan.
+**Trajectory**: post-v3.0.0 landscape is split between **completion work** (047 Phase 5, 061 steps 9-14) and **promoted-from-draft new feature work** (048, 059). Constitutional governance has stabilized at the v3.0.0 anchor — the v2.4.0 → v3.0.0 grandfathered-principle migration arc is now closed (#46 XXVIII ratification → #95 XVI Option A + path (c) → #98 VI/X removal + Number Stability). Next amendment cycle will carry: cycle 2B Origin notes (#96), cycle 2C XIX labels reorganization (#97), and deferred Q3 must-quote anchor (per `deliberations/session-review-2026-04-29/arbiter/resolution.md`).
 
 The most actionable next moves (smallest atomic landings first):
-1. **Spec 061 step 8** (baseline snapshots) — unblocks steps 9-14; needs `ANTHROPIC_API_KEY` OR claude-code judge from PR #89.
-2. **Spec 056** (Deliberation Persistence) — implementation-ready, deps closed, self-contained.
-3. **Spec 070 implementation** — heaviest, but conceptually closes the constitutional governance arc that started 2026-04-29.
+1. **Spec 061 step 9** (settings cascade tests) — first step in the post-step-8 progression; needs no auth.
+2. **Spec 047 Phase 5** (downstream integration of Duration parser into AMPL/scenarios/feature extraction) — three discrete consumers; can be split per-consumer.
+3. **Spec 048** (Autonomous Governance Mode) — heaviest open feature; implementation-ready since 2026-04-29.
+4. **Spec 059** (Prompt and Skill Interface) — implementation-ready, depends on 055 (closed).
+5. **Cycle 2B/2C governance follow-ups** (#96, #97) — small, atomic; can ship in any order.
