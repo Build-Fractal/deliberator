@@ -70,18 +70,24 @@ Spec mapping (061 §3.2.1):
     Dispute specificity            threshold = 0.7
     Synthesis grounding            threshold = 0.8
 
-The thresholds above are spec defaults.  After step 8 (baseline snapshots)
-runs the suite once and captures real scores, the thresholds will be
-recalibrated to ``baseline - 0.1`` per spec 061 step 7's calibration plan.
-
-    # TODO(spec-061-step8): calibrate thresholds from baseline-snapshot run.
+The thresholds above are spec defaults. Step 8 closes the calibration loop:
+``scripts/capture-eval-baselines.py`` runs the suite once with a real
+provider, records per-metric scores in ``evals/baselines/<timestamp>.json``,
+and computes ``calibrated_thresholds = max(0.0, min(score) - 0.1)`` per
+metric. :func:`_load_calibrated_thresholds` (below) reads the latest
+baseline file at module import time and replaces the spec defaults; if no
+file exists yet, the spec defaults stay in force so the suite remains
+runnable on a fresh checkout.
 """
 
 from __future__ import annotations
 
 import asyncio
+import json
 import os
+import re
 from pathlib import Path
+from typing import Mapping
 
 import pytest
 
@@ -92,6 +98,83 @@ from deepeval.test_case import LLMTestCase, LLMTestCaseParams
 from engine.config import AgentConfig, EngineConfig
 from engine.events import NullEmitter
 from engine.phases import run_pipeline
+
+
+# ---------------------------------------------------------------------------
+# Threshold calibration (spec 061 step 8)
+# ---------------------------------------------------------------------------
+#
+# Thresholds load from ``evals/baselines/<latest>.json`` if a baseline run
+# has been captured, otherwise fall back to spec 061 §3.2.1 defaults.
+# This keeps the test suite green on a fresh checkout while letting a
+# captured baseline tighten the bar after the first real run.
+#
+# The loader is duplicated here (rather than imported from
+# ``scripts/capture-eval-baselines.py``) because the script's filename
+# contains a hyphen, so it can't be imported with a normal ``import``
+# statement. Keeping a tiny copy here avoids importlib gymnastics in the
+# hot test-collection path. The script's tests own the load-bearing math
+# (``compute_calibrated_thresholds``); this loader is a thin file reader.
+
+_BASELINE_FILENAME_RE = re.compile(r"^(\d{8}T\d{6})\.json$")
+
+# Spec 061 §3.2.1 defaults — used when no baseline file exists or it's
+# malformed/partial.  Keys must match the snapshot ``scores`` schema.
+_SPEC_DEFAULT_THRESHOLDS: Mapping[str, float] = {
+    "review_independence": 0.7,
+    "cross_review_adversarial": 0.7,
+    "revision_responsiveness": 0.6,
+    "dispute_specificity": 0.7,
+    "synthesis_grounding": 0.8,
+}
+
+
+def _baselines_dir() -> Path:
+    """Return ``<repo>/evals/baselines`` (parents[2] = engine/tests)."""
+    return Path(__file__).resolve().parents[2] / "evals" / "baselines"
+
+
+def _load_calibrated_thresholds() -> dict[str, float]:
+    """Load calibrated thresholds from the latest baseline file.
+
+    Falls back to :data:`_SPEC_DEFAULT_THRESHOLDS` when:
+
+    * no baseline directory exists,
+    * no ``<timestamp>.json`` file is present,
+    * the latest file is malformed JSON,
+    * a metric key is missing from the file.
+
+    The fallback is per-key so a partially populated baseline still wins
+    where it has data.
+    """
+    base = _baselines_dir()
+    if not base.is_dir():
+        return dict(_SPEC_DEFAULT_THRESHOLDS)
+    candidates = [
+        p
+        for p in base.iterdir()
+        if p.is_file() and _BASELINE_FILENAME_RE.match(p.name)
+    ]
+    if not candidates:
+        return dict(_SPEC_DEFAULT_THRESHOLDS)
+    latest = sorted(candidates, key=lambda p: p.name)[-1]
+    try:
+        data = json.loads(latest.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return dict(_SPEC_DEFAULT_THRESHOLDS)
+    thresholds = data.get("calibrated_thresholds")
+    if not isinstance(thresholds, dict):
+        return dict(_SPEC_DEFAULT_THRESHOLDS)
+    out: dict[str, float] = {}
+    for key, default in _SPEC_DEFAULT_THRESHOLDS.items():
+        value = thresholds.get(key)
+        out[key] = float(value) if isinstance(value, (int, float)) else float(default)
+    return out
+
+
+# Resolve thresholds once at import time so each metric kwargs dict gets a
+# concrete float (deepeval's GEval validates threshold types eagerly).
+_CALIBRATED_THRESHOLDS = _load_calibrated_thresholds()
 
 
 # ---------------------------------------------------------------------------
@@ -165,8 +248,9 @@ _REVIEW_INDEPENDENCE_KW = dict(
         "claim. Score 0 if reviews are paraphrases of each other. "
         "Score 0.5 if reviews differ in style but agree on all claims."
     ),
-    # TODO(spec-061-step8): calibrate threshold from baseline-snapshot run.
-    threshold=0.7,
+    # Threshold is the calibrated baseline (min observed - 0.1) when a
+    # baseline file is present in evals/baselines/, else spec 061 default.
+    threshold=_CALIBRATED_THRESHOLDS["review_independence"],
     evaluation_params=[LLMTestCaseParams.INPUT, LLMTestCaseParams.ACTUAL_OUTPUT],
 )
 
@@ -178,8 +262,7 @@ _CROSS_REVIEW_ADVERSARIAL_KW = dict(
         "least one specific challenge is made; 0 if the cross-review "
         "is generic agreement; 0.5 if challenges are vague."
     ),
-    # TODO(spec-061-step8): calibrate threshold from baseline-snapshot run.
-    threshold=0.7,
+    threshold=_CALIBRATED_THRESHOLDS["cross_review_adversarial"],
     evaluation_params=[LLMTestCaseParams.INPUT, LLMTestCaseParams.ACTUAL_OUTPUT],
 )
 
@@ -191,8 +274,7 @@ _REVISION_RESPONSIVENESS_KW = dict(
         "challenge before responding. 0 if the revision ignores the "
         "challenges. 0.5 if responsiveness is partial."
     ),
-    # TODO(spec-061-step8): calibrate threshold from baseline-snapshot run.
-    threshold=0.6,
+    threshold=_CALIBRATED_THRESHOLDS["revision_responsiveness"],
     evaluation_params=[
         LLMTestCaseParams.INPUT,
         LLMTestCaseParams.ACTUAL_OUTPUT,
@@ -208,8 +290,7 @@ _DISPUTE_SPECIFICITY_KW = dict(
         "names a specific claim and evidence. 0 if disputes are generic. "
         "0.5 if some are specific and others vague."
     ),
-    # TODO(spec-061-step8): calibrate threshold from baseline-snapshot run.
-    threshold=0.7,
+    threshold=_CALIBRATED_THRESHOLDS["dispute_specificity"],
     evaluation_params=[LLMTestCaseParams.INPUT, LLMTestCaseParams.ACTUAL_OUTPUT],
 )
 
@@ -223,8 +304,7 @@ _SYNTHESIS_GROUNDING_KW = dict(
         "if the verdict is missing. 0.5 if the verdict exists but "
         "doesn't reference the debate. 1 if fully grounded."
     ),
-    # TODO(spec-061-step8): calibrate threshold from baseline-snapshot run.
-    threshold=0.8,
+    threshold=_CALIBRATED_THRESHOLDS["synthesis_grounding"],
     evaluation_params=[
         LLMTestCaseParams.INPUT,
         LLMTestCaseParams.ACTUAL_OUTPUT,
@@ -651,3 +731,60 @@ class TestJudgeConfiguration:
 
         judge = ClaudeCodeJudge(model="opus")
         assert judge.get_model_name() == "opus (claude-code)"
+
+
+# ---------------------------------------------------------------------------
+# Threshold calibration tests (spec 061 step 8 — no @eval marker)
+# ---------------------------------------------------------------------------
+
+
+class TestThresholdCalibration:
+    """Validate the threshold-load mechanism wired into metric kwargs.
+
+    These tests run in default CI (no ``eval`` marker). They guard the
+    spec 061 step 8 contract: when no baseline file is present the suite
+    falls back to spec defaults; when a baseline file is present the
+    calibrated thresholds load from it.
+    """
+
+    def test_load_calibrated_thresholds_returns_dict(self) -> None:
+        """The loader returns a plain ``dict[str, float]`` (no None values)."""
+        out = _load_calibrated_thresholds()
+        assert isinstance(out, dict)
+        for key, value in out.items():
+            assert isinstance(key, str)
+            assert isinstance(value, float)
+
+    def test_load_calibrated_thresholds_keys_match_metrics(self) -> None:
+        """Loader keys match the five GEval metric snapshot keys."""
+        out = _load_calibrated_thresholds()
+        assert set(out.keys()) == {
+            "review_independence",
+            "cross_review_adversarial",
+            "revision_responsiveness",
+            "dispute_specificity",
+            "synthesis_grounding",
+        }
+
+    def test_metric_kwargs_use_loaded_thresholds(self) -> None:
+        """Each ``_*_KW`` dict reads its ``threshold`` from the loaded table.
+
+        Locks the wiring: if a future refactor reverts to a hard-coded
+        threshold, this test catches it.
+        """
+        loaded = _load_calibrated_thresholds()
+        assert _REVIEW_INDEPENDENCE_KW["threshold"] == loaded["review_independence"]
+        assert (
+            _CROSS_REVIEW_ADVERSARIAL_KW["threshold"]
+            == loaded["cross_review_adversarial"]
+        )
+        assert (
+            _REVISION_RESPONSIVENESS_KW["threshold"]
+            == loaded["revision_responsiveness"]
+        )
+        assert (
+            _DISPUTE_SPECIFICITY_KW["threshold"] == loaded["dispute_specificity"]
+        )
+        assert (
+            _SYNTHESIS_GROUNDING_KW["threshold"] == loaded["synthesis_grounding"]
+        )
