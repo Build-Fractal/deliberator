@@ -438,3 +438,58 @@ This amendment is the canonical path (c) precedent for future remediation of gra
 ### Methodology lesson
 
 Spec 067's verification methodology — running both self-consistency AND blind verification — produced complementary findings. Self-consistency surfaced wording quality and packaging issues (atomic plain-language package; design-intent prose positioning) that blind missed. Blind surfaced architectural shape issues (headline reduction; VII+VIII composition for stage-3) that self missed. Neither deliberation alone would have produced the final amendment; the combination — with the spec 067 conservative-wording rule directing which standard governs the architectural shape — did.
+
+## 2026-05-01 — spec 070 cycle 2: Principles VI and X migrate-out + Principle Number Stability (v2.6.0 → v3.0.0)
+
+**Type**: Amendment (MAJOR — principle removals: VI Scripts Over Markdown and X Zen of Python Output, both migrated to operational guidance. Per the Governance Versioning bullet, MAJOR is triggered for principle removals or redefinitions.)
+
+**Trigger**: spec 070 cycle 2 (closes the v2.4.0 grandfathering gap for Principles VI and X by migrating them to operational guidance per the migrate-out pattern; cycle 1 closed the gap for XVI via path (c) headline rewrite, retaining XVI in the constitution. VI's "drives behavior" qualifier and X's "readability counts" claim have no structural default class to anchor a CI check, leaving migrate-out as the appropriate remediation.)
+
+**Mode + Agents + Rounds**:
+- **Self-consistency** (`deliberations/070-cycle2-vi-x-self-2026-05-01/`): cooperative, 3 agents (removal-rigor-skeptic, cross-reference-coherence, migration-soundness) + subject arbitration. 4 disputes survived to arbitration; all P1 fixes accepted.
+- **Blind verification** (`deliberations/070-cycle2-vi-x-blind-2026-05-01/`): cooperative, 2 agents (numbering-skeptic, body-coherence-skeptic) + subject arbitration. 4 disputes survived to arbitration; all P1 atomic-bundle elements accepted.
+
+**Outputs**: [`deliberations/070-cycle2-vi-x-self-2026-05-01/`](deliberations/070-cycle2-vi-x-self-2026-05-01/), [`deliberations/070-cycle2-vi-x-blind-2026-05-01/`](deliberations/070-cycle2-vi-x-blind-2026-05-01/)
+
+**Specs referenced**: spec 070 (proposing), spec 067 (verification methodology), spec 069 (Constitutional Inclusion Criteria gate; v2.4.0 grandfathering disclosure)
+
+**Verdicts**: Both deliberations PASS WITH FIXES.
+
+**Outcome**: **Amendment landed** — `CONSTITUTION.md` v2.6.0 → v3.0.0. Principles VI and X migrated to operational guidance (`CONTRIBUTING.md` § Authoring Conventions and `docs/output-conventions.md` respectively) and replaced with retirement tombstones in the principle list. Principle II's stable-interfaces enumeration extended to include principle numbers. Governance section gains a new Principle Number Stability subsection (no-reuse rule, RFC/CVE rationale, gap intentionality) and a Removal checklist subsection (verification, migration target, tombstone, Principle Number Stability cite, arbiter-ruling Origin coordination, extended cross-reference audit). Grandfathering paragraph corrected to enumerate the active set with VI and X struck through, declare them permanently retired, and cite the 26-active-principle count. Path (c) precedent text (formerly L1589) corrected to a cycle/version-only formulation that no longer names VI and X by principle in the migrate-out clause; v3.0.0 is named as the canonical migrate-out precedent.
+
+**Status**: `partially open` — v3.0.0 ratification commit lands the atomic bundle (blind Recs 1+2+3+4+6) and the self-consistency P1 corrections (L1589 wording, Criterion 2 SIR label correction, mkdocs.yml nav entry, X substrate analysis paragraph, cross-reference audit methodology). Two follow-up items deferred to subsequent PRs:
+- **Cycle 2B** (P1, MINOR-class): retroactive Origin note Amendment-record subsections for Principles XXIV, XXV, XXVII closing the latent Principle XI documentation gap surfaced by blind verification's arbiter ruling on retroactive Origin notes. Filed as GitHub issue.
+- **Cycle 2C** (P2, PATCH-class): XIX labels-only sub-headings ("Architectural invariants" / "Operational constants") without modifying any normative language. Filed as GitHub issue. Sequenced after cycle 2B.
+- **Same-version Principle II elaboration**: append "Reusing a retired principle number is a breaking change..." to Principle II's breaking-change coordination text. Marked with `# TODO(spec-070-cycle2-followup)` in the body. Per blind verdict, deferral is a downstream elaboration, not a Principle II atomicity violation.
+
+### Strategy: blind atomic bundle + self orthogonal P1 corrections
+
+The cycle 2 amendment ships blind verification's atomic bundle (Recs 1+2+3+4+6: tombstones, Principle II addition, Principle Number Stability subsection, Removal checklist, grandfathering correction with explicit MUST NOT and 26-active count) as a non-separable unit per the blind verdict's Atomic bundle scope ruling. Self-consistency's P1 corrections (L1589 wording fix, Criterion 2 SIR label correction with full reasoning chain, mkdocs.yml nav entry, X substrate analysis, cross-reference audit methodology) layer on top in the same atomic commit per the Sequencing dispute ruling's co-equal P1 framing. Two items from blind's verdict were deferred:
+- The Principle II breaking-change elaboration (Rec 7) is a downstream consequence, not a consumer of the stable-interface declaration; same-version follow-up is acceptable per blind verdict's Atomic bundle scope ruling. Body tagged with `# TODO(spec-070-cycle2-followup)`.
+- The retroactive Origin note amendments for XXIV, XXV, XXVII (blind verdict's Prescription strength ruling) are deferred to cycle 2B as a coordinated follow-up. The deferral and rationale are documented in the v3.0.0 SIR; the Removal checklist subsection enumerates this case as the canonical example of arbiter-ruling Origin coordination.
+
+### Comparative-principles asymmetry observation (CI-detectable structural default class)
+
+Both verdicts noted the asymmetric treatment of judgment-laden language across the constitution: VI's "drives behavior" has no structural default class to anchor a CI check, while XV's "core artifacts," XXIV's "safety-critical paths," and IX's "prefer pure functions" all do (file consumption by the runtime, explicit enumeration, static analyzability). This distinction — between judgment calls with a CI-detectable structural default class and irreducibly judgment-dependent qualifiers — is the constitutional load-bearing reason why VI was removed while XV, XXIV, and IX were retained. The distinction is documented in the v3.0.0 SIR and is required reading for future migrate-out deliberations citing v3.0.0 as precedent.
+
+### Required changes applied
+
+Bundle (blind P1 atomic bundle, Recs 1+2+3+4+6):
+1. **Tombstones for VI and X** — strikethrough headlines, retirement date and version, migration target named, no-reuse declaration with cross-reference to Principle Number Stability.
+2. **Principle II stable-interfaces list addition** — principle numbers added to the enumeration as stable interfaces with permanent-retirement-only state change.
+3. **Governance: Principle Number Stability subsection** — no-reuse rule, RFC/CVE rationale, gap intentionality. Future principle additions MUST use unused numbers (XXIX, XXX, …).
+4. **Governance: Removal checklist subsection** — six-step checklist (verification, migration target, tombstone, Principle Number Stability cite, arbiter-ruling Origin coordination, extended cross-reference audit).
+5. **Grandfathering clause correction** — active set enumerated, VI and X struck through with retirement noted, explicit "MUST NOT be reused... regardless of gate criteria" language, count updated to 26 active principles.
+
+Self-consistency P1 corrections:
+6. **L1589 path (c) wording fix** — replaced with cycle/version-only formulation; v3.0.0 named as canonical migrate-out precedent without naming VI/X by principle in the migrate-out clause.
+7. **Criterion 2 SIR label correction with full reasoning chain** — VI's removal rationale identifies Criterion 2 (not Criterion 1) as the failure; documents the Criterion 2 → wording-refinement evaluation → no-viable-refinement → migrate-out chain; flags the Governance Criterion 1 worked example as exhibiting the same conflation.
+8. **mkdocs.yml nav entry** — `output-conventions.md` added under Developer Guide alongside Contributing.
+9. **X substrate analysis** — paragraph in v3.0.0 SIR documenting Criterion 3 analysis of "one clear purpose per output file" as subsumed by V+VII applied to output schema design; not an independent Criterion 3 claim; migrate-out for X holds.
+10. **Cross-reference audit methodology** — SIR documents the L1589 plural-form miss and establishes singular/plural/adjacent-phrase audit methodology going forward; methodology codified in Removal checklist (f).
+
+### Methodology lesson
+
+The cycle 2 deliberation surfaced a structural asymmetry that neither cycle 1 nor cycle 2's individual reviewers identified independently: the "judgment-laden qualifier" rationale that justified VI's removal could be applied to XV, XXIV, IX without a distinguishing test, leaving the precedent overextendable. The distinction — CI-detectable structural default class — emerged from cross-review and was elevated to constitutional documentation in the v3.0.0 SIR. This is the kind of finding that validates the multi-agent deliberation model: the distinction is derivable from first principles, but neither reviewer applied it to their own recommendations in isolation. Future migrate-out amendments must apply this test before citing v3.0.0 as precedent.
+
+The atomicity insight from blind verification — that implementing the no-reuse rule (Rec 3) triggers Principle II's atomicity clause across the entire Governance amendment bundle (Recs 1+2+4+6) — is similarly significant. Neither agent identified the atomicity constraint independently in Phase 1; it emerged from cross-review. This is logged here as a precedent for future deliberations: when a recommendation touches a principle that appears in another principle's body text, the atomicity-clause analysis should be performed reflexively, not deferred to synthesis.

@@ -1,0 +1,209 @@
+mode: cooperative
+output: ./
+rounds: 1
+stagnation: detect
+
+# Spec 070 cycle 2 BLIND verification, per spec 067 §4.2.
+# Target: stripped candidate (CONSTITUTION-v3.0.0-blind.md) with
+# v3.0.0 SIR removed, version footer anonymized to "(under review)",
+# and date/spec/cycle markers neutralized in the Governance path (c)
+# precedent paragraph. Reviewers do NOT know the constitution's
+# history; they treat the document on its own merits.
+#
+# The blind candidate has principle gaps at VI and X (the
+# constitution lists I, II, III, IV, V, VII, VIII, IX, XI, XII,
+# XIII, XIV, XV, XVI, XVII, XVIII, XIX, XX, XXI, XXII, XXIII, XXIV,
+# XXV, XXVI, XXVII, XXVIII — note the gaps at VI and X). The blind
+# reviewer SHOULD notice these gaps; whether they recommend
+# renumbering or accept the gaps is part of the verification.
+#
+# Acceptance bar (per spec 067 §4.4 and spec 070 §4): documented-
+# disputes verdict is acceptable; PASS WITH FIXES on the gap
+# documentation, principle internal consistency, or any cross-
+# principle reference health is addressable as revisions; PASS or
+# PASS WITH FIXES are both allowable verdicts.
+
+target:
+  - CONSTITUTION-v3.0.0-blind.md
+
+agents:
+  - name: numbering-skeptic
+    preset: devils-advocate
+    prompt: |
+      You review the constitution document on its own merits. You do
+      NOT know its history; treat the document as if it were drafted
+      from scratch.
+
+      Read the principles list. You will notice that the principles
+      are numbered: I, II, III, IV, V, VII, VIII, IX, XI, XII,
+      XIII, XIV, XV, XVI, XVII, XVIII, XIX, XX, XXI, XXII, XXIII,
+      XXIV, XXV, XXVI, XXVII, XXVIII. The numbers VI and X are
+      ABSENT — there are gaps in the sequence.
+
+      Specifically:
+
+      1. Is this gap pattern intentional or evidence of incomplete
+         editing? A reader unfamiliar with the document's history
+         has only the document itself; from that perspective, the
+         gaps could be:
+         (a) intentional placeholders for future principles;
+         (b) evidence that two principles were removed and the
+             remaining numbers were preserved as stable identifiers;
+         (c) an editing mistake.
+         Argue from each interpretation. Which is most likely from
+         a fresh-eyes reading?
+
+      2. Is the constitution made more or less coherent by these
+         gaps? Argue both directions:
+         (a) gaps PRESERVE stable identifiers (the document
+             explicitly states "Roman numerals are part of each
+             principle's identity"; renumbering would invalidate
+             external citations in PR descriptions, governance
+             logs, deliberation records);
+         (b) gaps confuse readers and signal "something happened
+             here" without explaining what.
+         If you find one direction stronger, argue it.
+
+      3. The document explicitly says "Future amendments MUST NOT
+         reuse numbers VI or X." Is this a sound governance rule,
+         or does it create a strange long-tail constraint where
+         the constitution accumulates gaps over time? Compare to
+         analogous numbering disciplines (RFC numbers — never
+         reused; CVE numbers — never reused; DSM disorder codes —
+         renumbered with each edition). Which model is the
+         constitution following, and is it the right fit?
+
+      4. If you were redrafting this constitution from scratch,
+         would you renumber to close the gaps, or preserve them?
+         Defend your choice.
+
+      5. Spot-check: are there any other places in the document
+         where the numbering gaps cause readability or
+         comprehension issues? For example, the Governance section
+         calibration footnote names "Principles XI, XII, XIII, XXII,
+         XXIV, XXVI as well-modeled patterns" — this list is fine.
+         But are there other lists or cross-references where the
+         gap is jarring?
+
+      Report findings as a list of concrete concerns with line
+      references and exact quotes. If you conclude the gap pattern
+      is intentional and acceptable, say so explicitly with a
+      verdict.
+
+  - name: body-coherence-skeptic
+    preset: devils-advocate
+    prompt: |
+      You review the constitution document on its own merits. You do
+      NOT know its history; treat the document as if it were drafted
+      from scratch.
+
+      Read every principle's body in order — all 26 principles.
+      Look for:
+
+      1. Internal consistency: does any principle's body
+         contradict, undermine, or duplicate another principle's
+         body?
+
+      2. References to missing principles: does any principle's
+         body reference a principle by number (e.g., "see Principle
+         VI for X" or "per Principle X") that does NOT exist in the
+         document? The numbering gaps are at VI and X (absent), so
+         any such reference would be a broken pointer.
+
+      3. References to disciplines that no longer have a
+         constitutional home: does any principle's body rely on a
+         discipline (e.g., "scripts over markdown when behavior is
+         driven", "readability counts", "Zen of Python output") for
+         which there is no other principle in the document
+         providing that discipline? If so, the principle's body is
+         depending on operational guidance that lives outside the
+         constitution, which is not necessarily wrong but should be
+         called out — a constitution that depends on external
+         operational guidance for its load-bearing claims is more
+         fragile than one whose principles are self-contained.
+
+      4. Cross-reference health: read every principle's "Origin:"
+         note (the italicized footer). Do any Origin notes
+         reference removed principles, deleted sections, or
+         documents that no longer exist? Origin notes are
+         historical and may legitimately reference content that
+         has been migrated, but they should still be coherent in
+         context.
+
+      5. Extension blocks: read every Extension or Clarification
+         block. Do any of them depend on a principle that doesn't
+         exist? Extension blocks are tied to a parent principle;
+         if the parent is missing, the extension is orphaned.
+
+      6. Governance section coherence: read the Governance section
+         in full. Does it reference any principle by number that
+         is missing? Specifically check:
+           - The Constitutional Inclusion Criteria worked-examples
+             paragraph
+           - The calibration footnote naming well-modeled
+             patterns
+           - The path (c) definition paragraph
+           - The Coordination with Principle XVII paragraph
+         For each cross-reference, verify the target principle
+         exists.
+
+      7. Antipatterns and Workflow sections: read both. Do any
+         references to principle numbers point at missing
+         principles?
+
+      8. The "Modified principles" / "Removed principles" listing
+         in any visible SIR. (Note: the visible audit-trail SIRs
+         may reference VI and X as historical context. That is
+         not a defect; it's audit-trail discipline.)
+
+      Report contradictions, broken references, and orphaned
+      extensions concretely with line numbers and exact quotes.
+      Silence is not the same as "looked but found nothing".
+
+arbiter:
+  name: spec-070-cycle2-blind-arbiter
+  preset: balanced-arbiter
+  prompt: |
+    You rule on findings raised by numbering-skeptic and body-
+    coherence-skeptic agents against the constitution document under
+    review. Your grounding document is the candidate file
+    (`CONSTITUTION-v3.0.0-blind.md`). The reviewers do not know the
+    document's amendment history; you also adopt that posture for
+    fairness, but you may consider the document's internal
+    statements about its own intent (e.g., the Governance section's
+    statements about stable identifiers).
+
+    For each finding:
+
+    - **ACCEPT** (real defect in numbering coherence, body
+      consistency, or cross-reference health that the document on
+      its own merits cannot resolve): propose the minimum
+      corrective edit.
+    - **REJECT** (false positive, or finding that the document's
+      own internal statements address adequately): explain why.
+    - **DEFER** (real but out of scope for the immediate
+      verification, requiring a separate amendment): document
+      what would unblock.
+
+    Acceptance bar: documented-disputes verdict is acceptable.
+    PASS WITH FIXES is acceptable. ACCEPT findings on broken
+    cross-references, orphaned extension blocks, or genuinely
+    contradictory principle bodies DO block. ACCEPT findings on
+    the numbering-gap policy choice (renumber vs preserve) are
+    DEFERrable to a separate amendment if the document's own
+    governance rule on stable identifiers is internally coherent
+    — the policy choice is a one-shot governance decision that
+    cannot be re-litigated per finding.
+
+    Conclude with a verdict line:
+    - "SPEC-070 CYCLE 2 BLIND VERIFICATION VERDICT: PASS" (no
+      accepted fixes)
+    - "SPEC-070 CYCLE 2 BLIND VERIFICATION VERDICT: PASS WITH
+      FIXES" (fixes listed; mergeable after they land)
+    - "SPEC-070 CYCLE 2 BLIND VERIFICATION VERDICT: FAIL" (the
+      document is structurally flawed and needs reconsideration)
+
+  grounding: CONSTITUTION-v3.0.0-blind.md
+  trigger: always
+  timing: final
+  influence: binding
