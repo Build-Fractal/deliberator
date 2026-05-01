@@ -1,5 +1,68 @@
 <!--
 Sync Impact Report
+Version change: 3.0.0 → 3.1.0 (MINOR — governance-record correction;
+no normative content change, no body-text rewriting. Scope: spec 070
+cycle 2B retroactive Origin-note Amendment record subsections for
+Principles XXIV, XXV, XXVII. Closes the latent Principle XI documentation
+gap surfaced by blind verification's arbiter ruling on retroactive
+Origin notes during the v3.0.0 ratification.)
+
+Modified principles (purely structural — no normative content change):
+  - XXIV. Safety-Critical Defense-in-Depth — the arbiter-ruling sentence
+    that previously sat in the normative body ("The 2026-04-25
+    deliberation arbiter explicitly extended this scope to provider
+    protocols ...") is moved verbatim into a labeled Amendment record
+    subsection appended to the Origin note. Body content is reduced to
+    the four numbered discipline rules; no new requirement is added,
+    none is removed.
+  - XXV. Live Test Cost Discipline — the existing Origin note's
+    embedded arbiter-ruling sentence ("The 2026-04-25 deliberation
+    arbiter ruled this principle must precede provider contract testing
+    requirements.") is split out into a labeled Amendment record
+    subsection. Origin note retains only the originating PR reference.
+  - XXVII. Operator-Configurable Tool Surface — same treatment as XXV:
+    arbiter-ruling sentence split out of Origin note into a labeled
+    Amendment record subsection.
+
+Why MINOR (not PATCH): each principle gains a new Amendment record
+subsection — that is new structural infrastructure within the principle
+container, even though no normative wording changes. Per the v3.0.0
+Removal-checklist subsection (e), Amendment record placement is itself
+a governance feature; introducing the first instances of it qualifies
+as a MINOR governance enhancement. Future Amendment record additions
+to other principles, when prompted by the same documentation-gap
+mechanism, will follow the precedent established here.
+
+Verification approach: per issue #96, "if the change is purely
+structural (verbatim move from body to Amendment record), a single
+coordinated PR with cross-reference verification suffices" — no
+deliberation cycle required. The verbatim-preservation contract is
+upheld:
+  - XXIV body sentence (originally lines 1373-1376) → XXIV Origin
+    Amendment record (verbatim wording with closing rationale appended:
+    "No contemporaneous /speckit.constitution invocation was recorded;
+    this retroactive record closes that historical process gap").
+  - XXV Origin note tail sentence → XXV Amendment record (verbatim).
+  - XXVII Origin note tail sentence → XXVII Amendment record (verbatim).
+
+The closing rationale appended to each Amendment record names the
+historical process gap explicitly and cites Removal checklist
+subsection (e) so the v3.0.0 prospective infrastructure receives its
+first three retroactive applications in lockstep.
+
+No CONTRIBUTING.md, docs/output-conventions.md, mkdocs.yml, or schema
+changes are required (governance bookkeeping does not affect operational
+guidance or runtime behavior). The v3.0.0 deferred-items list (cycle 2B
+entry at lines 138-146 of the prior SIR) is satisfied by this amendment.
+
+Governance log entry: 2026-05-01 in CONSTITUTIONAL_CONVERSATIONS.md
+(spec 070 cycle 2B implementation).
+
+Prior amendment (v2.6.0 → v3.0.0): see prior SIR comment block below.
+-->
+
+<!--
+Sync Impact Report (prior — preserved for audit trail)
 Version change: 2.6.0 → 3.0.0 (MAJOR — principle removals: VI (Scripts
 Over Markdown) and X (Zen of Python Output) are migrated out of the
 constitution to operational guidance per spec 070 cycle 2. Per the
@@ -1370,13 +1433,16 @@ three-layer defense:
    the original bug or failure pattern** the principle was created
    to prevent. The test asserts the bug does not recur.
 
-The 2026-04-25 deliberation arbiter explicitly extended this scope to
-provider protocols (not just synthesis logic) on the evidence that
-PRs #5, #6, #8, #9 produced the same class of silent failure as
-PR #10's false-PASS bug.
-
 *Origin: PR #10 (red-blue contract break → false-PASS); generalized
 over PRs #5, #6, #8, #9.*
+
+*Amendment record (2026-04-25, arbiter ruling): The 2026-04-25
+deliberation arbiter extended this principle's scope from synthesis
+verdict generation to provider protocol implementation, on the
+evidence that PRs #5, #6, #8, #9 produced the same class of silent
+failure as PR #10's false-PASS bug. No contemporaneous /speckit.constitution
+invocation was recorded; this retroactive record closes that historical
+process gap (added in v3.0.x cycle 2B per Removal checklist subsection (e)).*
 
 ### XXV. Live Test Cost Discipline
 
@@ -1420,8 +1486,13 @@ Without cost discipline, provider testing becomes prohibitively
 expensive and the robustness contract goes untested.
 
 *Origin: PR #8 introduced `@pytest.mark.live` without codifying the
-discipline. The 2026-04-25 deliberation arbiter ruled this principle
-must precede provider contract testing requirements.*
+discipline.*
+
+*Amendment record (2026-04-25, arbiter ruling): The 2026-04-25
+deliberation arbiter ruled this principle must precede provider
+contract testing requirements. No contemporaneous /speckit.constitution
+invocation was recorded; this retroactive record closes that historical
+process gap (added in v3.0.x cycle 2B per Removal checklist subsection (e)).*
 
 ### XXVI. Meta-Testing for Parametrized Capabilities
 
@@ -1482,10 +1553,15 @@ separate from core deliberation logic — changes inside the registry
 do not change how deliberation works, only which deliberation
 capabilities are exposed.
 
-*Origin: PR #14 (CONVERSUS_DISABLED_TOOLS). The 2026-04-25 deliberation
-arbiter ruled this should be a standalone principle (not a Principle
-XV extension) because operator configuration scope extends beyond
-plugin isolation to the core tool surface.*
+*Origin: PR #14 (CONVERSUS_DISABLED_TOOLS).*
+
+*Amendment record (2026-04-25, arbiter ruling): The 2026-04-25
+deliberation arbiter ruled this should be a standalone principle
+(not a Principle XV extension) because operator configuration scope
+extends beyond plugin isolation to the core tool surface. No
+contemporaneous /speckit.constitution invocation was recorded; this
+retroactive record closes that historical process gap (added in
+v3.0.x cycle 2B per Removal checklist subsection (e)).*
 
 ### XXVIII. Test-Fix Boundary Preservation
 
@@ -1740,4 +1816,4 @@ justifies the deviation.
 - **Compliance**: The plan template includes a Constitution Check gate.
   Plans MUST pass this gate before proceeding to implementation.
 
-**Version**: 3.0.0 | **Ratified**: 2026-03-20 | **Last Amended**: 2026-05-01
+**Version**: 3.1.0 | **Ratified**: 2026-03-20 | **Last Amended**: 2026-05-01

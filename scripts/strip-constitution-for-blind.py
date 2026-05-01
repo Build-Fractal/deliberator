@@ -84,6 +84,18 @@ def strip_constitution(source: str, version: str) -> str:
     for pat in origin_patterns:
         out = re.sub(pat, "", out, flags=re.DOTALL)
 
+    # Step 3b -- strip Amendment record subsections (introduced v3.0.x
+    # cycle 2B). These would otherwise survive Origin stripping because
+    # they sit AFTER the Origin note and are formatted as their own
+    # italicized blocks. Leaving them in place tips a blind reviewer
+    # that the post-amendment governance infrastructure exists.
+    out = re.sub(
+        r"\*Amendment record \([^)]*\):[^*]*\*\n+",
+        "",
+        out,
+        flags=re.DOTALL,
+    )
+
     out = re.sub(
         r"The \d{4}-\d{2}-\d{2} deliberation arbiter explicitly extended this scope to\s+",
         "This principle's scope extends to ",
