@@ -266,3 +266,167 @@ def test_read_raises_for_missing_file(fake_output, project_root):
 
     with pytest.raises(FileNotFoundError):
         read_deliberation_file(project_root, rel_delib, "nonexistent.md")
+
+
+# ---------------------------------------------------------------------------
+# End-to-end round-trip (spec 061 step 14)
+# ---------------------------------------------------------------------------
+#
+# Existing tests cover persist+read and persist+list pairwise. The
+# round-trip test below exercises the full user workflow in one chain:
+#
+#   1. Run deliberation → persist_deliberation
+#   2. `conversus list` → list_deliberations finds the persisted run
+#   3. `conversus show <id>` → read_deliberation_file resolves the id
+#      from list and returns the synthesis content
+#
+# This is the integration boundary spec 061 step 14 calls out under
+# "persist→list→show". A bug where, for example, the slug returned by
+# persist_deliberation didn't match the id list_deliberations exposes
+# would not regress the pairwise tests but would break the actual CLI
+# workflow. The chain test pins the slug-as-public-id contract.
+
+
+@pytest.mark.integration
+class TestPersistListShowRoundTrip:
+    """Full persist→list→show user-workflow chain."""
+
+    def test_single_deliberation_round_trip(
+        self, fake_output, project_root
+    ):
+        """Persist one run, list finds it, show returns its synthesis."""
+        question = "Should we use Postgres for the new pipeline?"
+
+        # Step 1: persist
+        persisted = persist_deliberation(
+            source_dir=fake_output,
+            project_root=project_root,
+            question=question,
+        )
+
+        # Step 2: list — must surface the just-persisted run
+        listing = list_deliberations(project_root)
+        assert len(listing) == 1, "list should report exactly one deliberation"
+
+        entry = listing[0]
+        assert entry["question"] == question, (
+            "list must round-trip the question text verbatim"
+        )
+        assert entry["path"] == persisted, (
+            "list's path must match the path persist returned"
+        )
+        assert entry["has_synthesis"] is True, (
+            "list must reflect that summary/final.md exists"
+        )
+
+        # Step 3: show — read the synthesis using the id (path) from list
+        rel_delib = str(entry["path"].relative_to(project_root))
+        synthesis = read_deliberation_file(
+            project_root, rel_delib, "output/summary/final.md"
+        )
+        assert "Synthesis" in synthesis
+        assert "verdict" in synthesis
+
+    def test_multiple_deliberations_round_trip_each(
+        self, tmp_path: Path, project_root
+    ):
+        """N persists, list finds all, show reads each by its own id.
+
+        Pins that the (slug, timestamp) pair is unique enough to give
+        each persisted run a distinct, addressable id even when slugs
+        collide on the question prefix.
+        """
+        questions = [
+            "Should we use Postgres for the pipeline?",
+            "Should we use Postgres for the index?",
+            "Should we use SQLite for the demo?",
+        ]
+        persisted_paths = []
+
+        for i, q in enumerate(questions):
+            # Build a fresh fake output per iteration with distinct
+            # synthesis content so we can verify show returns the
+            # right one.
+            output = tmp_path / f"output-{i}"
+            (output / "alice").mkdir(parents=True)
+            (output / "summary").mkdir(parents=True)
+            (output / "alice" / "review.md").write_text(f"Review {i}")
+            (output / "summary" / "final.md").write_text(
+                f"# Synthesis {i}\nVerdict for question {i}."
+            )
+
+            persisted = persist_deliberation(
+                source_dir=output,
+                project_root=project_root,
+                question=q,
+            )
+            persisted_paths.append(persisted)
+            # Stagger timestamps so list ordering is deterministic.
+            time.sleep(1.1)
+
+        # Step 2: list returns all 3, newest first
+        listing = list_deliberations(project_root)
+        assert len(listing) == 3
+
+        # Each list entry's path must match a persist return value
+        listed_paths = {entry["path"] for entry in listing}
+        assert listed_paths == set(persisted_paths)
+
+        # Step 3: show each by its id, verify each returns its own
+        # distinct synthesis content (no cross-contamination)
+        for entry in listing:
+            rel_delib = str(entry["path"].relative_to(project_root))
+            synthesis = read_deliberation_file(
+                project_root, rel_delib, "output/summary/final.md"
+            )
+            # Identify which persist call this came from by question
+            expected_index = questions.index(entry["question"])
+            assert f"Synthesis {expected_index}" in synthesis
+            assert f"question {expected_index}" in synthesis
+
+    def test_list_after_cleanup_excludes_pruned(
+        self, fake_output, project_root
+    ):
+        """Round-trip survives cleanup: pruned runs disappear from list."""
+        # Persist a recent run
+        recent = persist_deliberation(
+            source_dir=fake_output,
+            project_root=project_root,
+            question="Recent run",
+        )
+
+        # Persist an old run (manually backdate the directory mtime
+        # via cleanup's age threshold; here we use a stale timestamp
+        # in the dir name).
+        old = persist_deliberation(
+            source_dir=fake_output,
+            project_root=project_root,
+            question="Old run",
+        )
+
+        # Backdate the old run by manipulating the directory name's
+        # timestamp prefix so cleanup_old_deliberations treats it as
+        # past the retention window.
+        old_renamed = old.parent / old.name.replace(
+            old.name.split("-")[0], "20200101T000000"
+        )
+        old.rename(old_renamed)
+
+        # Both should appear before cleanup
+        before = list_deliberations(project_root)
+        assert len(before) == 2
+
+        cleanup_old_deliberations(project_root, retention_days=30)
+
+        # After cleanup: only recent survives
+        after = list_deliberations(project_root)
+        assert len(after) == 1
+        assert after[0]["path"] == recent
+        assert after[0]["question"] == "Recent run"
+
+        # Read still works on the surviving run
+        rel = str(after[0]["path"].relative_to(project_root))
+        synthesis = read_deliberation_file(
+            project_root, rel, "output/summary/final.md"
+        )
+        assert "Synthesis" in synthesis
