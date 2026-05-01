@@ -519,3 +519,35 @@ The atomicity insight from blind verification — that implementing the no-reuse
 - Same-version Principle II elaboration (TODO from v3.0.0 SIR): add to Principle II's breaking-change coordination text the sentence "Reusing a retired principle number is a breaking change — any historical document that cited the retired number by identity would thereafter refer to a different principle." Marked with `# TODO(spec-070-cycle2-followup)`.
 
 **Methodology note**: this is the first amendment to apply the v3.0.0 Removal-checklist subsection (e) (arbiter-ruling Origin coordination) retroactively. The verbatim-preservation contract is the test: if a future MINOR-class amendment of this kind would add or remove normative requirements, it must instead go through the full dual-deliberation cycle. Pure governance-record corrections — moving existing arbiter-ruling text from one structural location to another within the same principle, with no rewriting — qualify for the single-PR pathway used here. This precedent is logged so future Amendment-record additions know which pathway applies.
+
+---
+
+## 2026-05-01 — Constitution v3.1.0 → v3.1.1 (cycle 2C XIX labels-only sub-headings)
+
+**Subject**: Spec 070 cycle 2C follow-up — labels-only reorganization of Principle XIX's bullet list under two clearly-labeled sub-headings ("Architectural invariants" / "Operational constants").
+
+**Trigger**: v3.0.0 SIR deferred-items list (cycle 2C entry, P2 PATCH-class), filed as GitHub issue #97 during the v3.0.0 ratification commit. Sequenced after cycle 2B (#103) per the issue's sequencing requirement.
+
+**Verification approach**: per issue #97, "Because cycle 2C modifies no normative language, a lightweight verification suffices: cross-reference audit ... and a single review pass to confirm verbatim preservation. Spec 067 dual-deliberation is not required for a PATCH-class structural-grouping-only change."
+
+**Cross-reference audit**: ran `grep -rn "XIX\.\|Principle XIX\|Non-Extractable"` across CONSTITUTION.md, CONSTITUTIONAL_CONVERSATIONS.md, scripts/, engine/, linter/. Single match: XIX's own definition at CONSTITUTION.md:1264. No other body text refers to XIX's bullets by ordinal position. Sub-heading reorganization is safe.
+
+**Verbatim-preservation contract**:
+- Introductory paragraph ("The following MUST remain in the always-loaded root SKILL.md regardless of any decomposition...") — unchanged.
+- Bullet 1 (Subcommand dispatch table) — text unchanged, grouped under Architectural invariants.
+- Bullet 2 (Non-negotiable multi-agent rules) — text unchanged, grouped under Architectural invariants.
+- Bullet 3 (Phase-level execution flow summary) — text unchanged, grouped under Architectural invariants.
+- Bullet 4 (Important Notes / operational gotchas) — text unchanged, grouped under Operational constants.
+- Closing paragraph ("Removing any item from this list requires a constitutional amendment with a rationale...") — unchanged.
+- Origin note — unchanged.
+
+**Why PATCH (not MINOR)**: per the v3.0.0 Removal-checklist subsection (e) precedent that introducing the FIRST instance of a new structural feature qualifies as MINOR, sub-headings within an existing bullet list are not a new structural feature — markdown sub-headings are a generic typographic primitive, not a governance feature. The classification matches the issue #97 P2 PATCH-class designation.
+
+**Why no deliberation cycle**: this is the third PATCH-class amendment in the session (after v2.6.0's path (c) atomic stage-3 plain-language package and v3.1.0's cycle 2B Amendment record placements) and follows the same pattern: the verbatim-preservation contract is a mechanical test that a single PR with cross-reference verification can satisfy. When the contract holds, the PATCH pathway applies; when content changes substantively, the spec 067 dual-deliberation pathway applies.
+
+**Outstanding deferred items** (after cycle 2C):
+- P3 (NOT filed as an issue): migration eligibility note for Operational constants. Per issue #97 sequencing, "reserved for a second stage because adding it would change the operative meaning of XIX's 'regardless of any decomposition' language." When it lands, it will require dual-deliberation per spec 067 because it modifies normative meaning.
+- Issue #94 (PATCH-class deferred from v2.6.0 path (c) cycle): v2.3.2 Clarification block "shape" → "assembly-form" terminology rename. Requires dual-perspective wording-precision and cross-principle-coherence review of the FULL v2.3.2 block before ratification (per issue acceptance criteria); deferred to a future amendment cycle.
+- Same-version Principle II elaboration (TODO from v3.0.0 SIR): add to Principle II's breaking-change coordination text the sentence "Reusing a retired principle number is a breaking change..." Marked with `# TODO(spec-070-cycle2-followup)` in body. Deferral to a same-version follow-up is a downstream elaboration, not a Principle II atomicity violation per blind verdict ruling on Atomic bundle scope.
+
+**Methodology note**: cycles 2A/2B/2C together demonstrate three governance pathway types in lockstep. 2A (v3.0.0) was MAJOR (principle removals) requiring full dual-deliberation. 2B (v3.1.0) was MINOR (new Amendment record structural feature retroactively applied to three principles) qualifying for the single-PR pathway under the verbatim-preservation contract. 2C (v3.1.1) is PATCH (sub-headings added to one principle's bullet list) qualifying for the same single-PR pathway. The pathway is determined by the verbatim-preservation contract, not the version classification — MAJOR/MINOR/PATCH classifies the version bump's IMPACT on consumers, while the contract classifies the verification cost. A future MINOR amendment that does NOT preserve verbatim language would still require full dual-deliberation; a future MAJOR amendment that DOES preserve verbatim language (counterfactual — MAJOR by definition implies semantic change) cannot exist.
