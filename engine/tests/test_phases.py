@@ -471,6 +471,87 @@ class TestIterationLoop:
         assert len(rev_started) == 2
         assert len(rev_completed) == 2
 
+    # -- iterations=3 cycle count (spec 061 step 13) --------------------
+    #
+    # iterations=2 tests above pin the per-iteration multiplier. The
+    # iterations=3 trio below verifies that the multiplier scales linearly
+    # — N iterations should produce N×N_pairs cross-reviews and
+    # N×N_agents revisions, with revision filenames revision.md,
+    # revision_2.md, …, revision_N.md (no revision_1.md, no revision_4.md
+    # at N=3). A bug where, for example, the cross-review reader was
+    # pinned to `revision.md` for iteration 3 instead of `revision_2.md`
+    # would not regress the N=2 tests but would surface here.
+
+    def test_three_iterations_dispatch_counts(self, tmp_path: Path) -> None:
+        """3 iterations with 2 agents: 6 cross-reviews, 6 revisions."""
+        config = _make_config(tmp_path, iterations=3)
+        provider = MockProvider()
+        emitter, events = _collect_events()
+
+        asyncio.run(
+            run_pipeline(config, provider, emitter, config_path=_config_path())
+        )
+
+        cr_dispatches = [
+            e for e in events
+            if isinstance(e, AgentDispatched) and e.phase == "cross-review"
+        ]
+        rev_dispatches = [
+            e for e in events
+            if isinstance(e, AgentDispatched) and e.phase == "revision"
+        ]
+        # 3 iterations × 2 pairs (alice→bob, bob→alice) = 6 cross-reviews
+        assert len(cr_dispatches) == 6
+        # 3 iterations × 2 agents = 6 revisions
+        assert len(rev_dispatches) == 6
+
+    def test_three_iterations_revision_naming(self, tmp_path: Path) -> None:
+        """N=3: revision.md, revision_2.md, revision_3.md exist; no _1, no _4."""
+        config = _make_config(tmp_path, iterations=3)
+        provider = MockProvider()
+        emitter, _ = _collect_events()
+
+        asyncio.run(
+            run_pipeline(config, provider, emitter, config_path=_config_path())
+        )
+
+        output_dir = config.output.resolve()
+        for agent in ("alice", "bob"):
+            assert (output_dir / agent / "revision.md").exists(), agent
+            assert (output_dir / agent / "revision_2.md").exists(), agent
+            assert (output_dir / agent / "revision_3.md").exists(), agent
+            # Boundary checks: never use _1 (iteration 1 is unsuffixed),
+            # and stop at N (no revision_4.md at N=3).
+            assert not (output_dir / agent / "revision_1.md").exists(), agent
+            assert not (output_dir / agent / "revision_4.md").exists(), agent
+
+    def test_three_iterations_events(self, tmp_path: Path) -> None:
+        """3 iterations emit 3 cross-review + 3 revision PhaseStarted/Completed pairs."""
+        config = _make_config(tmp_path, iterations=3)
+        provider = MockProvider()
+        emitter, events = _collect_events()
+
+        asyncio.run(
+            run_pipeline(config, provider, emitter, config_path=_config_path())
+        )
+
+        cr_started = [
+            e for e in events if isinstance(e, PhaseStarted) and e.phase == "cross-review"
+        ]
+        cr_completed = [
+            e for e in events if isinstance(e, PhaseCompleted) and e.phase == "cross-review"
+        ]
+        rev_started = [
+            e for e in events if isinstance(e, PhaseStarted) and e.phase == "revision"
+        ]
+        rev_completed = [
+            e for e in events if isinstance(e, PhaseCompleted) and e.phase == "revision"
+        ]
+        assert len(cr_started) == 3
+        assert len(cr_completed) == 3
+        assert len(rev_started) == 3
+        assert len(rev_completed) == 3
+
 
 # ---------------------------------------------------------------------------
 # Phase barrier enforcement
