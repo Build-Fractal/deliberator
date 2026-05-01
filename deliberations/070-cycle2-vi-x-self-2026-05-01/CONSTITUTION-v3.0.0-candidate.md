@@ -1,172 +1,131 @@
 <!--
 Sync Impact Report
-Version change: 2.6.0 → 3.0.0 (MAJOR — principle removals: VI (Scripts
-Over Markdown) and X (Zen of Python Output) are migrated out of the
-constitution to operational guidance per spec 070 cycle 2. Per the
-Governance Versioning bullet, MAJOR is triggered for principle
-removals or redefinitions; both removals are bundled in this single
-amendment cycle to amortize the verification overhead and to ratify
-the migrate-out pattern as a coherent precedent rather than as two
-sequential single-principle amendments.)
-
+Version change: 2.6.0 → 3.0.0 (MAJOR — principle removals: VI Scripts
+Over Markdown and X Zen of Python Output. Per CONSTITUTION.md
+Versioning ("MAJOR for principle removals"), removing TWO principles
+is a MAJOR bump. Per spec 070 cycle 2's audit verdicts on the v2.4.0
+grandfathering disclosure (preserved in the v2.4.0 SIR below) and the
+prospective-only clause + migration mechanism documented at the
+v2.4.0 gate, both VI and X are migrated to operational guidance
+rather than retained in the constitution. Migration receiving
+documents are identified explicitly per the v2.4.0 SIR's migration
+clause: VI → CONTRIBUTING.md (Authoring Conventions section, new);
+X → docs/output-conventions.md (new), with cross-reference from
+CONTRIBUTING.md.)
 Removed principles:
-  - VI. Scripts Over Markdown — RETIRED. The headline qualifier "when
-    the artifact drives behavior" fails Constitutional Inclusion
-    **Criterion 2 (Falsifiable scope)**: a reviewer must reason
-    "well, X might be okay if Y" to apply it, which is precisely the
-    failure mode Criterion 2 was designed to flag. (The v2.4.0
-    grandfathering disclosure labeled this as a Criterion 1 failure;
-    that label is corrected here. Criterion 1 tests *mechanical
-    verification capability*; Criterion 2 tests *falsifiable scope*.
-    The two have distinct remediation paths: Criterion 2 failures
-    trigger wording-refinement evaluation as a first step before
-    migrate-out is selected.) Reasoning chain followed for VI:
-    (a) Criterion 2 identified as the applicable failure; (b) wording
-    refinement evaluated; (c) no viable refinement exists — "drives
-    behavior" has no structural default class (no file extension,
-    directory pattern, or schema property identifies a behavior-
-    driving artifact without human classification in every case),
-    so no rewrite can operationalize it into a mechanically-applicable
-    rule; (d) migrate-out concluded. The migrate-out conclusion is
-    independent of the criterion label: under either Criterion 1 or
-    Criterion 2 identification, the migrate-out outcome for VI holds
-    because no viable refinement exists. The substantive guidance is
-    preserved as authoring guidance in `CONTRIBUTING.md` § Authoring
-    Conventions. The Governance section's existing Criterion 1 worked
-    example ("code should be readable") exhibits the same Criterion
-    1/2 conflation pattern; that worked example is flagged here for
-    future correction.
-  - X. Zen of Python Output — RETIRED. The headline claim "readability
-    counts" is irreducibly subjective; the body's "errors should
-    never pass silently" overlaps Principle V (Observable Deliberation)
-    and the safety-critical defense-in-depth posture in Principle XXIV.
-    Substrate analysis of the "one clear purpose per output file"
-    sub-bullet (Criterion 3, Distinctness): this sub-bullet is
-    subsumed by Principles V (Observable Deliberation) and VII
-    (Reproducibility) applied to output schema design — the
-    requirement that each output file has a focused, predictable
-    purpose is a derived property of "every phase MUST report
-    progress" composed with "deterministic orchestration is
-    non-negotiable; an implementor can predict the output tree from
-    `conversus.yml` alone." It is not an independent Criterion 3
-    claim. The migrate-out for X holds. The substantive guidance is
-    preserved at `docs/output-conventions.md`.
+  - VI. Scripts Over Markdown — failed Constitutional Inclusion
+    Criterion 1 per the v2.4.0 grandfathering disclosure: the
+    qualifier "when the artifact drives behavior" is judgment-laden
+    and not mechanically checkable; a reviewer must reason "well, X
+    might be okay if Y" to apply it, which is precisely the failure
+    mode Criterion 2 (Falsifiable scope) was designed to flag. The
+    substantive guidance (executable scripts/configs/structured data
+    preferred over freeform markdown when the artifact drives agent
+    or automation behavior) is preserved as authoring guidance in
+    CONTRIBUTING.md "Authoring Conventions: Scripts Over Markdown
+    (formerly Constitutional Principle VI)" with normative weight
+    relaxed from MUST to SHOULD where the underlying judgment call
+    cannot be mechanized.
+  - X. Zen of Python Output — failed Constitutional Inclusion
+    Criterion 1 per the v2.4.0 grandfathering disclosure: the core
+    sentence "readability counts" is irreducibly subjective, and the
+    surrounding sub-bullets ("flat is better than nested", "if the
+    implementation is hard to explain, it's a bad idea") inherit
+    the same subjectivity. The substantive guidance (predictable
+    output tree, shallow hierarchies, warnings for malformed output,
+    focused content per file) is preserved as authoring guidance in
+    docs/output-conventions.md "Output Conventions (formerly
+    Constitutional Principle X)" with the mechanically-checkable
+    parts (e.g., "warnings for malformed output") flagged as
+    RECOMMENDED implementation patterns rather than constitutional
+    requirements.
+Modified principles: none (no surviving principle's body referenced
+  VI or X by number; the only constitutional-body cross-reference to
+  "behavior-over-shape" at Principle XXVIII line 1332 is a reference
+  to Principle IX's behavior-over-shape extension, not to removed
+  Principle X — it remains valid.)
+Removed sections: none beyond the two principles themselves.
+Templates requiring updates: none.
 
-Migration targets:
-  - VI guidance: `CONTRIBUTING.md` § Authoring Conventions
-  - X guidance: `docs/output-conventions.md`
+Principle numbering: stable identifiers. Roman numerals are part of
+each principle's identity (cited in PR descriptions, governance log
+entries, deliberation records). Removing VI and X creates gaps at
+those positions. Future amendments MUST NOT reuse numbers VI or X.
+The principle list now reads: I, II, III, IV, V, VII, VIII, IX, XI,
+XII, XIII, XIV, XV, XVI, XVII, XVIII, XIX, XX, XXI, XXII, XXIII,
+XXIV, XXV, XXVI, XXVII, XXVIII (26 principles total; gaps at VI and
+X marking the removed principles). Surviving cross-references are
+unaffected: Principle IX's "behavior-over-shape" extension is cited
+by Principle XXVIII, and that citation remains valid because IX is
+unchanged.
 
-Modified principles:
-  - II. Stable Interfaces — stable-interfaces enumeration extended to
-    include "principle numbers (Roman numeral identifiers; permanent
-    retirement is the only state change permitted, never reuse)."
-    The Principle II elaboration making principle-number reuse an
-    explicit breaking-change is deferred to a same-version follow-up
-    (see TODO below); deferral is a downstream elaboration, not a
-    Principle II atomicity violation per the blind verdict ruling on
-    Atomic bundle scope.
-Modified Governance section:
-  - New "Principle Number Stability" subsection inserted after
-    Constitutional Inclusion Criteria, before Compliance.
-  - New Removal checklist subsection appended.
-  - Grandfathering paragraph corrected: active set enumerated
-    (I–V, VII–IX, XI–XXVII, plus XXVIII added post-gate); VI and X
-    permanently retired and MUST NOT be reused regardless of gate
-    criteria; current count = 26 active principles.
-  - Path (c) precedent text (L1493–1495) corrected to a cycle/version-
-    only formulation that no longer names VI and X by principle in
-    the migrate-out clause; the v3.0.0 amendment is named as the
-    canonical migrate-out precedent.
+Path (c) attestation: the v2.6.0 amendment defined path (c) as a
+PATCH-class headline rewrite of a grandfathered principle that
+restructures existing body content into a new headline without
+introducing new normative requirements. VI and X are REMOVALS —
+they migrate the substantive guidance OUT of the constitution into
+operational-guidance documents. Path (c) does NOT apply to removals;
+this amendment is a MAJOR principle-removal amendment, not a path
+(c) restructuring. The path (c) precedent established for XVI
+remains the canonical pattern for future grandfathered-principle
+remediation that elects to retain a principle in the constitution
+with a rewritten headline. Future grandfathered-principle remediation
+electing to migrate-out (this amendment's pattern) is governed by
+the v2.4.0 gate's prospective-only paragraph + migration clause
+("migration of any grandfathered principle to operational guidance
+is a separate, intentional act governed by the same amendment
+process with the receiving document identified explicitly in the
+migration spec").
 
-Ratification commit atomicity (per blind verdict ruling on Sequencing,
-adopting co-equal P1 framing): this commit atomically includes
-`CONSTITUTION.md`, `CONTRIBUTING.md`, `docs/output-conventions.md`,
-`mkdocs.yml`, and `CONSTITUTIONAL_CONVERSATIONS.md`. No element lands
-in isolation.
-
-Cross-reference audit methodology: the cycle 1 implementation's
-"zero body-text cross-references" claim missed the L1589 plural-form
-"Principles VI and X" reference. This v3.0.0 amendment establishes
-the audit methodology going forward: **singular form, plural form,
-and adjacent-phrase forms** of removed principle identifiers must be
-searched. Future principle-removal amendments MUST apply this
-extended methodology and document the result in the SIR.
-
-Comparative-principles asymmetry (CI-detectable structural default
-class): Future migrate-out deliberations citing v3.0.0 as precedent
-must demonstrate the absence of a structural default class for the
-principle being remediated. **Judgment calls that have a CI-detectable
-structural default class survive the Constitutional Inclusion Criteria
-gate; judgment calls that have no structural default class do not.**
-A structural default class is the set of structural properties (file
-extension, directory location, schema field, code property) that
-identify the dominant case mechanically, leaving only edge cases
-requiring human classification. Principles XV ("core artifacts" =
-files consumed by the deliberation runtime), XXIV ("safety-critical
-paths" = synthesis verdict generation and provider protocol
-implementation, explicitly enumerated), and IX ("prefer pure
-functions" = stateless functions with no side effects and no
-external state dependencies, statically analyzable) each have a
-structural default class. Principle VI ("when the artifact drives
-behavior") does not — there is no file extension, directory pattern,
-or schema property that identifies a behavior-driving artifact
-without human classification in every case. This distinction is the
-constitutional load-bearing reason why VI was removed while XV, XXIV,
-and IX were retained.
-
-MUST→SHOULD rationale (for migrated text in CONTRIBUTING.md and
-docs/output-conventions.md): the v2.4.0 gate governs *location*, not
-*normative weight*. SHOULD is appropriate in operational guidance
-because the same judgment-call qualifier that caused migrate-out also
-makes MUST unenforceable without a mechanical check.
+Cross-reference updates: zero body-text cross-references to VI or X
+exist in surviving principles. The only references to VI/X in the
+file are inside SIR comment blocks (audit trail) at lines 13, 290,
+292, 305, 1495 of the prior v2.6.0 file, all of which are preserved
+verbatim per the SIR audit-trail discipline. No principle body's
+guidance depended on the discipline of VI or X. The cross-reference
+audit was performed mechanically (regex search for "Principle VI",
+"Principle X", "Scripts Over Markdown", "Zen of Python") and
+manually verified.
 
 Verification trail:
   - Self-consistency: deliberations/070-cycle2-vi-x-self-2026-05-01/
-    — PASS WITH FIXES. All P1 changes applied (L1589 wording fix,
-    Criterion 2 SIR label correction with full reasoning chain,
-    mkdocs.yml nav entry, X substrate analysis paragraph,
-    cross-reference audit methodology documentation).
+    — three agents (removal-rigor-skeptic, cross-reference-coherence,
+    migration-soundness) + balanced-arbiter, binding.
   - Blind verification: deliberations/070-cycle2-vi-x-blind-2026-05-01/
-    — PASS WITH FIXES. All P1 atomic-bundle elements applied
-    (Recs 1+2+3+4+6: tombstones for VI and X, Principle II stable-
-    interfaces list addition, Governance Principle Number Stability
-    subsection, Governance Removal checklist, grandfathering clause
-    correction with explicit MUST NOT and 26-active count).
+    — two agents (numbering-skeptic, body-coherence-skeptic) +
+    balanced-arbiter, binding. Reviewers do NOT know the
+    constitution's history; they treat the document on its own
+    merits. The candidate document is stripped of v3.0.0 markers
+    and dated SIRs to enforce the blind condition.
 
-Deferred items (filed as GitHub issues, sequenced after v3.0.0
-ratification):
-  - Cycle 2B (P1, MINOR-class): retroactive Origin note Amendment-record
-    subsections for Principles XXIV, XXV, XXVII to close the latent
-    Principle XI documentation gap surfaced by blind verification's
-    arbiter ruling on retroactive Origin notes. Each principle has
-    arbiter-ruling language in its normative body describing a
-    2026-04-25 deliberation extension; Governance has no amendment
-    record. Cycle 2B closes these historical process gaps with
-    retroactive Amendment record subsections in each principle's
-    Origin note.
-  - Cycle 2C (P2, PATCH-class): XIX labels-only sub-headings
-    ("Architectural invariants" / "Operational constants"). Reorganize
-    XIX's bullet list under two clear sub-headings without modifying
-    any normative language and without adding any "may be migrated"
-    note. Sequenced after cycle 2B.
-
-Follow-up TODOs:
-  - Same-version Principle II elaboration: add to Principle II's
-    breaking-change coordination text the sentence "Reusing a retired
-    principle number is a breaking change — any historical document
-    that cited the retired number by identity would thereafter refer
-    to a different principle." Marked with `# TODO(spec-070-cycle2-followup)`
-    in body. Deferral to a same-version follow-up is a downstream
-    elaboration, not a Principle II atomicity violation, per blind
-    verdict ruling on Atomic bundle scope.
-  - Cross-reference: CONTRIBUTING.md and docs/output-conventions.md
-    are the canonical operational-guidance destinations for migrated
-    VI and X content. The Governance section's operational-guidance
-    list will be updated in a subsequent PATCH (P2 in the self verdict).
+Rationale: per spec 070 §4.1 and §4.2 audit verdicts, VI and X each
+fail Constitutional Inclusion Criterion 1 (mechanical verification
+capability). VI's "when the artifact drives behavior" qualifier
+requires interpretation in every application, which Criterion 2
+(Falsifiable scope) explicitly identifies as the failure mode for
+which a principle "belongs in operational guidance." X's
+"readability counts" sentence is irreducibly subjective; the
+surrounding sub-bullets inherit the same subjectivity. Both belong
+in operational guidance per the v2.4.0 gate's prospective-only
+clause + the migration mechanism documented at spec 070 §3 + the
+Grandfathering Doctrine (v2.4.0 SIR). The remediation pattern for
+each grandfathered principle that fails the gate is now established
+along two paths: (i) the path (c) headline rewrite established for
+XVI in cycle 1, where the constitution retains the principle with
+its substrate elevated as the headline claim, and (ii) this
+amendment's migrate-out pattern, where the constitution removes the
+principle entirely and the substantive guidance lives in operational
+guidance. Both patterns satisfy the v2.4.0 gate's prospective-only +
+explicit-migration clauses; the choice between them depends on
+whether a structural substrate exists in the body that can be
+elevated as a load-bearing constitutional claim. For VI and X, no
+such substrate exists — the entire content is judgment guidance —
+so the migrate-out pattern is the appropriate remediation.
 
 Governance log entry: 2026-05-01 in CONSTITUTIONAL_CONVERSATIONS.md
 (spec 070 cycle 2 implementation).
-Prior amendment (v2.5.0 → v2.6.0): see prior SIR comment block below.
+Prior amendment (v2.5.0 → v2.6.0): see prior SIR comment block
+below.
 -->
 
 <!--
@@ -656,20 +615,9 @@ consumers.
   that references it.
 - Template variable names in `schema/variables.yml` and the
   `conversus.yml` config schema are stable interfaces.
-- Principle numbers (Roman numeral identifiers) are stable interfaces;
-  permanent retirement is the only state change permitted, never
-  reuse. See Governance § Principle Number Stability for the no-reuse
-  rule and the RFC/CVE rationale.
 - Changing a stable interface requires updating every consumer (specs,
   templates, SKILL.md sections, reference files) in a single atomic
   change.
-  <!-- TODO(spec-070-cycle2-followup): when NS-Rec-7 wording is ready
-  in a same-version follow-up, append: "Reusing a retired principle
-  number is a breaking change — any historical document that cited
-  the retired number by identity would thereafter refer to a
-  different principle." Per blind verdict ruling on Atomic bundle
-  scope, deferral is a downstream elaboration, not a Principle II
-  atomicity violation. -->
 - New interfaces SHOULD be marked stable only after at least one spec
   has consumed them successfully.
 
@@ -714,14 +662,6 @@ malformed results. Agents MUST NOT silently swallow errors.
   output is better than no output.
 - Failure handling preserves prior phase results. A Phase 6 failure
   does NOT invalidate Phases 1-5.
-
-### VI. ~~Scripts Over Markdown~~ — RETIRED v3.0.0
-
-**Retired** 2026-05-01 in v3.0.0 per spec 070 cycle 2. The original
-content has been migrated to `CONTRIBUTING.md` § Authoring Conventions.
-Principle number VI is **permanently retired** and MUST NOT be reused
-for any future principle, regardless of gate criteria — see Governance
-§ Principle Number Stability.
 
 ### VII. Reproducibility Over Inconsistency
 
@@ -842,14 +782,6 @@ Examples of behavior tests (required): `assert result["headline"]
 config requested 2 rounds`, `assert errors == []` (when zero is
 the expected behavioral state). Shape tests are permitted only as
 preconditions inside a test that ALSO asserts behavior.
-
-### X. ~~Zen of Python Output~~ — RETIRED v3.0.0
-
-**Retired** 2026-05-01 in v3.0.0 per spec 070 cycle 2. The original
-content has been migrated to `docs/output-conventions.md`. Principle
-number X is **permanently retired** and MUST NOT be reused for any
-future principle, regardless of gate criteria — see Governance
-§ Principle Number Stability.
 
 ### XI. Single Source of Truth
 
@@ -1615,22 +1547,10 @@ justifies the deviation.
   constitution is the home for invariants.
 
   This gate applies **prospectively** — to amendments landing after
-  v2.4.0. The grandfathered set, as of v3.0.0, is enumerated
-  explicitly: Principles I, II, III, IV, V, ~~VI~~, VII, VIII, IX,
-  ~~X~~, XI, XII, XIII, XIV, XV, XVI, XVII, XVIII, XIX, XX, XXI, XXII,
-  XXIII, XXIV, XXV, XXVI, XXVII (with XXVIII added post-gate per
-  v2.5.0). **Principles VI (Scripts Over Markdown) and X (Zen of
-  Python Output) are RETIRED v3.0.0** per spec 070 cycle 2 and are
-  shown struck through above. Numbers VI and X are permanently retired
-  and **MUST NOT be reused by any future amendment, regardless of
-  whether proposed content would satisfy the three-criterion gate or
-  any other qualification criteria** — see the Principle Number
-  Stability subsection below for the underlying rationale. The
-  current count is **26 active principles** (28 grandfathered minus 2
-  retired). Migrating any other grandfathered principle to operational
-  guidance is a separate, intentional act governed by the same
-  amendment process (with the receiving document identified
-  explicitly in the migration spec).
+  v2.4.0. Existing principles I-XXVII are grandfathered. Migrating
+  any of them to operational guidance is a separate, intentional act
+  governed by the same amendment process (with the receiving document
+  identified explicitly in the migration spec).
 
   When drafting new principles, prefer the structural pattern of
   principles whose verification artifact is named explicitly (e.g.,
@@ -1664,79 +1584,15 @@ justifies the deviation.
   restructuring itself. Body content that existed in a grandfathered
   principle before v2.4.0 is not re-audited under the three-criterion
   gate when elevated to headline status under path (c); the gate
-  applies only to genuinely new content. This 2026-05-01 amendment
-  establishing the path (c) definition (v2.6.0, spec 070 cycle 1) is
-  the canonical path (c) precedent for future in-place headline
-  rewrites of grandfathered principles. The 2026-05-01 v3.0.0
-  amendment (spec 070 cycle 2) is the canonical migrate-out precedent
-  for removal of grandfathered principles to operational guidance.
-  Both precedents may be cited by future amendments without
-  re-litigating the analytical foundation, provided the citing
-  amendment demonstrates analytical fit.
+  applies only to genuinely new content. The 2026-05-01 spec 070
+  cycle 1 amendment establishing this definition is the canonical
+  path (c) precedent for future remediation of Principles VI and X.
 
   **Coordination with Principle XVII (Content Classification).** The
   gate inherits XVII's vocabulary; routing decisions to operational
   guidance follow XVII's execution-logic vs. contribution-guidelines
   distinction. The cross-reference flows gate → XVII (newer references
   older), per the constitution's reference topology.
-- **Principle Number Stability**: principle numbers (Roman numerals)
-  are stable interfaces (Principle II). Once retired, a principle's
-  number MUST NOT be reused — regardless of whether a future
-  candidate principle would pass the Constitutional Inclusion
-  Criteria gate. The retirement creates a permanent identifier
-  attached to the now-removed principle's content, enabling external
-  citations (other specs, deliberation logs, agent skills, third-
-  party documentation) to remain unambiguous after retirement.
-
-  Cf. RFC and CVE numbering: retired identifiers stay attached to
-  their original assignments forever. The constitutional analogue
-  is identical — the cost of preserving citation integrity is
-  cheap (ledger entry); the cost of losing it is unbounded
-  (every prior reference becomes ambiguous).
-
-  Future principle additions MUST use unused numbers (XXIX, XXX, …)
-  rather than filling gaps left by retirements. Tombstone entries
-  in the principle list document each retirement; gaps in the
-  enumeration are intentional.
-- **Removal checklist**: a principle removal MUST satisfy each of
-  the following before ratification:
-
-  (a) **Verification deliberations**: both self-consistency and
-      blind verification per spec 067 must complete with PASS or
-      PASS WITH FIXES verdicts; all P1 fixes from both verdicts
-      must be applied in the ratification commit.
-  (b) **Migration target identified**: the receiving document for
-      the removed principle's substantive content must be named
-      and the content must exist at the named location at
-      ratification time, not as a deferred follow-up.
-  (c) **Tombstone entry created**: the removed principle's slot in
-      the principle list must contain a strikethrough headline,
-      retirement date, retirement version, migration target, and
-      the no-reuse declaration cross-referencing Principle Number
-      Stability.
-  (d) **Principle Number Stability cited**: the SIR and the
-      tombstone must both cite the no-reuse rule explicitly, so
-      future readers cannot construct a "gate-eligible reuse"
-      reading of the retirement.
-  (e) **Arbiter-ruling Origin note amendments coordinated**: any
-      principles whose normative bodies contain embedded arbiter-
-      ruling language describing prior amendments (cf. cycle 2B
-      for XXIV, XXV, XXVII) must have their Origin notes updated
-      with retroactive Amendment record subsections in the same
-      PR as the prospective Governance change that requires
-      arbiter-ruling documentation, when both are coordinated.
-      When the prospective and retroactive items are sequenced
-      across separate PRs (as in this v3.0.0 ratification, which
-      defers cycle 2B), the deferral and the rationale must be
-      documented in the SIR.
-  (f) **Cross-reference audit**: every body-text reference to the
-      removed principle must be updated in the same commit.
-      The audit MUST cover **singular form, plural form, and
-      adjacent-phrase forms** of the removed principle's name and
-      number (e.g., "Principle VI", "Principles VI and X",
-      "VI/X migration"). The cycle 1 amendment's audit missed the
-      L1589 plural form; the v3.0.0 amendment establishes the
-      extended methodology for future audits.
 - **Compliance**: The plan template includes a Constitution Check gate.
   Plans MUST pass this gate before proceeding to implementation.
 

@@ -1,0 +1,322 @@
+mode: cooperative
+output: ./
+rounds: 1
+stagnation: detect
+
+# Spec 070 cycle 2 self-consistency verification, per spec 067 §4.1
+# and §4.3.1 (existing role presets).
+# Target: candidate v3.0.0 with v3.0.0 SIR + version markers visible.
+# The amendment is a MAJOR principle-removal: VI (Scripts Over
+# Markdown) and X (Zen of Python Output) are removed from the
+# constitution and migrated to operational guidance:
+#   VI → CONTRIBUTING.md (Authoring Conventions, new section)
+#   X  → docs/output-conventions.md (new file)
+# Path (c) does NOT apply — those are removals, not headline rewrites.
+# Principle numbers are stable identifiers; the candidate documents
+# the gaps at VI and X explicitly and bans reuse of those numbers.
+#
+# Acceptance bar (per spec 067 §4.4 and spec 070 §4): 0 ACCEPT-
+# level findings on the removal mechanics, the migration soundness,
+# or the cross-reference coherence after removal. PASS or PASS WITH
+# FIXES are both allowable verdicts.
+
+target:
+  - CONSTITUTION-v3.0.0-candidate.md
+
+agents:
+  - name: removal-rigor-skeptic
+    preset: devils-advocate
+    prompt: |
+      You audit the v3.0.0 amendment from the strongest contrarian
+      position on the removal of Principles VI (Scripts Over
+      Markdown) and X (Zen of Python Output). Argue that removing
+      these principles harms the constitution, that the migrated
+      content loses normative weight, or that the discipline lapses
+      because operational-guidance documents do not carry the same
+      enforcement gravity as constitutional invariants.
+
+      Specifically:
+
+      1. Read the v3.0.0 SIR's rationale for removal. The SIR claims
+         VI fails Criterion 1 because "when the artifact drives
+         behavior" requires interpretation, and X fails Criterion 1
+         because "readability counts" is irreducibly subjective.
+         Argue the contrary: that VI's qualifier is the same kind of
+         judgment call that ANY operational principle requires
+         (Principle XV's "core artifacts" requires interpretation;
+         Principle XXIV's "safety-critical" requires interpretation;
+         Principle IX's "prefer pure functions" requires
+         interpretation). If VI fails Criterion 1, do those
+         principles also fail? If they do not, why does VI?
+
+      2. The SIR characterizes X's "readability counts" as
+         "irreducibly subjective." Argue that the substantive
+         content of X is NOT the "readability counts" sentence
+         (which is rhetorical scaffolding from the Zen of Python),
+         but rather the four sub-bullets (predictable output tree,
+         shallow hierarchies, warnings for malformed output, focused
+         content). Each sub-bullet is mechanically checkable in
+         isolation. If they are, the principle SHOULD have been
+         rewritten under path (c) — elevating one of the sub-bullets
+         as the headline — rather than removed.
+
+      3. Read the migrated content in CONTRIBUTING.md and
+         docs/output-conventions.md. Both reframe MUST → SHOULD.
+         Argue that this normative degradation is not justified by
+         the gate failure. The gate flags Criterion 1 (mechanical
+         verification capability), not Criterion 2 (falsifiable
+         scope). VI's discipline ("scripts over markdown when the
+         artifact drives behavior") is just as falsifiable in its
+         migrated form (a CI lint COULD enforce it, even if the
+         "drives behavior" judgment is human-in-the-loop). The
+         strength reduction from MUST to SHOULD smuggles a second
+         change beyond removal.
+
+      4. The SIR claims "no surviving principle's body referenced
+         VI or X by number." Verify this claim with a fresh search.
+         Search the candidate constitution body (NOT the SIRs) for:
+           - The phrase "Principle VI" (case sensitive)
+           - The phrase "Principle X" (case sensitive, careful with
+             "Principle XI", "Principle XII", etc.)
+           - The phrase "Scripts Over Markdown"
+           - The phrase "Zen of Python"
+         If any survive in non-SIR content, the SIR's claim is
+         false and the cross-reference work is incomplete.
+
+      5. The SIR says cross-references in the SIR audit-trail
+         comment blocks (lines 13, 290, 292, 305, 1495 of the prior
+         v2.6.0 file) are preserved verbatim. Spot-check that the
+         audit trail's mentions of VI/X are still semantically
+         coherent in the new file. For example, the v2.4.0 SIR's
+         grandfathering disclosure says "VI (Scripts Over Markdown
+         — judgment-laden 'when the artifact drives behavior'), X
+         (Zen of Python Output — irreducibly subjective 'readability
+         counts'), XVI (Mathematical Transparency — plain-language
+         explanation requirement is unverifiable). All three retain
+         ratified status." After v3.0.0 removes VI and X, that
+         "All three retain ratified status" sentence is now
+         historically inaccurate — VI and X were removed, not
+         retained. Argue that the SIR audit trail should be
+         annotated to reflect the subsequent removal.
+
+      6. The amendment is framed as MAJOR. Argue alternative version
+         classifications:
+           - Should this be TWO MAJOR amendments (one for VI removal,
+             one for X removal), each independently subjected to its
+             own deliberation cycle?
+           - Should the migration to CONTRIBUTING.md +
+             docs/output-conventions.md be a separate amendment
+             from the constitutional removal?
+         If the bundling is valid, on what principle? If not, the
+         amendment as drafted is over-scoped.
+
+      Find the strongest argument that the removals harm the
+      constitution, that the migration loses substantive normative
+      weight, or that the bundling is improper. If you find none,
+      say so explicitly with line references.
+
+  - name: cross-reference-coherence
+    preset: pragmatist
+    prompt: |
+      You audit the v3.0.0 amendment for cross-reference coherence
+      after the removal of Principles VI and X. Two independent
+      cross-reference questions:
+
+      A. Body-text cross-references inside the constitution's
+         surviving principles. Have all references to VI or X been
+         updated, removed, or replaced?
+
+      B. Reachability of operational-guidance docs from the
+         constitution. The SIR migrates VI to CONTRIBUTING.md and X
+         to docs/output-conventions.md. Is there a constitutional
+         path that points readers at these docs, or are they
+         orphaned? (The constitution does not have to embed the
+         operational-guidance content, but it SHOULD be reachable
+         from a SOURCE the constitution names — `AGENTS.md`,
+         `CONTRIBUTING.md`, the Governance section, or similar.)
+
+      Specifically check:
+
+      1. Read every surviving principle's body (NOT the SIR comment
+         blocks). Search for any usage of "Scripts Over Markdown",
+         "Zen of Python", "Principle VI" (case-sensitive),
+         "Principle X" (case-sensitive, with care for X vs XI/XII/
+         etc.). For each match found in surviving principle bodies,
+         report the line number and the surrounding 3 lines of
+         context. The SIR's claim is "zero body-text cross-
+         references"; verify this claim by exhaustive search.
+
+      2. Read the candidate's Governance section. Does anything in
+         Governance reference VI or X? The v2.4.0 SIR's
+         grandfathering disclosure mentions "VI, X, XVI" — that's
+         in a SIR audit-trail block, not the Governance body
+         text. But the v2.6.0 amendment defined path (c) and the
+         original wording at line 1495 (in the prior file) cited
+         "future remediation of Principles VI and X" as the
+         canonical use case for path (c). After v3.0.0 removes
+         VI and X via REMOVAL (not path (c)), is that path (c)
+         precedent paragraph in Governance still semantically
+         coherent? The path (c) precedent now lists removed
+         principles as the precedent's application target.
+
+      3. Read the candidate's "## Known Antipatterns" section. Does
+         anything there reference output discipline (X's territory)
+         or scripts-over-markdown (VI's territory)? If so, those
+         references either need updating or removing.
+
+      4. Read the candidate's "## Development Workflow" section.
+         Does anything there reference VI or X by number or by name?
+
+      5. Reachability of CONTRIBUTING.md from the constitution: does
+         the constitution mention `CONTRIBUTING.md` anywhere? The
+         file is sometimes a top-level project doc that
+         contributors reach via the README, not the constitution.
+         Whether that's sufficient reachability is a judgment call;
+         flag it if the constitution should explicitly point at
+         it.
+
+      6. Reachability of docs/output-conventions.md: same question
+         for the output-conventions doc. CONTRIBUTING.md
+         cross-references it; does the constitution have any path
+         to it?
+
+      7. Verify both new files exist (CONTRIBUTING.md at repo root;
+         docs/output-conventions.md). Cite their absolute paths in
+         your finding if either is missing.
+
+      Report findings as a list of *concrete* concerns with line
+      references. Silence is not the same as "looked but found
+      nothing" — say so explicitly if no findings.
+
+  - name: migration-soundness
+    preset: pragmatist
+    prompt: |
+      You audit the migrated content of VI (in CONTRIBUTING.md) and
+      X (in docs/output-conventions.md) against the original v2.6.0
+      principle bodies. The substantive guidance MUST survive the
+      migration; the strength reduction (MUST → SHOULD) is
+      acceptable per the v3.0.0 SIR rationale, but the underlying
+      content must be preserved faithfully.
+
+      Read both migrated docs. Compare each migrated paragraph to
+      the original principle body (the original content is
+      preserved in the v3.0.0 candidate's prior-SIR audit trail in
+      the v2.6.0 SIR's "Removed sections" listing if present, or
+      can be reconstructed from the spec 070 audit verdicts).
+
+      Specifically check:
+
+      1. CONTRIBUTING.md "Authoring Conventions: Scripts Over
+         Markdown" section. Does it preserve the three sub-bullets
+         from the original VI principle:
+           - Orchestration logic in SKILL.md and templates, not
+             freeform docs
+           - Configuration in YAML, not markdown tables
+           - Markdown is appropriate for human orientation; prefer
+             structured/executable formats for behavior-driving
+             artifacts
+         If any sub-bullet is missing or substantively altered,
+         flag it.
+
+      2. docs/output-conventions.md. Does it preserve the four
+         sub-bullets from the original X principle:
+           - One obvious way to find the result; predictable
+             output tree (`summary/final.md`)
+           - Flat is better than nested; agent output one level
+             deep
+           - Errors should never pass silently; warnings emitted
+             for malformed output
+           - Sparse is better than dense; focused content per file
+           - "If the implementation is hard to explain, it's a bad
+             idea"
+         If any sub-bullet is missing or substantively altered,
+         flag it. Note: the original X principle had FIVE bullets
+         counting both "errors should never pass silently" and the
+         "if the implementation is hard to explain" rhetorical
+         coda; verify all five (or whatever count) are accounted
+         for.
+
+      3. Provenance footers. Both files have a footer of the form
+         "Migrated from CONSTITUTION.md Principle [VI|X] in v2.6.0
+         → v3.0.0 per spec 070 cycle 2 (2026-05-01)." Check that:
+           - The principle number is correct in each file (VI for
+             CONTRIBUTING.md; X for docs/output-conventions.md).
+           - The version range is correct (v2.6.0 → v3.0.0).
+           - The spec citation is correct (spec 070 cycle 2).
+           - The date is correct (2026-05-01).
+
+      4. Cross-reference from CONTRIBUTING.md to
+         docs/output-conventions.md. The SIR claims CONTRIBUTING.md
+         cross-references docs/output-conventions.md; verify this
+         link exists and points at the right relative path.
+
+      5. Strength reduction. The migrated content reframes MUST →
+         SHOULD where appropriate. Spot-check: are any MUSTs in the
+         migrated content that should have been relaxed? Are any
+         SHOULDs that should have remained as MUSTs (e.g., for
+         mechanically-checkable parts that the gate would have
+         passed)? The v3.0.0 SIR's framing is that the
+         mechanically-checkable parts of X (warnings for malformed
+         output) become "RECOMMENDED implementation patterns" —
+         verify this framing is consistent in the migrated doc.
+
+      6. Discoverability. CONTRIBUTING.md is conventionally read by
+         new contributors. docs/output-conventions.md is in the
+         docs tree. Are there mkdocs.yml or other navigation
+         entries that need updating to surface
+         docs/output-conventions.md? (If mkdocs.yml exists in the
+         repo and lists pages, this doc SHOULD probably be added.)
+
+      Report findings as a list of *concrete* concerns with line
+      references and exact quotes. Silence is not the same as
+      "looked but found nothing".
+
+arbiter:
+  name: spec-070-cycle2-arbiter
+  preset: balanced-arbiter
+  prompt: |
+    You rule on findings raised by removal-rigor-skeptic, cross-
+    reference-coherence, and migration-soundness agents against the
+    candidate v3.0.0 constitution. Your grounding document is the
+    candidate file (`CONSTITUTION-v3.0.0-candidate.md`); apply the
+    v2.4.0 Constitutional Inclusion Criteria gate as it appears in
+    that file's Governance section, and the v2.6.0 path (c)
+    definition.
+
+    For each finding:
+
+    - **ACCEPT** (real defect in the removal mechanics, the
+      migration soundness, or the cross-reference coherence):
+      propose the minimum corrective edit the spec 070 cycle 2
+      implementer should apply before opening the implementation PR.
+    - **REJECT** (false positive or wrong-target finding): explain
+      why.
+    - **DEFER** (real but out of scope for spec 070 cycle 2):
+      document what would unblock and where the work belongs
+      (typically: a follow-up cycle, a separate amendment, or
+      operational-guidance refinement).
+
+    Acceptance bar (per spec 067 §4.4 and spec 070 §4): 0 ACCEPT-
+    level findings on the removal mechanics, the migration
+    soundness, or the cross-reference coherence specifically.
+    REVISE-rated findings on framing in the SIR rationale, on
+    optional discoverability improvements (e.g., mkdocs nav), or on
+    bundling-classification debates are addressable as revisions
+    and do not block. ACCEPT findings on missing migrated content,
+    surviving body-text cross-references to VI/X, broken file
+    paths, or factually wrong provenance footers DO block.
+
+    Conclude with a verdict line:
+    - "SPEC-070 CYCLE 2 SELF-CONSISTENCY VERDICT: PASS" (no
+      accepted fixes)
+    - "SPEC-070 CYCLE 2 SELF-CONSISTENCY VERDICT: PASS WITH FIXES"
+      (fixes listed; spec 070 cycle 2 implementation PR mergeable
+      after they land)
+    - "SPEC-070 CYCLE 2 SELF-CONSISTENCY VERDICT: FAIL" (the
+      removal as drafted is structurally flawed and needs
+      reconsideration)
+
+  grounding: CONSTITUTION-v3.0.0-candidate.md
+  trigger: always
+  timing: final
+  influence: binding

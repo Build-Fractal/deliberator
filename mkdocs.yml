@@ -95,6 +95,7 @@ nav:
     - Game Forms: developer-guide/game-forms.md
     - Testing: developer-guide/testing.md
     - Contributing: developer-guide/contributing.md
+    - Output Conventions: output-conventions.md
     - Specs & Deliberations: developer-guide/specs-and-deliberations.md
   - API Reference:
     - Overview: api/index.md
