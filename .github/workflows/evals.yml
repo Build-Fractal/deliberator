@@ -20,6 +20,11 @@ on:
         required: false
         default: 'false'
         type: boolean
+      run_deepeval:
+        description: 'Run deepeval GEval quality tests (consumes ANTHROPIC_API_KEY credits)'
+        required: false
+        default: 'false'
+        type: boolean
 
 jobs:
   # ---------------------------------------------------------------
@@ -120,4 +125,66 @@ jobs:
           path: |
             evals/results*.json
             .promptfoo/output/
+          retention-days: 30
+
+  # ---------------------------------------------------------------
+  # DeepEval quality tier — Anthropic-judged GEval suite (spec 061
+  # step 7). Opt-in only because each test consumes API credits.
+  #
+  # Runs:
+  #   - workflow_dispatch with run_deepeval=true
+  #   - tag pushes starting with 'v' (release verification)
+  #
+  # Auth model: GitHub Actions can't run the `claude` CLI, so the
+  # judge path is fixed to `anthropic` (CONVERSUS_EVAL_JUDGE_PROVIDER).
+  # The deliberation provider follows the same path — both consume
+  # ANTHROPIC_API_KEY. See engine/tests/test_evals.py docstring for
+  # the full provider/judge matrix.
+  # ---------------------------------------------------------------
+  deepeval:
+    name: DeepEval quality (Anthropic judge)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    if: >
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.run_deepeval == 'true')
+      || startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install dependencies (with deepeval)
+        run: uv sync --group dev
+
+      - name: Verify ANTHROPIC_API_KEY is present
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "::error::ANTHROPIC_API_KEY secret is not set. Configure it in repo Settings → Secrets → Actions before running deepeval."
+            exit 1
+          fi
+          echo "ANTHROPIC_API_KEY is set (length: ${#ANTHROPIC_API_KEY})"
+
+      - name: Run deepeval GEval suite
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CONVERSUS_EVAL_PROVIDER: anthropic
+          CONVERSUS_EVAL_JUDGE_PROVIDER: anthropic
+        run: uv run pytest engine/tests/test_evals.py -m eval -v --timeout=600
+
+      - name: Upload deepeval results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deepeval-results
+          path: |
+            evals/baselines/*.json
+            .pytest_cache/
           retention-days: 30
