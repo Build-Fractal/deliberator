@@ -391,3 +391,50 @@ Spec 071 §9 set "0 ACCEPT findings on principle wording" as the bar. Self-consi
 ### Methodology lesson
 
 Adversarial blind review is rate-limited by uniform-application of its own standards. When a blind judge applies a standard whose uniform application would shrink existing ratified principles, the override-with-rationale pathway is the correct response — not continued iteration that would never converge, and not "demote the principle" that would silently embed asymmetric standards across the constitution. The override must be logged with the specific uniformity argument that justifies it; future amendments can cite this precedent or distinguish it.
+
+## 2026-05-01 — spec 070 cycle 1: Principle XVI headline rewrite + path (c) Governance addition (v2.5.0 → v2.6.0)
+
+**Type**: Amendment (MINOR; XVI headline rewrite is PATCH-class path (c) restructuring; Governance section addition defining path (c) is independently MINOR; combined package = MINOR)
+
+**Trigger**: spec 070 cycle 1 (closes the v2.4.0 grandfathering gap for Principle XVI flagged in spec 069 §5: "user MUST understand the math" headline framing fails Constitutional Inclusion Criterion 1)
+
+**Mode + Agents + Rounds**:
+- **Self-consistency** (`deliberations/070-cycle1-xvi-self-2026-05-01/`): cooperative, 3 agents (wording-precision, cross-principle-coherence, gate-skeptic) + subject arbitration, 1 round. 8 convergence points (4 unanimous, 4 bilateral); 5 disputes survived to arbitration.
+- **Blind verification** (`deliberations/070-cycle1-xvi-blind-2026-05-01/`): cooperative, 2 agents (skeptic-mathematical, skeptic-cross-principle) + subject arbitration, 1 round. 5 unanimous convergence points; 2 disputes survived to arbitration.
+
+**Outputs**: [`deliberations/070-cycle1-xvi-self-2026-05-01/`](deliberations/070-cycle1-xvi-self-2026-05-01/), [`deliberations/070-cycle1-xvi-blind-2026-05-01/`](deliberations/070-cycle1-xvi-blind-2026-05-01/)
+
+**Specs referenced**: spec 070 (proposing), spec 067 (verification methodology), spec 069 (Constitutional Inclusion Criteria gate; v2.4.0 grandfathering disclosure), spec 014 (FR-012/SC-004 — pinning behavior anchor), spec 013 (template definitions for stage 1 parsing)
+
+**Verdicts**: Both deliberations PASS WITH FIXES.
+
+**Outcome**: **Amendment landed** — `CONSTITUTION.md` v2.5.0 → v2.6.0. Principle XVI headline reduced to ONE structural invariant (parameter pinning); stage-3 of the 3-stage pipeline body relocated to attribute its guarantee to Principles VII and VIII (no additional normative requirement at stage 3); plain-language pairing requirement restructured as an atomic package (structural definition + XV enforce-mode clause + registry-emission cross-reference); design-intent paragraph relocated to Origin note with targeted wording fixes; stage-3 verification artifact added to Clarification (v2.3.2) Enforcement sub-bullet as a VII+VIII composition completeness test. Governance section gains new "Grandfathered-principle headline rewrites (path (c))" paragraph.
+
+**Status**: `open` — pending v2.3.2 Clarification block "shape" follow-up PATCH ([issue #94](https://github.com/Build-Fractal/conversus-oss/issues/94)); pending implementation of the stage-3 assembly-form determinism completeness test (CI check) and the plain-language schema lint.
+
+### Strategy: blind narrowing + self orthogonal fixes
+
+Per spec 067, where two verification deliberations disagree on the architectural shape, the more rigorous standard governs. Blind verification ruled the headline must reduce to ONE structural invariant (parameter pinning only) on the grounds that stage-3's "shape determinism" claim is a VII+VIII composition (no Criterion 3 distinctness) and plain-language pairing is general output discipline (XV-territory). Self-consistency accepted the 3-invariant headline. Blind's narrowing was adopted as the architectural shape; self-consistency's orthogonal fixes (atomic plain-language package, design-intent prose relocation to Origin note, path (c) Governance definition) were layered on top.
+
+### Required changes applied
+
+Six dispute rulings drove the amendment text:
+
+1. **Self Dispute 1 — design-intent paragraph wording fixes + WP Rec 7 mandatory relocation**: targeted fixes (L790 deletion; "(auditable)" → "(persisted to `objective.yml` via `SourceProvenance.filled_by`)"; "template shapes are stable (no surprise math)" → "assembly structure is deterministic given the same template and pinned parameters"; "(no bare numbers)" retained) + relocation of the corrected paragraph to the Origin note with "Design intent:" label.
+2. **Self Dispute 2 — "no bare numbers" retention**: gloss preserved on the third structural requirement.
+3. **Self Dispute 3 — atomic plain-language fix package**: structural definition + XV enforce-mode clause + registry-emission cross-reference shipped as a single atomic change to XVI's third bullet.
+4. **Self Dispute 4 — v2.3.2 "shape" terminology Option B (defer)**: deferred to a named follow-up PATCH per audit-integrity grounds; SIR Disclosure section identifies both collision sites and cites the tracking issue.
+5. **Self Dispute 5 — path (c) governance definition pre-ratification blocking**: new Governance paragraph defines the path (c) amendment category, its PATCH-class classification, the SIR attestation requirement, and the no-re-audit rule for pre-v2.4.0 grandfathered body content.
+6. **Blind Dispute 1 (headline reduction) + Blind Dispute 2 (assembly-form rename)**: headline reduced to ONE invariant (parameter pinning); stage-3 body relocated with VII+VIII attribution; stage-3 verification artifact added to enforcement block as a VII+VIII composition completeness test (with future-amendment reconsideration clause); "assembly-form-identical" replaces "bit-for-bit identical" in the relocated stage-3 body for IX-collision avoidance.
+
+### Arbitral precedent: WP Rec 7 elevation from P3 to mandatory
+
+The self-consistency arbiter elevated WP Rec 7 (design-intent paragraph relocation to the Origin note) from P3 optional to MANDATORY co-blocking — the first use of arbitral authority in conversus to **upgrade a convergence point's priority classification** rather than resolve a disputed position. The grounding: GS's purpose-clause concern (the framing "is achieved through these structural requirements" invites implementors to argue non-conforming alternatives "achieve the design intent" by other means) is a Criterion 2 falsifiability defect; Origin-note relocation is the constitutionally established home for design-intent prose (see analogous patterns in Principles XIX, XXII Origin notes); GS's Rec 6 fallback established that targeted replacement is constitutionally adequate for the specific lexical defects, so the wholesale-replacement pathway was over-inclusive on GS's own evidentiary standard. Logged here as a precedent distinct from the path (c) amendment-category mechanism: arbiters may elevate priority classifications when the constitutional grounding requires it.
+
+### Path (c) precedent established
+
+This amendment is the canonical path (c) precedent for future remediation of grandfathered Principles VI (Scripts Over Markdown) and X (Zen of Python Output). Path (c) amendments are PATCH-class for the headline restructuring component; the path (c) SIR MUST include an explicit attestation that no new normative requirements are introduced by the headline restructuring itself. Body content that existed pre-v2.4.0 is not re-audited under the three-criterion gate when elevated to headline status under path (c); only genuinely new content is gated.
+
+### Methodology lesson
+
+Spec 067's verification methodology — running both self-consistency AND blind verification — produced complementary findings. Self-consistency surfaced wording quality and packaging issues (atomic plain-language package; design-intent prose positioning) that blind missed. Blind surfaced architectural shape issues (headline reduction; VII+VIII composition for stage-3) that self missed. Neither deliberation alone would have produced the final amendment; the combination — with the spec 067 conservative-wording rule directing which standard governs the architectural shape — did.

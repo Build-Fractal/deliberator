@@ -1,0 +1,339 @@
+mode: cooperative
+output: ./
+rounds: 1
+stagnation: detect
+
+# Spec 070 cycle 1 self-consistency verification, per spec 067 §4.1
+# and §4.3.1 (existing role presets).
+# Target: candidate v2.6.0 with v-version markers visible.
+# The amendment is Option A: an in-place refactor of Principle XVI's
+# headline + opening paragraph, elevating the structural substrate
+# (parameter pinning + shape determinism + plain-language output
+# pairing) as the load-bearing claim. The 3-stage pipeline block,
+# Clarification (v2.3.2) determinism-scope block, Observability,
+# Enforcement, Falsification sub-bullets, and Origin note are all
+# UNCHANGED. The amendment closes the v2.4.0 grandfathering gap
+# for XVI per spec 070 §4.3.
+#
+# Acceptance bar (per spec 067 §4.4 and spec 070 §4.3): 0 ACCEPT-
+# level findings on the rewritten Principle XVI section
+# specifically. PASS or PASS WITH FIXES are both allowable verdicts.
+
+target:
+  - CONSTITUTION-v2.6.0-candidate.md
+
+agents:
+  - name: wording-precision
+    preset: pragmatist
+    prompt: |
+      You audit the rewritten Principle XVI headline and opening
+      paragraph in the candidate v2.6.0 constitution for wording
+      precision. The rewrite is in-place (Option A): the headline
+      now elevates three structural requirements (parameter pinning,
+      shape determinism, plain-language output pairing) as the
+      load-bearing claim, and a second paragraph repositions the
+      original "user understands what is being optimized" framing
+      as the design *intent* the structural requirements achieve.
+
+      The 3-stage pipeline block, the Clarification (v2.3.2)
+      determinism-scope block, the Observability sub-bullet, the
+      Enforcement sub-bullet, the Falsification sub-bullet, and the
+      Origin note are UNCHANGED from v2.5.0 — your audit covers the
+      headline + opening paragraph rewrite, not the pre-existing
+      substrate.
+
+      For the rewrite, check:
+
+      1. Does the rewritten headline sentence accurately summarize
+         the body's structural claims? Specifically, do the three
+         numbered requirements (parameter pinning, shape determinism,
+         plain-language output pairing) each map onto a body element:
+           - Parameter pinning ↔ stage 2 of the 3-stage pipeline +
+             the v2.3.2 clarification's `objective.yml`-anchored
+             MUSTs.
+           - Shape determinism ↔ stage 3 ("Deterministic assembly")
+             of the 3-stage pipeline.
+           - Plain-language output pairing ↔ the third bullet
+             ("Plugin recommendations … MUST include plain-language
+             explanations alongside numerical outputs").
+         If any of the three headline claims has no clear anchor in
+         the body, flag it.
+      2. The rewritten opening paragraph says "Each requirement is
+         mechanically verifiable, falsifiable, and distinct from
+         existing principles." This echoes the v2.4.0 Constitutional
+         Inclusion Criteria language. Does the body actually support
+         that claim for all three requirements? Check the SIR's
+         Criterion 1/2/3 self-assessment against the body text.
+      3. The second paragraph says the design intent is "achieved
+         through these structural requirements: user-provided
+         parameters stay pinned (auditable), template shapes are
+         stable (no surprise math), and outputs are paired with
+         explanations (no bare numbers)." Are these one-liner
+         glosses faithful to the body? Specifically, "no surprise
+         math" — is that an accurate gloss of shape determinism, or
+         does it overpromise (e.g., the LLM gap-filling step IS
+         allowed to be stochastic per the v2.3.2 clarification)?
+      4. RFC 2119 keyword usage. The new headline uses "MUST satisfy
+         three structural requirements" — singular MUST attached to
+         the conjunction. The body retains its existing MUST/MUST
+         NOT pattern in the 3-stage pipeline block and the v2.3.2
+         clarification. Are the strength levels still consistent
+         post-rewrite, or does the new headline create a parsing
+         ambiguity (e.g., does "MUST satisfy three requirements"
+         distribute the MUST to each, or is it a compound MUST)?
+      5. Cross-reference survival. The rewrite does NOT touch the
+         body, so the existing cross-references (Principle VII for
+         post-pinning reproducibility; Principle V for observability;
+         Principle XXIV for enforcement; spec 014 FR-012 for
+         pinning enforcement; spec 013 for templates) should still
+         work. Spot-check that the new headline doesn't introduce
+         any cross-reference that the body fails to honor.
+      6. Did anything slip in beyond what spec 070's Option A
+         proposed? (Scope creep check: the spec 070 §4.3 verdict is
+         "rewrite the headline; preserve the body." Anything in
+         the rewrite beyond that scope should be flagged.)
+      7. Does the rewritten section introduce any internal
+         contradiction with the unchanged body? Specifically, the
+         body says LLM gap-filling is stochastic and the discipline
+         is in pinning its output; does the new headline's
+         "byte-identical on every assembly" claim conflict with
+         that, or does it correctly scope to post-pinning assembly?
+
+      Report findings as a list of *concrete* concerns with line
+      references. Silence is not the same as "looked but found
+      nothing" — say so explicitly if no findings.
+
+  - name: cross-principle-coherence
+    preset: pragmatist
+    prompt: |
+      You audit how the rewritten Principle XVI interacts with the
+      rest of the candidate v2.6.0 constitution. The headline rewrite
+      could plausibly disturb three existing cross-principle
+      relationships, all of which were carefully calibrated in
+      earlier amendments:
+
+      (a) The VII↔XVI bilateral carve-out (v2.3.2): VII says
+          "structurally identical output (narrowed by Principle XVI
+          for LLM gap-filling output)"; XVI's v2.3.2 clarification
+          carves the explicit exception. The rewrite changes XVI's
+          headline; does VII's parenthetical still point at the
+          right scope?
+
+      (b) The VIII↔XVI vocabulary alignment (v2.3.2): VIII's
+          parenthetical reconciles "mechanical" with XVI's renamed
+          "deterministic" stage 3. The rewrite preserves "deterministic
+          assembly" as stage 3's name; does VIII's parenthetical
+          still hold post-rewrite?
+
+      (c) The XV↔XVI registry-vs-objective relationship: XV (Plugin
+          Isolation) governs how plugins extend conversus via the
+          registry; XVI's third bullet requires plugin recommendations
+          to include plain-language explanations. The rewrite elevates
+          plain-language output pairing as a headline claim. Does
+          this collide with XV's "plugins consume core artifacts;
+          they MUST NOT modify them" or is it a clean composition
+          (plugins MUST package their numerical outputs with prose,
+          but they still don't modify core artifacts)?
+
+      Specifically check:
+
+      1. Read VII's parenthetical "(narrowed by Principle XVI for
+         LLM gap-filling output)". After the rewrite, what exactly
+         is XVI now narrowing? The rewrite's headline scope is
+         broader (parameter pinning, shape determinism, plain-
+         language output pairing). Is VII's parenthetical still
+         accurate, or does it need a parallel update?
+      2. Read VIII's parenthetical referencing "deterministic" vs
+         "mechanical". The rewrite preserves stage 3's name as
+         "deterministic assembly", but the headline now says the
+         assembled objective function is "byte-identical on every
+         assembly". Is that stronger than what VIII asserts about
+         template-driven behavior, or co-extensive with it?
+      3. The rewrite's headline elevates plain-language output
+         pairing to a structural requirement. Principle XV says
+         plugin output goes to a separate namespace and plugins MUST
+         NOT modify core artifacts. Is "every plugin recommendation
+         includes plain-language explanations alongside numerical
+         outputs" a constraint on plugin output (XV's domain) or
+         on conversus-core synthesis (XVI's domain)? If it's the
+         former, does it conflict with XV's "plugin failure MUST NOT
+         block core execution" (i.e., what happens if a plugin emits
+         numerical output WITHOUT plain-language pairing — does the
+         deliberation fail, or warn-and-continue per XV)?
+      4. Principle IX's behavior-over-shape extension governs test
+         assertions. The rewrite's "shape determinism" structural
+         requirement uses the word "shape" in a different sense
+         (template-assembly shape, not test-assertion shape). Is
+         this terminological collision likely to confuse readers, or
+         does the surrounding context disambiguate?
+      5. The v2.4.0 Constitutional Inclusion Criteria gate in
+         Governance applies prospectively. The rewrite is an
+         in-place modification of a grandfathered principle. The
+         SIR's Criterion 1/2/3 self-assessment claims XVI now passes
+         the gate. Read the gate text carefully: does the gate
+         apply to in-place rewrites of grandfathered principles, or
+         only to new principles? If the former, does the SIR's
+         self-assessment satisfy the gate as written? Specifically,
+         the gate's Extension blocks paragraph says Extension blocks
+         post-ratification MUST include the structured Verification
+         block. The Option A rewrite is NOT framed as an Extension
+         block — it's a headline rewrite. Does the gate cover that
+         case, or is the SIR self-assessment a new precedent that
+         needs explicit gate text?
+      6. Principle XXVIII (added v2.5.0) governs test-fix discipline.
+         Does anything in the XVI rewrite touch test-fix territory?
+         (Likely not, but spot-check the Enforcement sub-bullet's
+         "contract test reproducing the re-resolution failure
+         pattern" — that contract test is a Principle XXIV
+         requirement, not a XXVIII test-fix requirement, but worth
+         confirming.)
+
+      Report contradictions and tensions concretely with line
+      numbers and exact quotes. Silence is not the same as "looked
+      but found nothing".
+
+  - name: gate-skeptic
+    preset: devils-advocate
+    prompt: |
+      You audit the rewritten Principle XVI from the strongest
+      contrarian position. Argue that the rewrite still fails the
+      v2.4.0 Constitutional Inclusion Criteria, OR that the design-
+      intent paragraph re-introduces the falsifiability gap the
+      rewrite was supposed to close.
+
+      Specifically:
+
+      1. The rewrite's stated purpose is to elevate the structural
+         substrate as the load-bearing claim and demote the design
+         intent ("user understands what is being optimized") to a
+         derived property. Argue that the design-intent paragraph
+         in the rewrite ("user-provided parameters stay pinned
+         (auditable), template shapes are stable (no surprise math),
+         and outputs are paired with explanations (no bare numbers)")
+         smuggles back the original mechanically-unverifiable claim
+         under a new wrapper. Specifically:
+           - "auditable" requires a reader; is "auditable" mechanically
+             checkable, or does it just relocate "user MUST understand"
+             to "auditor MUST understand"?
+           - "no surprise math" — is "surprise" mechanically checkable,
+             or is it a synonym for "user does not understand"?
+           - "no bare numbers" — is the prohibition on bare numbers
+             mechanically checkable (count of numerical-output fields
+             without paired prose-explanation fields), or does it
+             require interpretation of what counts as "bare"?
+         If any of the three glosses is not mechanically checkable,
+         the design-intent paragraph re-introduces Criterion 1
+         failure.
+      2. The SIR's Criterion 1 self-assessment names three concrete
+         enforcement mechanisms: (a) spec 014 FR-012 + CI lint for
+         parameter pinning; (b) parity test for shape determinism;
+         (c) structural lint on plugin recommendation output schemas
+         for plain-language pairing. None of these mechanisms ship
+         in this PR — (a) is a follow-up to spec 014 + spec 068; (b)
+         and (c) are "would be enforceable" claims without filed
+         follow-up tickets. Argue that the gate's "concretely enough
+         that an engineer reading the principle can sketch the check
+         in one paragraph" standard is met for (a) but NOT for (b)
+         and (c), because the principle text does not specify what
+         the parity test or schema lint would assert. If the
+         engineer cannot sketch the check from the principle text
+         alone, Criterion 1 fails.
+      3. Criterion 2 (Falsifiable scope) requires the principle
+         wording to be specific enough to flag a hypothetical
+         violating PR without interpretation. Argue that the third
+         requirement ("plain-language output pairing") still requires
+         interpretation: what counts as a "plain-language
+         explanation"? Is "Equilibrium quality: 0.87 (a measure of
+         agent satisfaction)" sufficient pairing, or is more required?
+         The body's example ("87% of agents are at their best
+         possible position given others' positions") is one
+         instance, not a general definition. If a reviewer must
+         reason "well, this prose is plain-language enough," the
+         principle is too vague.
+      4. Criterion 3 (Distinctness) requires the principle to cover
+         ground not addressable by composing existing principles.
+         Argue that the three structural requirements are each
+         already covered:
+           - Parameter pinning ↔ already in XVI's v2.3.2 body. The
+             rewrite does not add new substantive ground; it
+             relabels the headline.
+           - Shape determinism ↔ already in Principle VII (narrowed
+             by XVI's carve-out) + Principle VIII (templating over
+             inference). The rewrite specializes them but adds no
+             new ground.
+           - Plain-language output pairing ↔ already in XVI's third
+             bullet. Again, relabeling, not new ground.
+         If the rewrite is purely a relabel, the SIR's claim that
+         the rewrite passes Criterion 3 is hollow — there's nothing
+         new to be distinct FROM, because the substrate already
+         existed. Argue that this means the rewrite should be a
+         PATCH (clarification), not a MINOR (substantive expansion).
+         If accepted, the version bump is wrong.
+      5. The amendment frames itself as closing the v2.4.0
+         grandfathering gap for XVI. Spec 069's grandfathering
+         disclosure (preserved in the v2.4.0 SIR) explicitly stated
+         "migration of any grandfathered principle to operational
+         guidance is a separate, intentional act governed by the
+         same amendment process with the receiving document
+         identified explicitly in the migration spec." The Option A
+         rewrite does NOT migrate XVI to operational guidance — it
+         keeps XVI in the constitution, just with a different
+         headline. Argue that this is a third path the v2.4.0
+         disclosure did not anticipate, and that the precedent of
+         "rewrite a grandfathered headline to make it pass the gate
+         retroactively" is risky: any future grandfathered principle
+         could be rewritten the same way without genuinely improving
+         constitutional rigor.
+
+      Find the strongest argument that the rewrite as drafted still
+      fails the gate, OR that the rewrite re-introduces the
+      falsifiability gap, OR that the rewrite sets a problematic
+      precedent for grandfathered-principle remediation. If you find
+      none, say so explicitly.
+
+arbiter:
+  name: spec-070-cycle1-arbiter
+  preset: balanced-arbiter
+  prompt: |
+    You rule on findings raised by wording-precision, cross-principle-
+    coherence, and gate-skeptic agents against the candidate v2.6.0
+    constitution. Your grounding document is the candidate file
+    (`CONSTITUTION-v2.6.0-candidate.md`); apply the v2.4.0
+    Constitutional Inclusion Criteria gate as it appears in that
+    file's Governance section.
+
+    For each finding:
+
+    - **ACCEPT** (real defect in the rewritten Principle XVI headline,
+      opening paragraph, or in the SIR self-assessment): propose the
+      minimum corrective edit the spec 070 cycle 1 implementer should
+      apply before opening the implementation PR.
+    - **REJECT** (false positive): explain why.
+    - **DEFER** (real but out of scope for spec 070 cycle 1): document
+      what would unblock and where the work belongs (typically: a
+      follow-up cycle, a separate amendment, or operational-guidance
+      relocation).
+
+    Acceptance bar (per spec 067 §4.4 and spec 070 §4.3): 0 ACCEPT-
+    level findings on the rewritten Principle XVI headline + opening
+    paragraph specifically. REVISE-rated findings on the SIR
+    rationale, the Criterion 1/2/3 self-assessment phrasing, or the
+    cross-reference claims to VII/VIII/XV are addressable as
+    revisions and do not block. ACCEPT findings on the rewritten
+    headline's three structural claims, their mapping onto the
+    unchanged body, or on the design-intent paragraph's
+    falsifiability DO block.
+
+    Conclude with a verdict line:
+    - "SPEC-070 CYCLE 1 SELF-CONSISTENCY VERDICT: PASS" (no accepted
+      fixes)
+    - "SPEC-070 CYCLE 1 SELF-CONSISTENCY VERDICT: PASS WITH FIXES"
+      (fixes listed; spec 070 cycle 1 implementation PR mergeable
+      after they land)
+    - "SPEC-070 CYCLE 1 SELF-CONSISTENCY VERDICT: FAIL" (the rewrite
+      is structurally flawed and needs reconsideration)
+
+  grounding: CONSTITUTION-v2.6.0-candidate.md
+  trigger: always
+  timing: final
+  influence: binding

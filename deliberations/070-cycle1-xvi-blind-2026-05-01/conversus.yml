@@ -1,0 +1,213 @@
+mode: cooperative
+output: ./
+rounds: 1
+stagnation: detect
+
+# Spec 070 cycle 1 blind verification, per spec 067 §4.1 + §4.2 +
+# §4.3.1.
+# Target: stripped constitution; agents do NOT know which principles
+# are recent additions or which principle is the subject of the
+# current amendment. Uses existing role presets per spec 067 §4.3.1
+# (devils-advocate for both reviewing agents).
+# Acceptance bar: 0 ACCEPT-level findings on Principle XVI
+# specifically. The agent prompts deliberately do NOT name v2.6.0,
+# Option A, spec 070, or the rewrite — agents must judge "the
+# constitution" without knowing which principle is recent.
+
+target:
+  - CONSTITUTION-v2.6.0-blind.md
+
+agents:
+  - name: skeptic-mathematical
+    preset: devils-advocate
+    prompt: |
+      You audit the constitution for logical coherence in its
+      mathematical-transparency / optimization-related principles.
+      You do NOT know which principles are recent additions vs
+      longstanding. Treat every principle on its own merits.
+
+      Read the constitution carefully. Find the principle most
+      directly about how mathematical optimization is exposed to
+      users (transparency of objective functions, parameter handling,
+      determinism of assembled math, plain-language output of
+      numerical recommendations). Audit it for logical coherence.
+
+      Specifically:
+
+      1. The principle's headline makes structural claims. List
+         them. For each claim, locate the body text that delivers
+         on it. Are all the headline claims actually delivered by
+         the body, or does any headline claim float without a body
+         anchor?
+      2. The headline claims are presumably mechanically verifiable.
+         For each one, sketch in one paragraph what the mechanical
+         check would look like (CI lint, parity test, schema
+         validation, contract test, or equivalent). If you cannot
+         sketch the check from the principle text alone, the claim
+         fails the kind of mechanical-verification standard the
+         constitution's own Governance section requires.
+      3. The principle's body defines a multi-stage pipeline (parsing
+         → gap-filling → assembly) with explicit determinism
+         properties per stage. Are the stage definitions internally
+         consistent? Specifically, the gap-filling stage is allowed
+         to be stochastic, but parameter values must be pinned after
+         the call returns. Is "pinned" defined precisely enough to
+         flag a hypothetical violating PR (e.g., one that re-invokes
+         the gap-filler mid-deliberation)?
+      4. The principle's body requires that plugin recommendations
+         "include plain-language explanations alongside numerical
+         outputs." What counts as a "plain-language explanation"? Is
+         this requirement specific enough to flag a hypothetical
+         violating PR, or does it require reviewer interpretation
+         (and therefore fail the constitution's falsifiable-scope
+         standard)?
+      5. The principle uses RFC 2119 keywords (MUST, MUST NOT, MAY).
+         Are they used consistently throughout the section? Spot-
+         check the headline, the 3-stage pipeline block, the
+         determinism-scope clarification, the Observability sub-
+         bullet, the Enforcement sub-bullet, and the Falsification
+         sub-bullet. If a keyword is used in two senses, flag it.
+      6. The principle has multiple sub-blocks (a Clarification,
+         Observability, Enforcement, Falsification, Origin). Do they
+         compose coherently with the headline's claims, or does any
+         sub-block undercut a headline claim? Specifically, the
+         Clarification carves an explicit exception to another
+         principle (Reproducibility); does the headline's "byte-
+         identical on every assembly" framing acknowledge that
+         exception, or does it overpromise?
+      7. The Origin note anchors the principle in spec'd-but-partly-
+         under-construction work. Is the principle enforceable
+         today, or does enforcement depend on follow-up work that
+         hasn't shipped? If the latter, is that gap acknowledged in
+         the principle text, or papered over?
+
+      Argue for the strongest version of "this principle is
+      logically incoherent or unenforceable as written." If you find
+      none, say so explicitly.
+
+  - name: skeptic-cross-principle
+    preset: devils-advocate
+    prompt: |
+      You audit the constitution for conflicts and overlaps between
+      its determinism-, transparency-, and reproducibility-related
+      principles. You do NOT know which principles are recent.
+
+      The constitution carries (at minimum) several principles that
+      could plausibly overlap with the principle most directly about
+      mathematical optimization transparency:
+
+      - "Reproducibility Over Inconsistency" (structural-output
+        determinism).
+      - "Templating Engines Over Inference" (mechanical / template-
+        driven behavior, prefer-deterministic-rules).
+      - "Single Source of Truth" (with its Registry-First Declaration
+        extension; the registry as authoritative source for tool /
+        prompt / plugin-skill availability).
+      - "Plugin Isolation" (with its registry-as-extension-interface
+        clarification; plugins consume core artifacts but do not
+        modify them).
+      - "Functional Programming and Clean Code" (with its behavior-
+        over-shape testing extension).
+
+      Specifically:
+
+      1. The mathematical-optimization principle elevates "shape
+         determinism" of an assembled objective function as a
+         structural requirement. The Reproducibility principle says
+         "structurally identical output" generally. Are these the
+         same rule stated twice (Reproducibility specialized to the
+         optimization domain), or do they cover different domains?
+         If the same rule, the constitution's own distinctness gate
+         (Governance) would reject the duplication. Find the
+         strongest version of "this is restated, not distinct."
+      2. The Templating-Over-Inference principle says mechanical /
+         template-driven behavior is preferred over LLM inference.
+         The mathematical-optimization principle's stage-3
+         "deterministic assembly" sounds like a special case of
+         template-driven behavior. Argue that the stage-3 claim is
+         redundant with Templating-Over-Inference, or argue that it
+         is a genuine specialization (and identify what the
+         specialization adds).
+      3. The Single-Source-of-Truth principle's Registry-First
+         Declaration extension says the capability registry is the
+         authoritative source for plugin-skill availability. The
+         mathematical-optimization principle requires plugin
+         recommendations to include plain-language explanations
+         alongside numerical outputs. Where is THAT requirement
+         enforced — at the registry boundary, at synthesis, at the
+         plugin output schema? Is the requirement homed in the right
+         principle, or should it be a Registry-First Declaration
+         extension instead?
+      4. The Plugin Isolation principle says plugin failure MUST NOT
+         block core execution. The mathematical-optimization
+         principle requires plain-language pairing for plugin
+         outputs. If a plugin emits numerical output WITHOUT plain-
+         language pairing, what happens — does the deliberation fail,
+         or does the plugin output get silently passed through? The
+         two principles must compose; do they?
+      5. The functional-programming principle's behavior-over-shape
+         extension uses the word "shape" for test assertions. The
+         mathematical-optimization principle uses "shape determinism"
+         for assembled objective functions. Is this terminological
+         collision likely to confuse readers, or is the surrounding
+         context sufficient to disambiguate?
+
+      Find the strongest argument that one of these principles
+      restates another, or that they conflict, or that they leave a
+      gap. Be willing to recommend collapsing two principles into
+      one, or rewriting one to remove the overlap.
+
+arbiter:
+  name: independent-arbiter
+  preset: balanced-arbiter
+  prompt: |
+    You are an independent arbiter reviewing the conversus
+    constitution. You do NOT know which principles are recent
+    additions vs longstanding. Treat every principle on its own
+    merits.
+
+    Two agents (skeptic-mathematical, skeptic-cross-principle) have
+    raised findings on the constitution's mathematical-optimization /
+    determinism / transparency principles. Your job: rule on each
+    finding.
+
+    For each finding:
+
+    - **ACCEPT** (real defect in a principle as written): propose the
+      minimum corrective edit. The edit may be:
+      - Reword the principle to fix a logical incoherence
+      - Merge the principle with another if they overlap
+      - Recommend REMOVING the principle if it doesn't earn its
+        keep against existing principles
+    - **REJECT** (false positive): explain why.
+    - **DEFER** (real defect but out of scope for the current
+      amendment cycle): document what would unblock.
+
+    Apply the constitution's own Constitutional Inclusion Criteria
+    gate (Governance section) to the principle most directly about
+    mathematical-optimization transparency. The gate has three
+    criteria: mechanical verification capability, falsifiable scope,
+    and distinctness from existing principles. A finding that
+    demonstrates failure on any of the three criteria is a strong
+    ACCEPT.
+
+    Acceptance bar: 0 ACCEPT-level findings on the mathematical-
+    optimization-transparency principle's wording. Findings on
+    OTHER principles surfaced incidentally are explicitly DEFER
+    (those are out of scope for this amendment cycle).
+
+    Conclude with:
+    - "REQUIRED FIXES BEFORE MERGE" — list of ACCEPT findings.
+    - "RECOMMENDED FIXES" — borderline findings worth considering.
+    - One verdict line:
+      * "BLIND VERIFICATION VERDICT: PASS"
+      * "BLIND VERIFICATION VERDICT: PASS WITH FIXES"
+      * "BLIND VERIFICATION VERDICT: FAIL"
+
+    Remember: you do NOT know the history of this document. Judge
+    every principle on its own merits, not on incumbency.
+
+  grounding: CONSTITUTION-v2.6.0-blind.md
+  trigger: always
+  timing: final
+  influence: binding
