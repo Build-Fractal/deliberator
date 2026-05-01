@@ -96,17 +96,24 @@ Long-term north star, intentionally archived.
 
 ## Landscape Summary
 
-**Active work**: 11 specs.
-- Constitutional/governance: 065, 067, 070, 071
-- Engine completion: 006 (Phase 2), 057 (reopened SCs), 061 (next: deepeval)
-- Promoted from draft 2026-04-29: 047, 048, 056, 059
+**Last refreshed**: 2026-05-01 after the 2026-04-29 → 2026-05-01 multi-day session that closed 5 specs (006, 057, 064, 071, 072) and shipped Principle XXVIII (CONSTITUTION.md v2.5.0) + operational scaffolding.
 
-**Closed**: 56 specs across core engine, plugins, UX, platform compliance, and governance.
+**Active work**: 7 specs.
+- **Constitutional/governance**: 065 (path-to-open-source roadmap), 067 (verification methodology — evergreen), 070 (grandfathered audit — implementation cycle pending)
+- **Engine completion**: 061 (eval suite — steps 1-7 done after PRs #83/#85/#86/#89; steps 8-14 remain — next gate is step 8 baseline snapshots)
+- **Promoted from draft 2026-04-29 (still implementation-ready)**: 047 (Phase 1-4 shipped via #82; Phase 5 downstream integration deferred), 048 (autonomous governance mode — implementation pending), 056 (deliberation persistence — implementation pending), 059 (prompt and skill interface — implementation pending)
+
+**Closed**: 60+ specs (60 in `done/` per latest count after #84 closed 071 and #77 closed 072).
 
 **Drafts**: 8 specs in idea phase, mostly infrastructure (sandbox, CI, MCP sampling) and AMPL/optimization (043, 044, 060).
 
 **Archived**: 3 historical artifacts (001 stub, 040 vision-only, game-engine-vision).
 
-**Total**: 78 spec artifacts across the lifecycle.
+**Total**: ~80 spec artifacts across the lifecycle.
 
-**Trajectory**: post-v2.5.0 landscape is split between **completion work** (006 Phase 2, 057 SCs, 061 deepeval) and **promoted-from-draft new feature work** (047, 048, 056, 059). Constitutional governance has stabilized at the v2.5.0 anchor; next amendment cycle will carry the deferred Q3 must-quote anchor (per `deliberations/session-review-2026-04-29/arbiter/resolution.md`).
+**Trajectory**: post-v2.5.0 landscape is split between **completion work** (047 Phase 5, 061 steps 8-14) and **promoted-from-draft new feature work** (048, 056, 059). Constitutional governance has stabilized at the v2.5.0 anchor; next amendment cycle will carry the deferred Q3 must-quote anchor (per `deliberations/session-review-2026-04-29/arbiter/resolution.md`) + spec 070's grandfathered-principle migration plan.
+
+The most actionable next moves (smallest atomic landings first):
+1. **Spec 061 step 8** (baseline snapshots) — unblocks steps 9-14; needs `ANTHROPIC_API_KEY` OR claude-code judge from PR #89.
+2. **Spec 056** (Deliberation Persistence) — implementation-ready, deps closed, self-contained.
+3. **Spec 070 implementation** — heaviest, but conceptually closes the constitutional governance arc that started 2026-04-29.
