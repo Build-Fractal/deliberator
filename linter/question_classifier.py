@@ -38,6 +38,7 @@ from typing import Literal
 
 from pydantic import BaseModel
 
+from conversus.schemas.duration import TemporalMatch, parse_temporal
 from linter.utils import word_count as _word_count
 
 
@@ -100,18 +101,36 @@ _FACTUAL_STARTERS: re.Pattern[str] = re.compile(
     re.IGNORECASE,
 )
 
-# Constraint/context indicators — signal the question has real-world context
-_CONSTRAINT_PATTERN: re.Pattern[str] = re.compile(
+# Non-temporal constraint/context indicators — signals real-world context
+# *other than* temporal references. Temporal detection now lives in
+# `conversus.schemas.duration.parse_temporal` (spec 047, FR-011).
+_NON_TEMPORAL_PATTERN: re.Pattern[str] = re.compile(
     r"\b(?:"
     r"team|budget|timeline|deadline|constraint|requirement|"
     r"given|considering|assuming|because|since|"
     r"person|people|employee|member|"
-    r"months?|years?|weeks?|days?|"
     r"\$\d|€\d|£\d|\d+k\b|\d+\s*(?:miles?|km)|"
     r"remote|in-office|hybrid|"
     r"service|microservice|monolith|"
     r"project|company|startup|enterprise"
     r")\b",
+    re.IGNORECASE,
+)
+
+# Temporal categories that imply a planning constraint — used by
+# has_constraints(). "duration" alone is too weak to count as a constraint
+# (e.g. a bare "3 months" without context).
+_CONSTRAINT_TEMPORAL_CATEGORIES: frozenset[str] = frozenset(
+    {"deadline", "ttl", "window", "latency_bound"}
+)
+
+# Backward-compat fallback (FR-009): the old regex flagged temporal
+# keywords without category disambiguation. The new structured parser
+# may label some of those as bare "duration" rather than a constraint
+# category. This permissive whitelist preserves the original boolean
+# output for inputs like "what should I do about my career in 6 months".
+_TEMPORAL_KEYWORD_FALLBACK: re.Pattern[str] = re.compile(
+    r"\b(?:months?|years?|weeks?|days?|hours?|minutes?|seconds?|deadline)\b",
     re.IGNORECASE,
 )
 
@@ -142,8 +161,41 @@ def _has_alternatives(text: str) -> bool:
 
 
 def _has_constraints(text: str) -> bool:
-    """Check if text includes real-world constraints or context."""
-    return bool(_CONSTRAINT_PATTERN.search(text))
+    """Check if text includes real-world constraints or context.
+
+    Combines non-temporal pattern detection with the structured temporal
+    parser (spec 047). Returns True when:
+
+    * the non-temporal pattern matches (team/budget/people/etc.), OR
+    * the structured parser yields a match in a constraint-implying
+      category (deadline, ttl, window, latency_bound), OR
+    * the legacy temporal keyword fallback matches (FR-009 backward
+      compatibility — preserves boolean behaviour for inputs the old
+      regex flagged, even when the structured parser only labels them
+      as bare "duration").
+    """
+    if _NON_TEMPORAL_PATTERN.search(text):
+        return True
+    matches = parse_temporal(text)
+    if any(m.category in _CONSTRAINT_TEMPORAL_CATEGORIES for m in matches):
+        return True
+    if matches and _TEMPORAL_KEYWORD_FALLBACK.search(text):
+        return True
+    return False
+
+
+def has_constraints(text: str) -> bool:
+    """Public boolean API — preserved for backward compatibility (FR-009)."""
+    return _has_constraints(text)
+
+
+def extract_temporal_constraints(text: str) -> list[TemporalMatch]:
+    """Return structured temporal matches found in *text* (FR-010).
+
+    Wraps :func:`conversus.schemas.duration.parse_temporal` so callers in
+    the linter layer can avoid importing across packages.
+    """
+    return parse_temporal(text)
 
 
 def _is_factual(text: str) -> bool:
