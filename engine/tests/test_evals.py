@@ -15,18 +15,28 @@ Run manually:
 Authentication:
 
     The deliberation defaults to ``claude-code`` (host-session OAuth via
-    ``claude -p`` subprocess) so it works out-of-the-box for users on
-    Anthropic OAuth without requiring an API key for the deliberation
-    itself. The GEval judge is Anthropic-backed (via deepeval's
-    ``AnthropicModel`` rather than the package's OpenAI default), so
-    ``ANTHROPIC_API_KEY`` IS required for the judge — the eval suite
-    skips its 5 quality tests when the key is unset.
+    ``claude -p`` subprocess). The judge defaults to deepeval's
+    ``AnthropicModel`` (requires ``ANTHROPIC_API_KEY``) but can be
+    switched to ``ClaudeCodeJudge`` (also OAuth, no API key) by setting
+    ``CONVERSUS_EVAL_JUDGE_PROVIDER=claude-code``. With both flipped to
+    ``claude-code``, the entire eval suite runs under host OAuth with
+    no API key.
 
-    Net auth profile:
-    - OAuth-only user: deliberation runs (claude-code OAuth); judge
-      skips (no ANTHROPIC_API_KEY) — quality tests skip cleanly.
-    - API-key user: both run; quality tests execute fully.
-    - Both: both run; quality tests execute fully.
+    Auth matrix:
+
+    +---------------------------+-----------------------------+----------------------+--------------------------------+
+    | CONVERSUS_EVAL_PROVIDER   | CONVERSUS_EVAL_JUDGE_PROVID | ANTHROPIC_API_KEY    | Behavior                       |
+    +===========================+=============================+======================+================================+
+    | claude-code (default)     | anthropic (default)         | unset                | judge skips -> quality skip    |
+    +---------------------------+-----------------------------+----------------------+--------------------------------+
+    | claude-code               | anthropic                   | set                  | full eval execute              |
+    +---------------------------+-----------------------------+----------------------+--------------------------------+
+    | claude-code               | claude-code                 | unset                | full eval via OAuth (no key)   |
+    +---------------------------+-----------------------------+----------------------+--------------------------------+
+    | anthropic                 | anthropic                   | set                  | full eval execute              |
+    +---------------------------+-----------------------------+----------------------+--------------------------------+
+    | anthropic                 | claude-code                 | set                  | mixed: OAuth judge, API delib  |
+    +---------------------------+-----------------------------+----------------------+--------------------------------+
 
 Provider override:
 
@@ -35,10 +45,22 @@ Provider override:
     ``engine.run.resolve_execution_provider`` (e.g. ``anthropic``,
     ``mock`` for smoke runs that won't produce judge-able output).
 
+Judge provider override:
+
+    Set ``CONVERSUS_EVAL_JUDGE_PROVIDER`` to override the judge
+    transport. Default: ``anthropic`` (deepeval's ``AnthropicModel``;
+    requires ``ANTHROPIC_API_KEY``). Set to ``claude-code`` to use
+    :class:`engine.eval_judge.ClaudeCodeJudge` instead (OAuth via
+    ``claude -p``; no API key required).
+
 Judge model override:
 
-    Set ``CONVERSUS_EVAL_JUDGE_MODEL`` to override the Anthropic model
-    used as the GEval judge.  Default: ``claude-sonnet-4-20250514``.
+    Set ``CONVERSUS_EVAL_JUDGE_MODEL`` to override the model used as
+    the GEval judge. Default: ``claude-sonnet-4-20250514`` (the
+    Anthropic-API literal). When the judge provider is
+    ``claude-code``, the default Anthropic literal is normalized back
+    to the ``"sonnet"`` alias because OAuth sessions cannot reach
+    arbitrary dated model IDs.
 
 Spec mapping (061 §3.2.1):
 
@@ -76,23 +98,54 @@ from engine.phases import run_pipeline
 # Judge factory (Anthropic-backed; matches SC-004 same-family discipline)
 # ---------------------------------------------------------------------------
 
+_DEFAULT_JUDGE_PROVIDER = "anthropic"  # override via CONVERSUS_EVAL_JUDGE_PROVIDER
 _DEFAULT_JUDGE_MODEL = "claude-sonnet-4-20250514"  # override via CONVERSUS_EVAL_JUDGE_MODEL
 
 
-def _build_judge() -> "AnthropicModel":
-    """Build an Anthropic-backed deepeval judge.
+def _build_judge():
+    """Build a deepeval judge based on ``CONVERSUS_EVAL_JUDGE_PROVIDER``.
 
-    Reads ``ANTHROPIC_API_KEY`` from env (deepeval's ``AnthropicModel``
-    auto-resolves it via settings).  Skip the test if not available.
+    - ``"anthropic"`` (default): uses deepeval's ``AnthropicModel``;
+      requires ``ANTHROPIC_API_KEY``. Preserves PR #85's same-family
+      discipline (Claude judges Claude).
+    - ``"claude-code"``: uses :class:`engine.eval_judge.ClaudeCodeJudge`,
+      which shells out to the host ``claude`` CLI via OAuth — no
+      Anthropic API key required. Closes the OAuth-user gap from
+      issue #87.
 
-    Override the judge model via ``CONVERSUS_EVAL_JUDGE_MODEL``.
+    Override the judge model via ``CONVERSUS_EVAL_JUDGE_MODEL``. When
+    the provider is ``claude-code`` and the model env var is at its
+    default Anthropic literal (``claude-sonnet-4-20250514``), it is
+    normalized to the ``"sonnet"`` alias because OAuth sessions cannot
+    reach arbitrary dated model IDs (see ``ClaudeCodeProvider``'s
+    engine-default leak guard).
     """
-    if not os.environ.get("ANTHROPIC_API_KEY"):
-        pytest.skip(
-            "ANTHROPIC_API_KEY not set; required for Anthropic-backed deepeval judge."
-        )
+    judge_provider = os.environ.get(
+        "CONVERSUS_EVAL_JUDGE_PROVIDER", _DEFAULT_JUDGE_PROVIDER
+    )
     model_name = os.environ.get("CONVERSUS_EVAL_JUDGE_MODEL", _DEFAULT_JUDGE_MODEL)
-    return AnthropicModel(model=model_name)
+
+    if judge_provider == "claude-code":
+        from engine.eval_judge import ClaudeCodeJudge
+
+        # If the user did not override the judge model, the env var is
+        # still pointing at the Anthropic-API literal that the OAuth
+        # subprocess can't address — normalize it back to the alias.
+        cc_model = "sonnet" if model_name == _DEFAULT_JUDGE_MODEL else model_name
+        return ClaudeCodeJudge(model=cc_model)
+
+    if judge_provider == "anthropic":
+        if not os.environ.get("ANTHROPIC_API_KEY"):
+            pytest.skip(
+                "ANTHROPIC_API_KEY not set; required for Anthropic-backed deepeval judge. "
+                "Set CONVERSUS_EVAL_JUDGE_PROVIDER=claude-code to use OAuth instead."
+            )
+        return AnthropicModel(model=model_name)
+
+    pytest.skip(
+        f"Unknown CONVERSUS_EVAL_JUDGE_PROVIDER: {judge_provider!r}. "
+        "Expected 'anthropic' or 'claude-code'."
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -531,6 +584,7 @@ class TestJudgeConfiguration:
         """``_build_judge()`` returns an :class:`AnthropicModel` instance."""
         monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key-not-real")
         monkeypatch.delenv("CONVERSUS_EVAL_JUDGE_MODEL", raising=False)
+        monkeypatch.delenv("CONVERSUS_EVAL_JUDGE_PROVIDER", raising=False)
         judge = _build_judge()
         assert isinstance(judge, AnthropicModel)
         # Default model is claude-sonnet-4-20250514 (or env override).
@@ -541,6 +595,7 @@ class TestJudgeConfiguration:
     ) -> None:
         """``_build_judge()`` skips when ``ANTHROPIC_API_KEY`` is unset."""
         monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+        monkeypatch.delenv("CONVERSUS_EVAL_JUDGE_PROVIDER", raising=False)
         with pytest.raises(pytest.skip.Exception):
             _build_judge()
 
@@ -549,6 +604,7 @@ class TestJudgeConfiguration:
     ) -> None:
         """``CONVERSUS_EVAL_JUDGE_MODEL`` overrides the judge model."""
         monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key-not-real")
+        monkeypatch.delenv("CONVERSUS_EVAL_JUDGE_PROVIDER", raising=False)
         monkeypatch.setenv(
             "CONVERSUS_EVAL_JUDGE_MODEL", "claude-3-5-haiku-20241022"
         )
@@ -556,3 +612,42 @@ class TestJudgeConfiguration:
         # ``AnthropicModel.get_model_name()`` returns "<model> (Anthropic)";
         # the underlying ``name`` attribute holds the bare model id.
         assert judge.name == "claude-3-5-haiku-20241022"
+
+    def test_judge_factory_claude_code_provider(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """``CONVERSUS_EVAL_JUDGE_PROVIDER=claude-code`` returns ``ClaudeCodeJudge``.
+
+        Closes the OAuth-user gap from issue #87: the judge is built
+        without consulting ``ANTHROPIC_API_KEY`` and the suffix on
+        ``get_model_name()`` lets test telemetry distinguish OAuth runs
+        from API-key runs.
+        """
+        from engine.eval_judge import ClaudeCodeJudge
+
+        monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+        monkeypatch.setenv("CONVERSUS_EVAL_JUDGE_PROVIDER", "claude-code")
+        monkeypatch.delenv("CONVERSUS_EVAL_JUDGE_MODEL", raising=False)
+        judge = _build_judge()
+        assert isinstance(judge, ClaudeCodeJudge)
+        assert judge.get_model_name().endswith("(claude-code)")
+
+    def test_judge_factory_invalid_provider_skips(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """An unknown ``CONVERSUS_EVAL_JUDGE_PROVIDER`` skips cleanly."""
+        monkeypatch.setenv("CONVERSUS_EVAL_JUDGE_PROVIDER", "bogus")
+        with pytest.raises(pytest.skip.Exception):
+            _build_judge()
+
+    def test_claude_code_judge_get_model_name_includes_suffix(self) -> None:
+        """Direct test of :meth:`ClaudeCodeJudge.get_model_name` format.
+
+        The ``(claude-code)`` suffix is the marker downstream telemetry
+        uses to tell OAuth-judge runs apart from API-judge runs; lock
+        the format so future refactors don't silently drop it.
+        """
+        from engine.eval_judge import ClaudeCodeJudge
+
+        judge = ClaudeCodeJudge(model="opus")
+        assert judge.get_model_name() == "opus (claude-code)"
