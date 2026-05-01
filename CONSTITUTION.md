@@ -1,5 +1,63 @@
 <!--
 Sync Impact Report
+Version change: 3.1.0 → 3.1.1 (PATCH — labels-only structural
+reorganization; no normative content change. Scope: spec 070 cycle 2C
+adds two clearly-labeled sub-headings ("Architectural invariants" /
+"Operational constants") to Principle XIX's bullet list. Per blind
+verification's two-stage ruling on XIX, this is the immediate stage —
+the migration eligibility note for Operational constants is reserved
+for a future deliberation cycle because adding it would change the
+operative meaning of XIX's "regardless of any decomposition" language.)
+
+Modified principles (purely structural — no normative content change):
+  - XIX. Non-Extractable Core — two sub-headings inserted between the
+    introductory paragraph and the existing bullet list. Bullets 1-3
+    (Subcommand dispatch table, Non-negotiable multi-agent rules,
+    Phase-level execution flow summary) grouped under "Architectural
+    invariants". Bullet 4 (Important Notes / operational gotchas)
+    grouped under "Operational constants". All bullet text preserved
+    verbatim; the trailing "Removing any item from this list requires
+    a constitutional amendment" paragraph is unchanged.
+
+Why PATCH (not MINOR): per the v3.0.0 Removal-checklist subsection (e)
+precedent that introducing the FIRST instance of a new structural
+feature qualifies as MINOR, sub-headings within an existing bullet
+list are not a new structural feature — markdown sub-headings are a
+generic typographic primitive, not a governance feature. The
+classification matches the issue #97 P2 PATCH-class designation.
+
+Why no deliberation cycle: per issue #97, "Because cycle 2C modifies
+no normative language, a lightweight verification suffices: cross-
+reference audit (does any other body text refer to XIX's bullets by
+ordinal position, which would shift under sub-heading reorganization?),
+and a single review pass to confirm verbatim preservation. Spec 067
+dual-deliberation is not required for a PATCH-class structural-
+grouping-only change." Cross-reference audit completed: XIX is only
+cited at its own definition (no body text outside §1264 references
+"XIX." or "Principle XIX" or "Non-Extractable").
+
+Verbatim-preservation contract: all four bullet texts are unchanged
+character-for-character. The introductory paragraph ("The following
+MUST remain in the always-loaded root SKILL.md regardless of any
+decomposition...") is unchanged. The closing paragraph ("Removing any
+item from this list requires a constitutional amendment...") is
+unchanged. The Origin note is unchanged.
+
+Deferred to a future deliberation cycle (P3, NOT filed as an issue
+here): the migration eligibility note for Operational constants. Per
+issue #97 sequencing, this is "reserved for a second stage because
+adding it would change the operative meaning of XIX's 'regardless of
+any decomposition' language." When it lands, it will require dual-
+deliberation per spec 067 because it modifies normative meaning.
+
+Governance log entry: 2026-05-01 in CONSTITUTIONAL_CONVERSATIONS.md
+(spec 070 cycle 2C implementation).
+
+Prior amendment (v3.0.0 → v3.1.0): see prior SIR comment block below.
+-->
+
+<!--
+Sync Impact Report (prior — preserved for audit trail)
 Version change: 3.0.0 → 3.1.0 (MINOR — governance-record correction;
 no normative content change, no body-text rewriting. Scope: spec 070
 cycle 2B retroactive Origin-note Amendment record subsections for
@@ -1267,6 +1325,8 @@ The following MUST remain in the always-loaded root SKILL.md regardless
 of any decomposition. These items are needed by every invocation path
 or define invariants that must be impossible to accidentally violate.
 
+#### Architectural invariants
+
 - **Subcommand dispatch table**: the routing contract that maps
   invocations to handlers. Every subcommand's load trigger lives here.
 - **Non-negotiable multi-agent rules**: one agent per output file,
@@ -1278,6 +1338,9 @@ or define invariants that must be impossible to accidentally violate.
 - **Phase-level execution flow summary**: a compact description of the
   6-phase pipeline sufficient for the agent to orchestrate without
   loading handler-specific reference files.
+
+#### Operational constants
+
 - **Important Notes / operational gotchas**: re-run overwrite behavior,
   agent count formulas, template-vs-skill responsibility boundary,
   baseline features list.
@@ -1816,4 +1879,4 @@ justifies the deviation.
 - **Compliance**: The plan template includes a Constitution Check gate.
   Plans MUST pass this gate before proceeding to implementation.
 
-**Version**: 3.1.0 | **Ratified**: 2026-03-20 | **Last Amended**: 2026-05-01
+**Version**: 3.1.1 | **Ratified**: 2026-03-20 | **Last Amended**: 2026-05-01
