@@ -21,7 +21,13 @@ import sys
 import pytest
 from pydantic import ValidationError
 
-from linter.question_classifier import ClassificationResult, classify_question
+from conversus.schemas.duration import Duration, TemporalMatch
+from linter.question_classifier import (
+    ClassificationResult,
+    classify_question,
+    extract_temporal_constraints,
+    has_constraints,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -394,3 +400,66 @@ class TestCLI:
         assert data["sufficient"] is False
         assert data["missing_fields"] is not None
         assert len(data["missing_fields"]) > 0
+
+
+# ---------------------------------------------------------------------------
+# Spec 047 integration — extract_temporal_constraints + has_constraints
+# ---------------------------------------------------------------------------
+
+
+class TestExtractTemporalConstraints:
+    """Structured temporal extraction (FR-010)."""
+
+    def test_returns_temporal_match_list(self) -> None:
+        out = extract_temporal_constraints("ship by 3 months")
+        assert isinstance(out, list)
+        assert all(isinstance(m, TemporalMatch) for m in out)
+
+    def test_extracts_numeric_duration(self) -> None:
+        out = extract_temporal_constraints("response under 100ms")
+        assert any(
+            m.duration == Duration(milliseconds=100) and m.category == "performance"
+            for m in out
+        )
+
+    def test_extracts_fiscal_deadline(self) -> None:
+        out = extract_temporal_constraints("ship by Q2 2026")
+        assert any(m.duration is None and m.category == "deadline" for m in out)
+
+    def test_empty_returns_empty_list(self) -> None:
+        assert extract_temporal_constraints("") == []
+
+    def test_garbage_returns_empty_list(self) -> None:
+        assert extract_temporal_constraints("xyzzy plugh") == []
+
+
+class TestHasConstraintsBackwardCompat:
+    """FR-009 — boolean output preserved for inputs the old regex flagged."""
+
+    @pytest.mark.parametrize(
+        "text",
+        [
+            "given 3 months of runway",
+            "deadline next Friday",
+            "by 6 months from now",
+            "the team has 5 people",
+            "$10k budget",
+            "remote-first company with 12 employees",
+            "valid for 30 days then expires",
+            "alert within 5 minutes",
+            "over the last 2 weeks performance dropped",
+        ],
+    )
+    def test_known_constraints_still_true(self, text: str) -> None:
+        assert has_constraints(text) is True
+
+    @pytest.mark.parametrize(
+        "text",
+        [
+            "what color is the sky",
+            "tell me a joke",
+            "",
+        ],
+    )
+    def test_no_constraints_returns_false(self, text: str) -> None:
+        assert has_constraints(text) is False
