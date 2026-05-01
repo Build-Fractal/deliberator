@@ -510,7 +510,7 @@ Steps 1-4 are complete. Remaining work starts at step 5.
 6. **Fix G2** (target path doubling) and **G12** (VALID_PROVIDERS hardcoded) — re-run evals
 7. **Write deepeval quality tests** — use `run_pipeline` for intermediate artifacts. Calibrate thresholds from first baseline run (baseline - 0.1 margin).
 8. **Save baseline snapshots** for 5 standard test questions across all modes
-9. **Settings cascade tests** — provider key at all 5 levels, env var type coercion. Requires `clean_settings` conftest fixture (P0 infrastructure).
+9. ~~**Settings cascade tests** — provider key at all 5 levels, env var type coercion. Requires `clean_settings` conftest fixture (P0 infrastructure).~~ **DONE** (PR #100): 14 tests in `TestProviderAllFiveLevels` + `TestEnvVarTypeCoercion` + `TestCleanSettingsFixtureInvariants`; `clean_settings` fixture at `engine/tests/conftest.py:81`; lockstep test against `engine/settings._ENV_VAR_FOR_FIELD` prevents env-var drift.
 10. **Add eval commands to CI workflow** — specify runner requirements: Python 3.12, Node 18, API key secrets provisioning
 11. **Build engine-first skill** wrapping CLI (replaces agent-dispatch SKILL.md)
 12. **Cross-surface parity tests** — CLI vs MCP vs SDK output comparison (inner content parity)

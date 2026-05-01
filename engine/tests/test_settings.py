@@ -382,3 +382,229 @@ class TestInspectSettingsCascade:
         # nonexistent project path
         entries = inspect_settings_cascade(project_root=tmp_path / "does-not-exist")
         assert all(e.source == "default" for e in entries)
+
+
+# ===================================================================
+# All-five-levels cascade precedence  (spec 061 step 9)
+# ===================================================================
+#
+# These tests use the `clean_settings` conftest fixture (P0 infrastructure
+# called out by spec 061 step 9). They exercise `default_provider` — the
+# canonical cascade key — at each tier, demonstrating that resolution
+# walks the cascade in the documented order.
+#
+# Existing tests in TestLoadFromFiles and TestInspectSettingsCascade cover
+# pairwise comparisons. This class fills the gap with a single, fully-
+# populated cascade where every layer holds a *different* value, so the
+# precedence ordering is unambiguous.
+
+
+class TestProviderAllFiveLevels:
+    """default_provider resolves correctly when all 5 cascade layers are set.
+
+    Layer ordering, highest → lowest:
+        1. CLI flag      (resolve_setting flag_value arg)
+        2. Env var       (CONVERSUS_DEFAULT_PROVIDER)
+        3. Project YAML  (<project>/.conversus/settings.yml)
+        4. Global YAML   (~/.conversus/settings.yml)
+        5. Default       (ConversusSettings.default_provider = "mock")
+
+    Each test populates layer N with a unique sentinel, then asserts
+    `inspect_settings_cascade` reports that layer as the source.
+    Removing the highest layer should drop resolution to the next.
+    """
+
+    def test_all_five_layers_populated_cli_flag_wins(
+        self, clean_settings, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """CLI flag dominates env, project, global, defaults."""
+        _write_settings(clean_settings.home, {"default_provider": "L4_global"})
+        _write_settings(clean_settings.project, {"default_provider": "L3_project"})
+        monkeypatch.setenv("CONVERSUS_DEFAULT_PROVIDER", "L2_env")
+
+        # CLI flag is enforced via resolve_setting (post-cascade).
+        # The cascade itself sees only env > project > global > default.
+        settings = load_settings(project_root=clean_settings.project)
+        assert resolve_setting(settings, "L1_cli_flag", "default_provider") == "L1_cli_flag"
+
+    def test_env_wins_when_no_cli_flag(
+        self, clean_settings, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """No CLI flag → env var is the highest active layer."""
+        _write_settings(clean_settings.home, {"default_provider": "L4_global"})
+        _write_settings(clean_settings.project, {"default_provider": "L3_project"})
+        monkeypatch.setenv("CONVERSUS_DEFAULT_PROVIDER", "L2_env")
+
+        entries = inspect_settings_cascade(project_root=clean_settings.project)
+        provider = next(e for e in entries if e.key == "default_provider")
+        assert provider.source == "env"
+        assert provider.value == "L2_env"
+        assert provider.source_path is None
+
+    def test_project_wins_when_env_unset(
+        self, clean_settings
+    ) -> None:
+        """No CLI, no env → project YAML wins."""
+        _write_settings(clean_settings.home, {"default_provider": "L4_global"})
+        project_file = _write_settings(
+            clean_settings.project, {"default_provider": "L3_project"}
+        )
+
+        entries = inspect_settings_cascade(project_root=clean_settings.project)
+        provider = next(e for e in entries if e.key == "default_provider")
+        assert provider.source == "project"
+        assert provider.value == "L3_project"
+        assert provider.source_path == project_file
+
+    def test_global_wins_when_project_unset(
+        self, clean_settings
+    ) -> None:
+        """No CLI, no env, no project YAML → global YAML wins."""
+        global_file = _write_settings(
+            clean_settings.home, {"default_provider": "L4_global"}
+        )
+
+        entries = inspect_settings_cascade(project_root=clean_settings.project)
+        provider = next(e for e in entries if e.key == "default_provider")
+        assert provider.source == "global"
+        assert provider.value == "L4_global"
+        assert provider.source_path == global_file
+
+    def test_default_wins_when_all_higher_unset(
+        self, clean_settings
+    ) -> None:
+        """Empty cascade → built-in default ('mock')."""
+        entries = inspect_settings_cascade(project_root=clean_settings.project)
+        provider = next(e for e in entries if e.key == "default_provider")
+        assert provider.source == "default"
+        assert provider.value == "mock"
+        assert provider.source_path is None
+
+
+# ===================================================================
+# Env var type coercion  (spec 061 step 9)
+# ===================================================================
+
+
+class TestEnvVarTypeCoercion:
+    """Env var strings are coerced to the model's declared types.
+
+    Env vars arrive as strings (POSIX), but `ConversusSettings` declares
+    typed fields. Coercion happens in `load_settings`'s env_overrides
+    block. These tests pin the contract for each typed field and the
+    documented failure modes.
+    """
+
+    def test_max_launches_coerced_to_int(
+        self, clean_settings, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """CONVERSUS_MAX_LAUNCHES='42' → max_launches == 42 (int)."""
+        monkeypatch.setenv("CONVERSUS_MAX_LAUNCHES", "42")
+        settings = load_settings(project_root=clean_settings.project)
+        assert settings.max_launches == 42
+        assert isinstance(settings.max_launches, int)
+
+    def test_max_launches_invalid_int_falls_through_to_default(
+        self, clean_settings, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Non-numeric env value → coercion logs and falls through."""
+        monkeypatch.setenv("CONVERSUS_MAX_LAUNCHES", "not-a-number")
+        settings = load_settings(project_root=clean_settings.project)
+        # Default is 20; invalid env must NOT raise nor leave an unset field
+        assert settings.max_launches == 20
+
+    def test_max_launches_invalid_int_falls_through_to_global(
+        self, clean_settings, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Invalid env coercion preserves a lower-tier YAML value (no clobber)."""
+        _write_settings(clean_settings.home, {"max_launches": 99})
+        monkeypatch.setenv("CONVERSUS_MAX_LAUNCHES", "garbage")
+        settings = load_settings(project_root=clean_settings.project)
+        # Global YAML's 99 must survive — invalid env doesn't override
+        # with a default, it leaves the lower tier intact.
+        assert settings.max_launches == 99
+
+    def test_string_fields_passed_through_unchanged(
+        self, clean_settings, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """String-typed env vars round-trip without coercion."""
+        monkeypatch.setenv("CONVERSUS_DEFAULT_PROVIDER", "claude-code")
+        monkeypatch.setenv("CONVERSUS_DEFAULT_MODE", "winner-take-all")
+        monkeypatch.setenv("CONVERSUS_DEFAULT_MODEL", "claude-opus-4-5")
+
+        settings = load_settings(project_root=clean_settings.project)
+
+        assert settings.default_provider == "claude-code"
+        assert settings.default_mode == "winner-take-all"
+        assert settings.default_model == "claude-opus-4-5"
+
+    def test_empty_string_env_var_treated_as_unset(
+        self, clean_settings, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Empty CONVERSUS_DEFAULT_PROVIDER='' must not override lower tiers.
+
+        Empty strings are how shells signal "I cleared this var" without
+        unsetting it. Treating them as values would mean a `unset
+        CONVERSUS_DEFAULT_PROVIDER; export CONVERSUS_DEFAULT_PROVIDER=`
+        sequence quietly clobbers the user's settings.yml. The cascade
+        must skip empty env values and fall through.
+        """
+        _write_settings(clean_settings.home, {"default_provider": "anthropic"})
+        monkeypatch.setenv("CONVERSUS_DEFAULT_PROVIDER", "")
+
+        settings = load_settings(project_root=clean_settings.project)
+        # Global YAML's value must survive; empty string is not a value.
+        assert settings.default_provider == "anthropic"
+
+
+# ===================================================================
+# Conftest fixture invariants  (spec 061 step 9)
+# ===================================================================
+
+
+class TestCleanSettingsFixtureInvariants:
+    """The clean_settings fixture upholds its documented contract."""
+
+    def test_clean_settings_clears_all_cascade_env_vars(
+        self, clean_settings
+    ) -> None:
+        """Every env var the cascade reads is unset under the fixture."""
+        import os
+        # _CASCADE_ENV_VARS is the conftest authority for what the cascade reads
+        from engine.tests.conftest import _CASCADE_ENV_VARS
+
+        for var in _CASCADE_ENV_VARS:
+            assert var not in os.environ, (
+                f"clean_settings should have cleared {var}"
+            )
+
+    def test_cascade_env_var_list_matches_settings_module(self) -> None:
+        """conftest._CASCADE_ENV_VARS must stay in lockstep with settings module.
+
+        If a new env-overridable field is added to engine/settings.py, the
+        conftest fixture must clear it too — otherwise cascade tests will
+        leak the developer's real env into the test scope.
+        """
+        from engine.settings import _ENV_VAR_FOR_FIELD
+        from engine.tests.conftest import _CASCADE_ENV_VARS
+
+        assert set(_CASCADE_ENV_VARS) == set(_ENV_VAR_FOR_FIELD.values()), (
+            "conftest._CASCADE_ENV_VARS drifted from settings._ENV_VAR_FOR_FIELD; "
+            "update conftest.py to include all cascade env vars."
+        )
+
+    def test_clean_settings_provides_isolated_home_and_project(
+        self, clean_settings
+    ) -> None:
+        """home and project are real, distinct, writable directories."""
+        assert clean_settings.home.is_dir()
+        assert clean_settings.project.is_dir()
+        assert clean_settings.home != clean_settings.project
+        # Both must be inside tmp_path so cleanup is automatic.
+        assert clean_settings.home.parent == clean_settings.project.parent
+
+    def test_clean_settings_patches_path_home(
+        self, clean_settings
+    ) -> None:
+        """Path.home() returns the fixture's home, not the developer's."""
+        assert Path.home() == clean_settings.home
