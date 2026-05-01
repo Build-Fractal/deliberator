@@ -12,13 +12,28 @@ Run manually:
     # or
     uv run --extra mcp --extra test pytest engine/tests/test_evals.py -m eval
 
-Provider selection:
+Authentication (unified, single env var):
 
-    The ``cooperative_pipeline_output`` fixture runs the deliberation once
-    per test class against a small target spec.  By default it uses the
-    ``anthropic`` provider, which requires ``ANTHROPIC_API_KEY``.  Set the
-    ``CONVERSUS_EVAL_PROVIDER`` env var to override (e.g. to
-    ``claude-code`` for host-session delegation).
+    Both the deliberation provider AND the GEval judge are
+    Anthropic-backed by default, so a single ``ANTHROPIC_API_KEY`` env
+    var gates the whole module.  This intentionally mirrors the SC-004
+    discipline of judging within the same provider family the
+    deliberation runs on — the judge is built via deepeval's
+    ``AnthropicModel`` rather than the package's OpenAI default.
+
+Provider override:
+
+    Set ``CONVERSUS_EVAL_PROVIDER`` to override the deliberation provider
+    (e.g. ``claude-code`` for host-session delegation).  Note that even
+    OAuth users who set ``CONVERSUS_EVAL_PROVIDER=claude-code`` STILL
+    need ``ANTHROPIC_API_KEY`` exported, because the judge talks to the
+    Anthropic API directly — the host-session OAuth path doesn't cover
+    deepeval's separate evaluation calls.
+
+Judge model override:
+
+    Set ``CONVERSUS_EVAL_JUDGE_MODEL`` to override the Anthropic model
+    used as the GEval judge.  Default: ``claude-sonnet-4-20250514``.
 
 Spec mapping (061 §3.2.1):
 
@@ -44,6 +59,7 @@ from pathlib import Path
 import pytest
 
 from deepeval.metrics import GEval
+from deepeval.models.llms.anthropic_model import AnthropicModel
 from deepeval.test_case import LLMTestCase, LLMTestCaseParams
 
 from engine.config import AgentConfig, EngineConfig
@@ -52,15 +68,36 @@ from engine.phases import run_pipeline
 
 
 # ---------------------------------------------------------------------------
+# Judge factory (Anthropic-backed; matches SC-004 same-family discipline)
+# ---------------------------------------------------------------------------
+
+_DEFAULT_JUDGE_MODEL = "claude-sonnet-4-20250514"  # override via CONVERSUS_EVAL_JUDGE_MODEL
+
+
+def _build_judge() -> "AnthropicModel":
+    """Build an Anthropic-backed deepeval judge.
+
+    Reads ``ANTHROPIC_API_KEY`` from env (deepeval's ``AnthropicModel``
+    auto-resolves it via settings).  Skip the test if not available.
+
+    Override the judge model via ``CONVERSUS_EVAL_JUDGE_MODEL``.
+    """
+    if not os.environ.get("ANTHROPIC_API_KEY"):
+        pytest.skip(
+            "ANTHROPIC_API_KEY not set; required for Anthropic-backed deepeval judge."
+        )
+    model_name = os.environ.get("CONVERSUS_EVAL_JUDGE_MODEL", _DEFAULT_JUDGE_MODEL)
+    return AnthropicModel(model=model_name)
+
+
+# ---------------------------------------------------------------------------
 # Metrics (spec 061 §3.2.1)
 # ---------------------------------------------------------------------------
 #
-# ``GEval`` instantiation eagerly constructs its default judge model
-# (OpenAI) and raises if no API key is available.  That breaks test
-# *collection* in environments without ``OPENAI_API_KEY`` even though
-# these tests are gated behind ``-m eval``.  Build metrics lazily so the
-# module imports cleanly everywhere; the cost of instantiation is paid
-# only when an eval test actually runs.
+# Metrics are built lazily via ``_build_metric`` so module import stays
+# cheap (no eager judge construction at collection time).  The judge is
+# attached explicitly via ``model=_build_judge()`` so we never fall
+# through to deepeval's OpenAI default.
 
 _REVIEW_INDEPENDENCE_KW = dict(
     name="Review Independence",
@@ -139,15 +176,15 @@ _SYNTHESIS_GROUNDING_KW = dict(
 
 
 def _build_metric(kwargs: dict) -> GEval:
-    """Instantiate a :class:`GEval` metric, skipping the test if the
-    default judge can't authenticate."""
-    try:
-        return GEval(**kwargs)
-    except Exception as exc:  # noqa: BLE001 — broad: deepeval raises various
-        pytest.skip(
-            f"deepeval judge unavailable for metric {kwargs.get('name')!r}: "
-            f"{exc}"
-        )
+    """Construct a :class:`GEval` metric with the Anthropic judge attached.
+
+    Skips the test if ``ANTHROPIC_API_KEY`` is unset (via
+    ``_build_judge``).  This bypasses deepeval's default OpenAI judge
+    entirely so the test suite never depends on a non-Anthropic
+    provider key.
+    """
+    judge = _build_judge()
+    return GEval(model=judge, **kwargs)
 
 
 # ---------------------------------------------------------------------------
@@ -229,6 +266,14 @@ class TestDeliberationQuality:
 
         Uses the provider named in ``CONVERSUS_EVAL_PROVIDER`` (default:
         ``anthropic``).  Skips if the provider is unauthenticated.
+
+        Note on unified auth: this single ``ANTHROPIC_API_KEY`` check
+        now covers BOTH the deliberation (when the default ``anthropic``
+        provider is selected) AND the deepeval judge (always
+        Anthropic-backed via ``_build_judge``).  Even when the user
+        overrides ``CONVERSUS_EVAL_PROVIDER=claude-code`` for OAuth
+        host-session delegation, the judge still hits the Anthropic API
+        directly, so the env var remains required.
         """
         from engine.run import resolve_execution_provider
 
@@ -452,3 +497,50 @@ class TestDeliberationQuality:
             f"synthesis grounding {metric.score:.2f} "
             f"< {metric.threshold} — {metric.reason}"
         )
+
+
+# ---------------------------------------------------------------------------
+# Judge-configuration tests (no @eval marker — run in default CI)
+# ---------------------------------------------------------------------------
+
+
+class TestJudgeConfiguration:
+    """Verify the deepeval judge is Anthropic-backed (not OpenAI default).
+
+    These tests run in default CI (no ``eval`` marker) so a regression
+    that flipped the judge back to OpenAI — or broke the env-var
+    plumbing — would surface immediately, even when the expensive
+    ``@eval`` suite is skipped.
+    """
+
+    def test_judge_factory_returns_anthropic_model(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """``_build_judge()`` returns an :class:`AnthropicModel` instance."""
+        monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key-not-real")
+        monkeypatch.delenv("CONVERSUS_EVAL_JUDGE_MODEL", raising=False)
+        judge = _build_judge()
+        assert isinstance(judge, AnthropicModel)
+        # Default model is claude-sonnet-4-20250514 (or env override).
+        assert judge.get_model_name().startswith("claude")
+
+    def test_judge_factory_skips_without_api_key(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """``_build_judge()`` skips when ``ANTHROPIC_API_KEY`` is unset."""
+        monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+        with pytest.raises(pytest.skip.Exception):
+            _build_judge()
+
+    def test_judge_factory_respects_model_override(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """``CONVERSUS_EVAL_JUDGE_MODEL`` overrides the judge model."""
+        monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key-not-real")
+        monkeypatch.setenv(
+            "CONVERSUS_EVAL_JUDGE_MODEL", "claude-3-5-haiku-20241022"
+        )
+        judge = _build_judge()
+        # ``AnthropicModel.get_model_name()`` returns "<model> (Anthropic)";
+        # the underlying ``name`` attribute holds the bare model id.
+        assert judge.name == "claude-3-5-haiku-20241022"
