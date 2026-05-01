@@ -2,7 +2,7 @@
 
 **Feature ID**: `056-deliberation-persistence`
 **Created**: 2026-04-12
-**Status**: Active 2026-04-29 (promoted from draft) — deliberation-revised, dependencies (055/057) closed, framing inverted to developer-first, workspace-scoped storage settled. Implementation-ready.
+**Status**: Implemented 2026-05-01 — VERIFIED ALREADY SHIPPED. Phase 1 + Phase 2 infrastructure live: `engine/persistence.py` (149 LOC: `find_user_project_root`, `is_persistence_enabled`, `persist_deliberation`, `cleanup_old_deliberations`, `list_deliberations`, `read_deliberation_file`, `_make_slug`, `_make_timestamp`); 4 call sites in `engine/handlers.py` wire `persist_deliberation` into all major flows; CLI handlers `list_deliberations_cli`/`show_deliberation_cli` (with `--json` flag — SC-007); MCP tools `conversus_list_deliberations`/`conversus_show_deliberation` at `mcp_server.py:419+`; capabilities registered at `capabilities.py:606/647/732`. All 7 SCs (SC-001 persist by default, SC-002 output_path field, SC-003 list table, SC-004 show command, SC-005 path traversal rejection, SC-006 retention cleanup, SC-007 --json flag) verified in code. Phase 3 (semantic API) remains as a future spec per §3.4. Moved to `specs/done/`.
 **Depends On**: `055-capability-registry`, `057-settings-architecture`
 **Motivated by**: Desktop Extension gap (ephemeral output) + developer workflow needs
 
