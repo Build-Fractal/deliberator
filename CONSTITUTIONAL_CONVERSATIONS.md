@@ -551,3 +551,36 @@ The atomicity insight from blind verification — that implementing the no-reuse
 - Same-version Principle II elaboration (TODO from v3.0.0 SIR): add to Principle II's breaking-change coordination text the sentence "Reusing a retired principle number is a breaking change..." Marked with `# TODO(spec-070-cycle2-followup)` in body. Deferral to a same-version follow-up is a downstream elaboration, not a Principle II atomicity violation per blind verdict ruling on Atomic bundle scope.
 
 **Methodology note**: cycles 2A/2B/2C together demonstrate three governance pathway types in lockstep. 2A (v3.0.0) was MAJOR (principle removals) requiring full dual-deliberation. 2B (v3.1.0) was MINOR (new Amendment record structural feature retroactively applied to three principles) qualifying for the single-PR pathway under the verbatim-preservation contract. 2C (v3.1.1) is PATCH (sub-headings added to one principle's bullet list) qualifying for the same single-PR pathway. The pathway is determined by the verbatim-preservation contract, not the version classification — MAJOR/MINOR/PATCH classifies the version bump's IMPACT on consumers, while the contract classifies the verification cost. A future MINOR amendment that does NOT preserve verbatim language would still require full dual-deliberation; a future MAJOR amendment that DOES preserve verbatim language (counterfactual — MAJOR by definition implies semantic change) cannot exist.
+
+---
+
+## 2026-05-01 — Constitution v3.1.1 → v3.1.2 (Principle II same-version elaboration follow-up)
+
+**Subject**: Apply the deferred-from-v3.0.0 same-version elaboration to Principle II's atomic-update bullet.
+
+**Trigger**: v3.0.0 SIR's "Follow-up TODOs" section explicitly authorized this same-version follow-up. The wording was pre-specified in the v3.0.0 SIR; the deferral was a downstream elaboration sequenced after cycles 2B and 2C per the blind verdict ruling on Atomic bundle scope.
+
+**Verification approach**: PATCH-class single-PR pathway with verbatim-preservation contract. The appended sentence text matches the v3.0.0 SIR's TODO specification character-for-character. No new governance feature is introduced; the no-reuse rule itself was already ratified by v3.0.0 in the Governance section's Principle Number Stability subsection. This amendment adds linkage between two already-ratified texts (Principle II's "single atomic change" requirement and Principle Number Stability's "permanent retirement, never reuse"), giving Principle II's atomic-update bullet an explicit instance pointer to the no-reuse rule.
+
+**Verbatim-preservation contract**:
+- Sentence appended: "Reusing a retired principle number is a breaking change — any historical document that cited the retired number by identity would thereafter refer to a different principle." This matches the v3.0.0 SIR's TODO specification character-for-character.
+- Pre-existing bullet text ("Changing a stable interface requires updating every consumer (specs, templates, SKILL.md sections, reference files) in a single atomic change.") is unchanged.
+- All other Principle II bullets are unchanged.
+- The `# TODO(spec-070-cycle2-followup)` HTML comment block at that bullet (introduced in v3.0.0 to mark the deferral) is removed as the resolution mechanism.
+
+**Why no deliberation cycle**: the same blind verdict that ruled the deferral acceptable also pre-validated the wording. Re-running dual-deliberation on already-ratified language would be ceremonial rather than informative. The verbatim-preservation contract holds: the appended sentence is the exact text the v3.0.0 SIR named.
+
+**Outstanding deferred items** (after v3.1.2):
+- Issue #94 (PATCH-class deferred from v2.6.0 path (c) cycle): v2.3.2 Clarification block "shape" → "assembly-form" terminology rename. Requires dual-perspective wording-precision and cross-principle-coherence review per issue acceptance criteria.
+- P3 (NOT filed as an issue): migration eligibility note for XIX Operational constants. Per issue #97 sequencing, this would change the operative meaning of XIX's "regardless of any decomposition" language and requires dual-deliberation per spec 067.
+
+**Methodology note**: cycles 2A → 2B → 2C → 2D-equivalent (this v3.1.2 follow-up) demonstrate the full deliberation-pathway taxonomy this session has validated. Pre-ratified deferred wording (this PR) is the lowest-cost pathway: one PR, no deliberation, verbatim text from a prior SIR's TODO. The taxonomy now reads:
+
+| Pathway | Cost | Trigger | Examples |
+|---------|------|---------|----------|
+| MAJOR with full dual-deliberation | spec 067 self + blind | Principle removal/redefinition | v3.0.0 |
+| MINOR with verbatim contract | single PR | First instance of new structural feature | v3.1.0 |
+| PATCH with verbatim contract | single PR | Sub-headings within existing structure | v3.1.1 |
+| PATCH with pre-ratified deferred wording | single PR | Same-version follow-up named in prior SIR | v3.1.2 |
+
+The pre-ratified pathway is rare — it requires that the wording was specified in a prior SIR's TODO and that the prior SIR's verification cycle implicitly validated it. Future use should cite the prior SIR's TODO specification by version and section.

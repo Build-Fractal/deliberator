@@ -1,5 +1,62 @@
 <!--
 Sync Impact Report
+Version change: 3.1.1 → 3.1.2 (PATCH — same-version Principle II
+elaboration deferred from v3.0.0 cycle 2A. Per the v3.0.0 SIR's
+"Follow-up TODOs" section: "Same-version Principle II elaboration:
+add to Principle II's breaking-change coordination text the sentence
+'Reusing a retired principle number is a breaking change — any
+historical document that cited the retired number by identity would
+thereafter refer to a different principle.' Marked with
+`# TODO(spec-070-cycle2-followup)` in body. Deferral to a same-
+version follow-up is a downstream elaboration, not a Principle II
+atomicity violation, per blind verdict ruling on Atomic bundle scope.")
+
+Modified principles:
+  - II. Stable Interfaces — the deferred no-reuse elaboration sentence
+    is appended to the existing "Changing a stable interface requires
+    updating every consumer..." bullet. The TODO comment block at
+    that bullet (introduced in v3.0.0) is removed since the deferral
+    is now resolved.
+
+Why PATCH: same-version elaboration of an existing principle bullet,
+adding a single declarative sentence that operationalizes the
+already-ratified Principle Number Stability rule (v3.0.0 Governance
+section) within Principle II's atomic-update language. No new
+governance feature is introduced; the no-reuse rule itself is
+unchanged. The elaboration adds linkage between two already-ratified
+texts (Principle II's "single atomic change" requirement and
+Principle Number Stability's "permanent retirement, never reuse").
+
+Why no deliberation cycle: the wording was pre-ratified in v3.0.0
+(see "Modified principles: II. Stable Interfaces — stable-interfaces
+enumeration extended to include..." in the v3.0.0 SIR). The blind
+verdict ruling on Atomic bundle scope explicitly authorized this
+deferral as a downstream elaboration. The PATCH-class single-PR
+pathway with verbatim-preservation contract applies: the appended
+sentence text is preserved verbatim from the v3.0.0 SIR's TODO
+specification.
+
+Verbatim-preservation contract:
+  - Sentence appended ("Reusing a retired principle number is a
+    breaking change — any historical document that cited the retired
+    number by identity would thereafter refer to a different
+    principle.") matches the v3.0.0 SIR's TODO specification
+    character-for-character.
+  - Pre-existing bullet text ("Changing a stable interface requires
+    updating every consumer...single atomic change.") is unchanged.
+  - All other Principle II bullets are unchanged.
+  - TODO comment block is removed (this is the resolution mechanism;
+    leaving it in place would mis-document the principle as still
+    deferring).
+
+Governance log entry: 2026-05-01 in CONSTITUTIONAL_CONVERSATIONS.md
+(spec 070 cycle 2 same-version follow-up).
+
+Prior amendment (v3.1.0 → v3.1.1): see prior SIR comment block below.
+-->
+
+<!--
+Sync Impact Report (prior — preserved for audit trail)
 Version change: 3.1.0 → 3.1.1 (PATCH — labels-only structural
 reorganization; no normative content change. Scope: spec 070 cycle 2C
 adds two clearly-labeled sub-headings ("Architectural invariants" /
@@ -783,14 +840,9 @@ consumers.
   rule and the RFC/CVE rationale.
 - Changing a stable interface requires updating every consumer (specs,
   templates, SKILL.md sections, reference files) in a single atomic
-  change.
-  <!-- TODO(spec-070-cycle2-followup): when NS-Rec-7 wording is ready
-  in a same-version follow-up, append: "Reusing a retired principle
-  number is a breaking change — any historical document that cited
-  the retired number by identity would thereafter refer to a
-  different principle." Per blind verdict ruling on Atomic bundle
-  scope, deferral is a downstream elaboration, not a Principle II
-  atomicity violation. -->
+  change. Reusing a retired principle number is a breaking change —
+  any historical document that cited the retired number by identity
+  would thereafter refer to a different principle.
 - New interfaces SHOULD be marked stable only after at least one spec
   has consumed them successfully.
 
@@ -1879,4 +1931,4 @@ justifies the deviation.
 - **Compliance**: The plan template includes a Constitution Check gate.
   Plans MUST pass this gate before proceeding to implementation.
 
-**Version**: 3.1.1 | **Ratified**: 2026-03-20 | **Last Amended**: 2026-05-01
+**Version**: 3.1.2 | **Ratified**: 2026-03-20 | **Last Amended**: 2026-05-01
