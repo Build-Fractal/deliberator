@@ -12,23 +12,28 @@ Run manually:
     # or
     uv run --extra mcp --extra test pytest engine/tests/test_evals.py -m eval
 
-Authentication (unified, single env var):
+Authentication:
 
-    Both the deliberation provider AND the GEval judge are
-    Anthropic-backed by default, so a single ``ANTHROPIC_API_KEY`` env
-    var gates the whole module.  This intentionally mirrors the SC-004
-    discipline of judging within the same provider family the
-    deliberation runs on — the judge is built via deepeval's
-    ``AnthropicModel`` rather than the package's OpenAI default.
+    The deliberation defaults to ``claude-code`` (host-session OAuth via
+    ``claude -p`` subprocess) so it works out-of-the-box for users on
+    Anthropic OAuth without requiring an API key for the deliberation
+    itself. The GEval judge is Anthropic-backed (via deepeval's
+    ``AnthropicModel`` rather than the package's OpenAI default), so
+    ``ANTHROPIC_API_KEY`` IS required for the judge — the eval suite
+    skips its 5 quality tests when the key is unset.
+
+    Net auth profile:
+    - OAuth-only user: deliberation runs (claude-code OAuth); judge
+      skips (no ANTHROPIC_API_KEY) — quality tests skip cleanly.
+    - API-key user: both run; quality tests execute fully.
+    - Both: both run; quality tests execute fully.
 
 Provider override:
 
-    Set ``CONVERSUS_EVAL_PROVIDER`` to override the deliberation provider
-    (e.g. ``claude-code`` for host-session delegation).  Note that even
-    OAuth users who set ``CONVERSUS_EVAL_PROVIDER=claude-code`` STILL
-    need ``ANTHROPIC_API_KEY`` exported, because the judge talks to the
-    Anthropic API directly — the host-session OAuth path doesn't cover
-    deepeval's separate evaluation calls.
+    Set ``CONVERSUS_EVAL_PROVIDER`` to override the deliberation
+    provider. Default: ``claude-code``. Other values flow through
+    ``engine.run.resolve_execution_provider`` (e.g. ``anthropic``,
+    ``mock`` for smoke runs that won't produce judge-able output).
 
 Judge model override:
 
@@ -265,23 +270,30 @@ class TestDeliberationQuality:
         """Run a cooperative deliberation once; share artifacts across tests.
 
         Uses the provider named in ``CONVERSUS_EVAL_PROVIDER`` (default:
-        ``anthropic``).  Skips if the provider is unauthenticated.
+        ``claude-code`` — host-session OAuth via ``claude -p``
+        subprocess, so OAuth-only users can run the deliberation
+        without an Anthropic API key). The judge still requires
+        ``ANTHROPIC_API_KEY`` (handled by ``_build_judge``); when the
+        key is absent, individual quality tests skip via
+        ``_build_metric``, but the fixture itself runs to capture the
+        deliberation artifacts.
 
-        Note on unified auth: this single ``ANTHROPIC_API_KEY`` check
-        now covers BOTH the deliberation (when the default ``anthropic``
-        provider is selected) AND the deepeval judge (always
-        Anthropic-backed via ``_build_judge``).  Even when the user
-        overrides ``CONVERSUS_EVAL_PROVIDER=claude-code`` for OAuth
-        host-session delegation, the judge still hits the Anthropic API
-        directly, so the env var remains required.
+        Skip behavior:
+        - For ``anthropic`` provider override: skip the whole fixture
+          if ``ANTHROPIC_API_KEY`` is unset (the deliberation itself
+          can't run without it).
+        - For ``claude-code`` (default) or other providers: fixture
+          always attempts to run; provider resolution surfaces its
+          own auth errors via the try/except below.
         """
         from engine.run import resolve_execution_provider
 
-        provider_name = os.environ.get("CONVERSUS_EVAL_PROVIDER", "anthropic")
+        provider_name = os.environ.get("CONVERSUS_EVAL_PROVIDER", "claude-code")
         if provider_name == "anthropic" and not os.environ.get("ANTHROPIC_API_KEY"):
             pytest.skip(
-                "ANTHROPIC_API_KEY not set; set it or override "
-                "CONVERSUS_EVAL_PROVIDER."
+                "ANTHROPIC_API_KEY not set; set it or use "
+                "CONVERSUS_EVAL_PROVIDER=claude-code (default — OAuth via "
+                "claude -p subprocess)."
             )
 
         work_dir = tmp_path_factory.mktemp("eval_pipeline")
