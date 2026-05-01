@@ -1,191 +1,4 @@
 <!--
-Sync Impact Report
-Version change: 2.5.0 → 2.6.0 (MINOR — combined: PATCH-class XVI
-headline rewrite under path (c) restructuring + MINOR Governance
-section addition defining the path (c) amendment category. Per
-spec 070 cycle 1, the amendment closes the v2.4.0 grandfathering gap
-for Principle XVI by elevating its existing structural substrate —
-parameter pinning — as the load-bearing headline claim, while
-deferring the original mechanically-unverifiable "user MUST
-understand the math" framing to the Origin note as design intent.
-The Governance section gains a new path (c) definition that names
-this amendment as the canonical precedent for future remediation of
-grandfathered Principles VI and X. The XVI headline rewrite
-component is PATCH-class under path (c); the Governance section
-addition is independently MINOR; the combined package is MINOR.)
-Added principles: none
-Modified principles:
-  - XVI. Mathematical Transparency — headline reduced to ONE
-    structural invariant (parameter pinning). Stage-3 of the 3-stage
-    pipeline body relocated to attribute its guarantee to Principles
-    VII and VIII (no additional normative requirement introduced at
-    that stage; "assembly-form-identical" replaces prior "identical
-    bit-for-bit" wording for IX-collision avoidance). The
-    plain-language pairing requirement is restructured as an atomic
-    package: structural definition (string-typed field; not merely
-    restating the value; domain terms over math notation;
-    interpretable without source code) + XV enforce-mode clause
-    (malformed plugin output under XV warn-and-continue, registry-
-    emission enforcement, plugin-failure isolation). Design-intent
-    paragraph relocated to the Origin note (preceded by "Design
-    intent:" label) with targeted wording fixes: L790 deletion,
-    "(auditable)" → "(persisted to `objective.yml` via
-    `SourceProvenance.filled_by`)", "template shapes are stable (no
-    surprise math)" → "assembly structure is deterministic given
-    the same template and pinned parameters", "(no bare numbers)"
-    retained. Stage-3 verification artifact added to the
-    Clarification (v2.3.2) Enforcement sub-bullet, explicitly
-    labeled as a VII+VIII composition completeness test (not a
-    Criterion 3 demonstration of independence) with a future-
-    amendment reconsideration clause if the test reveals a
-    stage-3-specific failure mode.
-Modified Governance section: new "Grandfathered-principle headline
-  rewrites (path (c))" paragraph inserted after the Extension blocks
-  paragraph defining the amendment category, its PATCH-class
-  classification, the SIR attestation requirement, and the
-  no-re-audit rule for pre-v2.4.0 grandfathered body content.
-Removed sections: none
-Templates requiring updates: none
-
-Path (c) attestation: No new normative requirements are introduced
-by the XVI headline restructuring itself. The headline now elevates
-parameter pinning as the load-bearing invariant; the "assembly-form
-identity" language in the relocated stage-3 body is explicitly an
-attribution to Principles VII and VIII, not a new requirement. The
-plain-language pairing structural definition and XV enforce-mode
-clause ARE new content added to the body, but they sharpen
-verification scaffolding for an already-existing v2.3.2 requirement
-rather than introducing a new normative obligation; they do not
-change WHAT is required, only HOW the existing requirement is
-verified and what XV-protocol applies on violation. Restructured
-body content (3-stage pipeline, Clarification v2.3.2 block,
-Observability/Enforcement/Falsification sub-bullets) existed
-pre-v2.4.0 and is not re-audited under the three-criterion gate per
-the path (c) no-re-audit rule.
-
-Constitutional Inclusion Criteria — Criterion 3 formal record for
-stage-3 deterministic assembly (deliberation 070 cycle 1,
-2026-05-01):
-  (a) Question: does stage-3's assembly-form-identity claim produce
-      a verifiable assertion not already implied by composing
-      Principle VII ("same config produces same prompts; no ambient
-      state") with Principle VIII ("mechanical template-driven
-      behavior")?
-  (b) Evidence: bilateral negative finding from two adversarially-
-      positioned reviewing agents (skeptic-mathematical, skeptic-
-      cross-principle), each arriving at the composition conclusion
-      through different analytical paths; neither agent identified
-      a stage-3-specific verifiable claim that VII+VIII do not
-      subsume.
-  (c) Conclusion: stage-3 is a VII+VIII composition applied to the
-      optimization domain; no independent normative requirement
-      beyond those principles is introduced.
-  (d) Headline consequence: one named invariant (parameter pinning).
-  (e) Artifact disposition: stage-3 verification artifact added to
-      the Clarification v2.3.2 Enforcement block as a VII+VIII
-      composition completeness test. A future amendment may reopen
-      this assessment if a stage-3-specific claim is identified
-      that the completeness test demonstrates to be independent of
-      VII+VIII.
-
-Criterion 3 interpretation disclosure: Criterion 3 was designed to
-prevent duplicate principles; its behavior when applied to a
-within-principle reorganization is not explicitly defined by the
-gate text. This SIR interprets Criterion 3 as asking whether the
-elevated body content covers distinct ground from peer principles —
-which has been true of XVI's parameter-pinning substrate since the
-v2.3.2 amendment. This interpretation is disclosed for future
-governance reference.
-
-Design intent positioning: The original "user MUST understand what
-is being optimized, even without understanding the math" framing —
-which fails Criterion 1 because "user understanding" is not
-mechanically checkable — is preserved as the principle's animating
-purpose in a relocated Origin-note paragraph labeled "Design intent."
-The constitutional claim is now the structural substrate (parameter
-pinning) that achieves the design intent, not the design intent
-itself. This positioning is the constitutionally established home
-for design-intent prose (compare existing Origin notes in
-Principles XIX, XXII, etc.).
-
-Verification trail:
-  - Self-consistency: deliberations/070-cycle1-xvi-self-2026-05-01/
-    — PASS WITH FIXES (5 disputes ruled). All 5 P1 required changes
-    applied to live CONSTITUTION.md in this PR.
-  - Blind verification: deliberations/070-cycle1-xvi-blind-2026-05-01/
-    — PASS WITH FIXES (2 disputes ruled). Both P1 required changes
-    applied (headline reduction to ONE invariant; stage-3 body
-    relocation with VII+VIII attribution; stage-3 verification
-    artifact in enforcement block; Criterion 3 SIR formal record).
-    Per spec 067, the more rigorous architectural standard (blind's
-    headline-reduction-to-ONE-invariant) is adopted; self's
-    orthogonal fixes (atomic plain-language package, design-intent
-    relocation to Origin note, path (c) Governance addition) layer
-    on top.
-  - Arbitral precedent: the self arbiter elevated WP Rec 7
-    (design-intent paragraph relocation to Origin note) from P3
-    optional to MANDATORY co-blocking — the first use of arbitral
-    authority to upgrade a convergence point's priority
-    classification rather than resolve a disputed position. Logged
-    in CONSTITUTIONAL_CONVERSATIONS.md 2026-05-01 entry as a
-    precedent distinct from path (c).
-
-Disclosure: The v2.3.2 Clarification block's use of "shape" for
-assembled objective function structure (parameter names, template
-selection, gap-identifier set) creates a terminological collision
-with Principle IX's behavior-over-shape extension ("shape test" for
-test-assertion quality). This collision is deferred to a named
-follow-up PATCH per the self verdict's Dispute 4 ruling (Option B).
-Both collision sites — the v2.3.2 block's "assembled objective
-function's *shape*" and any preceding usages — must be resolved in
-the same pass under that PATCH, which must receive dual-perspective
-wording-precision and cross-principle-coherence review of the full
-v2.3.2 block text before ratification. Tracking issue:
-GitHub issue #94 (https://github.com/Build-Fractal/conversus-oss/issues/94),
-also cited in the follow-up TODO list below.
-
-Follow-up TODOs:
-  - GitHub issue #94 (https://github.com/Build-Fractal/conversus-oss/issues/94):
-    "fix(constitution): v2.3.2 Clarification block 'shape'
-    terminology rename to 'assembly-form' (spec 070 cycle 1
-    follow-up)" — covers both v2.3.2 block collision sites under
-    dual-perspective wording-precision + cross-principle-coherence
-    review of the full v2.3.2 block text before PATCH ratification.
-  - Stage-3 assembly-form determinism completeness test (CI check
-    invoking the assembly path twice within the same run artifact
-    and asserting assembly-form-identical output) — pending
-    implementation under the spec 014 contracts.
-  - Plain-language schema lint (structural inspection of plugin
-    recommendation output schemas for adjacent string-typed
-    explanation fields) — pending implementation; ticket to be
-    filed.
-
-Rationale: Per spec 070 cycle 1's PASS WITH FIXES verdicts on the
-v2.5.0 grandfathered-principle audit, Principle XVI's pre-v2.6.0
-headline ("the user MUST understand what is being optimized, even
-without understanding the math") fails Constitutional Inclusion
-Criterion 1 ("user understanding" is not mechanically checkable),
-and the v2.4.0 grandfathering disclosure flagged XVI as one of three
-pre-gate principles failing under the new criteria. Both
-deliberations (self-consistency 5 disputes; blind 2 disputes) ruled
-PASS WITH FIXES; per spec 067, the more rigorous architectural
-standard (blind's headline-reduction-to-ONE-invariant for stage-3
-attributed to VII+VIII) is taken as the architectural shape; self's
-orthogonal fixes (atomic plain-language package, design-intent
-prose relocation to Origin note, path (c) Governance definition) are
-layered on top. The combined amendment closes the XVI grandfathering
-gap, establishes path (c) as a precedent for future grandfathered-
-principle remediation, and preserves XVI's animating design intent
-as a derived property of the structural invariant rather than as
-the constitutional claim itself.
-
-Governance log entry: 2026-05-01 in CONSTITUTIONAL_CONVERSATIONS.md
-(spec 070 cycle 1 implementation).
-Prior amendment (v2.4.0 → v2.5.0): see prior SIR comment block
-below.
--->
-
-<!--
 Sync Impact Report (prior — preserved for audit trail)
 Version change: 2.4.0 → 2.5.0 (MINOR — new principle: XXVIII Test-Fix
 Boundary Preservation. Codifies the discipline that when fixing a
@@ -841,10 +654,21 @@ uninstalls a plugin must get the exact same deliberation they had before.*
 
 ### XVI. Mathematical Transparency
 
-When optimization drives decisions, conversus MUST satisfy one
-structural invariant: **parameter pinning** — resolved values are
-persisted once and re-loaded, never re-resolved within a deliberation
-run.
+When optimization drives decisions, conversus MUST satisfy three
+structural requirements: (1) **parameter pinning** — resolved values
+are persisted once and re-loaded, never re-resolved within a
+deliberation run; (2) **shape determinism** — given a template and a
+fully-pinned parameter set, the assembled objective function is
+byte-identical on every assembly; (3) **plain-language output
+pairing** — every plugin recommendation includes plain-language
+explanations alongside numerical outputs.
+
+The *design intent* — that users understand what is being optimized
+without understanding the math — is achieved through these structural
+requirements: user-provided parameters stay pinned (auditable),
+template shapes are stable (no surprise math), and outputs are paired
+with explanations (no bare numbers). Each requirement is mechanically
+verifiable, falsifiable, and distinct from existing principles.
 
 - The 3-stage pipeline (symbolic parsing → LLM gap-filling →
   deterministic assembly) ensures the math reflects user intent.
@@ -863,13 +687,11 @@ run.
        **MUST NOT** be re-invoked for parameter resolution within
        the same run; values **MUST** be re-loaded from `objective.yml`
        rather than re-resolved.
-    3. **Deterministic assembly**: applies Principles VII and VIII
-       to the optimization domain — given a template and a
-       fully-pinned parameter set (every gap identifier from stage 1
-       has a pinned value from stage 2), the assembled objective
-       function is assembly-form-identical on every assembly within
-       a deliberation run. No additional normative requirement
-       beyond Principles VII and VIII is introduced at this stage.
+    3. **Deterministic assembly**: given a template and a
+       *fully-pinned parameter set* (every gap identifier produced by
+       stage 1 has an associated pinned value from stage 2), the
+       resulting objective function is identical bit-for-bit on
+       every assembly.
 
   The math template is pre-defined at design time (spec 013). The
   LLM does not generate the objective function — it translates gap
@@ -882,22 +704,9 @@ run.
   they are optimizing.
 - Plugin recommendations (equilibrium scores, convergence predictions,
   config suggestions) MUST include plain-language explanations
-  alongside numerical outputs (no bare numbers). A conforming
-  plain-language explanation is a string-typed field in the plugin
-  recommendation output schema whose content (a) does not merely
-  restate the numerical value as its sole information, (b) expresses
-  the value's meaning in terms of the optimization domain rather than
-  mathematical notation alone, and (c) is interpretable without
-  reference to source code or schema definitions. A plugin
-  recommendation that omits or incorrectly structures plain-language
-  pairing is treated as malformed plugin output under Principle XV's
-  warn-and-continue protocol (enforced at registry-emission time per
-  Principle XV's registry-as-extension-interface clarification); it
-  does NOT block core deliberation execution, and the core run
-  completes normally per Principle XV's plugin-failure isolation
-  guarantee. "Equilibrium quality: 0.87" is insufficient; "87% of
-  agents are at their best possible position given others' positions"
-  is required.
+  alongside numerical outputs. "Equilibrium quality: 0.87" is
+  insufficient; "87% of agents are at their best possible position
+  given others' positions" is required.
 - The objective function — *what is being optimized* — is the
   contract between user intent and mathematical optimization.
   Changing solvers (nashopt, AMPL, future alternatives) MUST NOT
@@ -945,18 +754,7 @@ selection, gap-identifier set) is prohibited.
   reproducing the re-resolution failure pattern is required, filed as
   a follow-up to spec 014 FR-012/SC-004 acceptance criteria and to
   spec 013's parameter-pinning contract test, plus a CI lint detecting
-  re-entrant `GapFiller.fill()` calls. Stage-3 assembly-form
-  determinism MUST have a corresponding completeness test: a CI
-  check that invokes the assembly path twice within the same run
-  artifact, using the same fully-pinned parameter set and the same
-  template registry state, and asserts assembly-form-identical
-  output. This test verifies the VII+VIII composition applied to
-  the optimization domain. It is a pipeline completeness test —
-  not a Criterion 3 demonstration of stage-3 independence from
-  those principles. If a future implementation of this test reveals
-  a failure mode that Principles VII and VIII individually would
-  not catch, that finding constitutes grounds for a new amendment
-  reconsidering stage-3's constitutional status.
+  re-entrant `GapFiller.fill()` calls.
 - **Falsification:** A future PR that re-resolves parameters
   mid-deliberation, or that lets parameter values drift during a
   single optimization run, violates this principle.
@@ -969,14 +767,6 @@ definitions stage 1 parses. Some referenced runtime layers (specs
 construction; this principle codifies the discipline they will
 satisfy when implemented. Enforcement is verified by a contract test
 per Principle XXIV at the path declared in spec 014's contracts.*
-
-*Design intent: that users understand what is being optimized
-without understanding the math. This is achieved through the
-structural requirements above: user-provided parameters stay pinned
-(persisted to `objective.yml` via `SourceProvenance.filled_by`),
-assembly structure is deterministic given the same template and
-pinned parameters, and outputs are paired with explanations (no
-bare numbers).*
 
 ### XVII. Content Classification
 
@@ -1149,11 +939,6 @@ plugin, generated SKILL.md) MUST satisfy three invariants:
    is not sufficient evidence that `pip install` or `.mcpb`
    installation will succeed.
 
-*Origin: PR #11 (mcp_server.py missing from wheel), PR #13
-(manifest.json drifted to 0.1.0 while pyproject was 0.3.0),
-PR #18 (manifest tools[] from CAPABILITIES). Distribution drift is
-build-time concern, not runtime.*
-
 ### XXIII. Provider Robustness Contract
 
 Every execution provider implementation MUST satisfy four robustness
@@ -1181,10 +966,6 @@ guarantees:
    concurrency limits. Issuing N concurrent requests to a provider
    that allows N-1 is a contract violation, not a performance choice.
 
-*Origin: PR #5 (claude-code tool-use response), PR #6 (anthropic
-429 retry + concurrency), PR #8 (token tracking), PR #9 (claude-code
-single-object JSON parser).*
-
 ### XXIV. Safety-Critical Defense-in-Depth
 
 Safety-critical paths — defined as **synthesis verdict generation**
@@ -1208,13 +989,9 @@ three-layer defense:
    the original bug or failure pattern** the principle was created
    to prevent. The test asserts the bug does not recur.
 
-The 2026-04-25 deliberation arbiter explicitly extended this scope to
-provider protocols (not just synthesis logic) on the evidence that
+This principle's scope extends to provider protocols (not just synthesis logic) on the evidence that
 PRs #5, #6, #8, #9 produced the same class of silent failure as
 PR #10's false-PASS bug.
-
-*Origin: PR #10 (red-blue contract break → false-PASS); generalized
-over PRs #5, #6, #8, #9.*
 
 ### XXV. Live Test Cost Discipline
 
@@ -1257,10 +1034,6 @@ Robustness Contract) — provider contract tests are inherently live.
 Without cost discipline, provider testing becomes prohibitively
 expensive and the robustness contract goes untested.
 
-*Origin: PR #8 introduced `@pytest.mark.live` without codifying the
-discipline. The 2026-04-25 deliberation arbiter ruled this principle
-must precede provider contract testing requirements.*
-
 ### XXVI. Meta-Testing for Parametrized Capabilities
 
 Any test file that exercises a parametrized set of capabilities
@@ -1284,10 +1057,6 @@ A coverage-drift guard converts an easy mistake ("forgot to add
 the new tool to the test list") into a CI failure with a specific
 message ("Expected 8 prompts, parametrize covers 7: …new prompt
 'estimate_complexity' missing").
-
-*Origin: PR #12 introduced the meta-test pattern for `@mcp.prompt()`
-definitions. The deliberation ruled this pattern should generalize
-to all parametrized capability sets.*
 
 ### XXVII. Operator-Configurable Tool Surface
 
@@ -1319,11 +1088,6 @@ capability registry constitutes an explicit extension interface
 separate from core deliberation logic — changes inside the registry
 do not change how deliberation works, only which deliberation
 capabilities are exposed.
-
-*Origin: PR #14 (CONVERSUS_DISABLED_TOOLS). The 2026-04-25 deliberation
-arbiter ruled this should be a standalone principle (not a Principle
-XV extension) because operator configuration scope extends beyond
-plugin isolation to the core tool surface.*
 
 ### XXVIII. Test-Fix Boundary Preservation
 
@@ -1476,24 +1240,6 @@ justifies the deviation.
   new principle. Wording-level clarifications (typo fixes,
   reformattings, cross-references) are exempt from this rule.
 
-  **Grandfathered-principle headline rewrites (path (c)).** A headline
-  rewrite of a grandfathered principle that restructures existing body
-  content into a new headline without introducing new normative
-  requirements constitutes a path (c) amendment. Path (c) amendments
-  are PATCH-class for the restructuring component; the MINOR
-  designation applies only if genuinely new normative requirements
-  are introduced alongside the restructuring, in which case those
-  requirements are subject to the full three-criterion gate (Criteria
-  1, 2, and 3) regardless of how the surrounding restructuring is
-  framed. A path (c) SIR MUST include an explicit attestation that no
-  new normative requirements are introduced by the headline
-  restructuring itself. Body content that existed in a grandfathered
-  principle before v2.4.0 is not re-audited under the three-criterion
-  gate when elevated to headline status under path (c); the gate
-  applies only to genuinely new content. The 2026-05-01 spec 070
-  cycle 1 amendment establishing this definition is the canonical
-  path (c) precedent for future remediation of Principles VI and X.
-
   **Coordination with Principle XVII (Content Classification).** The
   gate inherits XVII's vocabulary; routing decisions to operational
   guidance follow XVII's execution-logic vs. contribution-guidelines
@@ -1502,4 +1248,4 @@ justifies the deviation.
 - **Compliance**: The plan template includes a Constitution Check gate.
   Plans MUST pass this gate before proceeding to implementation.
 
-**Version**: 2.6.0 | **Ratified**: 2026-03-20 | **Last Amended**: 2026-05-01
+**Version**: (under review) | **Ratified**: 2026-03-20
