@@ -218,6 +218,7 @@ The MCP server itself is unauthenticated — it runs in the user's local environ
 | Provider | Auth mechanism | Notes |
 |---|---|---|
 | `claude-code` | Local `claude` binary session | Inherits the user's existing Claude Code login; the free-tier "API-key-less user story" from spec 042 §2.3 |
+| `claude-desktop` | MCP `sampling/createMessage` | The Desktop Extension provider (spec 060). Routes agent calls through the host's Claude Desktop session via MCP sampling — zero config, no API key, uses the host's subscription. Implemented at `engine/execution/providers/desktop_sampling.py`. |
 | `copilot` | `gh auth` session | Requires GitHub CLI authentication (`gh auth login`); inherits existing session |
 
 **API key required (environment variables)**:
@@ -233,6 +234,8 @@ The MCP server itself is unauthenticated — it runs in the user's local environ
 When a host calls `conversus_run`, the server spawns a conversus process that inherits those env vars. The MCP server resolves the active provider via the spec 050 settings cascade (`~/.conversus/settings.json` → `.conversus/settings.json` → `conversus.yml` → explicit `provider` parameter), so users who have configured a `default_provider` in their project settings do not need to specify it per-tool-call.
 
 The MCP server never sees host-side credentials (Copilot's API key, VSCode's GitHub token). Host-side auth is the host's concern.
+
+**Implementation note** (added 2026-05-01 closing issue #62): the local "no auth required" providers (`ollama`, `llama-cpp`, `vllm`) are implemented as subclasses of `OpenAICompatibleProvider` in `engine/execution/providers/openai_compat.py` — they share the OpenAI-compatible HTTP API surface but don't require credentials. `aider` and `opencode` defer to their own configured backends; the user provides whichever provider key matches their aider/opencode setup. The full set is **13 registered providers** (mock, ollama, llama-cpp, vllm, claude-code, claude-desktop, copilot, anthropic, codex, gemini, pi, aider, opencode), spread across `engine/execution/providers/`.
 
 ### 4.4 Transport
 
