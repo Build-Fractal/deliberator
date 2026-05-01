@@ -514,5 +514,9 @@ Steps 1-4 are complete. Remaining work starts at step 5.
 10. ~~**Add eval commands to CI workflow** — specify runner requirements: Python 3.12, Node 18, API key secrets provisioning~~ **DONE** (PR #101): three-tier `.github/workflows/evals.yml` — `smoke` (mock, every push), `quality` (Ollama, dispatch+tags), `deepeval` (Anthropic judge, dispatch+tags) with `ANTHROPIC_API_KEY` secret guard + workflow_dispatch `run_deepeval` input.
 11. **Build engine-first skill** wrapping CLI (replaces agent-dispatch SKILL.md)
 12. **Cross-surface parity tests** — CLI vs MCP vs SDK output comparison (inner content parity)
-13. **Multi-round, arbiter, and iteration tests** — rounds=2 convergence, rounds=3 stagnation, arbiter trigger conditions, iterations=3 cycle count
+13. ~~**Multi-round, arbiter, and iteration tests** — rounds=2 convergence, rounds=3 stagnation, arbiter trigger conditions, iterations=3 cycle count~~ **DONE** (PR #102 closes the iterations=3 gap; pre-existing coverage in `test_phases.py` covers the rest):
+    - rounds=2 convergence: `test_pipeline_result_has_round_fields` (rounds=2, [2,0] → `termination_reason="converged"`)
+    - rounds=3 stagnation: `test_stagnation_detection` (rounds=3, [2,2] → `termination_reason="stagnation"`)
+    - arbiter triggers: `test_always_trigger`, `test_disputes_remain_trigger_with_disputes`, `test_disputes_remain_trigger_no_disputes`
+    - iterations=3: new `test_three_iterations_dispatch_counts` / `_revision_naming` / `_events` (PR #102) — pin 6 cross-reviews, 6 revisions, revision.md/_2/_3 file naming, no _1 or _4 boundaries.
 14. **Governance exit codes, persistence round-trip, combinatorial matrix** — CI/CD exit code scheme, persist→list→show, 6 cross-axis smoke combinations
