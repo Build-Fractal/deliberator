@@ -1,5 +1,49 @@
 <!--
 Sync Impact Report
+Version change: 3.1.2 → 3.1.3 (PATCH — cycle 2C follow-on: split
+the comma-listed Operational constants bullet into 4 separate bullets
+matching issue #97's literal listing. Surfaced as a self-flagged
+uncertainty during PR #104 ratification: the issue listed 4 distinct
+items under Operational constants; PR #104 conservatively kept them
+as the existing single bullet under the new sub-heading. The user
+clarified intent: split them.)
+
+Modified principles:
+  - XIX. Non-Extractable Core — single bullet "Important Notes /
+    operational gotchas: re-run overwrite behavior, agent count
+    formulas, template-vs-skill responsibility boundary, baseline
+    features list." replaced by 4 separate bullets matching the issue
+    #97 specification:
+      - Re-run overwrite behavior
+      - Agent count formulas
+      - Template-vs-skill responsibility boundary
+      - Baseline features list
+    The labeling "Important Notes / operational gotchas" parent header
+    is dropped because the items are now individually addressable
+    under the Operational constants sub-heading. No item is added or
+    removed; the comma-list is decomposed into bullets.
+
+Why PATCH: completes a structural-grouping change initiated by PR #104
+(cycle 2C v3.1.1). The combined PR #104 + this PR realizes issue #97's
+specification end-to-end. No normative content is added or removed;
+the four item names are unchanged.
+
+Verbatim-preservation contract: each new bullet's name matches the
+corresponding word group in the original comma list. "Re-run overwrite
+behavior" matches "re-run overwrite behavior". "Agent count formulas"
+matches "agent count formulas". "Template-vs-skill responsibility
+boundary" matches "template-vs-skill responsibility boundary".
+"Baseline features list" matches "baseline features list". No
+rewording, no scope expansion.
+
+Governance log entry: 2026-05-01 in CONSTITUTIONAL_CONVERSATIONS.md
+(spec 070 cycle 2C bullet-split follow-on).
+
+Prior amendment (v3.1.1 → v3.1.2): see prior SIR comment block below.
+-->
+
+<!--
+Sync Impact Report (prior — preserved for audit trail)
 Version change: 3.1.1 → 3.1.2 (PATCH — same-version Principle II
 elaboration deferred from v3.0.0 cycle 2A. Per the v3.0.0 SIR's
 "Follow-up TODOs" section: "Same-version Principle II elaboration:
@@ -1393,9 +1437,10 @@ or define invariants that must be impossible to accidentally violate.
 
 #### Operational constants
 
-- **Important Notes / operational gotchas**: re-run overwrite behavior,
-  agent count formulas, template-vs-skill responsibility boundary,
-  baseline features list.
+- **Re-run overwrite behavior**
+- **Agent count formulas**
+- **Template-vs-skill responsibility boundary**
+- **Baseline features list**
 
 Removing any item from this list requires a constitutional amendment
 with a rationale explaining how the invariant is preserved by other
@@ -1931,4 +1976,4 @@ justifies the deviation.
 - **Compliance**: The plan template includes a Constitution Check gate.
   Plans MUST pass this gate before proceeding to implementation.
 
-**Version**: 3.1.2 | **Ratified**: 2026-03-20 | **Last Amended**: 2026-05-01
+**Version**: 3.1.3 | **Ratified**: 2026-03-20 | **Last Amended**: 2026-05-01

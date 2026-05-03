@@ -584,3 +584,28 @@ The atomicity insight from blind verification — that implementing the no-reuse
 | PATCH with pre-ratified deferred wording | single PR | Same-version follow-up named in prior SIR | v3.1.2 |
 
 The pre-ratified pathway is rare — it requires that the wording was specified in a prior SIR's TODO and that the prior SIR's verification cycle implicitly validated it. Future use should cite the prior SIR's TODO specification by version and section.
+
+---
+
+## 2026-05-01 — Constitution v3.1.2 → v3.1.3 (cycle 2C bullet-split follow-on)
+
+**Subject**: Complete the structural realization of issue #97. PR #104 (v3.1.1) added two sub-headings to Principle XIX's bullet list under a conservative "verbatim preservation = don't touch the comma list" interpretation. The issue's literal listing showed 4 separate items under "Operational constants" — the user clarified intent: split the comma-listed bullet into 4 separate bullets to match the issue specification.
+
+**Trigger**: surfaced as a self-flagged uncertainty during the autonomous PR #104 ratification. The orchestrator preserved the existing single bullet under the new sub-heading, then flagged the alternative interpretation (split into 4) for user confirmation. User confirmed the split intent.
+
+**Verbatim-preservation contract**:
+- Each new bullet's name matches the corresponding word group in the original comma list character-for-character (modulo capitalization of the first letter, which is conventional bullet-list typography):
+  - "re-run overwrite behavior" → "Re-run overwrite behavior"
+  - "agent count formulas" → "Agent count formulas"
+  - "template-vs-skill responsibility boundary" → "Template-vs-skill responsibility boundary"
+  - "baseline features list" → "Baseline features list"
+- The "Important Notes / operational gotchas" parent label is dropped because the items are now individually addressable under the Operational constants sub-heading.
+- No item is added; no item is removed; no item is reworded.
+
+**Why PATCH**: completes a structural-grouping change initiated by PR #104. The combined PR #104 + this PR realizes issue #97's specification end-to-end. No normative content is added or removed.
+
+**Methodology note (revised understanding of cycle 2C interpretation)**: this is a worked example of when "verbatim preservation = preserve verbatim" is too literal. PR #104's interpretation preserved the comma list verbatim; the issue's intent was that the four items be presented as four bullets (the bullet form being the user-visible structure the issue-author cared about). The verbatim-preservation contract for cycle 2C should have been "preserve each item's name verbatim" (true here) rather than "preserve the comma-list structure verbatim". This refinement is logged so future structural-grouping amendments understand that the contract is about substantive content preservation, not surface-form preservation. Surface form (bullet vs comma vs sub-heading) is the structural variable that the amendment is changing; preserving content names through that change is the verbatim test.
+
+**Outstanding deferred items** (after v3.1.3): unchanged from v3.1.2 — issue #94 still requires dual-perspective wording-precision review per its acceptance criteria; the P3 XIX migration eligibility note (not filed as an issue) requires dual-deliberation if pursued.
+
+**Pathway**: PATCH + verbatim contract single-PR pathway. Now ratified twice (v3.1.1 cycle 2C original, v3.1.3 cycle 2C follow-on). The pathway is robust to the kind of interpretation slip that this PR corrects, because the slip itself surfaced through the orchestrator's self-flagged uncertainty disclosure rather than through silent acceptance.
