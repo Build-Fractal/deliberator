@@ -1,0 +1,346 @@
+mode: cooperative
+output: ./
+rounds: 1
+
+# Spec 070 §9 AC #5 supplemental blind verification (per spec 073 §4).
+#
+# This deliberation discharges the §9 AC #5 obligation that the original
+# spec 070 closure (PR #99) failed to satisfy. Per spec 070 §9 AC #5:
+#
+#   "Blind verification (per §6.2, using `presets/role/devils-advocate.yml`
+#    and `balanced-arbiter.yml`): 0 ACCEPT-level findings on the per-
+#    principle verdicts. The blind run MUST include an agent prompt
+#    explicitly arguing one or more of VI/X/XVI passes the gate on closer
+#    reading and should NOT be migrated."
+#
+# Target: v2.5.0 era CONSTITUTION.md (pre-migration form). Authenticated
+# from commit 2ec0e8a (the squash-merge of PR #46 ratifying v2.5.0).
+# Contains Principles VI (Scripts Over Markdown), X (Zen of Python Output),
+# and XVI (Mathematical Transparency) in their pre-cycle-1, pre-cycle-2
+# form — before any of the v2.6.0 / v3.0.0 amendments touched them.
+#
+# Acceptance bar (per spec 073 §4.3): the arbiter rules with one of:
+#   SPEC-070 §9 AC #5 VERDICT: SUSTAINED
+#     — migration decisions for VI, X, XVI hold under the contrarian standard
+#   SPEC-070 §9 AC #5 VERDICT: SUSTAINED WITH FINDINGS
+#     — migrations hold but findings worth preserving in audit trail
+#   SPEC-070 §9 AC #5 VERDICT: PARTIALLY SUSTAINED
+#     — at least one migration holds; at least one is overturned
+#   SPEC-070 §9 AC #5 VERDICT: NOT SUSTAINED
+#     — contrarian standard finds one or more migrations were incorrect
+
+target:
+  - CONSTITUTION-v2.5.0-pre-migration.md
+
+agents:
+  - name: contrarian-vi-x-xvi-defender
+    preset: devils-advocate
+    prompt: |
+      You audit the v2.4.0 Constitutional Inclusion Criteria gate's
+      application to Principles VI (Scripts Over Markdown), X (Zen of
+      Python Output), and XVI (Mathematical Transparency) from the
+      strongest contrarian position. Your mandate is explicitly to argue
+      that one or more of VI, X, XVI **passes** the v2.4.0 gate on
+      closer reading and should NOT be migrated to operational
+      guidance.
+
+      This is the requirement that spec 070 §9 AC #5 imposed and that
+      neither the cycle 1 (XVI) nor cycle 2 (VI/X) blind deliberations
+      satisfied. Cycle 1 ran under "structural incoherence / redundancy"
+      framing; cycle 2 ran against a post-migration document where VI/X
+      were already absent. Both failed to construct the contrarian
+      argument the spec required.
+
+      Your argument MUST be made in good faith — adversarial but
+      coherent — not as a strawman. The arbiter will rule based on
+      whether your argument grounds in the v2.4.0 gate's criteria as
+      they appear in the v2.5.0-era constitution (target document).
+
+      Specifically address each of the three principles:
+
+      ## Principle VI — Scripts Over Markdown
+
+      The cycle 2A SIR claimed VI fails Criterion 2 (falsifiable scope)
+      because the qualifier "when the artifact drives behavior" requires
+      interpretation. Argue the contrary: that VI's qualifier is the
+      same kind of judgment call ANY operational principle requires.
+
+      Specifically:
+
+      1. **Compare to retained principles**. Principle XV's "core
+         artifacts" requires interpretation (which artifacts?).
+         Principle XXIV's "safety-critical" requires interpretation
+         (safety to whom, against what threat?). Principle IX's "prefer
+         pure functions" requires interpretation (when does
+         "preference" become a hard rule?). If VI fails Criterion 2 on
+         the judgment-call ground, do XV/XXIV/IX also fail? If they do
+         not, what is the principled distinction?
+
+      2. **CI-detectability**. The cycle 2A SIR's "structural default
+         class" argument claims VI lacks a CI-detectable structural
+         default. Argue this is wrong: a CI lint COULD enforce VI by
+         flagging markdown files in directories where templated/YAML
+         alternatives exist (e.g., `presets/`, `templates/`,
+         `schema/`). The "drives behavior" qualifier resolves to "in
+         these directories" — a CI-detectable structural rule. The
+         cycle 2A SIR's claim that "no file extension, directory
+         pattern, or schema property identifies a behavior-driving
+         artifact" is too literal: the structural default class is
+         the directory containing executable orchestration logic
+         (`presets/role/`, `templates/cooperative/`, etc.), not the
+         file format itself.
+
+      3. **MUST→SHOULD demotion is content change, not classification
+         change**. The migrated CONTRIBUTING.md uses SHOULD where the
+         original VI used MUST. Argue this is a substantive change
+         smuggled into a migration framed as classification-only.
+         The migration story claims "the same content, just in
+         operational guidance"; the strength reduction violates that
+         claim. If the migration cannot preserve normative strength,
+         it is not a clean migration — it is a downgrade, which
+         requires its own justification beyond gate failure.
+
+      ## Principle X — Zen of Python Output
+
+      The cycle 2A SIR claims X fails because "readability counts" is
+      irreducibly subjective. Argue the contrary: the substantive
+      content of X is NOT the rhetorical "readability counts"
+      framing — it is the four mechanically-checkable sub-bullets:
+
+      - Predictable output tree (`summary/final.md`)
+      - Flat hierarchies (one-level-deep agent output)
+      - Errors emitted explicitly (warnings for malformed output)
+      - Sparse content (focused content per file)
+
+      Each sub-bullet is independently CI-checkable:
+      - "Predictable output tree": a parity test asserts
+        `summary/final.md` exists after every run.
+      - "Flat hierarchies": a path-depth lint asserts no agent output
+        is more than one level below the agent's own directory.
+      - "Errors emitted explicitly": a warning-emission test asserts
+        certain error categories produce stderr warnings.
+      - "Sparse content": a per-file character-count lint asserts no
+        output file exceeds N characters where focused content is
+        the norm.
+
+      If the substantive content is mechanically checkable, the
+      principle PASSES Criterion 1 (mechanical verification capability)
+      under any reasonable reading of the gate. The cycle 2A removal
+      conflated the rhetorical scaffolding with the substantive
+      content. The principle SHOULD have been refactored under path
+      (c) — elevating one of the sub-bullets as the headline — rather
+      than removed.
+
+      ## Principle XVI — Mathematical Transparency
+
+      The cycle 1 amendment refactored XVI under path (c), reducing
+      the headline to one structural invariant (parameter pinning) and
+      relocating stage-3 to other principles. Argue this refactor was
+      unnecessary: XVI's headline before cycle 1 ("Mathematical
+      Transparency") was Criterion-2-passing because the body specified
+      three concrete invariants (within-run determinism, cross-run
+      reproducibility once parameters pinned, prohibition on LLM
+      re-invocation for parameter resolution).
+
+      Specifically:
+
+      1. **Body specificity rescues headline ambiguity**. The
+         constitutional convention is that headlines are summaries; the
+         body carries the falsifiable claims. The pre-cycle-1 XVI body
+         had three numbered enforceable rules. A reader applying the
+         gate to the principle as a whole (headline + body) finds
+         falsifiable scope. Argue cycle 1's path-(c) refactor was
+         redundant — the gate already passed.
+
+      2. **Path (c) introduced new ambiguity**. The new cycle-1
+         headline ("Parameter pinning prevents cross-run drift in the
+         assembled objective function") is itself ambiguous about
+         which "drift" matters and what "assembled" means. Argue the
+         refactor traded one ambiguity for another.
+
+      ## Conclude with a verdict-relevant summary
+
+      For each of VI, X, XVI:
+      - State your strongest argument that the principle PASSES the
+        gate under closer reading.
+      - State the strongest counter-argument the gate-faithfulness
+        agent might raise.
+      - Conclude with whether your argument decisively shows the
+        migration was wrong, OR is a credible-but-not-decisive
+        challenge that the audit trail should preserve as a finding.
+
+  - name: gate-faithfulness
+    preset: pragmatist
+    prompt: |
+      You audit the v2.4.0 Constitutional Inclusion Criteria gate's
+      application to Principles VI, X, XVI from the position that the
+      gate is correctly applied — VI and X failed and were correctly
+      migrated; XVI was correctly refactored under path (c).
+
+      Your role is NOT to silently confirm the migrations. The
+      contrarian agent (contrarian-vi-x-xvi-defender) will produce
+      good-faith arguments that the principles PASS the gate. Your
+      role is to evaluate those arguments rigorously — accept ones
+      that are sound, reject ones that aren't, and explain your
+      reasoning grounded in the v2.4.0 gate text as it appears in
+      the target document.
+
+      Specifically:
+
+      1. **Read the v2.4.0 gate criteria** from the target document
+         (CONSTITUTION-v2.5.0-pre-migration.md, Governance section).
+         Quote the exact wording of Criterion 1 (mechanical
+         verification capability), Criterion 2 (falsifiable scope),
+         and Criterion 3 (distinct from existing principles).
+
+      2. **Apply each criterion to VI, X, XVI in the v2.5.0 form**.
+         Document your verdict per criterion per principle.
+
+      3. **Engage the contrarian's arguments**. For each contrarian
+         argument:
+         (a) Restate it precisely.
+         (b) Identify the gate-criterion it bears on.
+         (c) Rule on whether it succeeds. If it succeeds, the
+             corresponding migration was wrong. If it fails, explain
+             why grounded in the gate text.
+
+      4. **Comparative-principles asymmetry test**. The contrarian's
+         strongest argument may be "VI fails the same way XV/XXIV/IX
+         do; if VI fails, those should too." Rule on this:
+         (a) If VI fails Criterion 2 on a ground that XV/XXIV/IX
+             also fail on, the migration's correctness depends on
+             treating XV/XXIV/IX uniformly. Either VI's migration
+             was wrong, OR XV/XXIV/IX should also be reviewed under
+             the same standard.
+         (b) If VI fails on a ground that XV/XXIV/IX do NOT fail
+             on, name the distinguishing structural property. The
+             v3.0.0 SIR named CI-detectable structural default class
+             as the distinction; assess whether that distinction
+             holds under the contrarian's CI-lint argument.
+
+      5. **MUST→SHOULD strength reduction**. The contrarian argues
+         the migration smuggled a strength reduction beyond
+         classification-only. Rule on whether the v3.0.0 SIR's
+         "MUST→SHOULD rationale" (operational guidance is the home
+         for judgment-call qualifiers; the same qualifier that caused
+         migrate-out makes MUST unenforceable without a mechanical
+         check) is sound. If the rationale is sound, the strength
+         reduction is justified. If not, the migration was a
+         downgrade rather than a clean reclassification, and that
+         is an audit-trail finding.
+
+      6. **Conclude with a verdict-relevant summary**. For each
+         principle (VI, X, XVI):
+         - State whether the migration/refactor was correct.
+         - State which contrarian arguments deserve to be preserved
+           as audit-trail findings even if the migration stands.
+
+  - name: cross-principle-coherence
+    preset: pragmatist
+    prompt: |
+      You audit the supplemental blind for cross-principle coherence:
+      whatever verdict the deliberation reaches must not introduce
+      inconsistencies with the v2.4.0 gate's worked examples (the
+      "code should be readable" Criterion 1 example, the lowercase-
+      template-variables Criterion 3 example) or with the established
+      pattern of which grandfathered principles are kept vs migrated.
+
+      Specifically:
+
+      1. **Worked-examples consistency**. The v2.4.0 gate's worked
+         examples in the target document state "code should be
+         readable" fails Criterion 1 (no automated check is feasible)
+         and "all template variables MUST be lowercase" fails
+         Criterion 3 (composes from IX + XI). Apply the gate's logic
+         to VI, X, XVI:
+
+         - Does VI fail Criterion 1 in the same way "code should be
+           readable" does? Or does VI's "scripts over markdown" admit
+           a more concrete check than "readability"?
+         - Does X fail Criterion 3 by composing with V (Observable
+           Deliberation) + VII (Reproducibility), as the v3.0.0 SIR's
+           substrate analysis claims? Or does X's "one clear purpose
+           per output file" sub-bullet have content beyond V+VII?
+         - Does XVI compose with VII or VIII enough that path (c)
+           was the right move, or was the original XVI substantively
+           distinct from those principles?
+
+      2. **Comparative-principles symmetry**. Read the bodies of
+         retained Principles XV, XXIV, IX in the target document.
+         For each, identify the structural property that satisfies
+         Criterion 1 (mechanical verification capability). Does VI
+         have an analogous structural property? If yes, VI passes
+         Criterion 1 by the same standard. If no, name the
+         distinguishing property that XV/XXIV/IX have and VI lacks.
+
+      3. **Migration-pattern coherence**. Spec 070 cycle 2 migrated
+         VI to CONTRIBUTING.md and X to docs/output-conventions.md.
+         Are these the right destinations? Would CONTRIBUTING.md
+         have been a better home for X's sub-bullets (which read
+         as authoring guidance)? Would docs/output-conventions.md
+         have absorbed any of VI's substrate (script-vs-markdown is
+         partly an output-format question)?
+
+         If the migrations crossed the streams, that is an
+         audit-trail finding even if the gate-application is correct.
+
+      4. **Conclude with cross-principle observations**. Surface any
+         systemic findings that bear on future grandfathered-principle
+         migrations — e.g., a methodology refinement, a worked-examples
+         update, a gate-criterion clarification.
+
+arbiter:
+  name: spec-070-supplemental-blind-arbiter
+  preset: balanced-arbiter
+  prompt: |
+    You rule on findings raised by contrarian-vi-x-xvi-defender,
+    gate-faithfulness, and cross-principle-coherence. Your grounding
+    document is the target file (CONSTITUTION-v2.5.0-pre-migration.md);
+    apply the v2.4.0 Constitutional Inclusion Criteria gate as it
+    appears in that file's Governance section.
+
+    For each finding:
+    - **ACCEPT**: real defect requiring corrective action (the migration
+      decision was wrong, in whole or in part). Triggers a separate
+      amendment cycle for the overturned migration.
+    - **REJECT**: false positive or wrong-target (the contrarian
+      argument fails grounded in the gate text).
+    - **PRESERVE**: real but non-blocking finding worth keeping in the
+      audit trail (the migration stands, but the finding is recorded
+      as part of spec 073's discharge).
+
+    Spec 073 §4.3 enumerates four valid verdicts. Conclude with one of:
+
+    - **SPEC-070 §9 AC #5 VERDICT: SUSTAINED** — migration decisions for
+      VI, X, and XVI hold under the contrarian standard. No findings.
+      The closure record for spec 070 (currently false-certified per
+      PR #99) is corrected by spec 073's closure.
+
+    - **SPEC-070 §9 AC #5 VERDICT: SUSTAINED WITH FINDINGS** —
+      migrations hold but the deliberation surfaced findings worth
+      preserving. List the findings with cross-references to the
+      contrarian, gate-faithfulness, and cross-principle-coherence
+      agents. Findings become part of the spec 073 closure record.
+
+    - **SPEC-070 §9 AC #5 VERDICT: PARTIALLY SUSTAINED** — at least one
+      migration holds; at least one is overturned. Name the overturned
+      migration(s). Each overturned migration triggers a separate
+      amendment cycle subject to the full spec 067 dual-deliberation
+      protocol; spec 073 closure records WHICH migration(s) are
+      overturned but does not perform the corrective amendment.
+
+    - **SPEC-070 §9 AC #5 VERDICT: NOT SUSTAINED** — the contrarian
+      standard finds one or more migrations were incorrect. List the
+      incorrect migrations and the corrective amendment cycles that
+      will be required. Spec 073 closure records the verdict; the
+      corrective cycles are separate spec(s).
+
+    The verdict you choose binds the spec 073 closure but does NOT
+    automatically reverse ratified amendments. PARTIALLY SUSTAINED or
+    NOT SUSTAINED triggers separate amendment cycles, not retroactive
+    rollback.
+
+  grounding: CONSTITUTION-v2.5.0-pre-migration.md
+  trigger: always
+  timing: final
+  influence: binding

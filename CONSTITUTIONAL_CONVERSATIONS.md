@@ -683,3 +683,33 @@ The pre-ratified pathway is rare — it requires that the wording was specified 
 - Issue #94 (v2.3.2 "shape" → "assembly-form" rename) — still requires dual-perspective review per its acceptance criteria.
 
 **Pathway**: PATCH + verbatim contract single-PR pathway. The bullet's content is preserved verbatim from the verdict's wording (modulo markdown formatting). No new normative content.
+
+---
+
+## 2026-05-04 — Spec 073 closure (§9 AC #5 supplemental verification discharged)
+
+**Subject**: Spec 070 §9 AC #5 supplemental blind verification ran. Verdict: **SPEC-070 §9 AC #5 VERDICT: SUSTAINED WITH FINDINGS**. Migrations of VI, X (pending cycle 3A path-(c) assessment), and XVI plain-language clause hold under the contrarian standard. Spec 073 closed; four follow-up amendment cycles filed as issues #119–#122.
+
+**Trigger**: spec 073 §4.4 closure protocol — supplemental blind ran with the configuration in §4. Three agents (contrarian-vi-x-xvi-defender, gate-faithfulness, cross-principle-coherence) deliberated against `deliberations/070-supplemental-blind-2026-05-04/CONSTITUTION-v2.5.0-pre-migration.md` (extracted from commit `2ec0e8a`, the v2.5.0 ratification of Principle XXVIII). Full Phase 1-6 pipeline including arbitration. 17 LLM launches.
+
+**Verdict structure**: SUSTAINED WITH FINDINGS is the second-best of four enumerated outcomes (SUSTAINED / SUSTAINED WITH FINDINGS / PARTIALLY SUSTAINED / NOT SUSTAINED). The migrations were substantively correct under the contrarian standard. The four findings are non-blocking but deserve preservation in the audit trail and follow-up amendment cycles.
+
+**Findings (filed as issues)**:
+
+1. **Cycle 3A — path-(c) feasibility for X (issue #119, P1)**: the X migration was procedurally premature. Cycle 2A removed X without first conducting a path-(c) feasibility assessment of whether a refactored headline could express ONE structural invariant (parallel to XVI's parameter-pinning headline). The contrarian agent argued (and the arbiter accepted) that X's three sub-bullets are independently CI-checkable, qualifying X for path-(c) consideration. If the path-(c) assessment confirms three conditions (mechanical headline adequacy, sub-bullet specialization verification, Verification block concreteness), **X is RESTORED constitutionally and the v3.0.0 X migration is superseded**. This is the highest-stakes finding — potential reversal of a constitutional change. Sequencing: full dual-deliberation per spec 067 (principle restoration is not eligible for single-deliberation pathways).
+
+2. **Cycle 3B — X error-handling sub-bullet routing (issue #120, P1)**: X's error-handling sub-bullet ("errors should never pass silently; warnings emitted for malformed output") was DELETED in v3.0.0 rather than ROUTED to a runtime-consumed document. The verdict ruled this incorrect — the sub-bullet is execution logic and belongs in SKILL.md references at SHOULD strength. PATCH-class re-routing within the migration's already-ratified scope. Independent of cycle 3A.
+
+3. **Cycle 3C — XVI Criterion 1 attribution + determinism-scope retention (issue #121, P1)**: Two-part finding. (a) The grandfathering disclosure annotation for XVI plain-language identifies Criterion 2 as the failure; the verdict found Criterion 1 (mechanical verification capability) is the decisive barrier — "user understanding" cannot be mechanically verified at all. Annotation must be corrected to name Criterion 1. (b) XVI's determinism-scope clauses (within-run determinism, cross-run reproducibility once parameters pinned, prohibition on LLM re-invocation) PASS the gate and must be retained in the principle body. The plain-language clause is the only XVI sub-claim that needed migration. PATCH-class.
+
+4. **Cycle 3D — gate calibration positive worked example (issue #122, P3)**: The Constitutional Inclusion Criteria gate text has only failure worked examples, producing systematic over-migration pressure for borderline cases. The verdict prescribes adding a passing example grounded in Principle XXVIII as the ratified anchor. Verbatim text supplied in the verdict. PATCH-class calibration-documentation; may be batched with cycle 3C.
+
+**Methodology observations** (preserved as audit-trail findings):
+- The deliberation surfaced four systemic gaps in the amendment process: (i) no mandatory contrarian-assessment step before migration closure, (ii) XVII per-sub-bullet classification not enforced structurally in migration SIRs, (iii) grandfathering disclosure as static snapshot rather than versioned record, (iv) calibration-asymmetry in gate worked examples. None of these gaps automatically retroactively unwinds v3.0.0; all four are addressable through forward-looking corrective amendments.
+- The supplemental blind functioned correctly: contrarian pressure found the real vulnerabilities (procedural gaps, documentation deficiencies, calibration asymmetry) without manufacturing substantive reversals. The four findings reflect genuine architectural improvement opportunities rather than mistaken migrations.
+
+**Spec 070 closure record final**: spec 070 audit trail is complete through §9 AC #5 supplemental verification. Spec 070 remains in `specs/done/` (preserving the false-closure timestamp from PR #99). Spec 073 closes in `specs/done/`. Issues #119–#122 carry the corrective amendment work; spec 070's closure does not depend on those issues completing.
+
+**Pathway used**: dual-deliberation (closure-verification 2026-05-01 + supplemental-blind 2026-05-04) for §9 AC #5 — the highest-cost pathway, used because principle-restoration eligibility is at stake. The four follow-up cycles will use cycle-appropriate pathways:
+- Cycle 3A (potential restoration): full dual-deliberation per spec 067
+- Cycles 3B, 3C, 3D: PATCH single-PR with verbatim contract (no normative-content changes, just routing/attribution/calibration corrections)
