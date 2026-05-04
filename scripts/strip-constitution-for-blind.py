@@ -118,15 +118,31 @@ def strip_constitution(source: str, version: str) -> str:
 
 
 def verify_zero_leakage(stripped: str, version: str, date: str | None) -> list[str]:
-    """Return list of leakage strings still present in ``stripped``."""
+    """Return list of leakage strings still present in ``stripped``.
+
+    HTML comment blocks (the SIR audit-trail format) are excluded from
+    the date-needle scan because dates legitimately appear in prior-SIR
+    blocks (e.g. "Last Amended: 2026-05-01") that survive Step 1's
+    candidate-version SIR strip but are NOT visible to a blind reviewer
+    examining the rendered constitution. Without this exclusion, the
+    --date check trips on every prior SIR's amendment date and exits 1
+    even when the rendered (non-comment) body is leakage-free.
+
+    Version needles are NOT excluded from comments because a version
+    string in the rendered footer (e.g. "**Version**: 3.1.3") is
+    visible to readers and is a real leakage source.
+    """
     leaks: list[str] = []
-    needles = [version, version[1:]]
-    if date:
-        needles.append(date)
-    for needle in needles:
+    version_needles = [version, version[1:]]
+    for needle in version_needles:
         if needle in stripped:
             count = stripped.count(needle)
             leaks.append(f"{needle!r} ({count}x remaining)")
+    if date:
+        body_only = re.sub(r"<!--.*?-->", "", stripped, flags=re.DOTALL)
+        if date in body_only:
+            count = body_only.count(date)
+            leaks.append(f"{date!r} ({count}x remaining)")
     return leaks
 
 
