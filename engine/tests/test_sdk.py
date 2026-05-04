@@ -256,6 +256,56 @@ class TestValidate:
             assert isinstance(count, int)
             assert count >= 1
 
+    def test_iterations_3_cost_estimate_scales_linearly(
+        self, tmp_path: Path
+    ) -> None:
+        """iterations=3 with 2 agents → cross_review=6, revision=6.
+
+        Closes spec 061 step 13 §3.1.9 cost estimate gap (issue #109)
+        per the strip-script-061-substeps deliberation 2026-05-01.
+
+        Pins the documented per-iteration multiplier: with N agents and
+        I iterations, cross_review = I * N * (N-1) and revision =
+        I * N. For N=2, I=3: cross_review = 3 * 2 * 1 = 6; revision =
+        3 * 2 = 6. The pre-existing iterations=1 default gives
+        cross_review = 2; iterations=2 (covered by the pre-existing
+        execution test in test_phases.py) gives cross_review = 4;
+        iterations=3 fills the matrix at the cost-estimate API layer.
+        """
+        spec = tmp_path / "spec.md"
+        spec.write_text("# Test Spec\n\nIterations=3 cost-estimate test.\n")
+        output_dir = tmp_path / "output"
+
+        config_data = {
+            "mode": "cooperative",
+            "target": "spec.md",
+            "output": str(output_dir),
+            "iterations": 3,
+            "agents": [
+                {"name": "agent-alpha", "prompt": "Alpha perspective."},
+                {"name": "agent-beta", "prompt": "Beta perspective."},
+            ],
+        }
+        config_path = tmp_path / "conversus.yml"
+        config_path.write_text(yaml.dump(config_data, sort_keys=False))
+
+        result = validate(config_path)
+
+        assert result.valid is True
+        cost = result.cost_estimate
+        assert cost is not None
+
+        # Linear scaling assertions
+        assert cost["review"] == 2, "review = N agents (1 per iteration entry, but only run once)"
+        assert cost["cross_review"] == 6, (
+            f"cross_review must scale as iterations × N × (N-1) = 3 × 2 × 1 = 6, got {cost['cross_review']}"
+        )
+        assert cost["revision"] == 6, (
+            f"revision must scale as iterations × N = 3 × 2 = 6, got {cost['revision']}"
+        )
+        assert cost["disputes"] == 2
+        assert cost["synthesis"] == 1
+
 
 # ---------------------------------------------------------------------------
 # classify()

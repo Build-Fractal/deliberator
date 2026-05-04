@@ -74,14 +74,20 @@ def estimate_cost(
 ) -> dict[str, int]:
     """Calculate expected LLM launches per phase.
 
-    Formula (D007)::
+    Formula (D007, corrected for iteration loop)::
 
         review:       agents
-        cross_review: agents × (agents - 1)
+        cross_review: agents × (agents - 1) × iterations
         revision:     agents × iterations
         disputes:     agents
         synthesis:    1
         arbitration:  1 if arbiter else 0
+
+    The iteration loop (per spec 005 universal rounds + spec 061 §3.1.9)
+    runs Phase 2 cross-review AND Phase 3 revision once per iteration.
+    Both must scale by ``iterations``. Prior to the spec 061 step 13
+    cost-estimate gap fix (issue #109), ``cross_review`` was missing the
+    ``× iterations`` factor and undercounted by a factor of ``iterations``.
 
     Args:
         agent_count: Number of agents in the deliberation.
@@ -93,7 +99,7 @@ def estimate_cost(
     """
     phases: dict[str, int] = {
         "review": agent_count,
-        "cross_review": agent_count * (agent_count - 1),
+        "cross_review": agent_count * (agent_count - 1) * iterations,
         "revision": agent_count * iterations,
         "disputes": agent_count,
         "synthesis": 1,

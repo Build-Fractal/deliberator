@@ -54,7 +54,7 @@ jobs:
         run: uv sync
 
       - name: Run pytest smoke tests
-        run: uv run pytest engine/tests/ -x -q --timeout=30 2>&1 | tail -20
+        run: uv run pytest engine/tests/ -x -q --timeout=30 -m "not integration and not live and not eval" 2>&1 | tail -20
 
       - name: Run promptfoo smoke eval (mock, 4 modes)
         run: npx promptfoo eval -c evals/promptfooconfig.yaml --no-cache
