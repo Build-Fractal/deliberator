@@ -737,3 +737,39 @@ The pre-ratified pathway is rare — it requires that the wording was specified 
 Either way, the proper response is: verify each finding against the current state, document the verification, and apply only the corrections that have bite. Cycles 3B and 3C had no bite; cycle 3D had bite (the gate text genuinely lacked a positive worked example) and is discharged here. Cycle 3A's bite (no path-(c) assessment was performed before X migration) is genuine and remains a separate amendment cycle.
 
 **Pathway**: PATCH + verbatim contract single-PR. The worked example text is preserved verbatim from the verdict; the explanatory follow-up paragraph is editorial expansion that does not modify normative content.
+
+---
+
+## 2026-05-04 — Spec 070 cycle 3A closure (path-(c) for X — FAIL, v3.0.0 confirmed)
+
+**Subject**: Spec 070 cycle 3A path-(c) feasibility deliberation for Principle X completed. Both self-consistency and blind verification ruled **FAIL** under different analytical frameworks but with identical conclusions. Cycle 3A determination: v3.0.0 X migration to operational guidance is confirmed. Issue #119 closed.
+
+**Trigger**: spec 070 supplemental blind 2026-05-04 P1 finding #1 (issue #119) — required path-(c) feasibility assessment before X migration could be considered procedurally complete.
+
+**Verification approach**: full dual-deliberation per spec 067. Self-consistency evaluated a candidate path-(c) restoration proposal ("Predictable Output Tree" headline + 4 sub-bullets); blind agents derived their own path-(c) refactor (or argued none was viable) from first principles without seeing the candidate proposal.
+
+**Self-consistency verdict**: SPEC-070 CYCLE 3A (SELF) VERDICT: FAIL — V3.0.0 CONFIRMED. Condition (i) Mechanical headline adequacy fails: "Predictable Output Tree" bundles four distinct structural invariants (synthesis canonical path, output depth bound, malformed-output emission, per-file focus), violating XVI's single-invariant precedent. No verification refinement can transform this multi-invariant bundle into the single structural invariant the v2.6.0 path-(c) precedent requires.
+
+**Blind verdict**: both blind agents (path-c-discovery-skeptic and path-c-discovery-pragmatist) UNANIMOUSLY concluded "Principle X should not be refactored via path-(c) due to lack of substantial structural substrate and failure to meet XVI precedent requirements." The agents disagreed on framework priority (substrate-first vs gate-criteria-first) but converged on the same outcome under both frameworks.
+
+**Convergence signal**: cross-framework convergence is the strongest possible result. The skeptic's framework (Constitutional Inclusion Criteria violations) and the pragmatist's framework (architectural substrate deficiency) are different lenses on the same evidence, and both lenses see the same answer. This rules out the failure mode where the conclusion is an artifact of one specific evaluation framework.
+
+**Cycle 3 status update** (all four supplemental-blind findings now resolved):
+- **Cycle 3A (issue #119, P1)**: CLOSED 2026-05-04 — dual-deliberation FAIL. v3.0.0 X migration confirmed.
+- **Cycle 3B (issue #120, P1)**: CLOSED 2026-05-04 — verified content preserved; verdict premise was wrong.
+- **Cycle 3C (issue #121, P1)**: CLOSED 2026-05-04 — verified both parts already-discharged in current constitution; verdict premise was wrong.
+- **Cycle 3D (issue #122, P3)**: DISCHARGED via PR #124 (v3.2.2) — gate calibration positive worked example added.
+
+**Methodology findings** (preserved as audit-trail content even though they don't trigger amendments):
+
+1. **Substrate-first methodology for path-(c) evaluation**: the blind arbitration ruled that path-(c) evaluations should sequence (1) substantial-structural-substrate identification, (2) constitutional significance assessment, (3) gate criteria verification. Bundling analysis is supporting evidence for substrate assessment, not an independent blocking criterion. This is a methodological refinement to the v2.6.0 path-(c) Governance subsection that could be codified in a future PATCH amendment.
+2. **No "obscurity" requirement for path-(c)**: the blind arbitration ruled that path-(c) requires substantial structural substrate that can serve as a mechanically verifiable headline claim, without requiring that substrate to have been previously obscured by subjective framing. XVI's parameter pinning was always visible; the v2.6.0 amendment elevated it to headline status rather than discovering hidden content. Adding an obscurity requirement would artificially raise the bar beyond what XVI itself satisfied.
+
+These two findings refine path-(c) methodology going forward but don't trigger any v3.X amendments — both are codifications of what the v2.6.0 XVI rewrite already demonstrated. They could be added to the Governance § Constitutional Amendment Pathways subsection as a P2 follow-up if the user determines the codification is worth the version bump.
+
+**Spec 070 audit trail final**: spec 070 is now COMPLETE through §9 AC #5 supplemental verification AND through cycle 3A path-(c) feasibility for the only finding that warranted full dual-deliberation. The v3.0.0 cycle 2A migrations of VI, X, and XVI are all SUSTAINED under contrarian-standard verification:
+- **VI**: SUSTAINED via supplemental-blind 2026-05-04 (no contrarian could construct a credible argument for retention)
+- **X**: SUSTAINED via supplemental-blind 2026-05-04 + cycle 3A 2026-05-04 (no viable path-(c) exists; substrate is insufficient)
+- **XVI plain-language**: SUSTAINED via supplemental-blind 2026-05-04 (criterion-attribution clarification preserved as cycle 3C finding; verified already-discharged in current constitution)
+
+Spec 070's six closures (PR #99 → premature; spec 073 PR #117/#123 → §9 AC #5 supplemental; PRs #124/#118 → cycle 3D/Governance hygiene; cycle 3A this entry → path-(c) feasibility) close the audit trail end-to-end. No further follow-ups are required for spec 070 itself.
