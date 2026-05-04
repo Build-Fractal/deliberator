@@ -660,3 +660,26 @@ The pre-ratified pathway is rare — it requires that the wording was specified 
 **Outstanding deferred items** (after v3.2.0): the only outstanding constitutional amendment follow-up is issue #94 (v2.3.2 "shape" → "assembly-form" terminology rename). That item requires dual-perspective wording-precision review per its acceptance criteria; it is NOT eligible for the row-4 pre-ratified pathway because the wording was not specified in a prior SIR's TODO with affirmative scope coverage of the substantive claim.
 
 **Methodology note**: this is the first amendment ratified end-to-end through a conversus deliberation rather than the dual-deliberation strip-script flow. The pathway-taxonomy deliberation produced its verdict in a single cooperative run (N=2, full Phase 1-6) rather than the spec 067 self+blind two-deliberation structure used for cycle 1 and cycle 2A. This represents an evolution: when the question being deliberated is a governance-meta question (not principle removal/redefinition), a single adversarial-cooperative deliberation may be sufficient. The taxonomy itself does not yet codify this distinction — when a future amendment uses a single-deliberation pathway for governance-meta questions, the precedent should be cited and the pathway taxonomy may need a fifth row.
+
+---
+
+## 2026-05-04 — Constitution v3.2.0 → v3.2.1 (Governance operational-guidance list discharge)
+
+**Subject**: Discharge the closure-verification deliberation 2026-05-01 P2 #4 hygiene item: add a Governance bullet enumerating CONTRIBUTING.md § Authoring Conventions (Principle VI substrate destination) and docs/output-conventions.md (Principle X substrate destination) as canonical migration destinations. Also discharges the v3.0.0 SIR's "Cross-reference" follow-up TODO (operational-guidance list update in subsequent PATCH).
+
+**Trigger**: closure-verification deliberation 2026-05-01 P2 #4 — see `deliberations/070-closure-verification-2026-05-01/arbitration/resolution.md`. The verdict explicitly authorized this as non-blocking hygiene (proceeds without waiting for §9 AC #5 supplemental blind resolution).
+
+**Why PATCH (not MINOR)**: the bullet enumerates information that is already ratified. Both files exist; both have content migrated from VI and X respectively (per v3.0.0 PR #98); both are named in the v3.0.0 SIR. The Governance bullet only adds discoverability — no new structural feature, gate condition, or normative requirement. Per the verbatim-preservation contract precedent, listing already-ratified destinations is PATCH-class.
+
+**Why no deliberation cycle**: the closure-verification deliberation already ruled this hygiene item proceeds independently of the §9 AC #5 work. The bullet's content matches the verdict's wording for "Governance operational-guidance list" verbatim modulo markdown bullet formatting.
+
+**Bundle**:
+1. New "Operational guidance documents" bullet in CONSTITUTION.md Governance section, inserted between Constitutional Amendment Pathways subsection and Compliance bullet.
+2. Bullet lists CONTRIBUTING.md § Authoring Conventions and docs/output-conventions.md as canonical migration destinations with cross-reference to v3.0.0 SIR.
+3. Forward guidance: future migrations that retire a grandfathered principle MUST name the receiving document in the migration spec's SIR (per Removal checklist subsection (b)). New destinations are MINOR (new file/directory) or PATCH (new section in existing file).
+
+**Outstanding deferred items** (after v3.2.1):
+- Spec 073 §4 supplemental blind deliberation — still OPEN. This is the §9 AC #5 verification obligation that v3.2.1 does NOT discharge. v3.2.1 only discharges the parallel P2 #4 hygiene item.
+- Issue #94 (v2.3.2 "shape" → "assembly-form" rename) — still requires dual-perspective review per its acceptance criteria.
+
+**Pathway**: PATCH + verbatim contract single-PR pathway. The bullet's content is preserved verbatim from the verdict's wording (modulo markdown formatting). No new normative content.
