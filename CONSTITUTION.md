@@ -1,5 +1,76 @@
 <!--
 Sync Impact Report
+Version change: 3.1.3 → 3.2.0 (MINOR — pathway-taxonomy enrichments
++ migration to CONSTITUTION.md per the pathway-taxonomy deliberation
+2026-05-01. The deliberation's verdict was RETAIN with modifications:
+the existing 4-pathway table in CONSTITUTIONAL_CONVERSATIONS.md is
+correct in row count but missing enforcement infrastructure that
+governance-log entries cannot provide. Migration to a Governance
+subsection adds the enforcement layer; enrichments add Authorization
+basis column, gate conditions for row 4, self-consistency gap
+acknowledgment, RFC/CVE analogy correction, and Provisional label
+for row 4.)
+
+Modified Governance section:
+  - New "Constitutional Amendment Pathways" subsection inserted
+    between Removal checklist (subsection ending at "extended
+    methodology for future audits") and Compliance bullet. The
+    subsection contains:
+      - 4-pathway table with 5 columns (Pathway, Cost, Trigger,
+        Authorization basis, Example) — Authorization basis added
+        per pathway-taxonomy deliberation Required change #2.
+      - Routing function vs. gate-enforcement function note —
+        Required change #3.
+      - Gate conditions for row 4 (a/b/c enumerated) — Required
+        change #1 (separately enumerated mandatory items, not
+        sub-notes in prose) following the v3.0.0 Removal checklist
+        precedent for mandatory-condition enumeration.
+      - Self-consistency note for row 4's canonical example
+        (v3.1.2) — Required change #4.
+      - Note on the RFC/CVE analogy correction — Required change #6.
+      - Provisional label embedded in row 4 entry — Required change #5.
+
+Why MINOR: the subsection adds new structural infrastructure to the
+Governance section. Per the v3.0.0 Removal-checklist subsection (e)
+precedent (introducing the FIRST instance of a new structural feature
+qualifies as MINOR), this is the first instance of a Governance
+subsection that defines pathway-taxonomy infrastructure with
+enforcement gate conditions. Future pathway additions or modifications
+will follow this subsection's structure.
+
+Why no deliberation cycle: the pathway-taxonomy deliberation
+2026-05-01 IS the deliberation that authorized these changes. Its
+arbitration verdict (PATHWAY-TAXONOMY VERDICT: RETAIN with
+modifications) is the spec 067 dual-cycle equivalent for this
+amendment — the deliberation ran with cooperative N=2 agents
+(pathway-defender and pathway-skeptic), full Phase 1-6 pipeline
+including arbitration, and produced binding rulings on each of the
+6 changes applied here. The deliberation record is preserved at
+deliberations/pathway-taxonomy-2026-05-01/.
+
+Verbatim-preservation contract: the table content is preserved
+verbatim from the v3.1.2 governance-log entry's table; the
+Authorization basis column is new content per the deliberation
+verdict; the gate conditions, self-consistency note, RFC/CVE
+correction, and Provisional label are new content authorized by the
+deliberation. The migration moves authoritative location without
+changing the original 4-row content.
+
+CONSTITUTIONAL_CONVERSATIONS.md update: the v3.1.2 entry's table is
+amended to reference the canonical Governance § Constitutional
+Amendment Pathways subsection, with a note that the table in the
+v3.1.2 entry is preserved as historical record (the original
+4-pathway state at that point in time) — future amendments must use
+the Governance subsection as the authoritative source.
+
+Governance log entry: 2026-05-01 in CONSTITUTIONAL_CONVERSATIONS.md
+(pathway-taxonomy deliberation implementation).
+
+Prior amendment (v3.1.2 → v3.1.3): see prior SIR comment block below.
+-->
+
+<!--
+Sync Impact Report (prior — preserved for audit trail)
 Version change: 3.1.2 → 3.1.3 (PATCH — cycle 2C follow-on: split
 the comma-listed Operational constants bullet into 4 separate bullets
 matching issue #97's literal listing. Surfaced as a self-flagged
@@ -1973,7 +2044,72 @@ justifies the deviation.
       "VI/X migration"). The cycle 1 amendment's audit missed the
       L1589 plural form; the v3.0.0 amendment establishes the
       extended methodology for future audits.
+- **Constitutional Amendment Pathways** (added v3.2.0, migrated from
+  CONSTITUTIONAL_CONVERSATIONS.md per the pathway-taxonomy
+  deliberation 2026-05-01): the deliberation pathway used for an
+  amendment is determined by both the version-bump impact (MAJOR /
+  MINOR / PATCH) and the verification cost (full dual-deliberation /
+  single PR with verbatim contract / single PR with pre-ratified
+  deferred wording). The taxonomy below names the four ratified
+  pathways and the authorization basis that justifies each:
+
+  | # | Pathway | Cost | Trigger | Authorization basis | Example |
+  |---|---------|------|---------|---------------------|---------|
+  | 1 | MAJOR with full dual-deliberation | spec 067 self + blind | Principle removal/redefinition | Full dual-deliberation (spec 067) | v3.0.0 |
+  | 2 | MINOR with verbatim contract | single PR | First instance of new structural feature | Absence of new normative content | v3.1.0 |
+  | 3 | PATCH with verbatim contract | single PR | Sub-headings within existing structure | Absence of new normative content | v3.1.1 |
+  | 4 | PATCH with pre-ratified deferred wording (Provisional — single canonical example; canonical status requires two independent uses from distinct sessions without governance anomalies) | single PR | Same-version follow-up named in prior SIR | Prior deliberation scope coverage of deferred wording | v3.1.2 |
+
+  **Routing function vs. gate-enforcement function**: For routing,
+  all single-PR rows answer "no deliberation required when verbatim
+  preservation holds." Authorization basis governs what conditions
+  must be satisfied to invoke each single-PR pathway — see gate
+  conditions for row 4 below.
+
+  **Gate conditions for row 4** (PATCH with pre-ratified deferred
+  wording): an amendment qualifies for this pathway only when ALL
+  three conditions are affirmatively satisfied:
+  (a) **Wording pre-specified**: the appended sentence text matches a
+      prior SIR's TODO specification character-for-character.
+  (b) **Prior deliberation scope coverage**: the prior SIR's
+      verification cycle MUST have covered the substantive claim of
+      the deferred wording (not merely its existence as a TODO). The
+      cycle's deliberation phase or finding that evaluated the
+      claim's correctness MUST be cited by version and section in
+      the implementing PR.
+  (c) **No new normative requirements**: the appended wording adds
+      linkage between two already-ratified texts, not a new normative
+      requirement.
+
+  **Self-consistency note**: condition (b) raises a self-consistency
+  question for row 4's canonical example (v3.1.2). The v3.0.0
+  deliberation validated the Principle II stable-interfaces
+  enumeration extension as an architectural change. Whether the
+  deliberation's scope explicitly covered the correctness of the
+  specific elaboration sentence ("Reusing a retired principle number
+  is a breaking change — any historical document that cited the
+  retired number by identity would thereafter refer to a different
+  principle.") is not determinable from the governance log as
+  written. If scope did not extend to that sentence's substantive
+  claim, v3.1.2 satisfies conditions (a) and (c) but not (b). Future
+  applications of this pathway MUST resolve condition (b)
+  affirmatively — by citing the specific deliberation phase and
+  finding that evaluated the claim's correctness — before invoking
+  the low-cost pathway. This gap does not void the pathway's
+  analytical framework; it identifies a documentation deficiency in
+  the canonical example.
+
+  **Note on the RFC/CVE analogy**: the RFC/CVE reference in the
+  Principle Number Stability subsection above supports identifier
+  stability — the no-reuse rule for principle numbers. RFC and CVE
+  processes use single amendment pathways; the conversus
+  multi-pathway taxonomy is a departure from that model, not an
+  extension of it. The analogy cannot be cited as authority for
+  adding new pathway rows to this taxonomy. Adding a fifth, sixth,
+  Nth pathway requires the same dual-deliberation that constitutional
+  changes require, with explicit grounding in the pathway taxonomy's
+  authorization-basis structure.
 - **Compliance**: The plan template includes a Constitution Check gate.
   Plans MUST pass this gate before proceeding to implementation.
 
-**Version**: 3.1.3 | **Ratified**: 2026-03-20 | **Last Amended**: 2026-05-01
+**Version**: 3.2.0 | **Ratified**: 2026-03-20 | **Last Amended**: 2026-05-03

@@ -609,3 +609,29 @@ The pre-ratified pathway is rare — it requires that the wording was specified 
 **Outstanding deferred items** (after v3.1.3): unchanged from v3.1.2 — issue #94 still requires dual-perspective wording-precision review per its acceptance criteria; the P3 XIX migration eligibility note (not filed as an issue) requires dual-deliberation if pursued.
 
 **Pathway**: PATCH + verbatim contract single-PR pathway. Now ratified twice (v3.1.1 cycle 2C original, v3.1.3 cycle 2C follow-on). The pathway is robust to the kind of interpretation slip that this PR corrects, because the slip itself surfaced through the orchestrator's self-flagged uncertainty disclosure rather than through silent acceptance.
+
+---
+
+## 2026-05-03 — Constitution v3.1.3 → v3.2.0 (pathway-taxonomy enrichments + migration to CONSTITUTION.md)
+
+**Subject**: Apply the pathway-taxonomy deliberation 2026-05-01 verdict (PATHWAY-TAXONOMY VERDICT: RETAIN with modifications). The 4-pathway table introduced in the v3.1.2 governance-log entry is migrated to a new "Constitutional Amendment Pathways" subsection in CONSTITUTION.md Governance, with 5 enrichments per the deliberation's required changes.
+
+**Trigger**: pathway-taxonomy deliberation 2026-05-01 — see `deliberations/pathway-taxonomy-2026-05-01/arbitration/resolution.md` for the verdict and the 6 required-change items. The deliberation explicitly identified the migration from CONSTITUTIONAL_CONVERSATIONS.md to CONSTITUTION.md as the structurally significant action ("the implementing PR's most consequential action is migration, not any of the enrichment changes" — overall assessment).
+
+**Verification approach**: the pathway-taxonomy deliberation IS the spec 067 dual-cycle equivalent for this amendment. Cooperative mode with N=2 agents (pathway-defender and pathway-skeptic), full Phase 1-6 pipeline including arbitration. The arbitration produced binding rulings on each of the 6 changes applied here. No supplementary blind verification is required because the deliberation's adversarial structure (defender vs. skeptic with cross-review) provides the dual-perspective discipline that spec 067 §6.1+§6.2 mandates for principle-changing amendments.
+
+**Bundle (6 changes from deliberation Required-changes)**:
+1. **Retain rows 3 and 4 as separate** (Required change #1): the migrated table preserves the 4-row structure of the v3.1.2 entry.
+2. **Authorization basis column added** (Required change #2): values per the verdict — "Full dual-deliberation (spec 067)" (v3.0.0); "Absence of new normative content" (v3.1.0, v3.1.1); "Prior deliberation scope coverage of deferred wording" (v3.1.2).
+3. **Dual-function routing note added** (Required change #3): "For routing: all single-PR rows answer 'no deliberation required when verbatim preservation holds.' Authorization basis governs what conditions must be satisfied to invoke each single-PR pathway — see gate conditions for row 4 below."
+4. **Self-consistency gap acknowledgment for row 4** (Required change #4): named condition (b) gap explicitly; the v3.0.0 deliberation's scope coverage of the v3.1.2 deferred sentence's substantive claim is not determinable from the governance log as written. Future row-4 applications MUST resolve condition (b) affirmatively.
+5. **Provisional label for row 4** (Required change #5): row 4 entry annotates "Provisional — single canonical example (canonical status requires two independent uses from distinct sessions without governance anomalies)."
+6. **RFC/CVE analogy correction** (Required change #6): RFC/CVE supports identifier stability (the no-reuse rule); RFC/CVE processes use single amendment pathways; the conversus multi-pathway taxonomy is a departure from that model, not an extension. The analogy cannot be cited as authority for adding new pathway rows.
+
+**Why MINOR (not PATCH)**: the new Governance subsection introduces structural enforcement infrastructure that did not exist before (gate conditions for pathway invocation, dual-function routing note, self-consistency-gap audit pattern). Per the v3.0.0 Removal-checklist subsection (e) precedent, introducing the FIRST instance of a new structural feature qualifies as MINOR.
+
+**Migration impact**: the 4-pathway table in the v3.1.2 governance-log entry (this file, line 579 onward) is preserved as historical record of the table's original state. Future amendments MUST cite Governance § Constitutional Amendment Pathways as the authoritative source. The v3.1.2 entry itself is unchanged below — readers comparing the v3.1.2 historical record to the v3.2.0 canonical version will see the deliberation-verified enrichments applied.
+
+**Outstanding deferred items** (after v3.2.0): the only outstanding constitutional amendment follow-up is issue #94 (v2.3.2 "shape" → "assembly-form" terminology rename). That item requires dual-perspective wording-precision review per its acceptance criteria; it is NOT eligible for the row-4 pre-ratified pathway because the wording was not specified in a prior SIR's TODO with affirmative scope coverage of the substantive claim.
+
+**Methodology note**: this is the first amendment ratified end-to-end through a conversus deliberation rather than the dual-deliberation strip-script flow. The pathway-taxonomy deliberation produced its verdict in a single cooperative run (N=2, full Phase 1-6) rather than the spec 067 self+blind two-deliberation structure used for cycle 1 and cycle 2A. This represents an evolution: when the question being deliberated is a governance-meta question (not principle removal/redefinition), a single adversarial-cooperative deliberation may be sufficient. The taxonomy itself does not yet codify this distinction — when a future amendment uses a single-deliberation pathway for governance-meta questions, the precedent should be cited and the pathway taxonomy may need a fifth row.
