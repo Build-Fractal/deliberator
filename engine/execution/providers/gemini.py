@@ -63,7 +63,8 @@ class GeminiProvider(SubprocessProvider):
         return "gemini"
 
     def _build_argv(self, task: ExecutionTask) -> list[str]:
-        model = task.metadata.get("model", self._model)
+        # Issue #54 contract: None means "no override, use provider default".
+        model = task.metadata.get("model") or self._model
         # Request JSON output so we can parse structured token usage.
         # Gemini CLI ≥ 0.4 documents ``-o json`` (alias of
         # ``--output-format json``) — the envelope carries ``response``

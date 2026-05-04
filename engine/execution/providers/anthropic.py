@@ -149,7 +149,8 @@ class AnthropicExecutionProvider:
         ``supports_tool_use=False``), sends the request, and extracts
         cost telemetry from ``response.usage``.
         """
-        model = task.metadata.get("model", self._model)
+        # Issue #54 contract: None means "no override, use provider default".
+        model = task.metadata.get("model") or self._model
         max_tokens = task.metadata.get("max_tokens", self._max_tokens)
         prompt = _inline_references(task)
 

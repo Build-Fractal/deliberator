@@ -73,7 +73,8 @@ class CodexProvider(SubprocessProvider):
         return "codex"
 
     def _build_argv(self, task: ExecutionTask) -> list[str]:
-        model = task.metadata.get("model", self._model)
+        # Issue #54 contract: None means "no override, use provider default".
+        model = task.metadata.get("model") or self._model
         # Allocate a per-task tempfile for the final assistant message.
         # We use ``mkstemp`` (not ``NamedTemporaryFile``) so the path
         # outlives the descriptor — codex opens the path itself.  The

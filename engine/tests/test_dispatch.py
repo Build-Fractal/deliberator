@@ -127,6 +127,66 @@ class TestDispatchAgent:
         assert mock_provider.calls[0].prompt == "test prompt"
         assert mock_provider.calls[0].model == "test-model"
 
+    # -- Issue #54 contract: model=None propagates as None ----------------
+    #
+    # The dispatch layer accepts model=None to mean "no override" and
+    # passes None through task.metadata. Providers reading the metadata
+    # are required to treat None as "use my own configured default"
+    # rather than special-casing a sentinel literal. The test below pins
+    # the contract at the dispatch boundary; the
+    # test_concrete_providers tests pin it at each provider's argv-build
+    # boundary. Together they prevent reintroduction of the value-blocklist
+    # hack PR #52 originally added to defend against the sentinel-leak.
+
+    @pytest.mark.asyncio
+    async def test_model_none_resolved_at_adapter_boundary_for_legacy_provider(
+        self,
+        mock_provider: MockProvider,
+    ) -> None:
+        """Legacy ModelProvider via adapter: None resolves to DEFAULT_MODEL.
+
+        Issue #54 contract: when the dispatch layer wraps a legacy
+        ``ModelProvider`` via ``ModelProviderExecutionAdapter``, the
+        adapter resolves ``None`` to ``DEFAULT_MODEL`` because
+        ``ModelProvider.complete`` requires a concrete string. This is
+        the documented Optional → concrete boundary; native
+        ``ExecutionProvider`` implementations preserve None propagation
+        end-to-end (see test_concrete_providers for the wire-level
+        contract at provider argv-build time).
+        """
+        emitter = NullEmitter()
+        await dispatch_agent(
+            prompt="test",
+            agent_name="agent-a",
+            model=None,
+            max_tokens=1024,
+            provider=mock_provider,
+            emitter=emitter,
+        )
+        assert len(mock_provider.calls) == 1
+        # Adapter resolved None → DEFAULT_MODEL at construction time.
+        assert mock_provider.calls[0].model == DEFAULT_MODEL
+
+    @pytest.mark.asyncio
+    async def test_model_none_emits_agent_dispatched_with_none(
+        self,
+        mock_provider: MockProvider,
+        event_collector: tuple[CallbackEmitter, list[EngineEvent]],
+    ) -> None:
+        """AgentDispatched.model is None when dispatch is called with None."""
+        emitter, events = event_collector
+        await dispatch_agent(
+            prompt="test",
+            agent_name="agent-a",
+            model=None,
+            max_tokens=1024,
+            provider=mock_provider,
+            emitter=emitter,
+        )
+        dispatched = [e for e in events if isinstance(e, AgentDispatched)]
+        assert len(dispatched) == 1
+        assert dispatched[0].model is None
+
 
 # ---------------------------------------------------------------------------
 # dispatch_phase

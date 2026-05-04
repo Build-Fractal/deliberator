@@ -120,12 +120,17 @@ class OpenAICompatibleProvider:
         return self._provider_name
 
     async def execute(self, task: ExecutionTask) -> ExecutionResult:
-        # Local providers (ollama, llama-cpp, vllm) define their own default
-        # models (e.g. qwen3:0.6b).  The dispatch layer sets metadata["model"]
-        # to the global default (claude-sonnet-4-20250514) which doesn't exist
-        # on local servers.  Prefer the provider's own default unless the
-        # caller explicitly set a local-compatible model name.
-        task_model = task.metadata.get("model", "")
+        # Issue #54 contract: dispatch layer passes None when there is
+        # no model override, so the provider applies its own default.
+        # Local providers (ollama, llama-cpp, vllm) have their own
+        # default models (e.g. qwen3:0.6b). The legacy guard below
+        # defended against the old leak of ``claude-sonnet-4-20250514``
+        # from dispatch — issue #54 retired that leak, but the guard
+        # remains useful for explicit Anthropic-model overrides that
+        # callers may still pass; in that case prefer the local
+        # provider's own default since the Anthropic id won't resolve
+        # against a local server.
+        task_model = task.metadata.get("model") or ""
         model = self._model if not task_model or task_model.startswith("claude") else task_model
         max_tokens = task.metadata.get("max_tokens", self._max_tokens)
         prompt = _inline_references(task)

@@ -162,21 +162,42 @@ class TestClaudeCodeArgv:
             f"The blocklist may have drifted to non-exact matching."
         )
 
-    def test_blocklist_legacy_literal_still_substitutes(self) -> None:
-        """Sanity check: PR #52's blocklist still fires on the exact literal.
+    def test_none_model_falls_back_to_provider_default(self) -> None:
+        """Issue #54 contract: task.metadata['model']=None → provider default.
 
-        The deliberate substitution that triggers when the dispatch
-        layer leaks the legacy ``DEFAULT_MODEL`` value into the
-        provider via task metadata. Companion to the parametrized
-        test above — this confirms the blocklist still does its
-        job for the case it was designed to catch.
+        Replaces the prior PR #52 value-blocklist test. The dispatch
+        layer no longer leaks ``DEFAULT_MODEL`` as a sentinel; instead
+        it passes ``None`` to mean "no override". The provider falls
+        back to its own configured default. This test pins the new
+        contract: None propagation through to the provider's --model
+        argv.
+        """
+        provider = ClaudeCodeProvider(model="sonnet")
+        task = _make_task(model=None)
+        argv = provider._build_argv(task)
+        idx = argv.index("--model")
+        # Provider's own configured default ("sonnet") is used when
+        # the dispatch layer passes None.
+        assert argv[idx + 1] == "sonnet"
+
+    def test_explicit_legacy_literal_passes_through_unchanged(self) -> None:
+        """Issue #54: with the value-blocklist retired, an explicit
+        model literal passes through to the subprocess unchanged.
+
+        Before issue #54, the provider rewrote ``claude-sonnet-4-20250514``
+        to its own default to defend against silent dispatch leaks.
+        After issue #54, dispatch passes None for "no override", so an
+        explicit literal in task.metadata is treated as a deliberate
+        user pin and forwarded as-is. Users who pass an OAuth-unreachable
+        model id will see the underlying transport error rather than a
+        silent rewrite — which is the correct behavior.
         """
         provider = ClaudeCodeProvider(model="sonnet")
         task = _make_task(model="claude-sonnet-4-20250514")
         argv = provider._build_argv(task)
         idx = argv.index("--model")
-        # Provider's own default ("sonnet") replaces the legacy literal.
-        assert argv[idx + 1] == "sonnet"
+        # Explicit literal passes through unchanged (no substitution).
+        assert argv[idx + 1] == "claude-sonnet-4-20250514"
 
     def test_read_paths_as_add_dir(self) -> None:
         provider = ClaudeCodeProvider()
