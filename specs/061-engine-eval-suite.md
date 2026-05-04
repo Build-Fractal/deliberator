@@ -489,7 +489,7 @@ These were discovered during spec research and should be the first eval failures
 
 1. **All 4 primary modes** pass smoke tests with mock provider (0 errors, valid JSON) — **ACHIEVED** (24/24 PASS)
 2. **All registered providers** resolve via `resolve_execution_provider` without import errors — **ACHIEVED** (13/13 resolve)
-3. **CLI, MCP, and SDK surfaces** produce structurally identical output for the same input
+3. **CLI, MCP, and SDK surfaces** produce structurally identical output for the same input — **NOT ACHIEVABLE until step 11 lands** (engine-first skill is the prerequisite for cross-surface parity tests in step 12; per the strip-script-061-substeps deliberation 2026-05-01, this dependency is now explicit)
 4. **Quality metrics** score >= baseline - 0.1 on synthesis grounding with anthropic provider
 5. **Known gaps G1, G3/G11, G6** resolved and covered by regression tests — **ACHIEVED** (3/12 fixed)
 6. **Eval suite runs in CI** — smoke tests on every push, quality evals on release tags
@@ -500,7 +500,11 @@ These were discovered during spec research and should be the first eval failures
 
 ## 7. Implementation Order
 
-Steps 1-4 are complete. Remaining work starts at step 5.
+**Progress (2026-05-03)**: Steps 1-4 complete (smoke baseline). Steps 9 (PR #100), 10 annotation only (PR #101 + #109), 14a persistence sub-item (PR #106) complete. Step 13 DONE WITH OPEN GAPS (PR #102 closed the iterations=3 dispatch/naming/events tests; the §3.1.9 cost estimate and influence output heading sub-rows are open and tracked as GitHub issues per the strip-script-061-substeps deliberation 2026-05-01).
+
+**Open**: Steps 5, 6, 7, 8, 11, 12, 14b (CI/CD exit codes — blocked on spec 048's gate command), 14c (combinatorial matrix). Step 12 is BLOCKED on step 11; SC #3 (composability invariants verified) is unreachable until step 11 lands.
+
+**P1 open bugs**: G2 (target path doubling), G12 (VALID_PROVIDERS hardcoded). Both gate step 6 closure.
 
 1. ~~Install promptfoo + deepeval, create `evals/` directory~~ **DONE**
 2. ~~Write promptfoo config — Python custom provider, 4 modes × 6 tests~~ **DONE** (24/24 PASS)
@@ -511,15 +515,17 @@ Steps 1-4 are complete. Remaining work starts at step 5.
 7. **Write deepeval quality tests** — use `run_pipeline` for intermediate artifacts. Calibrate thresholds from first baseline run (baseline - 0.1 margin).
 8. **Save baseline snapshots** for 5 standard test questions across all modes
 9. ~~**Settings cascade tests** — provider key at all 5 levels, env var type coercion. Requires `clean_settings` conftest fixture (P0 infrastructure).~~ **DONE** (PR #100): 14 tests in `TestProviderAllFiveLevels` + `TestEnvVarTypeCoercion` + `TestCleanSettingsFixtureInvariants`; `clean_settings` fixture at `engine/tests/conftest.py:81`; lockstep test against `engine/settings._ENV_VAR_FOR_FIELD` prevents env-var drift.
-10. ~~**Add eval commands to CI workflow** — specify runner requirements: Python 3.12, Node 18, API key secrets provisioning~~ **DONE** (PR #101): three-tier `.github/workflows/evals.yml` — `smoke` (mock, every push), `quality` (Ollama, dispatch+tags), `deepeval` (Anthropic judge, dispatch+tags) with `ANTHROPIC_API_KEY` secret guard + workflow_dispatch `run_deepeval` input.
-11. **Build engine-first skill** wrapping CLI (replaces agent-dispatch SKILL.md)
-12. **Cross-surface parity tests** — CLI vs MCP vs SDK output comparison (inner content parity)
-13. ~~**Multi-round, arbiter, and iteration tests** — rounds=2 convergence, rounds=3 stagnation, arbiter trigger conditions, iterations=3 cycle count~~ **DONE** (PR #102 closes the iterations=3 gap; pre-existing coverage in `test_phases.py` covers the rest):
-    - rounds=2 convergence: `test_pipeline_result_has_round_fields` (rounds=2, [2,0] → `termination_reason="converged"`)
-    - rounds=3 stagnation: `test_stagnation_detection` (rounds=3, [2,2] → `termination_reason="stagnation"`)
-    - arbiter triggers: `test_always_trigger`, `test_disputes_remain_trigger_with_disputes`, `test_disputes_remain_trigger_no_disputes`
-    - iterations=3: new `test_three_iterations_dispatch_counts` / `_revision_naming` / `_events` (PR #102) — pin 6 cross-reviews, 6 revisions, revision.md/_2/_3 file naming, no _1 or _4 boundaries.
-14. **Governance exit codes, persistence round-trip, combinatorial matrix** — CI/CD exit code scheme, persist→list→show, 6 cross-axis smoke combinations
-    - **persist→list→show round-trip**: PARTIALLY DONE (PR #106) — `TestPersistListShowRoundTrip` (3 tests) pins the slug-as-public-id contract end-to-end: single round-trip with synthesis read-back, multi-deliberation round-trip with no cross-contamination, post-cleanup round-trip showing pruned runs disappear from list while survivors remain readable.
-    - **CI/CD exit code scheme**: scheme SELECTION covered by `TestExitCodeSchemeResolution` in `test_cli_context.py`; actual 0/1/2/3 EMISSION (0=PASS, 1=BLOCK, 2=ERROR, 3=META_DISPUTE) is blocked on spec 048's gate command landing — there is currently no CLI handler that emits structured codes.
-    - **6 cross-axis smoke combinations**: not yet implemented — would exercise {provider} × {mode} × {persistence} permutations as a combinatorial matrix. Mock provider + parametrized fixtures sufficient (no API credits needed).
+10. ~~**Add eval commands to CI workflow** — specify runner requirements: Python 3.12, Node 22 LTS (spec said Node 18 — Node 18 EOL April 2025; Principle XIV deprecation discipline applies), API key secrets provisioning~~ **DONE**: PR #83 established the smoke tier (mock, every push); PR #101 added the `quality` tier (Ollama, dispatch+tags) and `deepeval` tier (Anthropic judge, dispatch+tags) and `workflow_dispatch` inputs (`run_ollama`, `run_deepeval`) and the `ANTHROPIC_API_KEY` secret guard. Annotation correction per the strip-script-061-substeps deliberation 2026-05-01.
+11. **Build engine-first skill** wrapping CLI (replaces agent-dispatch SKILL.md). **OPEN** (issue #111). Blocks step 12 + SC #3.
+12. **Cross-surface parity tests** — CLI vs MCP vs SDK output comparison (inner content parity). **BLOCKED on step 11**.
+13. **Multi-round, arbiter, and iteration tests** — rounds=2 convergence, rounds=3 stagnation, arbiter trigger conditions, iterations=3 cycle count. **DONE WITH OPEN GAPS** (PR #102 closed three sub-rows; two §3.1.9 sub-rows open per the strip-script-061-substeps deliberation 2026-05-01):
+    - rounds=2 convergence: `test_pipeline_result_has_round_fields` (rounds=2, [2,0] → `termination_reason="converged"`) — DONE.
+    - rounds=3 stagnation: `test_stagnation_detection` (rounds=3, [2,2] → `termination_reason="stagnation"`) — DONE.
+    - arbiter triggers: `test_always_trigger`, `test_disputes_remain_trigger_with_disputes`, `test_disputes_remain_trigger_no_disputes` — DONE.
+    - iterations=3 dispatch/naming/events: PR #102 — `test_three_iterations_dispatch_counts` / `_revision_naming` / `_events` pin 6 cross-reviews, 6 revisions, revision.md/_2/_3 naming. DONE.
+    - **OPEN** (issue #109): §3.1.9 `iterations=3` cost estimate assertion (`TestCostEstimate` variant in `engine/tests/test_sdk.py` asserting `cost_estimate["cross_review"] == 6`).
+    - **OPEN** (issue #110): §3.1.9 `influence="advisory"` output heading test (in `engine/tests/test_phases.py::TestArbitration` — runs the pipeline and asserts heading differences in `arbitration/resolution.md`).
+14. **Governance exit codes, persistence round-trip, combinatorial matrix** — CI/CD exit code scheme, persist→list→show, 6 cross-axis smoke combinations. **REVISE** — the persistence sub-item shipped (PR #106) but the bundled step is NOT closed; CI/CD exit codes and the combinatorial matrix have no tracking infrastructure yet. Verdict updated MATCH→REVISE per the strip-script-061-substeps deliberation 2026-05-01 (Convergence §6).
+    - **persist→list→show round-trip**: DONE (PR #106) — `TestPersistListShowRoundTrip` (3 tests) pins the slug-as-public-id contract end-to-end: single round-trip with synthesis read-back, multi-deliberation round-trip with no cross-contamination, post-cleanup round-trip showing pruned runs disappear from list while survivors remain readable. Note: persistence sub-item delivery does NOT close step 14.
+    - **CI/CD exit code scheme** (issue #112): scheme SELECTION covered by `TestExitCodeSchemeResolution` in `test_cli_context.py`. Actual emission (0=PASS, 1=BLOCK, 2=ERROR, 3=META_DISPUTE, 4=WARNING per spec 048 §5) is blocked on spec 048's gate command landing.
+    - **6 cross-axis smoke combinations** (issue #113): not yet implemented. Would exercise {provider} × {mode} × {persistence} permutations as a combinatorial matrix; mock provider + parametrized fixtures sufficient (no API credits needed).
