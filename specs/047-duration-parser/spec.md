@@ -301,9 +301,9 @@ Spec 048 (autonomous governance) includes SLA-style rules in constitutions: "PR 
 - Update all affected tests (the 10 cases added in Bug #4 fix plus any new behavioral tests)
 
 ### Phase 5: Downstream integration (~2 days, separate follow-up)
-- Negotiation mode `AgentFeatures` fields for time-ranged ZOPA
-- Scenario storage queries on structured durations
-- Commentator agent access to deliberation timing
+- ~~Negotiation mode `AgentFeatures` fields for time-ranged ZOPA~~ **Sub-integration #1 DONE** (PR #126): `AgentFeatures.{reservation,aspiration}_duration_seconds` + `temporal_zopa_overlap`; `RoundFeatures.temporal_zopa_size_seconds`. 9 tests in `conversus/schemas/tests/test_features_temporal_zopa.py` covering schema additions + Duration parser integration.
+- Scenario storage queries on structured durations (Phase 5 sub-integration #2 — pending)
+- Commentator agent access to deliberation timing (Phase 5 sub-integration #3 — pending)
 - Defer governance SLA enforcement to spec 048
 
 ---

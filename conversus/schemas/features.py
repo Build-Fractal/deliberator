@@ -74,6 +74,17 @@ class AgentFeatures(BaseModel):
     reservation_price: float = 0.0
     aspiration_price: float = 0.0
 
+    # Negotiation-specific — time-ranged ZOPA (spec 047 Phase 5
+    # sub-integration #1). Values in seconds for engine independence;
+    # callers convert from `Duration.as_seconds()` (the parser output
+    # for temporal constraints in agent positions). Default 0.0 means
+    # "no temporal constraint extracted" — the agent's negotiation
+    # position carries no time bound. This default mirrors the
+    # missing-phase graceful-degrade pattern (FR-003).
+    reservation_duration_seconds: float = 0.0
+    aspiration_duration_seconds: float = 0.0
+    temporal_zopa_overlap: float = 0.0
+
     # Resource-allocation specific
     utilization_efficiency: float = 0.0
     allocation_inequality: float = 0.0
@@ -128,6 +139,13 @@ class RoundFeatures(BaseModel):
     # Negotiation-specific aggregates
     zopa_size: float = 0.0
     agreement_efficiency: float = 0.0
+
+    # Negotiation-specific — time-ranged ZOPA aggregate (spec 047
+    # Phase 5 sub-integration #1). Total time-range overlap across
+    # all parties' temporal constraints, in seconds. Computed from
+    # AgentFeatures.reservation_duration_seconds and
+    # aspiration_duration_seconds across the round's agents.
+    temporal_zopa_size_seconds: float = 0.0
 
     # Resource-allocation specific aggregates
     total_utilization: float = 0.0
