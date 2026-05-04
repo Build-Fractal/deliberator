@@ -1,0 +1,126 @@
+I'll explore the deliberation folders and governance log to audit spec 070's closure before writing the review.
+
+Now let me read the CONSTITUTIONAL_CONVERSATIONS.md for the governance log entries and also check PR #99.
+
+Now let me check the presets directory and the spec 067 verification methodology:
+
+Now I have all the information I need. Let me also check the spec 067 methodology spec for key provisions referenced in §6.2:
+
+I now have all the information needed. Let me write the gap-detector review.
+
+---
+
+### Executive Summary
+
+Spec 070 is a governance-meta audit that evaluated Principles VI, X, and XVI against the v2.4.0 Constitutional Inclusion Criteria gate, proposed migration paths for failing principles, and authorized implementation PRs to execute those migrations. The implementations (PRs #95 and #98) and the deferred follow-ups (PRs #103, #104, #105, #107) together constitute the v2.5.0 → v3.1.3 amendment sequence. Closure PR #99 declared all acceptance criteria satisfied on 2026-05-01.
+
+The gap-detector's charge is to assume the closure was premature and find the strongest evidence. The evidence exists. One acceptance criterion — §9 AC #5 and its governing §6.2 — contains a textual requirement ("The blind run MUST include an agent prompt explicitly arguing one or more of VI/X/XVI passes the gate on closer reading and should NOT be migrated") that was never satisfied in either blind deliberation. This is not a matter of interpretation: the conversus.yml files for both blind runs are readable and neither contains such a prompt. The second finding compounds the first: the cycle 2 blind was structurally configured to review the *result* of the VI/X migration (CONSTITUTION-v3.0.0-blind.md, where VI and X are already absent) rather than the *decision* to migrate — making the required contrarian argument physically impossible, not just omitted. Taken together, the one guard rail spec 070 §7 specifically named as the mitigation for "the audit's conclusions are wrong — a principle migrated as 'failing' actually passes on closer reading" was never activated for any of the three principles.
+
+The strongest single recommendation: file a targeted blind deliberation that explicitly seeds one agent with the "passes the gate" contrarian prompt for each of VI, X, and XVI, run against a document that still contains all three (the v2.4.0 grandfathered constitution, pre-cycle-1), before marking spec 070 definitively closed.
+
+---
+
+### Alignment
+
+- **§9.6 governance-log requirement satisfied** (spec 070 §9.6, CONSTITUTIONAL_CONVERSATIONS.md L395–495): Both the cycle 1 (XVI) and cycle 2 (VI/X) deliberations are filed as separate, complete entries in CONSTITUTIONAL_CONVERSATIONS.md — required fields present, verdicts cited, deferred items documented. This requirement was correctly implemented.
+
+- **spec 067 preset discipline followed** (cycle 1 blind conversus.yml L11–22, L89; cycle 2 blind conversus.yml L34–36, L108–110): Both blind deliberations correctly used `preset: devils-advocate` for skeptic agents and `preset: balanced-arbiter` for the arbiter, per spec 070 §6.2's explicit requirement ("using `presets/role/devils-advocate.yml` and `balanced-arbiter.yml`"). The presets directory at `presets/role/` confirms both files exist.
+
+- **Deferred items correctly sequenced and eventually closed** (CONSTITUTIONAL_CONVERSATIONS.md L499–609): Cycle 2B (XXIV/XXV/XXVII Origin note records, PR #103) and cycle 2C (XIX sub-headings, PR #104, #107) were both filed as GitHub issues at v3.0.0 closure, sequenced correctly (2B before 2C), and eventually merged with appropriate PATCH/MINOR classifications. The deferral rationale is documented in the v3.0.0 SIR.
+
+- **Issue #94 disclosed but deferred** (CONSTITUTION.md v2.6.0 SIR, "Disclosure" section; CONSTITUTIONAL_CONVERSATIONS.md L412–413): The terminology collision between Principle IX's "shape test" prohibition and XVI's "shape determinism" usage was surfaced during cycle 1 deliberation, filed as issue #94 with explicit dual-perspective review criteria, and carried as an open item in every subsequent v3.x entry. The disclosure is on record; the deferral rationale is legitimate (terminology rename requires the full v2.3.2 block review per issue acceptance criteria).
+
+---
+
+### Missed Opportunities
+
+- **§9.5 "passes the gate" contrarian agent: absent from cycle 1 blind**. Spec 070 §9 AC #5 states (line 200): "The blind run MUST include an agent prompt explicitly arguing one or more of VI/X/XVI passes the gate on closer reading and should NOT be migrated." Cycle 1 blind (`deliberations/070-cycle1-xvi-blind-2026-05-01/conversus.yml`, L22–89): `skeptic-mathematical` is asked to "argue for the strongest version of 'this principle is logically incoherent or unenforceable as written'"; `skeptic-cross-principle` is asked to "find the strongest argument that one of these principles restates another, or that they conflict, or that they leave a gap." Neither prompt argues XVI passes the gate and should NOT be migrated. The spec 070 §7 risk register (line 180) explicitly identifies this contrarian prompt as "the structural mitigation" for the risk that "a principle migrated as 'failing' actually passes on closer reading." That mitigation was not activated. Impact: **high** — this is a stated acceptance criterion, not implied guidance.
+
+- **§9.5 "passes the gate" contrarian agent: structurally impossible in cycle 2 blind**. Cycle 2 blind (`deliberations/070-cycle2-vi-x-blind-2026-05-01/conversus.yml`) ran against `CONSTITUTION-v3.0.0-blind.md` — a document where VI and X are already absent (gaps at VI and X noted in the conversus.yml comment at L21–27). The agents `numbering-skeptic` and `body-coherence-skeptic` were asked to review the post-migration document. There is no mechanism by which any agent reviewing a document that already lacks Principles VI and X can argue "VI passes the gate and should NOT be migrated." The §9.5 requirement was not merely omitted — the verification was structurally configured so that it could never be satisfied. The mitigation for "the audit's conclusions are wrong" cannot be activated on a document that is already the post-audit implementation. Impact: **high** — the blind deliberation as designed is unable to fulfill its spec-mandated function.
+
+- **Spec 070 §6.2's stated blind target was not used**. Spec 070 §6.2 (line 161) specifies: "Target: the §4 audit with section labels and verdict markers stripped (per spec 067 §4.3.2's stripping recipe), so agents form independent judgments before seeing the spec's conclusion." Both blind deliberations ran against the CONSTITUTION (cycle 1: `CONSTITUTION-v2.6.0-blind.md`; cycle 2: `CONSTITUTION-v3.0.0-blind.md`) rather than against spec 070's §4 audit content stripped of verdict markers. The stated target is "the §4 audit" — i.e., the spec's own audit section — so agents can form independent verdicts on whether VI/X/XVI should migrate before seeing the spec's pre-formed conclusion. Using the downstream constitutional implementation as the target substitutes "verify the implementation is coherent" for "independently verify the migration decisions." These are complementary but not equivalent tests; only the §6.2-specified target satisfies §9 AC #5. Impact: **high** — the blind target substitution is the root cause of the §9.5 contrarian-agent impossibility in cycle 2.
+
+- **Ordering inversion vs. §5.1 rationale**. Spec 070 §5.1 prescribed: VI first (lowest contention, no enforcement substrate), X second, XVI last ("goes last so the easier migrations confirm the methodology before applying it to the high-stakes case"). Implementation reversed this: XVI addressed first in cycle 1 (PR #95, v2.5.0→v2.6.0), VI+X addressed second in cycle 2 (PR #98, v2.6.0→v3.0.0). The rationale for sequencing XVI last was explicit: confirm the migrate-out pattern on lower-contention cases before applying it to the principle with cross-references to VII, v2.3.2 enforcement clauses, and recent spec 068 history. Running XVI first meant the migrate-out methodology (cycle 2) was not preceded by a validated precedent from the simpler cases. The PR #99 commit body does not acknowledge or justify this deviation. Impact: **medium** — the inversion was managed (cycle 1 used a different path, path (c) in-place rewrite, not migrate-out), but the §5.1 ordering rationale was never acknowledged as departed from.
+
+- **Re-verification after cycle 1 and cycle 2 ACCEPT fixes: not documented as run**. Spec 067 §4.4 (line 100): "when ACCEPT-level findings are folded into the implementation PR, the affected methodology MUST be re-run before merge." Both blind deliberations produced PASS WITH FIXES verdicts with P1 required changes. CONSTITUTIONAL_CONVERSATIONS.md entries for cycle 1 (L409) and cycle 2 (L456) note "Both deliberations PASS WITH FIXES" and list required changes applied — but neither entry includes a "Re-verification" sub-section as spec 067 §4.5 requires (line 108: "Re-verification status (when the implementation PR included fixes): whether re-verification ran, what its verdict was, what its cost was"). No cycle 1 or cycle 2 CONSTITUTIONAL_CONVERSATIONS.md entry contains a "Re-verification" sub-section. Impact: **medium** — spec 067 §4.4's re-verification requirement may have been met in practice but cannot be verified from the governance log.
+
+- **Cycle 2B/2C deferred while formally within cycle 2 blind's acceptance requirements**. The cycle 2 blind arbiter (resolution.md) issued a MUST prescription on retroactive Origin note amendments for XXIV, XXV, XXVII (Dispute 4, Prescription strength: MUST). The CONSTITUTIONAL_CONVERSATIONS.md cycle 2 entry (L460–462) acknowledges this ruling but defers it to cycle 2B as a "follow-up item." Spec 067 §4.4 acceptance bar is "0 ACCEPT-level findings on the amendment itself." The cycle 2 blind arbiter ruled MUST (not DEFER) on the retroactive Origin notes — treating them as P1 required changes. Deferring a binding arbiter MUST ruling to a follow-up PR satisfies spec 067 only if the PR is explicitly a "PASS WITH FIXES" where fixes are applied before merge. PR #98 merged without the Origin note amendments; they landed weeks later in PR #103. Impact: **medium** — the gap is acknowledged in the cycle 2 entry, but deferring binding MUST findings from the blind arbiter is a spec 067 §4.4 boundary case the entry does not resolve explicitly.
+
+- **Issue #94 scope ambiguity not resolved at closure**. Issue #94 (v2.3.2 "shape" → "assembly-form" terminology rename) was spawned by spec 070's cycle 1 deliberation (cycle 1 blind summary, Dispute 3, "Shape Determinism Rename," lines 187–191). It remains open as of v3.1.3. The spec 070 §9 acceptance criteria do not name issue #94 explicitly, but §9.7 requires "Implementation PR(s) are filed... and proceed through their own spec 067 verification." If the rename is considered part of the cycle 1 implementation's required changes (the blind arbiter found it uncontested and recommended adoption), then PR #95 did not fully implement the blind verdict. CONSTITUTIONAL_CONVERSATIONS.md cycle 1 entry (L413) lists issue #94 as "pending" but does not resolve whether it is a cycle 1 required change or a separate follow-up. Impact: **low** — the rename is a terminology cleanup with no normative implication, but its status as "required by cycle 1 blind verdict vs. optional follow-up" is unresolved.
+
+---
+
+### Off-Base Assumptions
+
+- **Assumption: both blind deliberations satisfied spec 070 §6.2's agent requirement**. PR #99's commit body (commit a008040): "Blind verification: cycle 1 + cycle 2 blind both PASS WITH FIXES." This characterization is accurate for the verdict line but implicitly claims the §6.2 agent composition requirement was met. It was not. Spec 070 §6.2 (line 162) requires one skeptic agent to "specifically argue that one or more of VI/X/XVI passes the gate on closer reading and should NOT be migrated." Neither blind deliberation's conversus.yml contains this prompt. A "PASS WITH FIXES" verdict records what the arbiter found; it does not certify that the deliberation was configured per spec. The PR body conflates "the deliberation ran and produced a PASS verdict" with "the deliberation satisfied spec 070's design requirements for blind verification."
+
+- **Assumption: cycle 2 blind can verify the VI/X migration decision by reviewing the post-migration constitution**. The cycle 2 blind conversus.yml comment (L21–27) acknowledges that "the blind candidate has principle gaps at VI and X" and frames the review as asking whether "the gaps are intentional or evidence of incomplete editing." This frames the verification question as "is the post-migration document coherent?" — not "was the decision to migrate correct?" Spec 070 §6.2 requires independent judgment on the §4 audit conclusions, which are the migration decisions themselves. Reviewing a document where the migration is already a fait accompli tests implementation coherence, not decision correctness. These are different questions, and the spec's stated purpose for the blind run — "agents form independent judgments before seeing the spec's conclusion" — is not served by a review of the post-conclusion document.
+
+- **Assumption: PR #99 could self-certify spec 070 closure without a verification pass**. Spec 067 §4.6 is about test-fix discipline during verification deliberations (line 119–136), not spec closure. So the self-attestation in PR #99 does not technically violate §4.6. However, spec 070 §9 lists five acceptance criteria whose satisfaction required external evidence (§9.4 self-consistency 0 ACCEPT, §9.5 blind run with contrarian agent, §9.6 governance log entries, §9.7 implementation PRs). The commit body asserts "all satisfied" without referencing any artifact that demonstrates §9.5 was met. The governance log entries (§9.6) are verifiable; §9.5 is not demonstrated by the commit body or the conversus.yml files.
+
+---
+
+### Actionable Recommendations
+
+1. **Run a targeted blind deliberation with the required "passes the gate" contrarian agent** (Priority: P1)
+   - **Current state**: Neither cycle 1 nor cycle 2 blind included an agent explicitly arguing VI, X, or XVI passes the gate and should NOT be migrated (spec 070 §6.2, line 162; §9 AC #5, line 200).
+   - **Proposed change**: Configure a new blind deliberation with at minimum one agent whose prompt explicitly takes the position: "One or more of the principles marked as retiring or restructured in this constitution (specifically VI, X, XVI, or any of them individually) actually passes the v2.4.0 Constitutional Inclusion Criteria gate on closer reading. The migration/rewrite was premature. Find the strongest version of this argument." Ground the agent against the v2.4.0-era constitution (pre-cycle-1 migrations) so the arguments have concrete targets. Run the arbiter against this document. File the deliberation outcome in CONSTITUTIONAL_CONVERSATIONS.md.
+   - **Rationale**: Spec 070 §7 (line 180) named this as the "structural mitigation" for the risk that audit conclusions are wrong. The mitigation was never activated. Spec 070 §9 AC #5 makes this an explicit acceptance criterion.
+   - **Risk if ignored**: Spec 070's closure remains uncertified against its own acceptance criteria. More importantly, the constitutional precedent for migrate-out (now cited in the v3.0.0 SIR as the canonical example) was established without the adversarial stress-test the spec mandated. Future migrate-out deliberations that cite v3.0.0 as precedent will inherit the gap.
+
+2. **Reopen spec 070 until the §9.5 blind deliberation is filed and passes** (Priority: P1)
+   - **Current state**: Spec 070 moved to `specs/done/` in PR #99 (commit a008040, 2026-05-01). PR body asserts "all acceptance criteria satisfied."
+   - **Proposed change**: Reopen spec 070 (move back to `specs/`) or file an explicit follow-up spec that resolves the §9.5 gap. Do not leave the `specs/done/` placement as an implicit certification of §9 AC #5 satisfaction.
+   - **Rationale**: `specs/done/` communicates that all acceptance criteria were met. One was not. Future amendment cycles that cite spec 070 as complete will not check whether the adversarial blind deliberation ran.
+   - **Risk if ignored**: The governance record permanently overstates what was verified for the most significant constitutional precedent (removal of principles VI and X) in the v3.x line.
+
+3. **Document explicitly in CONSTITUTIONAL_CONVERSATIONS.md why cycle 2 blind used the post-migration document** (Priority: P1)
+   - **Current state**: CONSTITUTIONAL_CONVERSATIONS.md cycle 2 entry (L448–495) describes the blind deliberation without acknowledging that running it against a post-migration document prevents satisfying the §9.5 contrarian requirement.
+   - **Proposed change**: Add a note to the cycle 2 entry: "Note: the cycle 2 blind target was CONSTITUTION-v3.0.0-blind.md (post-migration). Per spec 070 §6.2 and §9 AC #5, a blind deliberation with a 'passes the gate' contrarian agent was required. That requirement cannot be satisfied by reviewing a post-migration document where VI and X are already absent. This gap must be closed by a supplemental blind deliberation run against the pre-cycle-1 constitution."
+   - **Rationale**: Leaving the cycle 2 CONSTITUTIONAL_CONVERSATIONS.md entry silent on this structural inversion allows future readers to conclude §9.5 was satisfied by the cycle 2 blind verdict.
+   - **Risk if ignored**: The governance log is inaccurate about what was verified, in direct violation of Principles IV and XI.
+
+4. **Add re-verification sub-sections to cycle 1 and cycle 2 CONSTITUTIONAL_CONVERSATIONS.md entries** (Priority: P2)
+   - **Current state**: Neither cycle 1 nor cycle 2 CONSTITUTIONAL_CONVERSATIONS.md entry includes the spec 067 §4.5-required "Re-verification" sub-section documenting whether the affected methodology was re-run after ACCEPT fixes were applied.
+   - **Proposed change**: Append a "Re-verification" sub-section to each entry. If re-verification was not run (which the commit history suggests — PRs #95 and #98 merged directly after fixes), document that explicitly with acknowledgment of the spec 067 §4.4 obligation.
+   - **Rationale**: Spec 067 §4.5 (line 108) requires: "Re-verification status (when the implementation PR included fixes): whether re-verification ran, what its verdict was, what its cost was."
+   - **Risk if ignored**: The same re-verification gap that spec 067 §4.4 (line 102) acknowledged retroactively for spec 068 and 069 is repeated here without acknowledgment. The pattern of merging PASS WITH FIXES without re-verification remains undocumented as a methodology violation.
+
+5. **Resolve the scope question for issue #94 before citing cycle 1 as complete** (Priority: P2)
+   - **Current state**: Issue #94 ("shape" → "assembly-form" terminology rename) is open. The cycle 1 blind summary (Dispute 3, "Shape Determinism Rename," lines 187–191) found it uncontested and recommended adoption. CONSTITUTIONAL_CONVERSATIONS.md cycle 1 entry (L413) lists it as "pending" without classifying it as "required by blind verdict" vs. "optional follow-up."
+   - **Proposed change**: Explicitly classify issue #94 in the cycle 1 entry as either (a) a required blind-verdict change deferred with documented rationale, or (b) a follow-up recommendation outside the required-changes scope. If (a), the spec 067 §4.4 acceptance bar is not met for cycle 1 until #94 closes.
+   - **Rationale**: The blind arbiter's "Required changes" section in cycle 1 resolution.md lists four items. Issue #94 arose from the same deliberation but was classified neither as required nor as explicitly optional. The ambiguity prevents clean audit of cycle 1 completion.
+   - **Risk if ignored**: Future implementers cannot determine whether cycle 1 satisfied spec 067 §4.4 without re-reading the full blind deliberation summary.
+
+6. **Document the ordering deviation from §5.1 in CONSTITUTIONAL_CONVERSATIONS.md** (Priority: P2)
+   - **Current state**: Spec 070 §5.1 prescribed XVI last ("goes last so the easier migrations confirm the methodology before applying it to the high-stakes case"). Implementation reversed this. The CONSTITUTIONAL_CONVERSATIONS.md entries for cycle 1 and cycle 2 do not acknowledge the ordering deviation.
+   - **Proposed change**: Add a sentence to either the cycle 1 or cycle 2 entry: "Implementation ordering diverged from spec 070 §5.1's prescribed sequence (VI → X → XVI). XVI was addressed first via path (c) in-place rewrite rather than migrate-out; VI/X migrate-out followed. This was a different operation type (rewrite vs. remove), not the high-contention case §5.1 was warning about, but the departure from prescribed ordering is undocumented."
+   - **Rationale**: The ordering was defensible (path (c) is categorically different from migrate-out), but undocumented deviations from spec prescriptions create ambiguity in the precedent record.
+   - **Risk if ignored**: Future amendments that cite spec 070 §5.1 as ordering guidance will see that the actual implementation deviated without explanation, undermining the ordering principle's authority.
+
+7. **Clarify cycle 2B deferral against spec 067 §4.4 acceptance bar** (Priority: P2)
+   - **Current state**: The cycle 2 blind arbiter issued a MUST ruling on retroactive Origin note amendments for XXIV, XXV, XXVII (Dispute 4). PR #98 merged without these amendments. They landed in PR #103.
+   - **Proposed change**: In the cycle 2 CONSTITUTIONAL_CONVERSATIONS.md entry (L460), explicitly state whether the deferral of the MUST ruling to cycle 2B constitutes a spec 067 §4.4 exception (deferred ACCEPT finding with follow-up committed) or a methodology violation. If a justified exception, cite the precedent (the 2026-04-26 spec 068/069 grandfathering note at spec 067 §4.4 line 102 applies only to already-merged PRs, which this was before the ruling was logged).
+   - **Rationale**: Spec 067 §4.4 says "0 ACCEPT-level findings on the amendment itself." The blind arbiter classified the Origin note amendments as MUST (P1), which the synthesizer also endorsed as MUST in Dispute 4. Deferring a P1 MUST finding to a follow-up PR is an acknowledged risk that needs explicit documentation in the governance log.
+   - **Risk if ignored**: The pattern of deferring binding arbiter MUST rulings to follow-up PRs is normalized without documentation, weakening spec 067's acceptance bar.
+
+8. **Add the "contrarian-agent required" check to the spec 067 verification checklist for future amendment cycles** (Priority: P3)
+   - **Current state**: Spec 067 §4.3 (line 66) says "Blind-run agent prompts SHOULD include explicit instructions to consider removing principles that don't earn their keep." It does not codify the specific "passes the gate" contrarian requirement that spec 070 §6.2 and §9 AC #5 added for this specific migration use case.
+   - **Proposed change**: Add to spec 067 §4.3: "For amendment cycles that propose migrating a principle to operational guidance (migrate-out), at least one blind agent MUST be explicitly prompted to argue the principle under review passes the Constitutional Inclusion Criteria gate on closer reading and should NOT be migrated. This is the structural mitigation against premature migrate-out decisions."
+   - **Rationale**: Spec 070 §7 added this as an ad-hoc mitigation; generalizing it to spec 067 ensures future migrate-out cycles inherit the protection without having to rediscover it.
+   - **Risk if ignored**: The next migrate-out cycle (if Principles XI, XII, or others ever come under review) may repeat the same structural gap.
+
+---
+
+### Referenced Documentation
+
+- `specs/done/070-grandfathered-audit/spec.md` — §6.2 (L161–163), §7 risk register (L180), §9 AC #5 (L200)
+- `deliberations/070-cycle1-xvi-blind-2026-05-01/conversus.yml` — L11 (devils-advocate preset note), L22–89 (skeptic-mathematical and skeptic-cross-principle agent prompts)
+- `deliberations/070-cycle2-vi-x-blind-2026-05-01/conversus.yml` — L21–27 (comment on numbering gaps), L34–36, L108–110 (agent preset declarations), L130 (only "migrate" occurrence — historical context, not contrarian argument)
+- `deliberations/070-cycle1-xvi-blind-2026-05-01/summary/final.md` — L187–191 (Shape Determinism Rename dispute)
+- `deliberations/070-cycle2-vi-x-blind-2026-05-01/summary/final.md` — L103–105 (retroactive Origin notes MUST vs. SHOULD), L208–210 (Prescription strength dispute)
+- `deliberations/070-cycle1-xvi-blind-2026-05-01/arbitration/resolution.md` — L1–60 (verdict and required changes)
+- `deliberations/070-cycle2-vi-x-blind-2026-05-01/arbitration/resolution.md` — L1–60 (Dispute 4 ruling on MUST prescription)
+- `CONSTITUTIONAL_CONVERSATIONS.md` — L395–441 (cycle 1 entry), L442–495 (cycle 2 entry), L499–553 (cycles 2B and 2C entries)
+- `specs/067-verification-methodology/spec.md` — §4.3.1 (L77–88), §4.4 (L91–104), §4.5 (L106–117)
+- `CONSTITUTION.md` — Governance § Constitutional Inclusion Criteria (grandfathering paragraph), Principle VI tombstone, Principle X tombstone

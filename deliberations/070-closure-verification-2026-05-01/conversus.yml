@@ -1,0 +1,255 @@
+mode: cooperative
+output: ./
+rounds: 1
+
+# Spec 070 closure verification (post-hoc).
+#
+# Spec 070 was closed in PR #99 by self-attestation: the orchestrator
+# marked all 7 acceptance criteria satisfied based on its own claim
+# that PRs #95 + #98 + #103 + #104 + #105 + #107 delivered them. No
+# spec 067 verification was run on the closure itself. The cycle 1+2
+# deliberations covered the audit verdicts but not "did the
+# implementation match the audit."
+#
+# Question for this deliberation:
+#   For each of spec 070's three audit targets (Principles VI, X,
+#   XVI), does the actual implementation in CONSTITUTION.md (and the
+#   migrated content in CONTRIBUTING.md and docs/output-conventions.md)
+#   match what the spec 070 audit verdicts prescribed?
+#
+# Acceptance bar: 0 ACCEPT-level findings on substantive divergence
+# between audit prescription and implementation. PASS or PASS WITH
+# FIXES are both acceptable; FAIL means the closure was premature
+# and follow-up work is needed.
+
+target:
+  - ../../specs/done/070-grandfathered-audit/spec.md
+  - ../../CONSTITUTION.md
+  - ../../CONTRIBUTING.md
+  - ../../docs/output-conventions.md
+
+agents:
+  - name: audit-faithfulness
+    preset: pragmatist
+    prompt: |
+      You audit whether the implementation matches the prescription
+      for each of spec 070's three target principles.
+
+      Read spec 070's §4 per-principle audit:
+        - §4.1 Principle VI (Scripts Over Markdown)
+        - §4.2 Principle X (Zen of Python Output)
+        - §4.3 Principle XVI (Mathematical Transparency)
+
+      For each principle, identify the audit's prescribed remediation
+      (migrate-out target document, content to preserve, normative
+      strength expected, etc.). Then read the current state of:
+        - CONSTITUTION.md (for VI: confirm removal + tombstone; for X:
+          same; for XVI: confirm path (c) headline rewrite)
+        - CONTRIBUTING.md (for VI's migrated content)
+        - docs/output-conventions.md (for X's migrated content)
+
+      For each principle, report:
+
+      1. Prescribed remediation per spec 070 §4.
+      2. What was actually implemented (cite file + line).
+      3. Match / partial-match / divergence verdict.
+
+      Specifically check:
+
+      A. **VI migration**: spec 070 §4.1 prescribes migration to
+         CONTRIBUTING.md with the three sub-bullets preserved
+         (orchestration logic in SKILL.md/templates, configuration
+         in YAML, markdown for human orientation). Are all three
+         sub-bullets in CONTRIBUTING.md? Verbatim or paraphrased?
+         If paraphrased, is normative strength preserved?
+
+      B. **X migration**: spec 070 §4.2 prescribes migration to
+         docs/output-conventions.md with the four (or five) sub-
+         bullets preserved (predictable output tree, flat
+         hierarchies, warnings for malformed output, sparse
+         content). Are all preserved?
+
+      C. **XVI rewrite**: spec 070 §4.3 prescribes the Option A
+         path (c) headline rewrite — reduce headline to ONE
+         structural invariant (parameter pinning) and relocate
+         stage-3 to attribute its guarantee to other principles.
+         Did v2.6.0 (PR #95) deliver this? Cite the current XVI
+         headline and the stage-3 attribution.
+
+      D. **Cross-reference cleanup**: spec 070's audit verdicts
+         expected zero body-text references to VI or X after
+         removal. Search the current CONSTITUTION.md body
+         (NOT SIRs) for "Scripts Over Markdown", "Zen of Python",
+         "Principle VI", "Principle X". Report any findings.
+
+      E. **Tombstones**: V3.0.0 added tombstones at original
+         positions for VI and X. Confirm tombstones are present
+         and reference the migration target.
+
+      Report findings as ACCEPT (substantive divergence requiring
+      fix), REVISE (minor divergence acceptable as follow-up), or
+      MATCH (faithful implementation).
+
+  - name: gap-detector
+    preset: devils-advocate
+    prompt: |
+      You search for gaps between spec 070's audit verdicts and the
+      actual implementation across PRs #95, #98, #103, #104, #105,
+      #107. Adopt the contrarian position: assume the closure was
+      premature and find evidence to support that.
+
+      Read spec 070's §6 verification requirements and §9 acceptance
+      criteria. Then audit the closure (PR #99) and the chain of
+      implementation PRs.
+
+      Specifically check:
+
+      1. **§9.5 blind verification requirement**: "Blind verification
+         (per §6.2, using `presets/role/devils-advocate.yml` and
+         `balanced-arbiter.yml`): 0 ACCEPT-level findings on the
+         per-principle verdicts. The blind run MUST include an
+         agent prompt explicitly arguing one or more of VI/X/XVI
+         passes the gate on closer reading and should NOT be
+         migrated."
+
+         Did the cycle 1 (XVI) and cycle 2 (VI/X) blind deliberations
+         include such a prompt? Read the deliberations folders:
+           - deliberations/070-cycle1-xvi-blind-2026-05-01/
+           - deliberations/070-cycle2-vi-x-blind-2026-05-01/
+         Find the contrarian "passes the gate" agent prompt in each.
+         If absent, that's an §9.5 violation.
+
+      2. **§9.6 governance log requirement**: "Both verification
+         deliberations filed in CONSTITUTIONAL_CONVERSATIONS.md."
+         Confirm both cycle 1 and cycle 2 entries are present in
+         the governance log. Cite line numbers.
+
+      3. **§9.7 implementation PR requirement**: "Implementation
+         PR(s) are filed (one per principle, or a single bundled
+         PR per the §5 ordering) and proceed through their own
+         spec 067 verification independent of this spec."
+
+         Spec 070's §5 prescribed an ordering. Was that ordering
+         followed? Was each implementation PR independently
+         verified per spec 067? If a single bundled PR was used
+         instead of per-principle PRs, was that bundling
+         pre-authorized by spec 070 §5.1?
+
+      4. **Closure premature?**: PR #99 closed spec 070 on
+         2026-05-01 the same day as the cycle 2A v3.0.0 PR (#98)
+         landed. Cycle 2B (#103) and cycle 2C (#104, #107) were
+         filed as DEFERRED ITEMS at closure time, not as part of
+         the spec 070 implementation. Argue that these deferred
+         items were actually within spec 070's scope and that
+         closing the spec while leaving them open was premature.
+
+      5. **Issue #94 status**: spec 070 cycle 1 spawned issue #94
+         (v2.3.2 "shape" terminology rename). #94 is still open as
+         of closure. Argue that #94 is also within spec 070's
+         scope — the cycle 1 audit identified the terminological
+         collision; the rename closes the audit's identified
+         problem. If #94 is in scope, closure is premature.
+
+      6. **Self-attestation hazard**: PR #99's body says "Spec 070
+         acceptance criteria all satisfied" without external
+         verification. Spec 067 §4.6 (added 2026-04-29) requires
+         the 4-subagent investigation pattern as canonical first
+         response when verification surfaces failing tests — does
+         that pattern apply to spec closure too? If so, PR #99
+         should have run a verification pass before closing.
+
+      Find the strongest argument that the closure was premature.
+      If you cannot, say so explicitly with line references.
+
+  - name: implementation-pragmatist
+    preset: pragmatist
+    prompt: |
+      You audit from the practical-engineering perspective: did the
+      implementation deliver the user-visible value spec 070
+      promised? Strict-process violations matter only if they affect
+      whether the constitution and the migrated docs actually
+      function for the contributors and skill-orchestrators that
+      consume them.
+
+      Specifically:
+
+      1. **Constitution coherence post-removal**: read CONSTITUTION.md
+         end-to-end (or skim, since you have target-file access).
+         Does the principle list flow correctly from V to VII (with
+         VI tombstoned)? From IX to XI (with X tombstoned)? Are
+         there any orphaned references, broken cross-links, or
+         numbering anomalies a reader would trip over?
+
+      2. **CONTRIBUTING.md usability**: read the migrated VI section.
+         If a new contributor reads it, would they understand:
+           - When to use scripts vs markdown
+           - The three substantive sub-bullets from original VI
+           - That this is operational guidance (not a constitutional
+             principle) and the SHOULD strength is appropriate
+         Is the section discoverable from the README or constitution?
+
+      3. **docs/output-conventions.md usability**: same questions
+         for the migrated X content.
+
+      4. **Pathway taxonomy in governance log**: cycles 2A/2B/2C
+         and the v3.1.2 elaboration logged 4 pathways in the
+         governance log. Is that documentation comprehensible to
+         a reader who wasn't in the deliberations? Or is it
+         insider-reference-only material?
+
+      5. **Closure verification gap**: spec 070 was closed by
+         self-attestation. From a pragmatic standpoint, does that
+         matter? Argue either:
+           (a) Self-attestation is fine when the deliverables are
+               objectively verifiable from artifacts (file
+               existence, content checks, version footer); a
+               deliberation cycle on the closure would be
+               ceremonial rather than informative.
+           OR
+           (b) Self-attestation by the implementer creates a
+               conflict-of-interest problem — the implementer is
+               unlikely to find their own gaps. An external
+               verifier would catch divergences the implementer
+               missed.
+
+         Take whichever position the evidence supports.
+
+      6. **Outstanding deferred items**: spec 070 closed with
+         issue #94 still open and the P3 XIX migration eligibility
+         note deferred without a tracking issue. Are these
+         outstanding items at risk of being lost? If so, propose
+         a tracking mechanism.
+
+      Report findings with concrete cite-and-quote evidence.
+
+arbiter:
+  name: spec-070-closure-arbiter
+  preset: balanced-arbiter
+  prompt: |
+    You rule on findings raised by audit-faithfulness, gap-detector,
+    and implementation-pragmatist. Your grounding is spec 070's
+    spec.md (in specs/done/070-grandfathered-audit/) and the actual
+    implementation files (CONSTITUTION.md, CONTRIBUTING.md,
+    docs/output-conventions.md).
+
+    For each finding:
+    - **ACCEPT**: real defect requiring follow-up PR.
+    - **REJECT**: false positive or wrong-target.
+    - **DEFER**: real but appropriately deferred to a future cycle
+      (e.g., issue #94's dual-perspective review).
+
+    Rule on the overall question: did the spec 070 closure (PR #99)
+    accurately reflect that all 7 acceptance criteria were satisfied?
+
+    Conclude with a verdict line:
+    - "SPEC-070-CLOSURE VERDICT: VALID" (closure stands; no follow-up)
+    - "SPEC-070-CLOSURE VERDICT: VALID WITH FOLLOW-UP" (closure
+      stands; specific follow-up items needed; do not reopen the spec)
+    - "SPEC-070-CLOSURE VERDICT: PREMATURE — REOPEN" (closure was
+      wrong; reopen spec 070 and complete the missing work before
+      re-closing)
+
+  grounding: ../../specs/done/070-grandfathered-audit/spec.md
+  trigger: always
+  timing: final
+  influence: binding

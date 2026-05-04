@@ -1,0 +1,77 @@
+### Recommendation Dispositions
+
+#### Recommendation 1: File iterations=3 cost-estimate issue
+
+- **Original position**: File a GitHub issue and add a parametrized `TestCostEstimate` variant in `test_sdk.py` asserting that `cost_estimate["cross_review"] == 6` for `iterations=3`.
+- **Disposition**: Surviving
+- **Explanation**: The sub-step-skeptic (Tensions §4: "§3.1.9 coverage gaps: both P1, but ordered differently relative to G12") raised a concern that adding §3.1.9 tests before G12 is fixed could produce misleading baselines. However, the same section resolves its own concern: "the completeness-auditor's Recs 1 and 2 use the mock provider via `test_sdk.py` and `test_phases.py` respectively — neither hits the YAML-configured path that triggers G12." The mock-provider path bypasses the VALID_PROVIDERS hardcoding entirely. This recommendation is unaffected by G12's open status and can proceed in parallel. The cost estimate assertion remains a genuine §3.1.9 P1 gap that no existing test exercises. No cross-review challenged the core finding; the sub-step-skeptic's only challenge was an ordering concern it also resolved.
+
+#### Recommendation 2: File arbiter influence output-heading issue
+
+- **Original position**: File a GitHub issue and add an `influence="advisory"` test to `test_phases.py TestArbitration` that runs the pipeline and asserts heading differences in `arbitration/resolution.md`.
+- **Disposition**: Surviving
+- **Explanation**: Same G12 interaction concern and same resolution as Rec 1 (sub-step-skeptic Tensions §4). The `test_phases.py TestArbitration` tests use `MockProvider`, not a YAML-configured provider, so G12's VALID_PROVIDERS restriction is irrelevant. The sub-step-skeptic's Safe Agreement section ("Step 13's §3.1.9 arbiter influence row is not closed at the pipeline output level") independently confirms this gap: "template context tests verify the variable is in scope; they do not verify that the template renders it into the output file." The combined weight of both reviews — my own analysis plus the sub-step-skeptic's confirmation — strengthens rather than weakens this recommendation.
+
+#### Recommendation 3: Update spec Node version to match evals.yml
+
+- **Original position**: Update step 10's DONE annotation to document the Node 18→22 change, citing Principle XIV.
+- **Disposition**: Modified
+- **Explanation**: The sub-step-skeptic (Tensions §3: "Step 10 PR attribution: factual gap in completeness-auditor's analysis") identified a second correction needed for Step 10 that my review missed entirely: PR #83 established the smoke tier, while PR #101 added only the quality and deepeval tiers plus `workflow_dispatch` inputs. My review accepted the step 10 attribution narrative at face value and focused exclusively on the Node version discrepancy. The sub-step-skeptic's correction is factual and verifiable from git history.
+
+  The modification: Rec 3 now covers two corrections to the Step 10 annotation, not one. (A) Node 18→22 discrepancy: update step 10 annotation to state "Node 22 LTS (spec said Node 18 — Node 18 EOL April 2025)" with an inline comment in evals.yml. (B) PR attribution: update the DONE annotation to read "PR #83 established the smoke tier; PR #101 added the quality and deepeval tiers and `workflow_dispatch` inputs" — crediting the correct PR for the correct work. Both corrections must land atomically. The Principle XIV rationale from my original review applies to both: a future CI maintainer or deliberation reviewer who reads the step 10 DONE annotation encounters two misleading claims instead of one.
+
+#### Recommendation 4: Track §3.1.9 influence row explicitly in step 13 annotation
+
+- **Original position**: Add "NOT YET COVERED from §3.1.9: arbiter influence=binding vs advisory output heading verification — tracked in issue #N" to the step 13 DONE annotation.
+- **Disposition**: Surviving
+- **Explanation**: No cross-review challenged this recommendation directly. The sub-step-skeptic (Safe Agreement: "Step 13's §3.1.9 arbiter influence row is not closed at the pipeline output level") confirms the gap from an independent analytical path: "The skeptic provides the contextual significance: the eval suite's purpose is to close gaps between surfaces; an influence-level heading regression in `resolution.md` is exactly the class of silent failure the suite was built to catch." The annotation correction prevents a release-gate reviewer from treating trigger-condition coverage as implicitly closing the influence-variant row. This is the cheapest fix in the set — a prose addition — and its absence means the P1 row has no owner or tracking vehicle.
+
+#### Recommendation 5: Wire OPENAI_API_KEY in a provider-matrix CI job
+
+- **Original position**: Add a `workflow_dispatch`-only `provider-matrix` job running `--provider openai` and `--provider gemini` with real API key secrets.
+- **Disposition**: Surviving
+- **Explanation**: No cross-review challenged this recommendation. The script-end-to-end-tester's cross-review of my work (Tensions: "CI expansion direction") noted a coordination concern with script-end-to-end-tester's own Rec 7 (strip script CI step), but framed the two as complementary P2 additions to evals.yml that should be sequenced rather than treated as equivalent. This does not undermine the provider-matrix recommendation itself — it only notes that the strip script step (zero-credential, smoke tier) should be implemented first given its lower maintenance overhead. My recommendation remains correct: `openai` and `gemini` require only env var secrets (the same mechanism that provisions `ANTHROPIC_API_KEY`) and are never exercised in CI with real credentials despite being listed in §3.1.2's "real API call" provider row.
+
+#### Recommendation 6: File CLI persist→list→show follow-up issue
+
+- **Original position**: File a GitHub issue and add subprocess tests for `uv run conversus list` and `uv run conversus show <slug>`.
+- **Disposition**: Modified
+- **Explanation**: The sub-step-skeptic (Safe Agreement: "CLI persist→list→show is a gap requiring a tracking issue") added §3.1.3 grounding that strengthens the recommendation: "§3.1.3 lists CLI commands as outside-in surface tests, making this a spec compliance gap in addition to a coverage gap." My original recommendation framed this as a coverage gap only. The sub-step-skeptic's framing is more precise and more compelling: the CLI surface is the user-facing contract that §3.1.3 explicitly enumerates as outside-in test scope; module-API tests satisfy neither the spec's declared scope nor the behavior-over-shape standard from Principle IX, because argument-parsing regressions in CLI entry points are invisible at the module level.
+
+  The modification: the tracking issue filed for this gap should cite §3.1.3 explicitly and frame the missing tests as a spec compliance obligation, not merely a coverage improvement. The test implementation should include both the `list` command (verify JSON output schema) and the `show <slug>` command (verify synthesis content round-trip via CLI), per the subprocess approach in my original text.
+
+#### Recommendation 7: Clarify step 9's scope annotation
+
+- **Original position**: Update step 9 annotation to specify "default_provider at all 5 levels" and cross-reference `TestInspectSettingsCascade` for multi-field cascade semantics.
+- **Disposition**: Surviving
+- **Explanation**: No cross-review challenged this recommendation. The sub-step-skeptic's Safe Agreement on Node version independently applies Principle XIV to scope annotation clarity, which is consistent with my Rec 7's rationale. The annotation ambiguity ("provider key at all 5 levels") is a P3 documentation debt that prevents future reviewers from filing spurious "incomplete" issues against the existing test coverage. The fix is a single sentence addition and carries no implementation risk.
+
+#### Recommendation 8: Harden round-trip synthesis assertion
+
+- **Original position**: Replace `"Synthesis" in synthesis` and `"verdict" in synthesis` with structural heading assertion and minimum-length check, optionally anchored to known `fake_output` fixture content.
+- **Disposition**: Surviving
+- **Explanation**: No cross-review challenged this recommendation. The `fake_output` fixture writes deterministic synthesis content ("# Synthesis\nThe verdict is..."), which means the test can assert that exact content survives the round-trip verbatim — a behavioral assertion per Principle IX's behavior-over-shape standard. The current assertions are shape tests (substring presence without value meaning) that pass even if `persist_deliberation` → `read_deliberation_file` truncates or encodes the content incorrectly. This is a P3 latent gap with low current failure risk but meaningful future regression exposure as the persistence module evolves.
+
+---
+
+### New Recommendations
+
+- **Upgrade Step 14 verdict from MATCH to REVISE and require explicit tracking for all three sub-items** (Priority: P1)
+  - **Triggered by**: sub-step-skeptic cross-review of spec-061-completeness-auditor, Dangerous Contradiction 1 ("Step 14 Bundling: Legitimate Partial Delivery vs. False-Completeness Vector"): "The completeness-auditor's MATCH verdict was based on whether the PARTIALLY DONE annotation was internally consistent with what shipped. The skeptic's critique is that the annotation doesn't communicate the structural dependency correctly. Both observations can simultaneously be true. The resolution is to upgrade the completeness-auditor's verdict from MATCH to REVISE, adding the skeptic's Rec 8 (document the CI/CD consumer contract interdependence) as a required fix."
+  - **Proposed change**: Change Step 14's Summary Verdict from MATCH to REVISE. The PARTIALLY DONE marker is internally self-consistent, but my MATCH verdict signals "this is acceptable, no further action needed on the annotation." That signal is wrong because it does not require tracking infrastructure for the two remaining sub-items. The REVISE-class correction: (A) the step 14 annotation must state that the persistence sub-item does NOT close step 14 as a whole; (B) the CI/CD exit code sub-item and the combinatorial matrix sub-item must each have a GitHub issue filed with explicit blocking language in the spec annotation; (C) the combinatorial matrix in particular — the only deliverable that provides cross-axis smoke coverage — must have a tracking issue before step 14 can be indefinitely deferred without losing accountability. The sub-step-skeptic's failure mode is specific and credible: "when spec 048 lands, a contributor sees step 14's blocking note, closes the exit code sub-item, and treats step 14 as done — the matrix is never implemented."
+  - **Rationale**: My original review accepted the PARTIALLY DONE marker as accurately self-assessed (MATCH) because the persistence round-trip was genuinely done and the blocking rationale for the exit code sub-item was documented. But this framing treats three sub-items as independently closeable when they form a coherent CI/CD consumer contract. Accepting PARTIALLY DONE with a MATCH verdict removes the spec's obligation to require tracking infrastructure for the remaining sub-items. The sub-step-skeptic is correct that REVISE is the appropriate verdict class when an annotation creates a false-closure vector, even if the annotation is internally self-consistent.
+
+- **File Step 11/12 tracking issue with SC#3 consequence** (Priority: P1)
+  - **Triggered by**: sub-step-skeptic cross-review of spec-061-completeness-auditor, Tensions §2 ("Step 11 Deferral: Track-and-Wait vs. SC#3 Unreachability") and Safe Agreement §4 ("Step 11/12 Dependency Requires Tracking Infrastructure"): "The skeptic establishes the process gap (no tracking vehicle = functionally abandoned) and adds the SC#3 consequence (spec 061 cannot close as complete without step 11). Together, both the technical dependency and the process risk are documented."
+  - **Proposed change**: File a GitHub issue for step 11 (engine-first skill wrapping CLI) that explicitly notes: (A) step 12 is blocked on step 11, because CLI-vs-skill parity tests require a skill surface to compare against; (B) Success Criterion 3 ("CLI, MCP, and SDK surfaces produce structurally identical output") is unreachable until step 11 lands, meaning spec 061 cannot close as complete with all remaining steps done if step 11 is indefinitely deferred; (C) the spec §6 criterion 3 annotation should be updated to read "Not achievable until step 11 lands (GitHub issue #N)." This is a gap I missed entirely in my original review — I audited the four DONE-marked steps but did not examine the undone steps for untracked blocking dependencies.
+  - **Rationale**: An untracked deferral of an architectural prerequisite is functionally abandoned. Step 11 has no tracking issue, no plan, and no blocking annotation on step 12. The sub-step-skeptic correctly identifies that this makes SC#3 unreachable without any spec-level signal. The eval suite's stated purpose is to validate composability across surfaces; a spec that cannot close SC#3 has a structural incompleteness that should be visible in the spec itself, not buried as an implicit assumption. This recommendation requires no code changes — only two spec annotation updates and one GitHub issue.
+
+---
+
+### Position Summary
+
+I withdrew zero recommendations, modified two (Recs 3 and 6), and maintained six (Recs 1, 2, 4, 5, 7, 8) with minor clarifications about G12 parallelizability. I also added two new recommendations and acknowledged one significant verdict error.
+
+The most significant change in my thinking is the Step 14 verdict correction. I gave Step 14 a MATCH verdict because the PARTIALLY DONE annotation was internally self-consistent: persistence was done, exit codes were blocked on spec 048, and the matrix was identified as open. The sub-step-skeptic exposed that MATCH is the wrong verdict class here — not because the annotation was inaccurate, but because accepting it without tracking infrastructure requirements actively enables the combinatorial matrix to be deferred indefinitely. A MATCH verdict signals no action needed; the correct signal is REVISE, requiring explicit tracking issues before step 14 can be treated as having an accountable completion path. This is a meaningful concession: my auditing methodology focused on whether the DONE marker accurately described what shipped, but the sub-step-skeptic correctly identified a second question I should have asked — whether the annotation structure creates dangerous downstream incentives regardless of its immediate accuracy.
+
+The remaining highest-priority recommendation is the integrated pair of Recs 1 and 2 (iterations=3 cost estimate and arbiter influence output heading), both P1 items from §3.1.9 that have zero test coverage at the levels the spec requires. The sub-step-skeptic's cross-review confirmed Rec 2 independently and resolved the one ordering concern (G12 interaction) that could have been raised against Rec 1. These two gaps represent the most actionable technical debt: mock-provider pipeline tests that can be written and filed immediately, without waiting for G12 remediation or spec 048, and that directly address the §3.1.9 P1 rows the step 13 annotation implicitly left unclosed.
