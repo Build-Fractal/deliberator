@@ -183,10 +183,12 @@ class TestEndToEndRealisticFlow:
     ):
         """Operator workflow: add candidate SIR + footer, then strip.
 
-        Simulates: the operator has added a v3.2.0 SIR + bumped the
-        version footer to v3.2.0 dated 2026-12-15 (a date NOT yet
-        appearing in any prior SIR). Running the strip script against
-        this enriched document should produce clean output.
+        Simulates: the operator has added a v4.0.0 SIR + bumped the
+        version footer to v4.0.0 dated 2026-12-15 (a date NOT yet
+        appearing in any prior SIR; v4.0.0 is a hypothetical future
+        version not yet referenced in the body). Running the strip
+        script against this enriched document should produce clean
+        output.
 
         Before the HTML comment exclusion fix (see deliberation
         verdict 2026-05-01), the script would have tripped on the
@@ -194,29 +196,47 @@ class TestEndToEndRealisticFlow:
         After the fix, only body-text occurrences of 2026-12-15 (the
         candidate date) would count — and the candidate's SIR + footer
         ARE stripped, so no occurrences should remain.
+
+        Note on candidate version selection: this test must use a
+        version NOT yet referenced anywhere in the constitution body.
+        v3.2.0 was used initially but became stale after PR #116
+        added v3.2.0 references to the body (Constitutional Amendment
+        Pathways subsection cites prior versions including v3.0.0,
+        v3.1.0, v3.1.1, v3.1.2, v3.1.3, v3.2.0). v4.0.0 is currently
+        clean; future test maintainers should bump to whatever the
+        next-clean-future version is.
         """
         constitution = repo_root / "CONSTITUTION.md"
         original = constitution.read_text(encoding="utf-8")
 
-        # Add a hypothetical v3.2.0 candidate SIR + bump footer.
+        # Add a hypothetical v4.0.0 candidate SIR + bump footer.
         # Use 2026-12-15 — distinct from any existing date in body.
         candidate_sir = """<!--
 Sync Impact Report
-Version change: 3.1.3 → 3.2.0 (MINOR — hypothetical test amendment).
+Version change: 3.2.2 → 4.0.0 (MAJOR — hypothetical test amendment).
 Governance log entry: 2026-12-15 in CONSTITUTIONAL_CONVERSATIONS.md.
-Prior amendment (v3.1.2 → v3.1.3): see prior SIR comment block below.
+Prior amendment (v3.2.1 → v3.2.2): see prior SIR comment block below.
 -->
 
 """
+        # The current footer line — find dynamically so the test
+        # doesn't break on each version bump.
+        current_footer_match = re.search(
+            r"\*\*Version\*\*: \d+\.\d+\.\d+ \| \*\*Ratified\*\*: [^|]+\| \*\*Last Amended\*\*: [^\n]+",
+            original,
+        )
+        assert current_footer_match, "Could not locate version footer in CONSTITUTION.md"
+        current_footer = current_footer_match.group()
+
         enriched = candidate_sir + original.replace(
-            "**Version**: 3.1.3 | **Ratified**: 2026-03-20 | **Last Amended**: 2026-05-01",
-            "**Version**: 3.2.0 | **Ratified**: 2026-03-20 | **Last Amended**: 2026-12-15",
+            current_footer,
+            "**Version**: 4.0.0 | **Ratified**: 2026-03-20 | **Last Amended**: 2026-12-15",
         )
 
         # Write to tmp + run script
-        candidate_path = tmp_path / "CONSTITUTION-v3.2.0-candidate.md"
+        candidate_path = tmp_path / "CONSTITUTION-v4.0.0-candidate.md"
         candidate_path.write_text(enriched, encoding="utf-8")
-        output_path = tmp_path / "CONSTITUTION-v3.2.0-blind.md"
+        output_path = tmp_path / "CONSTITUTION-v4.0.0-blind.md"
 
         result = subprocess.run(
             [
@@ -224,7 +244,7 @@ Prior amendment (v3.1.2 → v3.1.3): see prior SIR comment block below.
                 str(_SCRIPT_PATH),
                 "--input", str(candidate_path),
                 "--output", str(output_path),
-                "--version", "v3.2.0",
+                "--version", "v4.0.0",
                 "--date", "2026-12-15",
             ],
             capture_output=True,
@@ -241,5 +261,5 @@ Prior amendment (v3.1.2 → v3.1.3): see prior SIR comment block below.
         # rendered (non-comment) body of the stripped output
         stripped = output_path.read_text(encoding="utf-8")
         body_only = re.sub(r"<!--.*?-->", "", stripped, flags=re.DOTALL)
-        assert "v3.2.0" not in body_only
+        assert "v4.0.0" not in body_only
         assert "2026-12-15" not in body_only
