@@ -1,5 +1,49 @@
 <!--
 Sync Impact Report
+Version change: 3.2.1 → 3.2.2 (PATCH — adds passing borderline worked
+example to Constitutional Inclusion Criteria gate text per spec 070
+cycle 3D, issue #122. Discharges the spec 073 SUSTAINED WITH FINDINGS
+calibration-asymmetry finding.)
+
+Modified Governance section:
+  - "Worked examples." paragraph now includes a third worked example
+    after the two existing failure examples ("code should be readable"
+    fails Criterion 1; "template variables MUST be lowercase" fails
+    Criterion 3). The new example is the pytest.skip() with bug-cite
+    requirement, ratified through Principle XXVIII as the canonical
+    borderline-pass case.
+
+Why PATCH: calibration documentation only. The criteria themselves
+are unchanged; the gate's normative force is unchanged. The addition
+gives amendment authors a positive reference for borderline cases,
+fixing the structural over-migration bias the spec 073 supplemental
+blind identified.
+
+Why no deliberation cycle: the supplemental blind deliberation
+2026-05-04 already authorized this exact wording (verbatim text
+from the verdict's required-changes section). Verbatim-preservation
+contract holds: the worked example matches the verdict's wording
+character-for-character modulo markdown bullet formatting and the
+addition of an explanatory follow-up paragraph.
+
+Discharges:
+  - spec 073 SUSTAINED WITH FINDINGS finding #4 (gate calibration)
+  - issue #122 (cycle 3D)
+
+Findings #1 (cycle 3A path-(c) for X) remains OPEN as a separate
+amendment cycle. Findings #2 (cycle 3B X error-handling routing)
+and #3 (cycle 3C XVI Criterion 1 + determinism-scope) were verified
+already-discharged in the current constitution and closed as
+no-action-required (see issue comments 2026-05-04).
+
+Governance log entry: 2026-05-04 in CONSTITUTIONAL_CONVERSATIONS.md
+(spec 070 cycle 3D implementation).
+
+Prior amendment (v3.2.0 → v3.2.1): see prior SIR comment block below.
+-->
+
+<!--
+Sync Impact Report (prior — preserved for audit trail)
 Version change: 3.2.0 → 3.2.1 (PATCH — discharges the v3.0.0 SIR's
 deferred Governance operational-guidance list commitment per the
 closure-verification deliberation 2026-05-01 P2 #4. No new normative
@@ -1958,6 +2002,25 @@ justifies the deviation.
   refinement belongs in IX's body or as a schema constraint, not as a
   new principle.
 
+  **Passing borderline worked example** (added v3.2.2 per spec 070
+  cycle 3D, issue #122): a principle requiring "every newly added
+  `pytest.skip()` directive MUST cite a bug number and remediation
+  timeline" passes Criterion 1 (lint matching `(issue|PR|#\d+)` plus
+  a timeline cue is feasible), passes Criterion 2 (specific enough to
+  flag an uncited skip without interpretation), and passes Criterion 3
+  (not addressable by composing Principles IX, XXIV, or XXV).
+  **Principle XXVIII is the ratified example** of this borderline-pass
+  pattern — see its v2.5.0 SIR for the override-with-rationale
+  precedent. An acknowledged residual that is honestly labeled in
+  clause text and accompanied by an override-with-rationale entry in
+  the governance log does not require migration to operational guidance.
+
+  This third worked example complements the two failure examples
+  above. Calibration instruments with only failure anchors are
+  structurally biased toward over-migration: amendment authors lack
+  a positive reference for borderline cases. The XXVIII precedent
+  closes that calibration gap.
+
   Principles that fail any criterion belong in **operational guidance**:
   `AGENTS.md`, the relevant spec, `SKILL.md` instructions, or
   domain-specific reference documents. Operational guidance is the
@@ -2176,4 +2239,4 @@ justifies the deviation.
 - **Compliance**: The plan template includes a Constitution Check gate.
   Plans MUST pass this gate before proceeding to implementation.
 
-**Version**: 3.2.1 | **Ratified**: 2026-03-20 | **Last Amended**: 2026-05-04
+**Version**: 3.2.2 | **Ratified**: 2026-03-20 | **Last Amended**: 2026-05-04

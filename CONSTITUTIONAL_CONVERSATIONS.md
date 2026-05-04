@@ -713,3 +713,27 @@ The pre-ratified pathway is rare — it requires that the wording was specified 
 **Pathway used**: dual-deliberation (closure-verification 2026-05-01 + supplemental-blind 2026-05-04) for §9 AC #5 — the highest-cost pathway, used because principle-restoration eligibility is at stake. The four follow-up cycles will use cycle-appropriate pathways:
 - Cycle 3A (potential restoration): full dual-deliberation per spec 067
 - Cycles 3B, 3C, 3D: PATCH single-PR with verbatim contract (no normative-content changes, just routing/attribution/calibration corrections)
+
+---
+
+## 2026-05-04 — Constitution v3.2.1 → v3.2.2 (cycle 3D gate calibration positive worked example)
+
+**Subject**: Discharge spec 073 SUSTAINED WITH FINDINGS finding #4 (issue #122). Add a passing borderline worked example to the Constitutional Inclusion Criteria gate text using Principle XXVIII as the ratified anchor.
+
+**Trigger**: spec 070 supplemental blind deliberation 2026-05-04 — see `deliberations/070-supplemental-blind-2026-05-04/arbitration/resolution.md` (Dispute: Gate Calibration, P3 Required change #5). Wording supplied verbatim by the verdict.
+
+**Verification approach**: PATCH single-PR with verbatim contract. The worked example text matches the verdict's required-change text character-for-character modulo markdown bullet formatting. No new criteria, no new gate logic — only calibration documentation.
+
+**Cycle 3 status update**:
+- **Cycle 3A (issue #119, P1, principle restoration)**: OPEN — requires full dual-deliberation. Heavy lift; not eligible for single-PR pathway.
+- **Cycle 3B (issue #120, P1, X error-handling routing)**: CLOSED 2026-05-04 — verification check found the error-handling sub-bullet IS preserved in docs/output-conventions.md L34-40. The verdict's premise (\"DELETED rather than ROUTED\") was based on a misreading. Reclassified to P3 routing-class dispute and closed; reopen if user determines SKILL.md routing is preferred over docs/.
+- **Cycle 3C (issue #121, P1, XVI Criterion 1 + determinism retention)**: CLOSED 2026-05-04 — verification check found both parts already-discharged. (a) Constitution does not currently attribute XVI plain-language to Criterion 2 anywhere; the v2.4.0 SIR uses \"unverifiable\" (Criterion 1 phrasing); cycle 1 SIR explicitly says Criterion 1. The verdict's \"currently identifies Criterion 2\" premise was wrong about the document state. (b) XVI body retains determinism-scope clauses in full at L1335-1414.
+- **Cycle 3D (issue #122, P3, gate calibration)**: DISCHARGED by this PR (v3.2.2).
+
+**Methodology finding** (preserved in audit trail): the supplemental blind verdict's findings #2 and #3 were based on premises about migration content that don't match what was actually shipped. This is itself an audit-trail finding worth preserving. Two possible explanations:
+1. The deliberation agents made errors about the document state. They were reading the v2.5.0 PRE-migration document (per the spec 073 §4.1 target) and may have inferred migration outcomes that don't match the actual v3.0.0 ship.
+2. The post-cycle-2A migration genuinely shipped with better fidelity than the contrarian agent realized, and the verdict's claims are contingent on facts that don't hold.
+
+Either way, the proper response is: verify each finding against the current state, document the verification, and apply only the corrections that have bite. Cycles 3B and 3C had no bite; cycle 3D had bite (the gate text genuinely lacked a positive worked example) and is discharged here. Cycle 3A's bite (no path-(c) assessment was performed before X migration) is genuine and remains a separate amendment cycle.
+
+**Pathway**: PATCH + verbatim contract single-PR. The worked example text is preserved verbatim from the verdict; the explanatory follow-up paragraph is editorial expansion that does not modify normative content.
