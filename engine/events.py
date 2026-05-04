@@ -31,13 +31,19 @@ class PhaseStarted(BaseModel):
 
 
 class AgentDispatched(BaseModel):
-    """Emitted when a single agent is sent to the provider."""
+    """Emitted when a single agent is sent to the provider.
+
+    The ``model`` field is ``None`` when the dispatch layer did not pin
+    a specific model id (issue #54 refactor) — the provider then applies
+    its own configured default. Telemetry consumers should display
+    ``model`` as ``"(provider-default)"`` or similar when ``None``.
+    """
 
     model_config = {"frozen": True}
 
     phase: str
     agent_name: str
-    model: str
+    model: str | None
     timestamp: datetime
 
 

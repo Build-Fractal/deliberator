@@ -134,12 +134,19 @@ class ModelProviderExecutionAdapter:
         self,
         inner: ModelProvider,
         *,
-        model: str = DEFAULT_MODEL,
+        model: str | None = None,
         max_tokens: int = DEFAULT_MAX_TOKENS,
         name: str = "model-provider-adapter",
     ) -> None:
         self._inner = inner
-        self._model = model
+        # ``None`` resolves to DEFAULT_MODEL at adapter construction
+        # time (the underlying ModelProvider.complete contract is
+        # non-Optional). The adapter's own contract surfaces None
+        # cleanly to callers, but it must pass a concrete string into
+        # the legacy completion API. Per issue #54: the adapter is the
+        # boundary between Optional[str] dispatch and concrete-string
+        # completion calls.
+        self._model = model if model is not None else DEFAULT_MODEL
         self._max_tokens = max_tokens
         self._name = name
 
@@ -240,7 +247,7 @@ class ModelProviderExecutionAdapter:
 async def dispatch_agent(
     prompt: str,
     agent_name: str,
-    model: str,
+    model: str | None,
     max_tokens: int,
     provider: AnyProvider,
     emitter: EventEmitter,
@@ -258,7 +265,14 @@ async def dispatch_agent(
     Args:
         prompt: The fully assembled prompt (file contents + filled template).
         agent_name: Human-readable agent name for events.
-        model: LLM model identifier.
+        model: LLM model identifier, or ``None`` to use the provider's
+            own default. Passing ``None`` is the canonical way to say
+            "no model override" — providers see ``task.metadata["model"]``
+            as ``None`` and apply their own configured default. Issue #54
+            refactor (PR #128) replaced the prior value-blocklist guard
+            in ``claude_code.py`` with this contract; the dispatch layer
+            no longer leaks ``DEFAULT_MODEL`` as a sentinel that providers
+            had to special-case.
         max_tokens: Maximum tokens for the response.
         provider: An ``ExecutionProvider`` (preferred) or legacy
             ``ModelProvider``.  If a ``ModelProvider`` is passed, it is
@@ -290,9 +304,15 @@ async def dispatch_agent(
     # needed AND the provider is a ModelProvider with a stream() method,
     # fall back to ``ModelProvider.stream()`` directly.
     if streaming and stream_callback is not None and hasattr(provider, "stream"):
+        # Streaming path requires a concrete model id (the legacy
+        # ModelProvider.stream signature is non-Optional). Resolve
+        # None to DEFAULT_MODEL at this boundary; the issue #54
+        # contract is preserved for the non-streaming path which is
+        # the dominant code path.
+        stream_model = model if model is not None else DEFAULT_MODEL
         try:
             chunks: list[str] = []
-            async for chunk in provider.stream(prompt, model, max_tokens):
+            async for chunk in provider.stream(prompt, stream_model, max_tokens):
                 stream_callback(chunk)
                 chunks.append(chunk)
             response = "".join(chunks)
@@ -329,6 +349,8 @@ async def dispatch_agent(
     if isinstance(provider, ExecutionProvider):
         exec_provider = provider
     else:
+        # ModelProviderExecutionAdapter resolves None internally to its
+        # configured default model.
         exec_provider = ModelProviderExecutionAdapter(
             provider,
             model=model,
@@ -338,6 +360,11 @@ async def dispatch_agent(
             else "model-provider-adapter",
         )
 
+    # task.metadata["model"] carries None when the caller wants the
+    # provider's own default (issue #54 contract). Providers that read
+    # this metadata MUST treat None as "no override" and fall back to
+    # their configured default. Do NOT substitute DEFAULT_MODEL here —
+    # that re-introduces the silent leak the issue #54 refactor removed.
     task = ExecutionTask.from_prompt(
         prompt=prompt,
         # The legacy dispatch path does not write to disk — the engine
@@ -421,14 +448,14 @@ async def dispatch_agent(
 
 async def dispatch_phase(
     agents: list[tuple[str, str]],
-    model: str,
+    model: str | None,
     max_tokens: int,
     provider: AnyProvider,
     emitter: EventEmitter,
     *,
     phase: str = "review",
     agent_providers: dict[str, AnyProvider] | None = None,
-    agent_models: dict[str, str] | None = None,
+    agent_models: dict[str, str | None] | None = None,
     agent_timeouts: dict[str, int] | None = None,
 ) -> list[tuple[str, str, str | None]]:
     """Dispatch all agents in a phase concurrently.
@@ -438,7 +465,9 @@ async def dispatch_phase(
 
     Args:
         agents: List of ``(agent_name, filled_prompt)`` tuples.
-        model: LLM model identifier (default for all agents).
+        model: LLM model identifier (default for all agents), or
+            ``None`` to use each provider's own default. See
+            :func:`dispatch_agent` docstring for the contract.
         max_tokens: Maximum tokens for each response.
         provider: Default ``ExecutionProvider`` for agents without an
             override in *agent_providers*.
@@ -448,8 +477,9 @@ async def dispatch_phase(
             are agent names; values are ``ExecutionProvider`` instances.
             Agents not in this dict use the default *provider*.
         agent_models: Optional per-agent model overrides.  Keys are
-            agent names; values are model identifier strings.  Agents
-            not in this dict use the default *model*.
+            agent names; values are model identifier strings or
+            ``None`` (provider-default). Agents not in this dict use
+            the default *model*.
 
     Returns:
         List of ``(agent_name, response_text, error_or_none)`` in the

@@ -130,22 +130,15 @@ class ClaudeCodeProvider(SubprocessProvider):
         return "claude-code"
 
     def _build_argv(self, task: ExecutionTask) -> list[str]:
-        model = task.metadata.get("model", self._model)
-
-        # Engine-default leak guard: ``engine.dispatch.DEFAULT_MODEL``
-        # carries the legacy literal ``"claude-sonnet-4-20250514"`` as a
-        # fallback for the Anthropic direct-API path. When that literal
-        # leaks into this provider via task metadata, it forces the
-        # ``claude -p`` subprocess onto a model ID that OAuth (Claude
-        # Max / subscription) sessions cannot reach — and the model
-        # error comes back as the assistant's response text, producing
-        # silent stub deliberation. Treat the legacy literal as "no
-        # explicit override" and fall back to this provider's own
-        # default (the ``"sonnet"`` alias), which ``claude -p`` resolves
-        # against the calling session. Users who want to pin a specific
-        # model ID should pass ``--model``.
-        if model == "claude-sonnet-4-20250514":
-            model = self._model
+        # Issue #54 contract: ``task.metadata.get("model")`` returns
+        # ``None`` when the dispatch layer did not pin a specific model
+        # id — fall back to this provider's own configured default
+        # (the ``"sonnet"`` alias by default, which ``claude -p``
+        # resolves against the calling OAuth session). The prior
+        # value-blocklist guard against ``DEFAULT_MODEL``'s literal
+        # leak (PR #52) is retired now that dispatch passes ``None``
+        # rather than the literal.
+        model = task.metadata.get("model") or self._model
 
         # Prompt is piped via stdin (see _build_stdin) rather than argv,
         # because prompts containing "---" markers (from file inlining)

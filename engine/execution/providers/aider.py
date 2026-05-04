@@ -128,7 +128,8 @@ class AiderProvider(SubprocessProvider):
         return "aider"
 
     def _build_argv(self, task: ExecutionTask) -> list[str]:
-        model = task.metadata.get("model", self._model)
+        # Issue #54 contract: None means "no override, use provider default".
+        model = task.metadata.get("model") or self._model
 
         argv = [
             self._binary,

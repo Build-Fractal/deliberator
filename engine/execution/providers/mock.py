@@ -266,7 +266,7 @@ class MockExecutionProvider:
             agent_name=agent_name,
             phase=phase,
             output_path=task.output_path,
-            model=task.metadata.get("model", ""),
+            model=task.metadata.get("model") or "",
         )
 
     @staticmethod

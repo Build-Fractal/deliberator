@@ -163,12 +163,23 @@ class TestEstimateCost:
         assert "arbitration" not in result.launches_per_phase
 
     def test_two_iterations_doubles_revision(self) -> None:
-        """2 iterations: revision = agents × iterations = 2 × 2 = 4."""
+        """2 iterations: revision = agents × iterations = 2 × 2 = 4.
+
+        Per the PR #115 cost-formula bug fix, cross_review also scales
+        by iterations (the iteration loop runs Phase 2 once per
+        iteration). For 2 agents × 2 iterations:
+          review        = 2  (one-shot)
+          cross_review  = 2 × (2-1) × 2 = 4
+          revision      = 2 × 2 = 4
+          disputes      = 2  (one-shot)
+          synthesis     = 1
+          total         = 2 + 4 + 4 + 2 + 1 = 13
+        """
         config = {"agents": [{"name": "a"}, {"name": "b"}], "iterations": 2}
         result = _estimate_cost(config)
         assert result.launches_per_phase["revision"] == 4
-        # Total: 2+2+4+2+1 = 11
-        assert result.total_launches == 11
+        assert result.launches_per_phase["cross_review"] == 4
+        assert result.total_launches == 13
         assert result.iteration_count == 2
 
     def test_default_iterations(self) -> None:
@@ -272,10 +283,15 @@ class TestValidateConfig:
         assert result.cost_estimate.total_launches == 10
 
     def test_two_iteration_cost_in_validate(self) -> None:
-        """Two-iteration config through validate path."""
+        """Two-iteration config through validate path.
+
+        Per PR #115 cost-formula fix, total launches for 2 agents ×
+        2 iterations is 13 (review=2, cross_review=4, revision=4,
+        disputes=2, synthesis=1).
+        """
         result = _validate_config(TWO_ITERATION_CONFIG_YAML)
         assert result.cost_estimate is not None
-        assert result.cost_estimate.total_launches == 11
+        assert result.cost_estimate.total_launches == 13
         assert result.cost_estimate.iteration_count == 2
 
 
