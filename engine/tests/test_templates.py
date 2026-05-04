@@ -740,6 +740,107 @@ class TestBuildArbitrationContext:
         ctx = build_arbitration_context(config, config.output, "", round_num=1)
         assert "/docs/arbiter" in ctx.ARBITER_DOCS
 
+    # ----- Influence level wiring (spec 061 step 13 §3.1.9, issue #110) -----
+    #
+    # The arbitration template (templates/cooperative/arbitration.md)
+    # contains conditional heading instructions keyed on
+    # {INFLUENCE_LEVEL}:
+    #   - binding:    "Binding Decisions" / "Summary of Changes Required"
+    #   - recommended: "Recommended Resolutions" / "Suggested Changes"
+    #   - advisory:   "Advisory Opinions" / "Considerations for Next Round"
+    #
+    # These three tests pin that build_arbitration_context wires the
+    # arbiter.influence value through to ArbitrationContext.INFLUENCE_LEVEL
+    # for each variant. The downstream LLM follows the conditional
+    # instructions in the rendered prompt (verified by the deepeval
+    # quality tier when run with a real provider — see PR #83).
+
+    def test_influence_binding_wired_through(self, tmp_path: Path) -> None:
+        """Default arbiter (no explicit influence) → INFLUENCE_LEVEL == binding."""
+        config = _make_config_with_arbiter(tmp_path)
+        ctx = build_arbitration_context(config, config.output, "", round_num=1)
+        from engine.templates import InfluenceLevel
+        assert ctx.INFLUENCE_LEVEL == InfluenceLevel.BINDING
+
+    def test_influence_recommended_wired_through(self, tmp_path: Path) -> None:
+        """influence='recommended' → INFLUENCE_LEVEL == recommended."""
+        from engine.config import ArbiterConfig
+        from engine.templates import InfluenceLevel
+        config = _make_config_with_arbiter(tmp_path)
+        recommended_arbiter = ArbiterConfig(
+            name=config.arbiter.name,
+            prompt=config.arbiter.prompt,
+            docs=config.arbiter.docs,
+            grounding=config.arbiter.grounding,
+            trigger=config.arbiter.trigger,
+            influence="recommended",
+        )
+        config = EngineConfig(
+            mode=config.mode,
+            target_files=config.target_files,
+            output=config.output,
+            agents=config.agents,
+            rounds=config.rounds,
+            arbiter=recommended_arbiter,
+        )
+        ctx = build_arbitration_context(config, config.output, "", round_num=1)
+        assert ctx.INFLUENCE_LEVEL == InfluenceLevel.RECOMMENDED
+
+    def test_influence_advisory_wired_through_and_renders_advisory_headings(
+        self, tmp_path: Path
+    ) -> None:
+        """influence='advisory' → INFLUENCE_LEVEL wired + template renders advisory headings.
+
+        Closes spec 061 step 13 §3.1.9 advisory-heading gap (issue #110).
+        Heading divergence is concrete: the rendered prompt (after
+        fill_template substitution) contains the advisory-specific
+        heading-instruction text from templates/cooperative/arbitration.md
+        with {INFLUENCE_LEVEL} substituted to the literal "advisory".
+        """
+        from engine.config import ArbiterConfig
+        from engine.templates import InfluenceLevel, fill_template
+        config = _make_config_with_arbiter(tmp_path)
+        advisory_arbiter = ArbiterConfig(
+            name=config.arbiter.name,
+            prompt=config.arbiter.prompt,
+            docs=config.arbiter.docs,
+            grounding=config.arbiter.grounding,
+            trigger=config.arbiter.trigger,
+            influence="advisory",
+        )
+        config = EngineConfig(
+            mode=config.mode,
+            target_files=config.target_files,
+            output=config.output,
+            agents=config.agents,
+            rounds=config.rounds,
+            arbiter=advisory_arbiter,
+        )
+        ctx = build_arbitration_context(config, config.output, "", round_num=1)
+
+        # Wiring assertion
+        assert ctx.INFLUENCE_LEVEL == InfluenceLevel.ADVISORY
+
+        # Heading divergence assertion: render the arbitration template
+        # with this context and confirm the advisory-specific heading
+        # instructions are present in the rendered output.
+        template_path = (
+            Path(__file__).resolve().parents[2]
+            / "templates"
+            / "cooperative"
+            / "arbitration.md"
+        )
+        template = template_path.read_text(encoding="utf-8")
+        rendered = fill_template(template, ctx)
+
+        # The literal "advisory" appears where {INFLUENCE_LEVEL} was substituted
+        assert "advisory" in rendered.lower()
+        # Advisory-specific heading instructions are present in the prompt
+        # (these tell the LLM to use "Advisory Opinions" instead of
+        # "Binding Decisions" when {INFLUENCE_LEVEL} == advisory)
+        assert "Advisory Opinions" in rendered
+        assert "Considerations for Next Round" in rendered
+
     def test_with_round_base(self, tmp_path: Path) -> None:
         config = _make_config_with_arbiter(tmp_path)
         rb = config.output / "round-2"
