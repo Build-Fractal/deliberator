@@ -1,5 +1,48 @@
 <!--
 Sync Impact Report
+Version change: 3.2.0 → 3.2.1 (PATCH — discharges the v3.0.0 SIR's
+deferred Governance operational-guidance list commitment per the
+closure-verification deliberation 2026-05-01 P2 #4. No new normative
+content; the bullet enumerates already-ratified migration destinations
+(CONTRIBUTING.md § Authoring Conventions for Principle VI substrate;
+docs/output-conventions.md for Principle X substrate) that the v3.0.0
+SIR named but did not surface in the Governance section as a
+discoverable list.)
+
+Modified Governance section:
+  - New "Operational guidance documents" bullet inserted between
+    Constitutional Amendment Pathways subsection and Compliance
+    bullet. Lists CONTRIBUTING.md and docs/output-conventions.md as
+    canonical migration destinations.
+
+Why PATCH (not MINOR): the bullet enumerates information that is
+already ratified — both files exist, both have content migrated from
+VI and X respectively (per v3.0.0 PR #98), and both are named in the
+v3.0.0 SIR. The Governance bullet only adds discoverability — it
+does not add a new structural feature, gate condition, or normative
+requirement. Per the verbatim-preservation contract, listing
+already-ratified destinations is PATCH-class.
+
+Why no deliberation cycle: closure-verification deliberation
+2026-05-01 P2 #4 explicitly authorized this as a non-blocking hygiene
+item that can proceed independently of the §9 AC #5 supplemental
+blind. The bullet's content matches the verdict's wording for
+"Governance operational-guidance list" verbatim modulo formatting
+choices (markdown bullet structure).
+
+Discharges:
+  - Closure-verification deliberation 2026-05-01 P2 #4
+  - v3.0.0 SIR "Cross-reference" follow-up TODO (operational-guidance
+    list update in subsequent PATCH)
+
+Governance log entry: 2026-05-04 in CONSTITUTIONAL_CONVERSATIONS.md
+(spec 070 closure-verification P2 #4 implementation).
+
+Prior amendment (v3.1.3 → v3.2.0): see prior SIR comment block below.
+-->
+
+<!--
+Sync Impact Report (prior — preserved for audit trail)
 Version change: 3.1.3 → 3.2.0 (MINOR — pathway-taxonomy enrichments
 + migration to CONSTITUTION.md per the pathway-taxonomy deliberation
 2026-05-01. The deliberation's verdict was RETAIN with modifications:
@@ -2109,7 +2152,28 @@ justifies the deviation.
   Nth pathway requires the same dual-deliberation that constitutional
   changes require, with explicit grounding in the pathway taxonomy's
   authorization-basis structure.
+- **Operational guidance documents** (added v3.2.1 per the
+  closure-verification deliberation 2026-05-01 P2 #4, discharging
+  the v3.0.0 SIR's deferred Governance-list commitment): the
+  canonical destinations for migrated grandfathered-principle
+  substantive content are:
+  - `CONTRIBUTING.md` § Authoring Conventions — the migrated home
+    for Principle VI's substantive guidance (orchestration in
+    SKILL.md/templates, configuration in YAML, markdown for human
+    orientation). Receiving document declared in the v3.0.0 SIR.
+  - `docs/output-conventions.md` — the migrated home for Principle
+    X's substantive guidance (predictable output tree, flat
+    hierarchies, warnings for malformed output, sparse content).
+    Receiving document declared in the v3.0.0 SIR.
+
+  Future migrations that retire a grandfathered principle to
+  operational guidance MUST name the receiving document in the
+  migration spec's SIR (per the Removal checklist subsection (b)
+  precedent). Adding a new operational-guidance destination
+  requires citing this list and is itself a MINOR amendment when
+  the destination is a new file or directory; PATCH when an
+  existing file gains a new section.
 - **Compliance**: The plan template includes a Constitution Check gate.
   Plans MUST pass this gate before proceeding to implementation.
 
-**Version**: 3.2.0 | **Ratified**: 2026-03-20 | **Last Amended**: 2026-05-03
+**Version**: 3.2.1 | **Ratified**: 2026-03-20 | **Last Amended**: 2026-05-04
