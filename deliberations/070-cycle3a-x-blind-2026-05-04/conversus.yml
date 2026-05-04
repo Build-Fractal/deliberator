@@ -1,0 +1,220 @@
+mode: cooperative
+output: ./
+rounds: 1
+
+# Spec 070 cycle 3A blind verification deliberation (per spec 067 §6.2).
+#
+# Blind purpose: agents evaluate Principle X from FIRST PRINCIPLES
+# WITHOUT seeing the cycle 3A self-consistency candidate. They are
+# asked to derive their own path-(c) refactor proposal (or conclude
+# no viable refactor exists). If their conclusion converges with the
+# self-consistency candidate, that's strong validation. Divergence is
+# a disconfirming signal that the self-consistency candidate is
+# overfitting to a specific framing.
+#
+# Per spec 067 §6.2, blind agents see the principle in its original
+# pre-migration form, the v2.4.0 gate criteria, and the current
+# constitution's path-(c) precedent (XVI v2.6.0 rewrite). They do
+# NOT see the cycle 3A candidate document or the v3.0.0 SIR's
+# rationale for X removal.
+#
+# Outcome:
+#   - PASS: blind agents propose a viable path-(c) refactor for X
+#     that preserves substantive content and passes the v2.4.0 gate.
+#   - PASS WITH FINDINGS: viable refactor proposed, but with
+#     substantive modifications relative to any straightforward
+#     reading of the original X.
+#   - FAIL: no viable path-(c) refactor exists per blind analysis;
+#     v3.0.0 X migration is correct.
+
+# Blind agents see the v2.5.0 pre-migration document (X in original
+# form) and the current constitution (post-removal state for context).
+# They do NOT see the cycle 3A candidate restoration document or
+# the spec 070 supplemental blind verdict that precipitated cycle 3A.
+
+target:
+  - ../070-supplemental-blind-2026-05-04/CONSTITUTION-v2.5.0-pre-migration.md
+  - ../../CONSTITUTION.md
+
+agents:
+  - name: path-c-discovery-skeptic
+    preset: devils-advocate
+    prompt: |
+      You evaluate Principle X (Zen of Python Output) in the v2.5.0
+      pre-migration constitution from the strongest contrarian
+      position: argue that NO viable path-(c) refactor exists for X,
+      and that the principle correctly fails the v2.4.0
+      Constitutional Inclusion Criteria gate.
+
+      Your evaluation MUST be made in good faith — adversarial but
+      coherent. Do NOT see any cycle 3A candidate proposal; reason
+      from first principles using ONLY the v2.5.0 X body, the v2.4.0
+      gate text, and the v2.6.0 path-(c) precedent (XVI rewrite).
+
+      Read in the v2.5.0 pre-migration constitution:
+      - Principle V (Observable Deliberation) — for substrate overlap
+        comparison
+      - Principle VII (Reproducibility) — same
+      - Principle X (Zen of Python Output) — the principle under
+        evaluation
+      - Principle XV (Plugin Isolation) — for "core artifacts"
+        precedent
+      - Principle XVI (Mathematical Transparency) — pre-cycle-1 form
+      - Governance § Constitutional Inclusion Criteria — the gate
+
+      Read in the current CONSTITUTION.md:
+      - Principle XVI's path-(c) refactored form (post-v2.6.0) — the
+        precedent for "headline expressing ONE structural invariant"
+
+      Argue that:
+
+      1. **Headline irreducibility**. The original X headline ("Zen
+         of Python Output") cannot be replaced by a single structural
+         invariant headline because the principle as drafted bundles
+         multiple distinct concerns (predictability, depth bound,
+         error handling, content focus). Any single-invariant
+         headline would either drop sub-bullets the original X
+         considered essential, or paper over the multi-concern reality
+         with a sufficiently vague headline that defeats Criterion 2.
+
+      2. **Sub-bullet redundancy**. Each of X's four sub-bullets
+         duplicates content already covered by V (Observable
+         Deliberation) or VII (Reproducibility):
+         - "Errors should never pass silently" overlaps V's "every
+           phase MUST report progress" — argue the difference is
+           wording, not substance.
+         - "Predictable output tree" is what VII's "deterministic
+           orchestration" already requires applied to outputs —
+           argue the redundancy.
+         - "Flat is better than nested" and "sparse is better than
+           dense" are aesthetic preferences without falsifiable
+           threshold — argue they fail Criterion 2.
+
+      3. **Comparative XVI**. XVI's path-(c) headline ("parameter
+         pinning") names ONE invariant that applies to ONE type of
+         deliberation work (optimization). X has no analogous single
+         invariant — even "predictable output tree" applies
+         differently across the 8 modes (cooperative's
+         summary/final.md vs winner-take-all's verdict structure vs
+         red-blue's role-tagged output). Argue that the lack of a
+         mode-uniform structural invariant is fatal to path-(c).
+
+      4. **CI-detectability tax**. Even if a path-(c) refactor were
+         feasible, the per-sub-bullet CI infrastructure required to
+         enforce it (parity tests, depth lints, malformed-output
+         detectors, per-file-purpose lints) is non-trivial. Argue
+         that the cost-benefit of building this infrastructure
+         exceeds the value of restoring X to constitutional status,
+         since `docs/output-conventions.md` already carries the same
+         substantive content at SHOULD strength.
+
+      Find the strongest argument that path-(c) for X is NOT
+      feasible. If you cannot find one, say so explicitly with line
+      references.
+
+  - name: path-c-discovery-pragmatist
+    preset: pragmatist
+    prompt: |
+      You evaluate Principle X (Zen of Python Output) in the v2.5.0
+      pre-migration constitution and propose a path-(c) refactor IF
+      the substrate supports one.
+
+      Read the v2.5.0 X body, the v2.4.0 gate, V/VII for substrate
+      comparison, and the post-v2.6.0 XVI as the path-(c) precedent.
+      Do NOT see any cycle 3A candidate proposal.
+
+      Your task: derive the path-(c) candidate from first principles.
+
+      1. **Identify the strongest single structural invariant** in
+         X's substrate. Look at the four sub-bullets and ask: which
+         ONE expresses a property that is independently mechanically
+         verifiable AND distinct from V/VII?
+
+      2. **Propose a refactored headline** for that invariant.
+         Replace "Zen of Python Output" with a structural-property
+         name (analogous to XVI's "parameter pinning"). The headline
+         should be specific enough that a CI lint can check the
+         claim it makes.
+
+      3. **Sketch the Verification block** for the refactored
+         principle. Name the test surface (which test file, which
+         assertion) and the failure mode. The block should be
+         concrete enough that an engineer can implement the check
+         in one afternoon.
+
+      4. **Address sub-bullet retention**. For each of X's other
+         sub-bullets (the ones not elevated to the headline):
+         determine whether they survive Criterion 3 distinctness
+         (they specialize V or VII) or fail it (they duplicate).
+         Sub-bullets that fail distinctness should be migrated to
+         operational guidance; those that pass survive as elaboration
+         under the new headline.
+
+      5. **Compare to XVI precedent**. The v2.6.0 XVI rewrite
+         demonstrates the path-(c) shape: ONE structural invariant
+         in the headline, supporting body that elaborates without
+         introducing new normative requirements, Verification block
+         naming concrete tests. Is your proposed X refactor the same
+         shape? If not, name the divergence.
+
+      Conclude with:
+      - Proposed headline (one sentence)
+      - Single structural invariant (one paragraph)
+      - Sub-bullets retained vs migrated (per-sub-bullet verdict)
+      - Verification block sketch (one paragraph)
+      - Comparison to XVI precedent (one paragraph)
+
+      If you conclude that no viable path-(c) exists, state so
+      explicitly with the specific blocker (which condition fails
+      and why).
+
+arbiter:
+  name: spec-070-cycle3a-blind-arbiter
+  preset: balanced-arbiter
+  prompt: |
+    You rule on the path-c-discovery-skeptic and
+    path-c-discovery-pragmatist findings. Your grounding is the
+    v2.5.0 pre-migration constitution (CONSTITUTION-v2.5.0-pre-migration.md);
+    apply the v2.4.0 Constitutional Inclusion Criteria gate as it
+    appears in that file's Governance section.
+
+    The blind agents have proposed (or argued against) a path-(c)
+    refactor independently of the cycle 3A self-consistency
+    candidate. Your verdict reflects the BLIND analysis only —
+    convergence with or divergence from the self-consistency
+    candidate is established by the synthesizing review that
+    combines both deliberations after each completes.
+
+    For each finding:
+    - **ACCEPT**: real defect or strong argument requiring action.
+    - **REJECT**: weak argument or false positive.
+    - **PRESERVE**: real but non-blocking finding worth keeping in
+      the audit trail.
+
+    Conclude with one of:
+
+    - "SPEC-070 CYCLE 3A (BLIND) VERDICT: PASS — VIABLE PATH-(C) FOUND"
+      — pragmatist proposed a coherent refactor that the skeptic
+      could not undermine. State the proposed headline and the
+      single structural invariant.
+
+    - "SPEC-070 CYCLE 3A (BLIND) VERDICT: FAIL — NO VIABLE PATH-(C)"
+      — skeptic's argument prevailed; no headline can be written
+      that satisfies all three v2.4.0 criteria. State the specific
+      failure (which criterion, why).
+
+    - "SPEC-070 CYCLE 3A (BLIND) VERDICT: PARTIAL — SUB-BULLETS
+      ELIGIBLE BUT NOT WHOLE PRINCIPLE" — some sub-bullets pass
+      distinctness and could be elevated to ELABORATIONS of
+      existing principles, but no single structural invariant
+      headline works. State which sub-bullets and which existing
+      principles they should attach to.
+
+    The blind verdict is binding for cycle 3A's blind phase. The
+    final cycle 3A determination synthesizes self-consistency and
+    blind verdicts per spec 067 §6.3.
+
+  grounding: ../070-supplemental-blind-2026-05-04/CONSTITUTION-v2.5.0-pre-migration.md
+  trigger: always
+  timing: final
+  influence: binding

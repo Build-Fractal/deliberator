@@ -1,0 +1,235 @@
+mode: cooperative
+output: ./
+rounds: 1
+
+# Spec 070 cycle 3A self-consistency deliberation (per spec 067 §6.1).
+#
+# Question: does Principle X qualify for path-(c) restoration to the
+# constitution under the candidate refactor in
+# X-path-c-restoration-candidate.md?
+#
+# Three conditions to evaluate (per supplemental blind verdict
+# 2026-05-04, P1 finding #1):
+#   (i) mechanical headline adequacy — can the proposed headline
+#       ("Predictable Output Tree") express ONE structural invariant?
+#   (ii) sub-bullet specialization verification — does X's third
+#        sub-bullet specialize Principle V's "every phase MUST report
+#        progress" rather than duplicate it?
+#   (iii) Verification block concreteness — can a path-(c) Verification
+#         block be sketched in one paragraph?
+#
+# Outcome rules (per spec 073 §4.3 and the supplemental blind verdict):
+#   - All three pass: PASS — X is restored under path-(c) refactor;
+#     v3.0.0 X migration is superseded.
+#   - Any condition fails: FAIL — v3.0.0 migration confirmed.
+#   - Mixed (some sub-bullets pass condition, others don't): PARTIAL
+#     — sub-bullet-level verdict naming which are eligible.
+
+target:
+  - X-path-c-restoration-candidate.md
+  - ../070-supplemental-blind-2026-05-04/CONSTITUTION-v2.5.0-pre-migration.md
+  - ../../CONSTITUTION.md
+
+agents:
+  - name: condition-i-headline-adequacy
+    preset: pragmatist
+    prompt: |
+      You evaluate Condition (i) Mechanical headline adequacy: does
+      the proposed restored-X headline "Predictable Output Tree"
+      express ONE structural invariant that is mechanically
+      verifiable, parallel to XVI's "parameter pinning" headline
+      rewrite in v2.6.0?
+
+      Read:
+      1. The candidate (X-path-c-restoration-candidate.md) — the
+         proposed new headline + supporting body + Verification
+         block.
+      2. CONSTITUTION-v2.5.0-pre-migration.md — the original X
+         (Zen of Python Output) body for substrate comparison.
+      3. The current CONSTITUTION.md — Principle XVI's path-(c)
+         refactor (lines 1335+) as the precedent for "headline
+         expressing ONE structural invariant".
+
+      Your evaluation:
+
+      1. **Single-invariant test**. Does "Predictable Output Tree"
+         name ONE structural property, or does it collapse multiple
+         distinct concerns? Compare to XVI's "parameter pinning",
+         which names exactly one mechanical invariant (parameters
+         are persisted once, never re-resolved within a run).
+
+      2. **Falsifiability**. Can a CI test check the headline's claim
+         directly? The candidate proposes a parity test that
+         `summary/final.md` exists with non-empty content. Is this
+         the right test for "predictable output tree"? Or is the
+         headline making a broader claim that no single test can
+         verify?
+
+      3. **Mechanical-verification adequacy**. Per Criterion 1, the
+         path to building the check must be concrete enough for an
+         engineer reading the principle to sketch it in one
+         paragraph. Is the candidate's parity-test sketch concrete
+         at that level? Or does it leave open material decisions
+         (which test file? what assertion exactly? failure mode?).
+
+      4. **Comparative analysis**. The candidate cites XVI's "parameter
+         pinning" as precedent. Is the parallel sound? XVI's headline
+         became MORE specific after path-(c) (down to one invariant);
+         is "Predictable Output Tree" similarly more-specific than
+         the original "Zen of Python Output", or is it equally vague
+         in a different direction?
+
+      Conclude with a verdict: CONDITION (i) PASS / FAIL / PARTIAL.
+      If PASS, state the single structural invariant in one sentence.
+      If FAIL or PARTIAL, name the specific deficiency.
+
+  - name: condition-ii-specialization-verification
+    preset: pragmatist
+    prompt: |
+      You evaluate Condition (ii) Sub-bullet specialization
+      verification: does X's third sub-bullet ("errors should never
+      pass silently; warnings emitted for malformed output")
+      specialize Principle V's "every phase MUST report progress"
+      with output-format requirements that V does not cover?
+
+      Per Criterion 3 (distinct from existing principles): if the
+      sub-bullet composes from V (and possibly VII) without adding
+      new content, the principle fails distinctness and stays
+      migrated.
+
+      Read:
+      1. CONSTITUTION-v2.5.0-pre-migration.md — Principle V's full
+         body (Observable Deliberation) in the pre-migration state.
+      2. The candidate — the proposed restored X with all four
+         sub-bullets including the malformed-output one.
+      3. The current CONSTITUTION.md — Principle V's current state.
+
+      For EACH sub-bullet in the candidate (synthesis canonical path,
+      output depth bound, malformed-output emission, per-file focus):
+
+      1. **Identify the closest existing principle**. V is the
+         primary candidate (Observable Deliberation), but VII
+         (Reproducibility), XXIV (Safety-Critical), or others may
+         also overlap.
+
+      2. **Identify the substantive specialization**. What does the
+         sub-bullet require that the closest existing principle does
+         NOT require? Be specific — quote the existing principle's
+         body and quote the sub-bullet, then name the delta.
+
+      3. **Rule on distinctness**. If the delta is genuinely new
+         content (a structural property the existing principle
+         doesn't constrain), the sub-bullet passes Criterion 3 for
+         this comparison. If the delta is a restatement (different
+         words, same content), the sub-bullet fails Criterion 3.
+
+      Cross-check: does ANY sub-bullet duplicate existing content
+      across the principle set? Even if one sub-bullet specializes
+      V cleanly, if another duplicates VII, the principle fails
+      distinctness as a whole.
+
+      Conclude with per-sub-bullet verdicts and an overall verdict:
+      CONDITION (ii) PASS / FAIL / PARTIAL. If PARTIAL, name the
+      sub-bullets that pass and the ones that should stay migrated.
+
+  - name: condition-iii-verification-concreteness
+    preset: pragmatist
+    prompt: |
+      You evaluate Condition (iii) Verification block concreteness:
+      can the candidate's Verification block be sketched in one
+      paragraph by an engineer reading the principle?
+
+      Per Criterion 1, the path to the check does not have to exist
+      at amendment time, but it MUST be concrete enough that the
+      check shape (test file location, assertion, failure mode) is
+      derivable from the block.
+
+      Read:
+      1. The candidate's Verification block (the paragraph
+         immediately after the four sub-bullets).
+      2. The current CONSTITUTION.md — Principles XI, XII, XIII for
+         examples of Verification blocks the constitution has set
+         the bar with.
+      3. The current CONSTITUTION.md — XVI's path-(c) Verification
+         coverage (post-v2.6.0) as the most analogous precedent.
+
+      For each enumerated invariant in the candidate (synthesis
+      canonical path, output depth bound, malformed-output emission,
+      per-file focus):
+
+      1. **Test surface**. Does the Verification block name a
+         specific test file (or a derivable location)? "engine/tests/
+         test_phases.py" is named for the synthesis-canonical-path
+         invariant — is this concrete enough?
+
+      2. **Assertion shape**. Does the block name what the assertion
+         actually checks? A "parity test asserts X" is one level
+         removed from a code-level assertion; the question is
+         whether the engineer can write `assert (config.output /
+         "summary" / "final.md").stat().st_size > 0` directly from
+         the block.
+
+      3. **Failure mode**. What does the test fail look like? Is the
+         failure surfaced as a CI red, or as an annotation on the
+         output, or via some other mechanism?
+
+      4. **Cross-check**. Does the Verification block leave gaps
+         that an engineer would have to invent? Specifically:
+         - Are mode-specific paths (other than cooperative)
+           mentioned?
+         - Is the depth-bound assertion implementable as named, or
+           does "output depth" need definition?
+         - Is the malformed-output emission test implementable, or
+           does "malformed" need a schema/specification?
+
+      Conclude with a verdict: CONDITION (iii) PASS / FAIL / PARTIAL.
+      If PASS, the Verification block is concrete enough to ship.
+      If FAIL, name the specific gap. If PARTIAL, name which
+      sub-bullets have concrete Verification and which don't.
+
+arbiter:
+  name: spec-070-cycle3a-self-arbiter
+  preset: balanced-arbiter
+  prompt: |
+    You rule on findings raised by condition-i-headline-adequacy,
+    condition-ii-specialization-verification, and
+    condition-iii-verification-concreteness against the path-(c)
+    restoration candidate for Principle X.
+
+    For each agent's verdict:
+    - **PASS** for that condition: the candidate satisfies the
+      condition and X is eligible for restoration on that ground.
+    - **FAIL** for that condition: the candidate does not satisfy
+      the condition and X stays migrated regardless of the other
+      two conditions' verdicts.
+    - **PARTIAL** for that condition: the condition is partially
+      satisfied (e.g., some sub-bullets pass distinctness, others
+      don't); the overall verdict synthesizes across conditions.
+
+    Per spec 073 §4.3 and the supplemental blind verdict's outcome
+    rules:
+
+    - If all three conditions PASS: VERDICT PASS — X is restored
+      under the proposed path-(c) refactor; the v3.0.0 X migration
+      is superseded.
+    - If any condition FAILS: VERDICT FAIL — v3.0.0 migration
+      confirmed; X stays in operational guidance.
+    - If conditions are mixed (some PASS, some PARTIAL with
+      sub-bullets eligible): VERDICT PARTIAL — name which
+      sub-bullets are eligible for a narrower path-(c) and which
+      stay migrated.
+
+    Conclude with the verdict line:
+    - "SPEC-070 CYCLE 3A (SELF) VERDICT: PASS — X RESTORED"
+    - "SPEC-070 CYCLE 3A (SELF) VERDICT: FAIL — V3.0.0 CONFIRMED"
+    - "SPEC-070 CYCLE 3A (SELF) VERDICT: PARTIAL — [list eligible sub-bullets]"
+
+    This is the SELF-CONSISTENCY phase per spec 067 §6.1. The blind
+    verification phase (§6.2) runs separately against a stripped
+    candidate; the final cycle 3A verdict synthesizes both
+    deliberations' rulings.
+
+  grounding: X-path-c-restoration-candidate.md
+  trigger: always
+  timing: final
+  influence: binding
