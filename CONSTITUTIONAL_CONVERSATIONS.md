@@ -609,3 +609,28 @@ The pre-ratified pathway is rare — it requires that the wording was specified 
 **Outstanding deferred items** (after v3.1.3): unchanged from v3.1.2 — issue #94 still requires dual-perspective wording-precision review per its acceptance criteria; the P3 XIX migration eligibility note (not filed as an issue) requires dual-deliberation if pursued.
 
 **Pathway**: PATCH + verbatim contract single-PR pathway. Now ratified twice (v3.1.1 cycle 2C original, v3.1.3 cycle 2C follow-on). The pathway is robust to the kind of interpretation slip that this PR corrects, because the slip itself surfaced through the orchestrator's self-flagged uncertainty disclosure rather than through silent acceptance.
+
+---
+
+## 2026-05-03 — Spec 070 closure correction (path b, follow-up spec 073 filed)
+
+**Subject**: Apply the closure-verification deliberation 2026-05-01 verdict (SPEC-070-CLOSURE VERDICT: PREMATURE — REOPEN). Path (b) of the verdict's two equivalent remedy paths: file a named follow-up spec (spec 073) with explicit §9 AC #5 gap acknowledgment + spec 067 verification trail tied to a future contrarian deliberation completing.
+
+**Trigger**: closure-verification deliberation 2026-05-01 — see `deliberations/070-closure-verification-2026-05-01/arbitration/resolution.md` for the verdict.
+
+**Verification approach precedent**: this is the second time in this session that a closure has been corrected through a deliberation rather than a self-attestation re-write. The first was the cycle 2C bullet-split (PR #107 v3.1.3) which the orchestrator self-flagged for user direction. The closure-verification was a full conversus deliberation that surfaced gaps the orchestrator could not have detected by self-review (the cycle 2 blind ran against a post-migration document, making the contrarian "passes the gate" argument structurally impossible — by the time the orchestrator wrote the closure PR, the post-migration document was the only available target).
+
+**Bundle**:
+1. **New spec 073** at `specs/073-spec-070-closure-correction.md` — active spec describing the supplemental blind deliberation work required to discharge spec 070 §9 AC #5. Includes:
+   - Explicit closure-gap acknowledgment: "Spec 070's `specs/done/` placement (PR #99, 2026-05-01) preceded §9 AC #5 satisfaction" (verbatim per the verdict's path-b condition #2).
+   - §4 methodology for the supplemental blind: pre-migration target, contrarian agent prompt, devils-advocate + balanced-arbiter presets per spec 070 §6.2.
+   - §4.3 four-valued verdict scheme: SUSTAINED / SUSTAINED WITH FINDINGS / PARTIALLY SUSTAINED / NOT SUSTAINED.
+   - §5 success criteria: deliberation runs, verdict filed, CONCONV entry appended, closure record added to spec 070, spec 073 moved to `specs/done/`.
+2. **Spec 070 closure-record update** in `specs/done/070-grandfathered-audit/spec.md` — Status field amended to reflect that closure (PR #99) was premature per the closure-verification deliberation; §9 AC #5 is open; spec 073 carries the supplemental verification work; spec 070 stays in `specs/done/` to preserve the false-closure timestamp in the audit trail.
+3. **CONCONV §5.3 SC 4 historical note** (this entry): per the closure-verification deliberation's bifurcation ruling on Dispute 5, the historical-record finding stands — spec 070 §5.3 SC 4 (cross-references to operational-guidance documents) was open at PR #99 merge time. The Governance operational-guidance list addition to CONSTITUTION.md is deferred to a follow-up PATCH (sequenced after PR #116 lands the v3.2.0 pathway-taxonomy migration).
+
+**Outstanding deferred items** (from this entry):
+- The supplemental blind deliberation itself (§4 of spec 073) is OPEN — to be run in a subsequent session. When it runs, spec 073 closes per its §5 success criteria.
+- The Governance operational-guidance list addition (verdict P2 #4) is DEFERRED to a follow-up PATCH after PR #116 (v3.2.0 pathway-taxonomy migration) and this PR both land. The deferral preserves PR atomicity; the operational-guidance list discharge is bookkeeping that does not gate the §9 AC #5 verification work.
+
+**Methodology note**: this is the first closure-correction spec in conversus history. The pattern is reusable: when a closure is found to be premature post-merge, path (b) (named follow-up spec with explicit gap acknowledgment) is preferable to path (a) (move spec back to `specs/`) because it preserves the audit trail of when the false closure happened. Future closure-corrections SHOULD follow path (b) by default, reserving path (a) for cases where the closure trail itself is corrupted or where the spec author needs to amend body content rather than just discharge an outstanding verification obligation.

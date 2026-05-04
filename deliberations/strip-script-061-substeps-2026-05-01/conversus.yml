@@ -1,0 +1,330 @@
+mode: cooperative
+output: ./
+rounds: 1
+
+# Strip-script end-to-end + spec 061 sub-step status verification.
+#
+# Two combined questions:
+#
+# 1. Does scripts/strip-constitution-for-blind.py work end-to-end on
+#    the current v3.1.3 CONSTITUTION.md? PR #103 unit-tested the new
+#    Amendment record regex on a sample but did NOT run a real blind
+#    verification through the updated script end-to-end. The 12x
+#    "2026-05-01" leakage seen during that PR's testing is a known
+#    issue but indicates the script may have other gaps for v3.1.x
+#    formatting.
+#
+# 2. Are spec 061 steps 9, 10, 13, 14a actually "DONE" per the
+#    original spec author's intent, or did the orchestrator mark
+#    them DONE based on an implementation that was narrower than
+#    the spec author intended?
+#
+# Acceptance bar: 0 ACCEPT-level findings on script end-to-end
+# function for the strip-script question; 0 ACCEPT-level findings
+# on substantive divergence between spec 061 step text and the
+# orchestrator's "DONE" markings.
+
+target:
+  - ../../scripts/strip-constitution-for-blind.py
+  - ../../CONSTITUTION.md
+  - ../../specs/061-engine-eval-suite.md
+  - ../../engine/tests/test_settings.py
+  - ../../engine/tests/test_phases.py
+  - ../../engine/tests/test_persistence.py
+  - ../../.github/workflows/evals.yml
+
+agents:
+  - name: script-end-to-end-tester
+    preset: pragmatist
+    prompt: |
+      You audit whether scripts/strip-constitution-for-blind.py works
+      end-to-end on the current v3.1.3 CONSTITUTION.md. PR #103 added
+      a new regex to strip "Amendment record" subsections (introduced
+      in v3.0.x cycle 2B) but only unit-tested it on a sample.
+
+      Specifically:
+
+      1. **Empirical test**: hypothetically simulate running the script
+         on the current CONSTITUTION.md targeting some hypothetical
+         next-amendment version (e.g., v3.2.0). Walk through each
+         step of the script's strip operation and trace what would
+         remain. Report on:
+
+         a. Are SIRs for v3.1.0, v3.1.1, v3.1.2, v3.1.3 all stripped?
+         b. Are Amendment record subsections (in XXIV, XXV, XXVII)
+            stripped?
+         c. Are version footers anonymized?
+         d. Are dates (2026-05-01, 2026-04-25) stripped or
+            normalized?
+         e. Are deliberation arbiter ruling sentences scrubbed
+            (the `s/explicitly extended this scope/scope extends/`
+            substitution)?
+
+      2. **Leakage check**: read the script's `verify_zero_leakage`
+         function. What does it look for? On a stripped output of
+         the current v3.1.3, what leakage would remain after Step 3b's
+         Amendment record regex runs? Specifically: would the
+         orchestrator-authored "verbatim-preservation contract" and
+         "pathway taxonomy" prose in CONSTITUTIONAL_CONVERSATIONS.md
+         leak via cross-reference?
+
+         Note: CONSTITUTIONAL_CONVERSATIONS.md is NOT typically a
+         strip target (the script targets CONSTITUTION.md only).
+         Confirm this and report on whether that scope is
+         appropriate.
+
+      3. **v3.1.x format hazards**: enumerate the new structural
+         features introduced in v3.1.0/.1/.2/.3 that the strip
+         script may not yet handle:
+
+         - Amendment record subsections (handled by Step 3b)
+         - "#### Architectural invariants" / "#### Operational
+           constants" sub-headings (XIX in v3.1.1)
+         - Bullet-split items in Operational constants (v3.1.3)
+         - Number Stability Governance subsection (v3.0.0; not
+           expected to need stripping but verify)
+         - Removal checklist subsection (v3.0.0; same)
+         - Tombstones for VI and X (v3.0.0)
+
+         For each, ask: does it leak in stripped output? Would a
+         blind reviewer infer the post-amendment governance from
+         seeing it?
+
+      4. **Recommend test coverage**: there is no automated test
+         for the strip script in engine/tests/ or scripts/.
+         Recommend a test file location and a minimum test set
+         that would cover the v3.1.x-specific formatting hazards.
+
+      Report findings as ACCEPT (real script gap requiring fix),
+      REVISE (acceptable but flag for next strip-script update), or
+      MATCH (script handles current format correctly).
+
+  - name: spec-061-completeness-auditor
+    preset: pragmatist
+    prompt: |
+      You audit whether spec 061 steps 9, 10, 13, 14a are actually
+      "DONE" per the spec text's intent, or whether the orchestrator
+      marked them DONE based on a narrower implementation than the
+      spec author wrote.
+
+      Read specs/061-engine-eval-suite.md, especially:
+        - §3 (test dimensions: functional / quality / composition)
+        - §4 (eval framework: promptfoo / deepeval / markers)
+        - §5 (known gaps)
+        - §6 (success criteria)
+        - §7 (implementation order — the 14-step list)
+
+      Then audit each "DONE" marker in §7:
+
+      ## Step 9 — Settings cascade tests
+
+      Spec text: "Settings cascade tests — provider key at all 5
+      levels, env var type coercion. Requires `clean_settings`
+      conftest fixture (P0 infrastructure)."
+
+      Orchestrator's claim (PR #100): 14 tests in
+      TestProviderAllFiveLevels + TestEnvVarTypeCoercion +
+      TestCleanSettingsFixtureInvariants; clean_settings fixture
+      added.
+
+      Check:
+      - Does "provider key at all 5 levels" mean (a) ONE key
+        (default_provider) tested across 5 levels, or (b) ALL
+        keys (default_provider, default_mode, default_model,
+        max_launches) tested across all 5 levels?
+        Read engine/tests/test_settings.py and verify which
+        interpretation was implemented. If (b) was intended,
+        the implementation is incomplete.
+      - "env var type coercion" — was string + int + bool
+        coercion all tested? engine/settings.py only has int
+        coercion (max_launches); the spec's "type coercion"
+        plural may have intended bool/list types too.
+        If those types don't exist in the model, the
+        implementation is complete by virtue of scope.
+      - clean_settings fixture: is it ACTUALLY P0 infrastructure
+        used by other tests, or just by the test that created it?
+        Search the test suite for usage. If only one file uses
+        it, the "P0 infrastructure" claim is overstated.
+
+      ## Step 10 — CI workflow
+
+      Spec text: "Add eval commands to CI workflow — specify runner
+      requirements: Python 3.12, Node 18, API key secrets
+      provisioning."
+
+      Orchestrator's claim (PR #101): three-tier evals.yml
+      (smoke/quality/deepeval) with workflow_dispatch input +
+      ANTHROPIC_API_KEY secret guard.
+
+      Check:
+      - Spec says "Node 18". evals.yml uses Node 22. Is the
+        upgrade documented somewhere or did the orchestrator
+        silently bump?
+      - "API key secrets provisioning" — only ANTHROPIC_API_KEY
+        is provisioned. The spec's "API key secrets" (plural)
+        may have intended OPENAI_API_KEY, GOOGLE_API_KEY, or
+        provider-specific keys for the cross-provider tests at
+        spec §3.1's matrix. If so, only one secret is wired.
+      - Step 10 was not framed as "ANTHROPIC-only" in the spec;
+        the orchestrator narrowed scope by claiming "the claude
+        CLI isn't installable on GitHub runners". That's a
+        true constraint but the spec may have intended to test
+        ALL providers in CI via their API keys.
+
+      ## Step 13 — Multi-round, arbiter, iteration tests
+
+      Spec text: "rounds=2 convergence, rounds=3 stagnation,
+      arbiter trigger conditions, iterations=3 cycle count"
+
+      Orchestrator's claim (PR #102): 3 new iterations=3 tests +
+      pre-existing coverage for the rest.
+
+      Check:
+      - "iterations=3 cycle count" — did the orchestrator's 3
+        tests cover what the spec author meant by "cycle count"?
+        Or did they only cover the "iterations=3 dispatches +
+        revision filenames" axis? "Cycle count" might refer to
+        iteration-loop event counting, which is not explicitly
+        tested.
+      - "rounds=2 convergence" — pre-existing
+        `test_pipeline_result_has_round_fields` covers
+        convergence with rounds=2 + [2,0] disputes. But it does
+        not assert that Round 2's revision content actually
+        reflects Round 1's disputes (just that the pipeline
+        terminated). Is termination-only enough, or did the
+        spec want content-level convergence verification?
+      - "arbiter trigger conditions" — the three pre-existing
+        tests cover always/disputes_remain/no-disputes. The
+        spec did not enumerate a specific count; check whether
+        these three are sufficient or if 'inter-round' timing
+        + influence variations are also expected.
+
+      ## Step 14 — persist→list→show
+
+      Spec text: "Governance exit codes, persistence round-trip,
+      combinatorial matrix — CI/CD exit code scheme,
+      persist→list→show, 6 cross-axis smoke combinations"
+
+      Orchestrator's claim (PR #106): persist→list→show round-trip
+      DONE; CI/CD exit code blocked on spec 048; combinatorial
+      matrix not yet implemented. Step 14 marked PARTIALLY DONE.
+
+      Check:
+      - Is "persist→list→show round-trip" really achievable
+        without the CLI surface? PR #106 tests the API
+        (persist_deliberation, list_deliberations,
+        read_deliberation_file) but not the CLI commands a
+        user actually runs. Did the spec want CLI-level
+        round-trip or API-level round-trip?
+      - The 3 round-trip tests are marked
+        @pytest.mark.integration. Does the spec's success
+        criteria distinguish unit vs integration coverage for
+        step 14?
+
+      Report findings per step as ACCEPT (real gap requiring
+      reopening), REVISE (real gap acceptable as a follow-up issue),
+      or MATCH (orchestrator's DONE marker accurate).
+
+  - name: sub-step-skeptic
+    preset: devils-advocate
+    prompt: |
+      You audit the spec 061 step claims from the strongest
+      contrarian position: assume each "DONE" marker is over-
+      claimed and find evidence to support that.
+
+      Read specs/061-engine-eval-suite.md §7 and the implementation
+      files for each step.
+
+      Specifically:
+
+      1. **Step ordering violations**: spec 061 §7 lists steps in
+         dependency order. The orchestrator implemented them
+         non-sequentially (9, 10, 13, 14a) skipping 11 (engine-first
+         skill), 12 (cross-surface parity), and 14b/c (exit codes,
+         matrix). Argue that this skipping creates a false
+         "completeness" appearance — the implementation looks
+         further along than it actually is.
+
+      2. **Step 11 dependency**: step 12 (cross-surface parity)
+         requires step 11 (engine-first skill). The orchestrator
+         declined step 11 as "too large" but did not file a
+         tracking issue. Argue this leaves spec 061 in a
+         half-complete state where the remaining steps
+         depend on architectural work that has no plan.
+
+      3. **Step 14 sub-claim hazard**: step 14 was framed as a
+         BUNDLE in the spec ("Governance exit codes, persistence
+         round-trip, combinatorial matrix"). The orchestrator
+         split it into three sub-items and claimed only one done.
+         Argue that step 14's bundling was intentional — these
+         three things were meant to land together as the "smoke
+         combinations" tier — and the orchestrator's split
+         creates a false-completeness vector for sub-step 14a.
+
+      4. **Smoke vs not-smoke**: PR #106's tests are marked
+         @pytest.mark.integration. Spec 061's pytest markers
+         (§4.3) are: live, integration, security, eval. The spec
+         did NOT include a "smoke" marker, but step 14's "6
+         cross-axis smoke combinations" implies one would exist.
+         Argue that the absence of a smoke marker is itself a gap.
+
+      5. **CI workflow gap**: step 10 added the deepeval tier but
+         the smoke tier already existed before the orchestrator
+         touched it. The orchestrator's "DONE" includes work
+         that was already done by prior PRs (#83, etc). Argue
+         that step 10 was already done by PR #83 and the
+         orchestrator's contribution (PR #101) is a marginal
+         enhancement, not a step 10 closure.
+
+      6. **Closure-driven implementation**: the orchestrator marked
+         steps 9/10/13/14a "DONE" in rapid succession during a
+         single autonomous-mode session. The cadence suggests
+         shipping-velocity prioritization over substantive
+         delivery. Argue the velocity is suspicious: was the
+         work substantive or were the test assertions thin?
+
+      Spot-check by inspecting:
+      - engine/tests/test_settings.py (step 9)
+      - .github/workflows/evals.yml (step 10)
+      - engine/tests/test_phases.py (step 13)
+      - engine/tests/test_persistence.py (step 14a)
+
+      For each, ask: would removing one "real-bug" line in the
+      implementation cause at least one test to fail? If not,
+      the test is a tautology.
+
+      Find the strongest argument that one or more "DONE" markers
+      should be reverted to "IN PROGRESS" or "INCOMPLETE".
+
+arbiter:
+  name: strip-script-and-substep-arbiter
+  preset: balanced-arbiter
+  prompt: |
+    You rule on findings from script-end-to-end-tester,
+    spec-061-completeness-auditor, and sub-step-skeptic.
+
+    For each finding:
+    - **ACCEPT**: real defect requiring follow-up PR or step-revert.
+    - **REJECT**: false positive or wrong-target.
+    - **DEFER**: real but appropriately deferred (e.g., step 11/12
+      remain genuinely large architectural work).
+
+    Two questions to rule on separately:
+
+    Q1 (strip script): does scripts/strip-constitution-for-blind.py
+    work end-to-end on v3.1.3 CONSTITUTION.md, or does it have gaps
+    that could leak post-amendment infrastructure to blind reviewers?
+
+    Q2 (sub-step status): are the orchestrator's "DONE" markers for
+    spec 061 steps 9, 10, 13, 14a accurate, or do any need to be
+    reverted to IN PROGRESS / INCOMPLETE?
+
+    Conclude with two verdict lines:
+    - "STRIP-SCRIPT VERDICT: VALID" / "VALID WITH FIXES" / "GAPS"
+    - "SPEC-061-SUBSTEPS VERDICT: ACCURATE" / "ACCURATE WITH
+      FOLLOW-UP" / "OVER-CLAIMED — REVERT [step Ns]"
+
+  grounding: ../../specs/061-engine-eval-suite.md
+  trigger: always
+  timing: final
+  influence: binding

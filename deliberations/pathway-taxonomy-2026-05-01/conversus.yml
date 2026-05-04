@@ -1,0 +1,166 @@
+mode: cooperative
+output: ./
+rounds: 1
+
+# Pathway taxonomy validation deliberation.
+#
+# In v3.1.2 (PR #105), the orchestrator added a "fourth pathway type"
+# to the governance methodology table in CONSTITUTIONAL_CONVERSATIONS.md:
+#
+#   | Pathway | Cost | Examples |
+#   |---|---|---|
+#   | MAJOR + full dual-deliberation | spec 067 self+blind | v3.0.0 |
+#   | MINOR + verbatim contract | single PR | v3.1.0 |
+#   | PATCH + verbatim contract | single PR | v3.1.1 |
+#   | PATCH + pre-ratified deferred wording | single PR | v3.1.2 |
+#
+# The orchestrator self-flagged this as an uncertainty: "I extended the
+# methodology on my own authority. If the user disagrees, the v3.1.2
+# governance log entry needs scrubbing."
+#
+# Question for this deliberation:
+#   Should the "PATCH + pre-ratified deferred wording" pathway be (a)
+#   retained as documented, (b) modified/refined, or (c) scrubbed from
+#   the governance taxonomy?
+#
+# Acceptance bar: 0 ACCEPT-level findings on the pathway's legitimacy as
+# a distinct governance category. PASS or PASS WITH FIXES are both
+# acceptable verdicts; FAIL means the pathway should be scrubbed.
+
+target:
+  - ../../CONSTITUTIONAL_CONVERSATIONS.md
+  - ../../CONSTITUTION.md
+
+agents:
+  - name: pathway-defender
+    preset: pragmatist
+    prompt: |
+      You defend the "PATCH + pre-ratified deferred wording" pathway as
+      a legitimate addition to the governance taxonomy. Read the v3.1.2
+      governance log entry in CONSTITUTIONAL_CONVERSATIONS.md and the
+      v3.1.2 SIR comment block at the top of CONSTITUTION.md.
+
+      Make the strongest case that this pathway is distinct enough from
+      the existing three pathways to warrant its own row. Specifically
+      address:
+
+      1. Distinctness from "PATCH + verbatim contract" (the v3.1.1
+         pathway). Both involve single PRs with verbatim preservation.
+         The pre-ratified-deferred-wording variant has the additional
+         property that the wording was pre-specified in a prior SIR's
+         TODO and the prior verification cycle implicitly validated
+         it. Is that property a meaningful governance distinction or
+         a difference without a difference? Argue it IS meaningful and
+         that the distinction matters for future amendments.
+
+      2. Risk of pathway proliferation. The taxonomy now has four
+         pathways, all close in cost. Could future amendments find
+         even smaller distinctions and demand their own pathway rows?
+         Argue the four-pathway taxonomy is the right level of
+         resolution and that the framing prevents proliferation
+         (e.g., by anchoring each pathway to a verifiable contract:
+         dual-deliberation, verbatim, or pre-ratified-wording).
+
+      3. Authority to add a pathway. The orchestrator added this
+         pathway during a single PR (#105) without external
+         deliberation — the pathway formalization rode along with
+         the v3.1.2 elaboration. Argue that this is acceptable
+         because the pathway is descriptive (it documents what the
+         orchestrator already did), not prescriptive (it doesn't
+         constrain future amendments to a new norm).
+
+      4. Future use cases. Find or hypothesize a credible future
+         amendment scenario where the pre-ratified-deferred-wording
+         pathway would be the right choice and no other pathway
+         applies. If you cannot construct one, the pathway has no
+         independent value and should be scrubbed regardless of
+         retrospective coherence.
+
+      Find the strongest argument that this pathway should be
+      retained as documented. If you find none, say so explicitly.
+
+  - name: pathway-skeptic
+    preset: devils-advocate
+    prompt: |
+      You audit the "PATCH + pre-ratified deferred wording" pathway
+      from the strongest contrarian position. Read the v3.1.2
+      governance log entry in CONSTITUTIONAL_CONVERSATIONS.md and the
+      v3.1.2 SIR comment block at the top of CONSTITUTION.md.
+
+      Make the strongest case that this pathway is an over-extension
+      of governance taxonomy that should be scrubbed. Specifically
+      address:
+
+      1. Substantive distinctness. The v3.1.1 PATCH + verbatim
+         contract pathway already covers single-PR amendments with
+         verbatim preservation. The "pre-ratified deferred wording"
+         distinction is whether the wording was named in a prior
+         SIR. Is that a meaningful governance variable, or is it
+         post-hoc rationalization for shipping a tiny PR (#105) under
+         a fancier label? Argue the latter.
+
+      2. Authority concern. The orchestrator added a pathway to the
+         governance taxonomy in a single PR without deliberation.
+         The taxonomy is governance scaffolding — adding to it
+         changes how future amendments will be classified. Argue
+         that adding governance scaffolding requires the same
+         dual-deliberation that constitutional changes require, and
+         that the orchestrator's authority to do so unilaterally
+         is itself questionable.
+
+      3. Pathway proliferation risk. Four pathways now exist with
+         costs differing only in second-order properties (wording
+         pre-ratified vs verbatim vs structural-only vs full
+         deliberation). The taxonomy treats these as parallel,
+         which suggests there should be a fifth, sixth, Nth pathway
+         for every other second-order distinction. The framework
+         does not bound itself.
+
+      4. Comparison to RFC/CVE precedent the v3.0.0 SIR cites. RFC
+         standards bodies have ONE process for amendments (RFC →
+         draft → standard); CVE uses ONE process for vulnerability
+         identification. Argue that the conversus governance
+         taxonomy is over-decomposed compared to these
+         precedents and that the four-pathway structure should
+         collapse to a single "governance amendment" pathway with
+         per-amendment cost notes.
+
+      5. Self-citation hazard. The pathway's "examples" column lists
+         the v3.1.2 PR (this PR) as the canonical example. Argue
+         that a pathway whose only example is its own ratification
+         PR is by definition retroactive justification rather than
+         general governance infrastructure.
+
+      Find the strongest argument for scrubbing. If the case is
+      weak, recommend modification (e.g., merge with v3.1.1's
+      pathway under a single "PATCH + single-PR" row with sub-notes).
+
+arbiter:
+  name: pathway-taxonomy-arbiter
+  preset: balanced-arbiter
+  prompt: |
+    You rule on findings raised by pathway-defender and pathway-skeptic.
+    Your grounding is CONSTITUTIONAL_CONVERSATIONS.md (the v3.1.2 entry
+    with the four-pathway table) and CONSTITUTION.md (the v3.1.2 SIR
+    comment block).
+
+    For each finding:
+    - **ACCEPT**: real defect requiring action (retain/modify/scrub).
+    - **REJECT**: false positive or wrong-target.
+    - **DEFER**: real but out of scope (e.g., requires future spec).
+
+    Rule on the question: should the "PATCH + pre-ratified deferred
+    wording" pathway be (a) retained as documented, (b) modified/
+    refined, or (c) scrubbed from the governance taxonomy?
+
+    Conclude with a verdict line:
+    - "PATHWAY-TAXONOMY VERDICT: RETAIN" (no changes needed)
+    - "PATHWAY-TAXONOMY VERDICT: MODIFY" (specify the modification)
+    - "PATHWAY-TAXONOMY VERDICT: SCRUB" (the v3.1.2 governance log
+      entry's pathway-table row should be removed; recommend a
+      cleanup PR)
+
+  grounding: ../../CONSTITUTIONAL_CONVERSATIONS.md
+  trigger: always
+  timing: final
+  influence: binding

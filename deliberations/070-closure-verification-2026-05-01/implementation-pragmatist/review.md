@@ -1,0 +1,108 @@
+### Executive Summary
+
+Spec 070 set out to formally audit three grandfathered principles (VI, X, XVI) against the v2.4.0 Constitutional Inclusion Criteria gate, propose migration paths for those that failed, and authorize (but not perform) the implementation PRs that would carry out the migrations. The implementation delivered all three: Principle XVI was refactored in place under path (c) (v2.6.0), and Principles VI and X were migrated to `CONTRIBUTING.md` and `docs/output-conventions.md` respectively (v3.0.0), with governance housekeeping completing in v3.1.0–v3.1.3.
+
+From a practical-engineering standpoint, the implementation works. The tombstones are correctly placed and cross-referenced, the migration targets contain substantive guidance rather than stubs, the SHOULD/MUST framing shift is explained and appropriate, and the versioning chain is coherent. A contributor reading the constitution today would understand that VI and X no longer exist as principles, would find the substantive guidance in the named destinations, and would understand why XVI survived the gate. The governance machinery introduced — path (c) precedent, migrate-out precedent, removal checklist — is documented in the Governance section body, not only in SIR comment blocks.
+
+The implementation has two material gaps. First, a cluster of deferred items are at varying levels of risk of being forgotten, most critically the Principle XIX migration eligibility note, which the v3.1.1 SIR explicitly did not file as a tracking issue, and the Governance section's promised operational-guidance list, which the v3.0.0 SIR committed to as a PATCH-class follow-up but which does not appear in the current Governance text. Second, spec §6 explicitly distinguishes spec-level verification of the audit conclusions from implementation-PR-level verification of each migration; the closure evidence shows implementation-PR deliberations, but the standalone spec-level blind deliberation that §6.2 requires — with its mandatory devil's-advocate strand arguing VI and/or X passes the gate on closer reading — does not appear to have been conducted as a distinct artifact. The most important immediate action is to file the XIX P3 tracking issue before that deferred item disappears entirely.
+
+---
+
+### Alignment
+
+- **Tombstone completeness** (CONSTITUTION.md, Principles VI and X): Both tombstones include retirement date, version, migration target, and the no-reuse declaration cross-referencing Principle Number Stability — exactly the four fields Removal checklist item (c) requires. The strikethrough markdown in the principle heading is consistent with the struck-through entries in the grandfathering enumeration in the Governance section; a reader skimming either location receives a coherent retirement signal.
+
+- **Migration content depth** (CONTRIBUTING.md § Authoring Conventions; docs/output-conventions.md): Neither migration target is a stub. CONTRIBUTING.md reproduces all three substantive sub-bullets from original Principle VI — orchestration in SKILL.md/templates, configuration in YAML, and when markdown is appropriate — framed as SHOULDs with a rationale paragraph. `docs/output-conventions.md` reproduces the Zen-of-Python spirit, the one-obvious-way and flat-over-nested conventions, and goes further with a "Recommended implementation patterns" section that separates the mechanically checkable subset from the irreducibly aesthetic guidance. Both documents exceed the minimum migration standard.
+
+- **SHOULD/MUST framing shift explained** (CONTRIBUTING.md "the qualifier 'when the artifact drives behavior' requires interpretation"; docs/output-conventions.md "The core sentence 'readability counts' is irreducibly subjective"): The framing shift is not silently imposed. Each document contains one paragraph explaining why SHOULD is appropriate in this context — grounded in the v2.4.0 gate's Criterion 2 logic. This prevents future contributors from reading the SHOULD as an accidental weakening of the original principle.
+
+- **Path (c) and migrate-out precedents documented in Governance body** (CONSTITUTION.md Governance § path (c)): The Governance section body — not only SIR comment blocks — documents both canonical precedents, with the instruction that future amendments may cite them "without re-litigating the analytical foundation, provided the citing amendment demonstrates analytical fit." This operationalizes the institutional knowledge from the deliberations into a forward-facing governance rule.
+
+- **Grandfathering enumeration corrected** (CONSTITUTION.md Governance § Constitutional Inclusion Criteria, grandfathering paragraph): The active set is correctly enumerated with VI and X struck through, explicit active count of 26, and "MUST NOT be reused" language. The Principle Number Stability subsection and the Removal checklist both cite the no-reuse rule, satisfying removal checklist items (c) and (d).
+
+---
+
+### Missed Opportunities
+
+- **Governance section operational-guidance list absent**: The v3.0.0 SIR explicitly states: "Cross-reference: CONTRIBUTING.md and docs/output-conventions.md are the canonical operational-guidance destinations for migrated VI and X content. The Governance section's operational-guidance list will be updated in a subsequent PATCH (P2 in the self verdict)." The current Governance section contains no such list. A reader wanting to know "where does operational guidance live in this project?" has no single lookup in the constitution — they must traverse tombstones individually. A three-line "Operational guidance documents" subsection naming CONTRIBUTING.md and `docs/output-conventions.md` alongside the existing AGENTS.md reference would close this gap. Impact: **medium** — this was an explicit SIR commitment, and its absence leaves the Governance section incomplete as a navigation document.
+
+- **XIX P3 migration eligibility note has no tracking issue**: The v3.1.1 SIR states explicitly: "Deferred to a future deliberation cycle (P3, NOT filed as an issue here): the migration eligibility note for Operational constants." Deliberately not filing a tracking issue for a known deferred item is a documentation anti-pattern in a spec-driven codebase where deferred items are ordinarily tracked by issue number. The XIX Operational constants sub-heading now exists; the question of whether those items may eventually migrate to operational guidance was surfaced during the deliberation and then explicitly left untracked. Impact: **medium** — without an issue, this deliberation question will not resurface unless someone re-reads the v3.1.1 SIR comment block.
+
+- **Spec-level §6.2 blind deliberation not clearly evidenced as distinct artifact**: The spec §6.3 states: "The implementation PR(s) that perform actual CONSTITUTION.md migration are verified per spec 067 in their own right — this spec's verification covers the audit conclusions, not the resulting amendments." This creates two distinct verification scopes. The SIR records show implementation-PR-level blind deliberations (`070-cycle1-xvi-blind-2026-05-01`, `070-cycle2-vi-x-blind-2026-05-01`). Whether a standalone spec-level blind deliberation — verifying the §4 audit verdicts before the implementation PRs were filed, with a devil's-advocate strand arguing VI and/or X passes the gate — was conducted as a distinct artifact is not evident from the provided materials. The cycle 1 blind addressed XVI only; VI and X were not yet in scope. If the cycle 2 blind served as the de facto §6.2 deliberation, that overlap should be documented explicitly. Impact: **medium** — spec §9 AC #5 has a specific artifact requirement; without clarity on whether it was met, the closure record is incomplete.
+
+- **Plain-language schema lint not tracked**: The v2.6.0 SIR follow-up TODOs note: "Plain-language schema lint (structural inspection of plugin recommendation output schemas for adjacent string-typed explanation fields) — pending implementation; ticket to be filed." The Principle XVI body references this lint in its enforcement language. No ticket is visible in the provided artifacts. Principle XVI's Criterion 1 claim (mechanical verification capability) rests partly on this lint existing; the principle passed the gate because the path to building the check was "concrete enough," but the check itself remains unimplemented with no tracking pull. Impact: **medium** — a principle citing a pending enforcement mechanism with no ticket is a documentation liability, not merely a backlog item.
+
+- **Stage-3 completeness test not tracked**: Also from the v2.6.0 SIR: "Stage-3 assembly-form determinism completeness test — pending implementation under the spec 014 contracts." The Principle XVI Enforcement sub-bullet cites this test explicitly as the VII+VIII composition completeness verification. No ticket for the test is visible. Same structural problem as the plain-language lint: the principle's enforcement language references a check that doesn't exist and has no confirmed tracking path. Impact: **medium**.
+
+- **CONTRIBUTING.md discoverability from project navigation**: CONTRIBUTING.md correctly describes itself and its relationship to the constitution. Whether README.md links to it — and whether that link is prominent enough for a new contributor to find the Authoring Conventions section — cannot be verified from the provided target files. If README.md predates the Authoring Conventions section, new contributors will not know to consult it, and the VI migration fails its core purpose of preventing the pattern from recurring. Impact: **medium** — migration effectiveness is entirely dependent on discoverability.
+
+- **mkdocs.yml nav entry not verifiable**: The v3.0.0 SIR lists "mkdocs.yml nav entry" as a P1 fix applied in that commit. This is plausibly done, but it cannot be confirmed from the provided artifacts. If the nav entry is absent, `docs/output-conventions.md` is accessible only via the tombstone cross-reference and is invisible in the project's documentation site. Impact: **low** (likely done per SIR attestation, but worth verifying).
+
+---
+
+### Off-Base Assumptions
+
+- **Assumption that implementation-PR deliberations satisfy spec-level §6 verification requirements**: The spec (§6, §6.3) explicitly treats spec-level verification and implementation-PR verification as distinct activities with distinct scopes. Spec §9 AC #5 requires a blind deliberation in which "the blind run MUST include an agent prompt explicitly arguing one or more of VI/X/XVI passes the gate on closer reading." The cycle 1 blind (`070-cycle1-xvi-blind`) addressed XVI only; VI and X were not yet migration candidates at that point. If the cycle 2 blind (`070-cycle2-vi-x-blind`) was intended to serve double duty as both the implementation-PR deliberation and the spec-level §6.2 deliberation, that dual role is not documented in the SIR text. The spec was designed so that the adversarial §6.2 deliberation (applying the devil's-advocate stance to the audit verdicts collectively) would precede the implementation PRs — providing a gate before migration proceeded. Running the adversarial review at the same time as the migration execution conflates two logically distinct checks and weakens the protection §6.2 was designed to provide.
+
+- **The constitution references only its own tombstones for operational-guidance navigation**: The Governance section's tombstone-based cross-references work for locating specific migrated principles but do not serve the broader navigation purpose of "where does this project's operational guidance live?" The v3.0.0 SIR committed to fixing this via an operational-guidance list; the absence of that list means the constitution implicitly assumes tombstone cross-references are sufficient for discovery, which they are not when a contributor is asking the general question rather than the specific one.
+
+---
+
+### Actionable Recommendations
+
+1. **File tracking issue for XIX P3 migration eligibility note** (Priority: P1)
+   - **Current state**: v3.1.1 SIR explicitly states the deferred item was "NOT filed as an issue here." No GitHub issue tracks the question of whether XIX Operational constants items (Re-run overwrite behavior, Agent count formulas, Template-vs-skill responsibility boundary, Baseline features list) are eligible for future migration to operational guidance.
+   - **Proposed change**: File a GitHub issue titled "deliberation: XIX Operational constants migration eligibility (spec 070 cycle 2C deferred P3)" referencing the v3.1.1 SIR deferred-item language and the spec 070 §4.3 discussion of Architectural invariants vs. Operational constants. Assign P3 priority.
+   - **Rationale**: Spec-driven projects track deferred deliberations as issues, not as SIR comment block footnotes. "NOT filed as an issue here" is a statement that the item was consciously deprioritized, but without a tracking pull it remains deprioritized indefinitely rather than being appropriately scheduled.
+   - **Risk if ignored**: The XIX Operational constants sub-heading exists but the migration eligibility question — which has a direct bearing on whether XIX fully satisfies the v2.4.0 gate under future review — is permanently deferred with no reopen mechanism.
+
+2. **Add operational-guidance list to Governance section** (Priority: P1)
+   - **Current state**: v3.0.0 SIR states "The Governance section's operational-guidance list will be updated in a subsequent PATCH (P2 in the self verdict)." Current Governance section contains no such list.
+   - **Proposed change**: Add a "Operational guidance documents" subsection after the Constitutional Inclusion Criteria section, listing `CONTRIBUTING.md` (§ Authoring Conventions) and `docs/output-conventions.md` as canonical migration destinations, with a note that future principle removals should add entries here.
+   - **Rationale**: This was a SIR commitment, not optional scope. Without it, the Governance section cannot serve as a complete lookup for a contributor asking where migrated principle content lives. Individual tombstone cross-references work for specific lookups; they do not substitute for a navigation index.
+   - **Risk if ignored**: Future migrations lack a canonical list of operational-guidance destinations, and the next removal SIR will face the same open question this SIR deferred.
+
+3. **Confirm or conduct spec-level §6.2 blind deliberation** (Priority: P1)
+   - **Current state**: SIR records show implementation-PR-level blind deliberations. Whether a standalone spec-level blind deliberation — evaluating the §4 audit verdicts before the PRs were filed, with a devil's-advocate arguing VI and/or X passes the gate — was conducted is not evidenced in the provided artifacts.
+   - **Proposed change**: Either (a) document in CONSTITUTIONAL_CONVERSATIONS.md that the cycle 2 blind deliberation (`070-cycle2-vi-x-blind-2026-05-01`) served as the spec-level §6.2 deliberation, including confirmation that it contained the required devil's-advocate strand, or (b) conduct a targeted closure deliberation now using the `presets/role/devils-advocate.yml` agent arguing that one or more of VI/X/XVI passes the gate on closer reading, and record the result.
+   - **Rationale**: Spec §9 AC #5 has a specific artifact requirement. The spec's own §6.2 was designed to catch cases where the audit verdicts were wrong, before migrations were executed. That protection is most valuable when applied before implementation, not folded into the implementation PR verification.
+   - **Risk if ignored**: Spec closure criteria are not demonstrably met. The gap is structural: AC #5 names a specific artifact (a deliberation with a devil's-advocate strand) that cannot be implied by the absence of objections to the implementation PRs.
+
+4. **Verify CONSTITUTIONAL_CONVERSATIONS.md carries spec-level entries** (Priority: P1)
+   - **Current state**: SIR comment blocks reference governance log entries for each cycle (e.g., "Governance log entry: 2026-05-01 in CONSTITUTIONAL_CONVERSATIONS.md (spec 070 cycle 1 implementation)"). Spec §6.4 requires entries for the spec-level verification deliberations, not only for implementation cycles.
+   - **Proposed change**: Verify CONSTITUTIONAL_CONVERSATIONS.md contains entries corresponding to spec 070's §6.1 self-consistency and §6.2 blind verification at the spec level. Add entries if missing, referencing the deliberation directories.
+   - **Rationale**: Spec §9 AC #6 makes this a closure criterion. A governance log that records implementation cycles but not the spec-level verification that authorized them is incomplete as an audit trail.
+   - **Risk if ignored**: Future audits of the constitutional process will find entries for what was done but not for the spec-level authorization deliberations that preceded it.
+
+5. **File ticket for plain-language schema lint** (Priority: P2)
+   - **Current state**: v2.6.0 SIR follow-up TODOs: "Plain-language schema lint — pending implementation; ticket to be filed." No ticket is visible in the provided artifacts. Principle XVI's enforcement language cites this lint.
+   - **Proposed change**: File a GitHub issue for the plain-language schema lint implementation, scoped to structural inspection of plugin recommendation output schemas for adjacent string-typed explanation fields per the Principle XVI enforcement sub-bullet definition.
+   - **Rationale**: Principle XVI's Criterion 1 claim rests on the lint being buildable; "buildable" should translate to "tracked." A principle whose enforcement language cites a check that has no ticket is a documentation liability that will be surfaced in future audits.
+   - **Risk if ignored**: Principle XVI's enforcement sub-bullet cites a pending check with no pull toward implementation. The principle's mechanical verifiability claim is a promise without a mechanism to fulfill it.
+
+6. **File ticket for stage-3 assembly-form determinism completeness test** (Priority: P2)
+   - **Current state**: v2.6.0 SIR: "Stage-3 assembly-form determinism completeness test — pending implementation under the spec 014 contracts." Principle XVI Enforcement sub-bullet cites this test explicitly.
+   - **Proposed change**: File a GitHub issue or add to spec 014's follow-up tracking for the CI check that invokes the assembly path twice and asserts assembly-form-identical output.
+   - **Rationale**: Same structural problem as recommendation 5. The test is named in the principle's enforcement language; enforcement language without a tracking path for the named check is incomplete.
+   - **Risk if ignored**: The Principle XVI enforcement sub-bullet cites a test that doesn't exist and has no ticket, creating a gap between the principle's stated verification and its actual verification state.
+
+7. **Verify mkdocs.yml nav entry for docs/output-conventions.md** (Priority: P2)
+   - **Current state**: v3.0.0 SIR lists "mkdocs.yml nav entry" as a P1 fix applied. Not verifiable from provided target files.
+   - **Proposed change**: Confirm mkdocs.yml contains a nav entry for `docs/output-conventions.md`. If absent, add it.
+   - **Rationale**: The SIR treated this as P1, recognizing that without a nav entry the document is invisible in the project's documentation site. The v3.0.0 SIR's P1 classification should be honored.
+   - **Risk if ignored**: `docs/output-conventions.md` is accessible only via tombstone cross-reference; contributors browsing the documentation site cannot find migrated Principle X content.
+
+8. **Verify CONTRIBUTING.md is linked from README.md** (Priority: P3)
+   - **Current state**: README.md content is not available in the provided target files. Whether it links prominently to CONTRIBUTING.md — or whether that link predates the Authoring Conventions section — is unknown.
+   - **Proposed change**: Confirm README.md contains a link to CONTRIBUTING.md that is discoverable by new contributors. If README.md was last updated before the Authoring Conventions section was added, update the link or add a brief "Authoring conventions" pointer.
+   - **Rationale**: The VI migration's operational purpose is to prevent new contributors from using markdown where structured formats are appropriate. That purpose is only served if new contributors encounter the guidance. CONTRIBUTING.md is the canonical location; README.md is the canonical entry point.
+   - **Risk if ignored**: The VI migration guidance is technically accessible but practically invisible to the audience it is designed to inform.
+
+---
+
+### Referenced Documentation
+
+- `/Users/business-daddy/code/payer-index-mono/conversus-oss/specs/done/070-grandfathered-audit/spec.md` — §6 (verification requirements §6.1–§6.4), §9 (acceptance criteria AC #1–#7)
+- `/Users/business-daddy/code/payer-index-mono/conversus-oss/CONSTITUTION.md` — Principle VI tombstone, Principle X tombstone, Principle XVI body (refactored; Enforcement sub-bullet, Clarification v2.3.2 block), Governance § Constitutional Inclusion Criteria (grandfathering enumeration, path (c) paragraph, Principle Number Stability subsection, Removal checklist), SIR comment blocks (v2.6.0, v3.0.0, v3.1.0, v3.1.1, v3.1.2, v3.1.3)
+- `/Users/business-daddy/code/payer-index-mono/conversus-oss/CONTRIBUTING.md` — § Authoring Conventions, § Scripts Over Markdown (full section), § Output Conventions cross-reference
+- `/Users/business-daddy/code/payer-index-mono/conversus-oss/docs/output-conventions.md` — full document (Conventions section, Recommended implementation patterns section, Why operational guidance section, migration attribution footer)
