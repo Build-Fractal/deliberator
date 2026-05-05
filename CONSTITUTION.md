@@ -1,5 +1,50 @@
 <!--
 Sync Impact Report
+Version change: 3.2.2 → 3.2.3 (PATCH — terminology disambiguation in
+Principle XVI's v2.3.2 Clarification block. Single-word substitution:
+"shape" → "assembly form" at the cross-run-variance prohibition.
+Closes issue #94, the cycle 1 deferred TODO from v2.6.0.)
+
+Modified principle:
+  - XVI. Mathematical Transparency — v2.3.2 Clarification block,
+    one-word rename: "cross-run variance in the assembled objective
+    function's *shape*" → "*assembly form*". Aligns with the
+    pre-existing "assembly-form-identical" usage in XVI's Enforcement
+    bullet (line 1485). Removes the terminological collision with
+    Principle IX's "behavior-over-shape" testing extension.
+
+Why PATCH: single-word substitution. The renamed text refers to the
+same enumerated set (parameter names, template selection,
+gap-identifier set). No new normative requirements introduced; the
+prohibition still attaches to the same set under the same MUST.
+
+Why no new dual-deliberation: issue #94 explicitly required
+dual-perspective wording-precision and cross-principle-coherence
+review BEFORE ratification. That review was conducted via
+deliberations/094-shape-rename-2026-05-04/ with two agents
+(wording-precision, cross-principle-coherence) and balanced-arbiter.
+Verdict: PASS — RENAME APPROVED, with full unanimous convergence
+across both perspectives.
+
+Verbatim-preservation contract: the enumerated parenthetical
+(parameter names, template selection, gap-identifier set) is
+unchanged. The MUST remains attached. The only character-level
+change is "shape" → "assembly form" (one space added; no other
+text touched).
+
+Discharges:
+  - Issue #94 (cycle 1 deferred TODO from v2.6.0)
+  - Cross-principle terminology collision: XVI's "shape" no longer
+    competes with IX's "behavior-over-shape" testing context
+
+Governance log entry: 2026-05-04 in CONSTITUTIONAL_CONVERSATIONS.md
+(issue #94 dual-perspective deliberation implementation).
+
+Prior amendment (v3.2.1 → v3.2.2): see prior SIR comment block below.
+-->
+
+<!--
+Sync Impact Report (prior — preserved for audit trail)
 Version change: 3.2.1 → 3.2.2 (PATCH — adds passing borderline worked
 example to Constitutional Inclusion Criteria gate text per spec 070
 cycle 3D, issue #122. Discharges the spec 073 SUSTAINED WITH FINDINGS
@@ -1457,8 +1502,8 @@ resolution within a single deliberation run; (b) cross-run variance
 in resolved parameter *values* is acceptable (e.g., two
 `/conversus mode` invocations on the same `problem.md` MAY produce
 different `objective.yml` files); (c) cross-run variance in the
-assembled objective function's *shape* (parameter names, template
-selection, gap-identifier set) is prohibited.
+assembled objective function's *assembly form* (parameter names,
+template selection, gap-identifier set) is prohibited.
 
 - *deliberation run*: the lifetime of one `objective.yml` artifact;
   retries that reuse the same artifact are part of the same run,
@@ -2239,4 +2284,4 @@ justifies the deviation.
 - **Compliance**: The plan template includes a Constitution Check gate.
   Plans MUST pass this gate before proceeding to implementation.
 
-**Version**: 3.2.2 | **Ratified**: 2026-03-20 | **Last Amended**: 2026-05-04
+**Version**: 3.2.3 | **Ratified**: 2026-03-20 | **Last Amended**: 2026-05-04

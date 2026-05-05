@@ -773,3 +773,34 @@ These two findings refine path-(c) methodology going forward but don't trigger a
 - **XVI plain-language**: SUSTAINED via supplemental-blind 2026-05-04 (criterion-attribution clarification preserved as cycle 3C finding; verified already-discharged in current constitution)
 
 Spec 070's six closures (PR #99 → premature; spec 073 PR #117/#123 → §9 AC #5 supplemental; PRs #124/#118 → cycle 3D/Governance hygiene; cycle 3A this entry → path-(c) feasibility) close the audit trail end-to-end. No further follow-ups are required for spec 070 itself.
+
+---
+
+## 2026-05-04 — Constitution v3.2.2 → v3.2.3 (issue #94 shape→assembly-form rename)
+
+**Subject**: Discharge issue #94 — cycle 1 deferred TODO from v2.6.0. Single-word terminology rename in Principle XVI's v2.3.2 Clarification block: "shape" → "assembly form" at the cross-run-variance prohibition. Removes the terminological collision with Principle IX's "behavior-over-shape" testing extension.
+
+**Trigger**: issue #94 (filed 2026-05-01 during cycle 1 ratification per the Dispute 4 ruling that deferred this rename to a follow-up PATCH). Acceptance criteria required dual-perspective wording-precision and cross-principle-coherence review BEFORE ratification.
+
+**Verification approach**: dual-perspective deliberation (`deliberations/094-shape-rename-2026-05-04/`) with two agents and balanced-arbiter. Mode: cooperative. The two perspectives map directly to issue #94's required review classes:
+- **wording-precision** agent: evaluated definitional equivalence, normative-force preservation, existing-usage alignment, no-new-requirements test. Verdict: PASS.
+- **cross-principle-coherence** agent: evaluated collision-removal, VII coherence, VIII coherence, XVI body coherence, single-source-of-truth check. Verdict: PASS.
+- **balanced-arbiter**: ruled "ISSUE #94 DELIBERATION VERDICT: PASS — RENAME APPROVED" with high confidence based on unanimous agent agreement and clear constitutional grounding in the existing L1485 "assembly-form-identical" precedent.
+
+**Verbatim-preservation contract**: the enumerated parenthetical (parameter names, template selection, gap-identifier set) is unchanged. The MUST remains attached. The only character-level change is the substitution "shape" → "assembly form" at line 1460 (one space added; no other text touched).
+
+**Why no new normative requirements**: the renamed text refers to the same enumerated set under the same MUST. The cross-run-variance prohibition's scope is unchanged. The PATCH SIR explicitly attests this per issue #94 acceptance criteria #2.
+
+**Cross-principle disambiguation status post-PATCH**:
+- Principle XVI body and Clarification: "shape" no longer used to refer to assembled objective function structure. The substantive concept is now consistently labeled "assembly form" (line 1460, the proposed change) and "assembly-form-identical" (line 1485, the pre-existing usage).
+- Principle IX (Functional Programming): "behavior-over-shape testing" extension retains its "shape" usage in the testing context. No collision.
+- The IX/XVI disambiguation is now complete: "shape" in the constitution refers exclusively to test-shape (IX context) where it appears, and "assembly form" refers to objective-function-form (XVI context) where it appears.
+
+**Closure of constitutional governance arc**: this is the LAST outstanding constitutional follow-up from the v2.4.0 → v3.X grandfathered-principle migration arc. With v3.2.3:
+- All cycle 1 deferred items: discharged (XVI Option A in v2.6.0; this rename in v3.2.3)
+- All cycle 2 deferred items: discharged (cycle 2B v3.1.0; cycle 2C v3.1.1; cycle 2C bullet split v3.1.3; Principle II elaboration v3.1.2; pathway taxonomy migration v3.2.0; operational-guidance list v3.2.1)
+- All cycle 3 (supplemental-blind) findings: discharged (cycle 3A FAIL via dual-deliberation; cycle 3B/3C closed via verification; cycle 3D v3.2.2)
+
+The constitutional governance arc that began with v2.4.0's Constitutional Inclusion Criteria gate and ran through grandfathered-principle migration, supplemental verification, and post-verification follow-ups is now complete. v3.2.3 is the resting state of that arc; no further constitutional follow-ups are queued.
+
+**Pathway**: PATCH + dual-perspective deliberation single-PR. This is a fifth pathway type in the governance taxonomy — fits between "PATCH + verbatim contract" (v3.1.1, v3.1.3, v3.2.1) and "MAJOR + full dual-deliberation" (v3.0.0). The dual-perspective requirement is lighter than spec 067 §6.1+§6.2 dual-cycle (one deliberation, two agents covering distinct review classes) but heavier than verbatim contract (which requires no deliberation at all). The Governance § Constitutional Amendment Pathways subsection currently does not codify this fifth pathway; if future amendments use the same shape, the taxonomy may need a fifth row. For now, the v3.2.3 entry serves as the canonical example until a second use occurs.
