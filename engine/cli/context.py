@@ -224,19 +224,35 @@ def detect_context(
     # ---- Resolve default provider (spec 042 §5 + arbitration §0) ----
     #
     # The v1 providers are: mock, anthropic, claude-code, opencode, plus
-    # optional litellm companion.  Post-Phase 2 the default is "mock"
-    # until Phase 2.1 lands it and Phase 2.2 wires it through dispatch —
-    # so at that point, every non-explicit-config caller gets "mock" and
-    # must opt into a real provider via conversus.yml.  When claude-code
-    # ships in Phase 3, the resolution below shifts to prefer claude-code
-    # in contexts where it is reachable.
+    # optional litellm companion. Phase 3 has now landed (claude-code is
+    # fully implemented), so the resolution prefers claude-code when the
+    # session signals it is reachable.
     #
-    # For Phase 2.0 (this file), we return "mock" in all non-explicit
-    # contexts.  This is intentionally conservative — it forces every
-    # non-test caller to set ``executor:`` in conversus.yml rather than
-    # silently picking a provider that may not be installed.  The
-    # resolution will be broadened in Phase 3 when claude-code lands.
-    default_provider = "mock"
+    # Resolution order:
+    #   1. Claude Code session detected → "claude-code"
+    #      The ``claude`` CLI subprocess uses the host OAuth session, so
+    #      this is the safest default for users in Claude Code or Cowork
+    #      where ``claude -p`` is reachable. No metered API charges for
+    #      OAuth/subscription users.
+    #   2. CI environment → "mock"
+    #      CI runs without OAuth session by default; mock keeps the
+    #      pipeline shape testable without requiring secrets to be
+    #      provisioned.
+    #   3. Background (no TTY, no CI, no Claude Code) → "mock"
+    #      Cron jobs, git hooks, MCP servers spawned outside a session.
+    #      Conservative default that won't surprise the operator with
+    #      LLM calls.
+    #   4. Plain interactive TTY → "mock"
+    #      Direct CLI users get mock until they opt-in via settings or
+    #      --provider flag.
+    #
+    # In all paths, an explicit ``settings.yml`` value or ``--provider``
+    # flag still wins. This default is the SUGGESTED fallback — what
+    # the engine would pick if the user never expressed a preference.
+    if is_claude_code_session:
+        default_provider = "claude-code"
+    else:
+        default_provider = "mock"
 
     # ---- Resolve renderer ----
     if resolved_isatty and not is_ci:

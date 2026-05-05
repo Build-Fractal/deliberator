@@ -174,25 +174,49 @@ class TestExitCodeSchemeResolution:
 
 
 class TestDefaultProviderResolution:
-    """In Phase 2.0 the default is always ``mock``.
+    """Context-aware default provider (Phase 3, post-claude-code-landing).
 
-    This is conservative: every non-explicit-config caller must opt into
-    a real provider via ``conversus.yml``.  Phase 3 will broaden the
-    resolution to prefer ``claude-code`` when the local ``claude`` binary
-    is reachable and API keys are absent.
+    The resolution prefers ``claude-code`` when the session signals it
+    is reachable (Claude Code session detected). All other contexts
+    fall back to ``mock`` — conservative default that won't surprise
+    operators with metered LLM calls.
     """
 
-    def test_interactive_default_is_mock(self) -> None:
-        assert _ctx(stdout_isatty=True).default_provider == "mock"
+    def test_interactive_tty_default_is_mock(self) -> None:
+        """Plain interactive TTY (no Claude Code env vars) → mock."""
+        assert _ctx(stdout_isatty=True, env={}).default_provider == "mock"
 
     def test_ci_default_is_mock(self) -> None:
+        """CI environment → mock (no OAuth session by default)."""
         assert _ctx(env={"CI": "1"}).default_provider == "mock"
 
-    def test_claude_code_session_default_is_mock(self) -> None:
-        assert _ctx(env={"CLAUDECODE": "1"}).default_provider == "mock"
+    def test_claude_code_session_default_is_claude_code(self) -> None:
+        """Claude Code session detected → claude-code (Phase 3 default).
+
+        The ``claude -p`` subprocess uses the host OAuth session, so
+        defaulting to claude-code in this context picks the
+        contextually-correct provider without requiring --provider
+        flag or settings.yml override.
+        """
+        assert _ctx(env={"CLAUDECODE": "1"}).default_provider == "claude-code"
+
+    def test_claude_code_alt_env_var_also_triggers(self) -> None:
+        """Historical CLAUDE_CODE / CLAUDE_CODE_ACTIVE env vars also trigger."""
+        assert _ctx(env={"CLAUDE_CODE": "1"}).default_provider == "claude-code"
+        assert _ctx(env={"CLAUDE_CODE_ACTIVE": "1"}).default_provider == "claude-code"
 
     def test_background_default_is_mock(self) -> None:
+        """Background (no TTY, no CI, no Claude Code) → mock."""
         assert _ctx(stdout_isatty=False, env={}).default_provider == "mock"
+
+    def test_ci_with_claude_code_env_prefers_claude_code(self) -> None:
+        """CI + Claude Code env → claude-code (e.g., GitHub Actions runner
+        invoked from a Claude Code session). Claude Code signal wins.
+        """
+        ctx = _ctx(env={"CI": "1", "CLAUDECODE": "1"})
+        assert ctx.is_ci is True
+        assert ctx.is_claude_code_session is True
+        assert ctx.default_provider == "claude-code"
 
 
 # ---------------------------------------------------------------------------
