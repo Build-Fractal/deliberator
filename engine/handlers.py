@@ -141,9 +141,22 @@ def run_decide_mcp(
     anthropic``, that takes effect when the caller passes ``"mock"``
     (the signature default).
     """
-    # Resolve settings cascade (spec 057)
+    # Resolve settings cascade (spec 057) with context-aware default
+    # (spec 042 §5 + Phase 3 update): when no explicit preference is
+    # set anywhere in the cascade, prefer the InvocationContext's
+    # session-inferred default (e.g., ``claude-code`` in a Claude
+    # Code session) over the built-in ``mock``. Explicit settings.yml
+    # / env / --provider always wins.
+    from engine.cli.context import detect_context
+    from engine.settings import resolve_provider_with_context
+
+    ctx = detect_context()
     settings = load_settings()
-    provider = resolve_setting(settings, provider if provider != "mock" else None, "default_provider")
+    provider = resolve_provider_with_context(
+        settings,
+        provider if provider != "mock" else None,
+        ctx.default_provider,
+    )
     mode = resolve_setting(settings, mode if mode != "cooperative" else None, "default_mode")
 
     stripped = question.strip()
@@ -372,9 +385,18 @@ def run_decide_cli(
     the projector's keyword-forwarded dispatch requires all three to
     agree.
     """
-    # Resolve settings cascade (spec 057)
+    # Resolve settings cascade (spec 057) with context-aware default
+    # — see ``run_decide_mcp`` for the rationale; same semantics here.
+    from engine.cli.context import detect_context
+    from engine.settings import resolve_provider_with_context
+
+    ctx = detect_context()
     settings = load_settings()
-    provider = resolve_setting(settings, provider if provider != "mock" else None, "default_provider")
+    provider = resolve_provider_with_context(
+        settings,
+        provider if provider != "mock" else None,
+        ctx.default_provider,
+    )
     mode = resolve_setting(settings, mode if mode != "cooperative" else None, "default_mode")
 
     stripped = question.strip()
@@ -855,8 +877,23 @@ def run_cli(
     asynchronously with Rich progress display, prints each written
     output path on success, and exits non-zero on failure.
     """
+    from engine.cli.context import detect_context
     from engine.cli.progress import RichProgressHandler
     from engine.run import run_engine
+    from engine.settings import resolve_provider_with_context
+
+    # Resolve context-aware default (Phase 3): when the caller passed
+    # the signature default ``"mock"`` (i.e., no --provider flag) and
+    # no explicit settings.yml override exists, prefer the
+    # InvocationContext's session-inferred default. Explicit flag or
+    # YAML setting always wins.
+    ctx = detect_context()
+    settings = load_settings()
+    resolved_provider = resolve_provider_with_context(
+        settings,
+        provider if provider != "mock" else None,
+        ctx.default_provider,
+    )
 
     progress_handler = RichProgressHandler()
     rich_emitter = CallbackEmitter(progress_handler)
@@ -866,7 +903,7 @@ def run_cli(
             run_engine(
                 config_path=Path(config_path).resolve(),
                 phase=phase,
-                provider_name=provider,
+                provider_name=resolved_provider,
                 model=model,
                 rounds=rounds,
                 emitter=rich_emitter,

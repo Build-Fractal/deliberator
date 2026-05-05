@@ -608,3 +608,126 @@ class TestCleanSettingsFixtureInvariants:
     ) -> None:
         """Path.home() returns the fixture's home, not the developer's."""
         assert Path.home() == clean_settings.home
+
+
+# ===================================================================
+# resolve_provider_with_context — Phase 3 context-aware default
+# ===================================================================
+#
+# The helper resolves default_provider with an additional tier in
+# the cascade: when no explicit user preference exists at any tier
+# (CLI / env / project YAML / global YAML), use the InvocationContext's
+# session-inferred default. Explicit settings ALWAYS win.
+
+
+class TestResolveProviderWithContext:
+    """resolve_provider_with_context applies session inference correctly."""
+
+    def test_explicit_flag_wins_over_context(
+        self, clean_settings
+    ) -> None:
+        """CLI flag wins regardless of context."""
+        from engine.settings import resolve_provider_with_context
+        settings = load_settings(project_root=clean_settings.project)
+        result = resolve_provider_with_context(
+            settings,
+            "anthropic",  # explicit flag
+            "claude-code",  # context default
+            project_root=clean_settings.project,
+        )
+        assert result == "anthropic"
+
+    def test_global_yaml_wins_over_context(
+        self, clean_settings
+    ) -> None:
+        """User's settings.yml respected even when context has a default."""
+        _write_settings(clean_settings.home, {"default_provider": "anthropic"})
+        from engine.settings import resolve_provider_with_context
+        settings = load_settings(project_root=clean_settings.project)
+        result = resolve_provider_with_context(
+            settings,
+            None,  # no flag
+            "claude-code",  # context default
+            project_root=clean_settings.project,
+        )
+        assert result == "anthropic"
+
+    def test_project_yaml_wins_over_context(
+        self, clean_settings
+    ) -> None:
+        """Project-level settings.yml wins over context inference."""
+        _write_settings(clean_settings.project, {"default_provider": "openai"})
+        from engine.settings import resolve_provider_with_context
+        settings = load_settings(project_root=clean_settings.project)
+        result = resolve_provider_with_context(
+            settings,
+            None,
+            "claude-code",
+            project_root=clean_settings.project,
+        )
+        assert result == "openai"
+
+    def test_env_var_wins_over_context(
+        self, clean_settings, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """CONVERSUS_DEFAULT_PROVIDER wins over context inference."""
+        monkeypatch.setenv("CONVERSUS_DEFAULT_PROVIDER", "openai")
+        from engine.settings import resolve_provider_with_context
+        settings = load_settings(project_root=clean_settings.project)
+        result = resolve_provider_with_context(
+            settings,
+            None,
+            "claude-code",
+            project_root=clean_settings.project,
+        )
+        assert result == "openai"
+
+    def test_no_user_preference_uses_context_default(
+        self, clean_settings
+    ) -> None:
+        """No flag, no env, no YAML → context-inferred default wins."""
+        from engine.settings import resolve_provider_with_context
+        settings = load_settings(project_root=clean_settings.project)
+        result = resolve_provider_with_context(
+            settings,
+            None,
+            "claude-code",  # context says use this
+            project_root=clean_settings.project,
+        )
+        assert result == "claude-code"
+
+    def test_no_user_preference_with_mock_context_returns_mock(
+        self, clean_settings
+    ) -> None:
+        """No user preference + plain TTY context → mock fallback."""
+        from engine.settings import resolve_provider_with_context
+        settings = load_settings(project_root=clean_settings.project)
+        result = resolve_provider_with_context(
+            settings,
+            None,
+            "mock",  # plain TTY context
+            project_root=clean_settings.project,
+        )
+        assert result == "mock"
+
+    def test_explicit_mock_in_yaml_respected_over_context(
+        self, clean_settings
+    ) -> None:
+        """A user who deliberately sets default_provider: mock in YAML
+        gets mock, even when context would prefer claude-code.
+
+        Pins the no-override-explicit-preference contract: setting
+        'mock' deliberately is a real choice (e.g., for cost-safety
+        in a project) and the context-aware fallback must respect it.
+        """
+        _write_settings(clean_settings.home, {"default_provider": "mock"})
+        from engine.settings import resolve_provider_with_context
+        settings = load_settings(project_root=clean_settings.project)
+        result = resolve_provider_with_context(
+            settings,
+            None,
+            "claude-code",
+            project_root=clean_settings.project,
+        )
+        # YAML-set mock wins over context-inferred claude-code
+        assert result == "mock"

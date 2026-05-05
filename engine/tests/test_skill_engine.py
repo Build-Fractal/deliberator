@@ -186,12 +186,26 @@ class TestProviders:
 class TestCrossSurfaceParity:
     """CLI and MCP handlers produce structurally identical output."""
 
-    def test_decide_cli_vs_mcp_schema(self) -> None:
+    def test_decide_cli_vs_mcp_schema(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         # Use a longer question to satisfy MCP's stricter sufficiency gate
         question = (
             "Should we use Postgres or MongoDB for our metadata store "
             "given we need ACID transactions and JSON document support?"
         )
+
+        # Pin context-default to "mock" by clearing Claude Code env vars.
+        # Post the Phase-3 context-aware default (commit f1c5xxx),
+        # ``run_decide_mcp("...", "mock", ...)`` would treat the "mock"
+        # arg as "no preference" and use the InvocationContext's
+        # session-inferred default — but MCP-supported providers don't
+        # include claude-code. This test's purpose is CLI/MCP parity
+        # for the mock-provider path; the context-aware behavior is
+        # tested in test_cli_context.py + test_settings.py.
+        for var in ("CLAUDECODE", "CLAUDE_CODE", "CLAUDE_CODE_ACTIVE"):
+            monkeypatch.delenv(var, raising=False)
+
         # CLI path
         cli_result = _run_decide(question)
         assert "error" not in cli_result

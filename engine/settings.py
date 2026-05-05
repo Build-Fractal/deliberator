@@ -268,6 +268,56 @@ def _coerce_env_value(field_name: str, raw: str) -> Any:
     return raw
 
 
+def resolve_provider_with_context(
+    settings: ConversusSettings,
+    flag_value: str | None,
+    context_default: str,
+    project_root: Path | None = None,
+) -> str:
+    """Resolve ``default_provider`` with context-aware fallback.
+
+    Tier order:
+      1. Explicit CLI flag (if non-empty)
+      2. Env var or YAML setting (cascade — env > project > global)
+      3. Context-inferred default (when the cascade returned the
+         built-in Pydantic default — i.e., the user expressed no
+         preference at any tier)
+      4. Built-in default ("mock")
+
+    The context-inferred default lets the engine prefer a sensible
+    provider for the current session (e.g., ``claude-code`` when
+    invoked from a Claude Code session) without overriding any
+    explicit user setting. A user with ``default_provider: anthropic``
+    in ``~/.conversus/settings.yml`` still gets anthropic; only the
+    "no preference anywhere" path uses the context inference.
+
+    Args:
+        settings: The loaded ``ConversusSettings`` instance.
+        flag_value: Value passed via ``--provider`` flag, or ``None``.
+        context_default: The provider name suggested by
+            ``InvocationContext.default_provider``. Typically
+            ``"claude-code"`` in Claude Code sessions, ``"mock"``
+            elsewhere.
+        project_root: Project root for cascade introspection.
+
+    Returns:
+        The resolved provider name.
+    """
+    if flag_value:
+        return flag_value
+
+    entries = inspect_settings_cascade(project_root=project_root)
+    provider_entry = next(
+        (e for e in entries if e.key == "default_provider"), None
+    )
+    if provider_entry is not None and provider_entry.source != "default":
+        # User set it explicitly via env/project/global — respect it.
+        return str(provider_entry.value)
+
+    # No user preference at any cascade tier; use context inference.
+    return context_default
+
+
 def inspect_settings_cascade(
     project_root: Path | None = None,
 ) -> list[CascadeEntry]:
