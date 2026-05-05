@@ -2,7 +2,10 @@
 
 **Feature ID**: `059-prompt-and-skill-interface`
 **Created**: 2026-04-13
-**Status**: Active 2026-04-29 (promoted from draft) — deliberation-amended 2026-04-13, depends on 055 (closed), 5-prompt decision final, hybrid registry integration accepted. Implementation-ready.
+**Status**: All 3 phases implemented as of 2026-05-04 (PR #132).
+- **Phase 1 (MCP Prompts)**: verified-already-shipped — `mcp_server.py` has 7 `@mcp.prompt()` functions covering all 5 spec'd prompts (deliberate, challenge=deliberate_red_blue, force_decision=deliberate_winner, review_config, check_cost) plus 2 bonus (design_deliberation, analyze_documents).
+- **Phase 2 (CLI skill viewer)**: shipped via PR #132 — handlers `skill_cli`/`skills_cli` already existed; PR #132 added the missing CLI command registrations in `engine/cli/__init__.py` (`conversus skill <name>` and `conversus skills`).
+- **Phase 3 (Help meta-skill)**: shipped via PR #132 — new `claude-code-plugin/skills/help/SKILL.md` with `HelpPluginAdapter` registration in `capabilities.py`.
 **Depends On**: `055-capability-registry`, existing plugin SKILL.md files, MCP server
 **Motivated by**: Desktop Extension users can't reliably trigger conversus — Claude gives its own answer instead of invoking the deliberation tools
 

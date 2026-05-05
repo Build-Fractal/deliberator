@@ -600,6 +600,40 @@ design = Capability(
 
 
 # ---------------------------------------------------------------------------
+# help — meta-skill listing all /conversus:* slash commands
+# ---------------------------------------------------------------------------
+# Spec 059 Phase 3: hand-written SKILL.md (like design). The skill body
+# IS the help text. Surfaces=[PLUGIN] only — the CLI has `conversus
+# skills` (the lister); the plugin needs `/conversus:help` for the same
+# discoverability inside Claude Code.
+
+_HELP_SKILL_PATH = Path(__file__).parent / "claude-code-plugin" / "skills" / "help" / "SKILL.md"
+
+
+class HelpPluginAdapter(PluginAdapter):
+    """Override adapter that preserves the hand-written help meta-skill.
+
+    The ``help`` command is a static listing of /conversus:* slash
+    commands; its content is hand-curated. This override reads the
+    existing file and returns it verbatim, mirroring the
+    ``DesignPluginAdapter`` pattern.
+    """
+
+    def render(self, capability: "Capability") -> str:
+        return _HELP_SKILL_PATH.read_text(encoding="utf-8")
+
+
+help_capability = Capability(
+    name="help",
+    summary="List all /conversus:* slash commands with one-line descriptions",
+    surfaces=[Surface.PLUGIN],
+    params=[],
+    handler="engine.handlers:help_cli",  # placeholder — help is plugin-only
+    plugin_adapter=HelpPluginAdapter(),
+)
+
+
+# ---------------------------------------------------------------------------
 # list-deliberations — list past deliberations from .conversus/deliberations/
 # ---------------------------------------------------------------------------
 
@@ -729,6 +763,7 @@ CAPABILITIES: list[Capability] = [
     mcp,
     init,
     design,
+    help_capability,
     list_deliberations,
     show_deliberation,
     skills,

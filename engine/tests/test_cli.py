@@ -940,3 +940,75 @@ class TestStatusCommand:
             f"Expected env-var label on the anthropic row.\n"
             f"Output:\n{result.output}"
         )
+
+
+# ---------------------------------------------------------------------------
+# skills + skill — spec 059 Phase 2 CLI skill viewer
+# ---------------------------------------------------------------------------
+
+
+class TestSkillsCommand:
+    """`conversus skills` lists all available skills."""
+
+    def test_skills_lists_core_capabilities(self) -> None:
+        """The skills command exits 0 and includes core skills."""
+        runner = CliRunner()
+        result = runner.invoke(cli, ["skills"])
+        assert result.exit_code == 0
+        assert "decide" in result.output
+        assert "run" in result.output
+        assert "validate" in result.output
+
+    def test_skills_lists_help_meta_skill(self) -> None:
+        """spec 059 Phase 3 — help meta-skill appears in the listing."""
+        runner = CliRunner()
+        result = runner.invoke(cli, ["skills"])
+        assert result.exit_code == 0
+        assert "help" in result.output
+
+    def test_skills_shows_surfaces_column(self) -> None:
+        """Each row shows which surfaces the skill is exposed on."""
+        runner = CliRunner()
+        result = runner.invoke(cli, ["skills"])
+        assert result.exit_code == 0
+        assert "cli" in result.output
+        assert "plugin" in result.output
+
+
+class TestSkillCommand:
+    """`conversus skill <name>` prints the SKILL.md for one capability."""
+
+    def test_skill_decide_prints_skill_md(self) -> None:
+        runner = CliRunner()
+        result = runner.invoke(cli, ["skill", "decide"])
+        assert result.exit_code == 0
+        # SKILL.md files have YAML frontmatter delimited by ---
+        assert "---" in result.output
+        assert "deliberation" in result.output.lower()
+
+    def test_skill_run_prints_skill_md(self) -> None:
+        runner = CliRunner()
+        result = runner.invoke(cli, ["skill", "run"])
+        assert result.exit_code == 0
+        assert "Conversus Run" in result.output
+
+    def test_skill_help_prints_meta_skill(self) -> None:
+        """spec 059 Phase 3 — help meta-skill is readable via skill <name>."""
+        runner = CliRunner()
+        result = runner.invoke(cli, ["skill", "help"])
+        assert result.exit_code == 0
+        assert "Conversus Help" in result.output
+
+    def test_skill_unknown_name_exits_nonzero(self) -> None:
+        """Unknown skill name produces a clear error and exit 1."""
+        runner = CliRunner()
+        result = runner.invoke(cli, ["skill", "nonexistent-skill-xyz"])
+        assert result.exit_code == 1
+        assert "nonexistent-skill-xyz" in result.output
+        assert "Available skills" in result.output
+
+    def test_skill_requires_name_argument(self) -> None:
+        """`conversus skill` without a name argument fails (Click exit 2)."""
+        runner = CliRunner()
+        result = runner.invoke(cli, ["skill"])
+        assert result.exit_code == 2
