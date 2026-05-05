@@ -450,6 +450,56 @@ def status() -> None:
 
 
 # ---------------------------------------------------------------------------
+# skills + skill — spec 059 Phase 2 CLI skill viewer
+# ---------------------------------------------------------------------------
+
+
+@cli.command(
+    epilog="""\b
+Examples:
+  # List all available skills with summaries
+  conversus skills
+""",
+)
+def skills() -> None:
+    """List all available conversus skills with their summaries.
+
+    Spec 059 Phase 2 — exposes the same guided-workflow content that
+    Claude Code users get via ``/conversus:*`` slash commands, but
+    accessible from the terminal. The skill content lives in
+    ``claude-code-plugin/skills/<name>/SKILL.md`` (single source of
+    truth, principle XI).
+    """
+    from engine.handlers import skills_cli
+
+    skills_cli()
+
+
+@cli.command(
+    epilog="""\b
+Examples:
+  # Print the guided workflow for the decide skill
+  conversus skill decide
+
+  # Print the guided workflow for the run skill
+  conversus skill run
+""",
+)
+@click.argument("name", type=str)
+def skill(name: str) -> None:
+    """Print the SKILL.md guided workflow for a named capability.
+
+    Spec 059 Phase 2 — companion to ``conversus skills`` (the lister).
+    This command prints the full SKILL.md text for one named skill,
+    giving CLI users access to the same guided workflow that Claude
+    Code users get via the corresponding slash command.
+    """
+    from engine.handlers import skill_cli
+
+    skill_cli(name)
+
+
+# ---------------------------------------------------------------------------
 # context (debug)
 # ---------------------------------------------------------------------------
 
