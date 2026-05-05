@@ -489,7 +489,7 @@ These were discovered during spec research and should be the first eval failures
 
 1. **All 4 primary modes** pass smoke tests with mock provider (0 errors, valid JSON) — **ACHIEVED** (24/24 PASS)
 2. **All registered providers** resolve via `resolve_execution_provider` without import errors — **ACHIEVED** (13/13 resolve)
-3. **CLI, MCP, and SDK surfaces** produce structurally identical output for the same input — **NOT ACHIEVABLE until step 11 lands** (engine-first skill is the prerequisite for cross-surface parity tests in step 12; per the strip-script-061-substeps deliberation 2026-05-01, this dependency is now explicit)
+3. **CLI, MCP, and SDK surfaces** produce structurally identical output for the same input — **NOW ACHIEVABLE** (step 11 done; step 12 unblocked, implementation pending). The engine-first skills at `claude-code-plugin/skills/` already invoke the CLI directly; the parity tests in step 12 will verify the three surfaces produce equivalent output for the same config.
 4. **Quality metrics** score >= baseline - 0.1 on synthesis grounding with anthropic provider
 5. **Known gaps G1, G3/G11, G6** resolved and covered by regression tests — **ACHIEVED** (3/12 fixed)
 6. **Eval suite runs in CI** — smoke tests on every push, quality evals on release tags
@@ -502,7 +502,7 @@ These were discovered during spec research and should be the first eval failures
 
 **Progress (2026-05-03)**: Steps 1-4 complete (smoke baseline). Steps 9 (PR #100), 10 annotation only (PR #101 + #109), 14a persistence sub-item (PR #106) complete. Step 13 DONE WITH OPEN GAPS (PR #102 closed the iterations=3 dispatch/naming/events tests; the §3.1.9 cost estimate and influence output heading sub-rows are open and tracked as GitHub issues per the strip-script-061-substeps deliberation 2026-05-01).
 
-**Open**: Steps 5, 6, 7, 8, 11, 12, 14b (CI/CD exit codes — blocked on spec 048's gate command), 14c (combinatorial matrix). Step 12 is BLOCKED on step 11; SC #3 (composability invariants verified) is unreachable until step 11 lands.
+**Open**: Steps 5, 6, 7, 8, 12 (cross-surface parity tests — now unblocked after step 11 closure 2026-05-04), 14b (CI/CD exit codes — blocked on spec 048's gate command). Step 11 done (engine-first skills at `claude-code-plugin/skills/`); SC #3 now achievable (was previously blocked).
 
 **P1 open bugs**: G2 (target path doubling), G12 (VALID_PROVIDERS hardcoded). Both gate step 6 closure.
 
@@ -516,8 +516,8 @@ These were discovered during spec research and should be the first eval failures
 8. **Save baseline snapshots** for 5 standard test questions across all modes
 9. ~~**Settings cascade tests** — provider key at all 5 levels, env var type coercion. Requires `clean_settings` conftest fixture (P0 infrastructure).~~ **DONE** (PR #100): 14 tests in `TestProviderAllFiveLevels` + `TestEnvVarTypeCoercion` + `TestCleanSettingsFixtureInvariants`; `clean_settings` fixture at `engine/tests/conftest.py:81`; lockstep test against `engine/settings._ENV_VAR_FOR_FIELD` prevents env-var drift.
 10. ~~**Add eval commands to CI workflow** — specify runner requirements: Python 3.12, Node 22 LTS (spec said Node 18 — Node 18 EOL April 2025; Principle XIV deprecation discipline applies), API key secrets provisioning~~ **DONE**: PR #83 established the smoke tier (mock, every push); PR #101 added the `quality` tier (Ollama, dispatch+tags) and `deepeval` tier (Anthropic judge, dispatch+tags) and `workflow_dispatch` inputs (`run_ollama`, `run_deepeval`) and the `ANTHROPIC_API_KEY` secret guard. Annotation correction per the strip-script-061-substeps deliberation 2026-05-01.
-11. **Build engine-first skill** wrapping CLI (replaces agent-dispatch SKILL.md). **OPEN** (issue #111). Blocks step 12 + SC #3.
-12. **Cross-surface parity tests** — CLI vs MCP vs SDK output comparison (inner content parity). **BLOCKED on step 11**.
+11. ~~**Build engine-first skill** wrapping CLI (replaces agent-dispatch SKILL.md). **OPEN** (issue #111). Blocks step 12 + SC #3.~~ **DONE** (closes #111): the engine-first skills exist at `claude-code-plugin/skills/` (8 skills: decide, design, init, login, logout, run, status, validate). All 8 invoke the conversus CLI directly via `conversus <subcommand>` rather than spawning Task subagents. The plugin is distributed via the Claude Code marketplace per `claude-code-plugin/README.md` (`/plugin install conversus@conversus`). All four primary game-theory modes verified working via mock provider in `engine/tests/test_cross_axis_matrix.py::TestCrossAxisSmokeMatrix` (PR #125 spec 061 step 14c).
+12. ~~**Cross-surface parity tests** — CLI vs MCP vs SDK output comparison (inner content parity). **BLOCKED on step 11**.~~ Now UNBLOCKED — step 11 done. Implementation pending; would compare CLI/MCP/SDK outputs for the same input config and assert structural equality.
 13. **Multi-round, arbiter, and iteration tests** — rounds=2 convergence, rounds=3 stagnation, arbiter trigger conditions, iterations=3 cycle count. **DONE WITH OPEN GAPS** (PR #102 closed three sub-rows; two §3.1.9 sub-rows open per the strip-script-061-substeps deliberation 2026-05-01):
     - rounds=2 convergence: `test_pipeline_result_has_round_fields` (rounds=2, [2,0] → `termination_reason="converged"`) — DONE.
     - rounds=3 stagnation: `test_stagnation_detection` (rounds=3, [2,2] → `termination_reason="stagnation"`) — DONE.
