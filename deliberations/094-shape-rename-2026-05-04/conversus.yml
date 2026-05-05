@@ -1,0 +1,211 @@
+mode: cooperative
+output: ./
+rounds: 1
+
+# Issue #94 dual-perspective wording-precision review for the
+# v2.3.2 Clarification block "shape" → "assembly form" terminology
+# rename in Principle XVI.
+#
+# Per issue #94 acceptance criteria:
+# - Dual-perspective wording-precision AND cross-principle-coherence
+#   review of the FULL v2.3.2 block text BEFORE ratification.
+# - PATCH SIR must attest no new normative requirements introduced.
+# - Post-PATCH: zero "shape" references to assembled objective
+#   function structure remain in XVI body or Clarification blocks;
+#   "shape" usage restricted to behavior-over-shape testing context
+#   (Principle IX) per the IX/XVI disambiguation.
+#
+# The two perspectives are:
+# 1. Wording-precision: does the rename preserve XVI's normative
+#    force? Does "assembly form" mean exactly what "shape" meant?
+# 2. Cross-principle-coherence: does the renamed wording remove the
+#    collision with IX's "behavior-over-shape" while staying coherent
+#    with VII/VIII/XVI's body?
+
+target:
+  - ../../CONSTITUTION.md
+
+agents:
+  - name: wording-precision
+    preset: pragmatist
+    prompt: |
+      You evaluate the proposed terminology rename in Principle XVI's
+      v2.3.2 Clarification block from the wording-precision
+      perspective: does the rename preserve normative force without
+      introducing new normative requirements?
+
+      The PROPOSED change (single substitution in CONSTITUTION.md
+      line 1460):
+
+        BEFORE: "cross-run variance in the assembled objective
+                 function's *shape* (parameter names, template
+                 selection, gap-identifier set) is prohibited."
+        AFTER:  "cross-run variance in the assembled objective
+                 function's *assembly form* (parameter names,
+                 template selection, gap-identifier set) is
+                 prohibited."
+
+      Read in CONSTITUTION.md:
+      - Lines 1379-1517 — full Principle XVI body and Clarification
+        block (the v2.3.2 block runs lines 1446-1499)
+      - Line 1485 — existing "assembly-form-identical" usage in
+        XVI's Enforcement bullet (the term the proposed rename
+        aligns with)
+
+      Your evaluation:
+
+      1. **Definitional equivalence**. Do "shape" and "assembly form"
+         refer to the same concept in this context? The v2.3.2 block
+         enumerates the shape's components: parameter names, template
+         selection, gap-identifier set. Does "assembly form" cover
+         exactly these three components without expansion or
+         contraction?
+
+      2. **Normative-force preservation**. The Clarification's MUST
+         reads "cross-run variance in the assembled objective
+         function's *shape* ... is prohibited." After the rename,
+         the prohibition still attaches to the same enumerated set.
+         Is the strength preserved? Does the rename change what is
+         legal vs prohibited?
+
+      3. **Existing-usage alignment**. Line 1485 already uses
+         "assembly-form-identical" as the determinism property name.
+         The rename aligns the v2.3.2 Clarification with that
+         existing usage. Is this alignment a strength (consistent
+         vocabulary) or a weakness (creates redundancy)?
+
+      4. **No-new-requirements test**. Per issue #94 acceptance
+         criteria, the PATCH SIR must attest no new normative
+         requirements are introduced. Does the renamed text impose
+         any requirement the original "shape" text didn't impose?
+         Conversely, does it relax any requirement the original
+         imposed?
+
+      Conclude with a verdict from the wording-precision perspective:
+      - PASS: rename preserves normative force without expansion
+        or contraction.
+      - FAIL: rename changes normative meaning. Specify how.
+      - REVISE: rename is acceptable in principle but requires a
+        different word (not "assembly form") to fully preserve
+        meaning. Specify the alternative.
+
+  - name: cross-principle-coherence
+    preset: pragmatist
+    prompt: |
+      You evaluate the proposed terminology rename from the
+      cross-principle-coherence perspective: does the renamed
+      wording remove the collision with Principle IX's
+      "behavior-over-shape" testing context while remaining coherent
+      with Principles VII, VIII, and XVI's surrounding body?
+
+      The collision the rename addresses:
+
+        Principle IX has an Extension (v2.3.0) titled
+        "Behavior-over-shape testing" — it prohibits "shape tests"
+        (tests that assert structural properties without asserting
+        behavioral meaning). In IX's terminology, "shape" is a
+        property of TESTS, not principles or runtime artifacts.
+
+        Principle XVI's v2.3.2 Clarification block uses "shape" to
+        describe the structure of the assembled objective function
+        at runtime (parameter names, template selection,
+        gap-identifier set). In XVI's terminology, "shape" is a
+        property of an artifact, not a test.
+
+        Both usages compete for the same English word in the same
+        constitutional document. A reader applying gate Criterion 3
+        (distinctness) might conflate them, weakening both
+        principles' clarity.
+
+      Read:
+      - CONSTITUTION.md lines 1140-1220 — Principle IX (Functional
+        Programming and Clean Code), including the v2.3.0 extension
+        "Behavior-over-shape testing"
+      - CONSTITUTION.md lines 1379-1517 — Principle XVI full body
+        and Clarification block
+      - CONSTITUTION.md lines 1101-1140 — Principle VII
+        (Reproducibility) for substrate comparison
+      - CONSTITUTION.md lines 1117-1140 — Principle VIII (Templating
+        Engines) for substrate comparison
+
+      Your evaluation:
+
+      1. **Collision-removal**. After the rename, does the v2.3.2
+         block's terminology conflict with Principle IX's
+         "shape test" terminology? Search the post-rename block
+         for "shape" usage and confirm the only remaining "shape"
+         in XVI is unrelated to assembled-objective-function
+         structure.
+
+      2. **VII coherence**. Principle VII mandates "structurally
+         identical output". Does "assembly form" map cleanly onto
+         VII's "structurally identical" framing, or does it
+         introduce a parallel vocabulary that confuses readers?
+
+      3. **VIII coherence**. Principle VIII (Templating Engines) is
+         about template structure. Does "assembly form" overlap
+         with VIII's territory in a way that creates new confusion?
+
+      4. **XVI body coherence**. The v2.3.2 block sits inside XVI's
+         body. Does the renamed wording flow naturally with the
+         surrounding paragraphs (3-stage pipeline determinism,
+         pinning behavior, cross-run reproducibility)? Read the
+         renamed paragraph in full context and assess whether it
+         reads as a coherent extension of XVI rather than an
+         awkward terminology graft.
+
+      5. **Single-source-of-truth check**. With "assembly form"
+         used in both line 1460 (proposed) and line 1485 (existing),
+         is there a meaningful semantic distinction or are the two
+         usages now redundant? If redundant, is the redundancy
+         clarifying or repetitive?
+
+      Conclude with a verdict from the cross-principle-coherence
+      perspective:
+      - PASS: rename removes the IX collision without creating new
+        coherence problems with VII/VIII/XVI body.
+      - FAIL: rename introduces a worse coherence problem (specify).
+      - REVISE: rename is acceptable in principle but requires
+        adjustment to a related sentence to maintain coherence.
+        Specify the adjustment.
+
+arbiter:
+  name: issue-94-shape-rename-arbiter
+  preset: balanced-arbiter
+  prompt: |
+    You rule on findings raised by wording-precision and
+    cross-principle-coherence agents on the proposed v2.3.2
+    Clarification block "shape" → "assembly form" rename in
+    Principle XVI.
+
+    The rename is a single-word substitution at CONSTITUTION.md line
+    1460. Per issue #94, the deliberation evaluates the full v2.3.2
+    block (lines 1446-1499) — the rename touches one word, but the
+    review covers the full block to confirm no surrounding text
+    requires adjustment.
+
+    For each agent's verdict (PASS / FAIL / REVISE):
+
+    - **PASS** from BOTH perspectives: the rename ships as a PATCH
+      amendment with the SIR attesting no new normative requirements.
+    - **FAIL** from EITHER perspective: the rename does not ship.
+      Issue #94 stays open with the failure documented.
+    - **REVISE** from EITHER perspective: the rename ships with the
+      requested adjustment incorporated. The PATCH SIR documents
+      both the rename and the adjustment.
+
+    Conclude with the final ruling:
+    - "ISSUE #94 DELIBERATION VERDICT: PASS — RENAME APPROVED"
+    - "ISSUE #94 DELIBERATION VERDICT: REVISE — RENAME APPROVED WITH
+      ADJUSTMENT" (specify the adjustment)
+    - "ISSUE #94 DELIBERATION VERDICT: FAIL — RENAME REJECTED"
+      (specify the blocker)
+
+    The verdict is binding. If PASS or REVISE, the implementing
+    PATCH amendment ships immediately. If FAIL, issue #94 stays open
+    with the failure rationale recorded in the closure record.
+
+  grounding: ../../CONSTITUTION.md
+  trigger: always
+  timing: final
+  influence: binding
