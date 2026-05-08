@@ -1,0 +1,279 @@
+mode: cooperative
+output: ./
+rounds: 1
+
+# v4.0.0 Originating Deliberation — Tier Extraction & Suite Admission
+#
+# Per GOVERNANCE.md Part VIII step 3, this originating deliberation
+# produces the proposed amendment list. Downstream stages (spec
+# drafting, self-consistency verification, blind verification) follow
+# only if this deliberation rules APPROVE.
+#
+# MAJOR pathway because this amendment:
+# - Extracts 20 principles from conversus-oss/CONSTITUTION.md to
+#   higher tiers (Tier 1: 10 universal, Tier 2: 10 suite).
+# - Reduces conversus-oss/CONSTITUTION.md to 6 component principles.
+# - Establishes Tier 1 + Tier 2 governance scope.
+# - Admits both existing suite repos via their CONFORMANCE.md drafts.
+#
+# Four agents covering distinct concerns:
+# 1. tier-classifier — walks each principle, defends/challenges its
+#    proposed tier assignment.
+# 2. inclusion-criteria-auditor — applies the Constitutional
+#    Inclusion Criteria gate to each principle in its proposed tier
+#    (does it pass at THAT tier's scope?).
+# 3. admission-auditor-oss — vets the conversus-oss CONFORMANCE.md
+#    declaration against actual repo state.
+# 4. admission-auditor-enhanced — vets the conversus CONFORMANCE.md
+#    declaration against actual repo state (post PR #30).
+
+target:
+  - ../../CONSTITUTION.md
+  - ../../../build-fractal/CONSTITUTION.md
+  - ../../../build-fractal/conversus/CONSTITUTION.md
+  - ../../../build-fractal/conversus/GOVERNANCE.md
+  - ../../../build-fractal/conversus/COMPLIANCE.md
+  - ../../CONFORMANCE.md
+  - ../../../conversus/CONFORMANCE.md
+  - QUESTION.md
+
+agents:
+  - name: tier-classifier
+    preset: philosophy/pragmatist
+    prompt: |
+      You evaluate the proposed tier classification of all 26 active
+      principles in conversus-oss/CONSTITUTION.md v3.2.3.
+
+      Proposed classification (from QUESTION.md Question 1):
+      - Universal (Tier 1, 10): I, II, III, IV, VII, VIII, IX, XI, XIV, XXVIII
+      - Suite (Tier 2, 10): V, XII, XIII, XV, XVI, XXII, XXIII, XXIV, XXV, XXVII
+      - Component (6): XVII, XVIII, XIX, XX, XXI, XXVI
+
+      For each principle, evaluate:
+
+      1. **Scope-tier match**. Read the principle's body in
+         CONSTITUTION.md. Does its scope match the tier it was
+         assigned? Universal = applies to every Build Fractal product.
+         Suite = applies to all conversus-family repos. Component =
+         specific to conversus-oss as the OSS engine.
+
+      2. **Misclassification**. Are there principles you'd reassign?
+         Common candidates to challenge:
+         - VIII (Templating Engines) classified Universal — does every
+           Build Fractal product need templating? Or is this
+           conversus-specific (suite-tier)?
+         - V (Observable Deliberation) classified Suite — does this
+           apply only to deliberation engines, or could it apply to
+           any observable system? (defends suite placement)
+         - XV (Plugin Isolation) classified Suite — could this be
+           Universal if you frame it as "monetization seam discipline"?
+
+      3. **Border cases**. For each principle on a tier border, what
+         specific test would distinguish its placement? Cite the
+         principle's mechanical-verification mechanism (Principle XV's
+         entry-point declaration test, etc.) and ask whether that test
+         applies at the tier above or below.
+
+      Output: a per-principle table with current proposed tier, your
+      verdict (CORRECT / RECLASSIFY-TO-{tier} / UNCERTAIN), and a one-
+      line rationale for each.
+
+      Do not produce a yes-overall verdict; let the arbiter aggregate.
+
+  - name: inclusion-criteria-auditor
+    preset: philosophy/pragmatist
+    prompt: |
+      You evaluate whether each of the 26 active principles passes the
+      Constitutional Inclusion Criteria gate (CONSTITUTION.md § Governance
+      "Constitutional Inclusion Criteria") AT ITS PROPOSED TIER.
+
+      The three criteria:
+      1. **Mechanical verification capability** — at least one form
+         of automated check can detect violations.
+      2. **Falsifiable scope** — compliance determinable by mechanical
+         inspection, not "good judgment."
+      3. **Distinctness** — not a corollary of an existing principle.
+
+      Existing principles I-XXVII are GRANDFATHERED in the current
+      flat constitution. The question for v4.0.0 is whether
+      grandfathering carries through tier reclassification, OR whether
+      reclassifying a principle to a new tier re-opens the gate.
+
+      For each principle:
+
+      1. **Does it pass the gate at the proposed tier?** A principle
+         that passes Universal-tier mechanical verification might fail
+         at Suite-tier scope (more specific verification required) or
+         vice versa.
+
+      2. **Distinctness across tiers**. Tier 1 contains Principle I
+         (Spec-Driven). Tier 2 contains nothing similar. But Tier 2's
+         Principle XV (Plugin Isolation) could be argued as a
+         corollary of Tier 1's Principle XI (Single Source of Truth)
+         IF you read XI broadly. Is the distinctness preserved across
+         tier boundaries?
+
+      3. **Cross-tier hierarchy**. CONSTITUTION.md § Governance says
+         "lower tiers may strengthen but not weaken upper-tier rules."
+         Does the proposed classification respect this? Are any
+         component-tier principles weaker than their Tier 2
+         counterparts?
+
+      Output: list of principles where the gate's application is
+      contested at their proposed tier. For each, name which criterion
+      is at risk and what evidence would resolve the contest.
+
+      Do not produce a yes-overall verdict; let the arbiter aggregate.
+
+  - name: admission-auditor-oss
+    preset: role/devils-advocate
+    prompt: |
+      You audit the conversus-oss CONFORMANCE.md draft declaration
+      against the actual repo state. Your role is contrarian: challenge
+      claims that look too easy.
+
+      Read:
+      - conversus-oss/CONFORMANCE.md — the draft declaration
+      - build-fractal/conversus/COMPLIANCE.md — the contract being
+        conformed to (especially Part II applicability matrix)
+      - conversus-oss/CONSTITUTION.md — the principles themselves
+
+      The conversus-oss declaration claims:
+      - 0 N/A entries
+      - 2 Provisional (XII no-dead-infra linter, XXII vendoring CI)
+      - All other principles Satisfied
+      - 0 Relief claims
+
+      Challenge each Satisfied claim that lacks specific evidence
+      (e.g., "Type hints enforced" — by what? mypy in CI? code review
+      only?). Challenge the two Provisional deadlines (2026-07-01 and
+      2026-08-01) — are they realistic? What blocks them?
+
+      Specific challenges to consider:
+      1. Principle V (Observable Deliberation) — the declaration says
+         "Phase progress reporting in engine; output validation via
+         linter/output_contract.py". Is the output_contract linter
+         actually enforcing observability across all 4-8 modes, or
+         just the cooperative mode it was originally written for?
+      2. Principle XXIV (Safety-Critical Defense-in-Depth) — what are
+         the named perimeters and their independent guards? "Multiple
+         guards" without enumeration is a vague claim.
+      3. Principle XXVI (Meta-Testing) — declared Satisfied. What is
+         the parametrization coverage of test_skill_engine.py and
+         test_concrete_providers.py? Specifically: do they hit every
+         (mode × provider) cell or just cooperative × mock?
+
+      Output: a list of specific findings — claims that need stronger
+      evidence, deadlines that look optimistic, N/A claims that should
+      be Satisfied or vice versa. Each finding ACCEPT/ACKNOWLEDGE/DEFER.
+
+      Do not produce a yes-overall verdict; let the arbiter aggregate.
+
+  - name: admission-auditor-enhanced
+    preset: role/devils-advocate
+    prompt: |
+      You audit the conversus CONFORMANCE.md draft declaration against
+      the actual repo state. Your role is contrarian: challenge claims
+      that look too easy. Note this declaration is post PR #30 (rename
+      conversus → conversus-enhanced + framework deletion + GitHub App
+      auth migration), so the repo state is freshly changed.
+
+      Read:
+      - conversus/CONFORMANCE.md — the draft declaration
+      - build-fractal/conversus/COMPLIANCE.md — the contract
+      - conversus-oss/CONSTITUTION.md — the principles
+
+      The conversus declaration claims:
+      - 4 N/A entries (V Observable Deliberation, VIII Templating
+        Engines, XIII Enum Completeness, XXIII Provider Robustness)
+      - 4 Provisional (III CHANGELOG, XIV parity check, XVI
+        determinism harness, XXII vendoring)
+      - All other principles Satisfied
+      - 0 Relief claims
+
+      Challenge:
+
+      1. **N/A claim quality**. Are the N/A claims structurally
+         justified, or are they "we don't think it applies" in
+         disguise?
+         - V N/A: "doesn't run deliberations directly". But the
+           solvers DO produce intermediate state during scoring. Is
+           that observability surface zero, or are we ignoring it?
+         - VIII N/A: "doesn't generate prompts/templates". But solver
+           output is consumed by templates upstream — is the boundary
+           that clean?
+         - XIII N/A: "no enums". Solver dispatch via plugin
+           entry-points is string-keyed. But the registry IS an enum
+           by another name — does Principle XIII apply to string
+           registries?
+         - XXIII N/A: "doesn't implement providers". Confirmed clean —
+           or do solvers expose provider-like surfaces (configurable
+           backends for ampl, jax)?
+
+      2. **Provisional deadline realism**. Three of four Provisional
+         items are deadlined 2026-08-01 (3 months out). Is this
+         coordinatable with conversus-oss's parallel XXII work?
+
+      3. **Principle XV (Plugin Isolation) Satisfied claim**. PR #30
+         deleted 6308 lines of OSS-duplicate framework. Verify:
+         (a) no remaining framework code in conversus that duplicates
+         conversus-oss; (b) all proprietary code under conversus_enhanced.*;
+         (c) entry-points are the ONLY surface where conversus and
+         conversus-oss share names.
+
+      Output: a list of specific findings, each ACCEPT/ACKNOWLEDGE/DEFER.
+
+      Do not produce a yes-overall verdict; let the arbiter aggregate.
+
+arbiter:
+  name: v4-tier-extraction-originating-arbiter
+  preset: role/balanced-arbiter
+  prompt: |
+    You rule on the v4.0.0 originating deliberation per QUESTION.md.
+    Three bundled questions; rule on each separately.
+
+    For each question, integrate findings from all four agents and
+    issue one of:
+
+    **Question 1 — Tier classification:**
+    - APPROVE-AS-DRAFTED — proceed to spec with the 10/10/6 split.
+    - APPROVE-WITH-RECLASSIFICATIONS — specify which principles move
+      and to which tier. Spec drafting uses revised classification.
+    - REJECT-EXTRACTION — the flat constitution stays. Tier 1 + Tier 2
+      drafts at build-fractal/ remain advisory only.
+
+    **Question 2 — conversus-oss admission:**
+    - ADMIT — declaration accepted as-drafted.
+    - ADMIT-PROVISIONAL — declaration accepted with specified
+      additional Provisional remediations.
+    - DEFER — admission deliberation runs again after specified
+      findings are addressed.
+    - REJECT — admission denied.
+
+    **Question 3 — conversus admission:**
+    - Same options as Question 2.
+
+    For each ruling, cite specific principles or COMPLIANCE.md sections
+    that ground the decision (per balanced-arbiter preset's
+    requirement to ground each ruling in declared principles).
+
+    Acceptable outcome combinations:
+    - Question 1 APPROVE + Q2 ADMIT/ADMIT-PROVISIONAL + Q3 ADMIT/ADMIT-
+      PROVISIONAL: full v4.0.0 ratification proceeds.
+    - Question 1 APPROVE + Q2 DEFER/REJECT + Q3 anything: tier
+      extraction proceeds; conversus-oss admission re-deliberates.
+    - Question 1 REJECT: no v4.0.0 ratification; build-fractal/
+      scaffolding stays advisory.
+
+    Conclude with three ruling lines, exactly:
+    - "Q1 RULING: <verdict> — <one-line rationale>"
+    - "Q2 RULING: <verdict> — <one-line rationale>"
+    - "Q3 RULING: <verdict> — <one-line rationale>"
+
+    The combined verdict determines the next stage: APPROVE-and-ADMIT
+    triggers spec drafting; any other combination requires further work.
+
+  grounding: ../../CONSTITUTION.md
+  trigger: always
+  timing: final
+  influence: binding

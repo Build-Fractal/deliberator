@@ -4,6 +4,19 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
+### Changed
+- **MAJOR — v3.2.3 → v4.0.0 constitutional tier extraction**. CONSTITUTION.md restructured from a flat 28-slot constitution into a hierarchical three-tier system. 10 principles relocated to Tier 1 (Universal) at `../build-fractal/CONSTITUTION.md`; 10 to Tier 2 (Suite) at `../build-fractal/conversus/CONSTITUTION.md`. 6 retained as component-tier in this repo's `CONSTITUTION.md`. 2 retired markers (VI, X) preserved per Principle II number-stability. All prior Sync Impact Report comment blocks preserved as audit trail. Three-deliberation ratification (originating + self-consistency + blind); 12 fixes applied across spec v1 → v2 → v3. See `specs/v4.0.0-tier-extraction/spec.md`.
+
+### Added
+- `linter/tier_coherence.py`: tier-coherence linter satisfying Constitutional Inclusion Criterion 1 for v4.0.0. Checks (a) cross-tier duplication via dual-signal (identity-marker + 5-gram Jaccard >0.85) with escape-hatch exclusion list; (b) post-relocation orphans; (c) cross-reference resolution (filesystem paths AND canonical monorepo GitHub URLs per v4.0.0 erratum C1); (d) version-field consistency. Plus weakening-words flagging per spec §6.10.
+- `scripts/v4-tier-extraction.py`: one-shot relocation script that produced the v4.0.0 tier split with byte-equal preservation verification. Reusable for any future tier-restructure amendment that needs byte-equality guarantees.
+- `scripts/v4-url-references.py`: idempotent conversion script for the v4.0.0 erratum C1 — converts filesystem-relative cross-tier references to canonical GitHub URLs. Re-runnable when the canonical URL prefix changes (e.g., future build-fractal/ extraction to its own repo).
+- `CONFORMANCE.md`: this repo's formal conformance declaration to the build-fractal/conversus suite governance contract. Status: Provisional (5 open remediations: V, XII, XXII, XXIV, XXVI). Inheritance references use canonical GitHub URLs for standalone repo usability.
+- Suite admission via Q2 ADMIT-PROVISIONAL of originating deliberation 2026-05-06.
+
+### Fixed
+- **v4.0.0 erratum C1 (2026-05-08)**: cross-tier references in `CONSTITUTION.md` and `CONFORMANCE.md` were filesystem-relative paths (`../build-fractal/...`), which broke standalone repo usability — readers cloning conversus-oss alone or viewing it on github.com saw dangling references to nonexistent paths. Erratum converts all such references to canonical GitHub URLs (`https://github.com/clariti-care/payer-index-mono/blob/main/...`). Single-source-of-truth model preserved; repo standalone usability restored. No principle text changed. See `specs/v4.0.0-tier-extraction/spec.md` §13 v4 fixes subsection.
+
 ## [0.4.0] - 2026-05-01
 
 The "Principle XXVIII era" — constitutional discipline established and applied across 30+ PRs.

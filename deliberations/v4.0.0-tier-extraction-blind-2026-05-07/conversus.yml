@@ -1,0 +1,160 @@
+mode: cooperative
+output: ./
+rounds: 1
+
+# v4.0.0 Blind Verification (Leg 2 per spec 067 §4)
+#
+# Markers STRIPPED. Goal: catch ratification bias — find issues a
+# self-consistency reviewer with markers visible would have anchored
+# past.
+#
+# Per spec 067 §4.3.1: use existing role presets, NOT hand-rolled
+# prompts. Per QUESTION.md: target file count limited to 5 to avoid
+# the arbitration prompt-size crash bug (see
+# project_conversus_arbitration_crash_2026_05_06).
+#
+# Three agents:
+# 1. devils-advocate — challenges strongest consensus positions in
+#    the spec; finds unexamined assumptions.
+# 2. red-team — adversarially tests the spec's claims against the
+#    constitution it amends.
+# 3. (synthesis + arbitration handled by their phases.)
+
+target:
+  - blind-inputs/spec-stripped.md
+  - ../../CONSTITUTION.md
+  - ../../../build-fractal/CONSTITUTION.md
+  - ../../../build-fractal/conversus/CONSTITUTION.md
+  - QUESTION.md
+
+agents:
+  - name: devils-advocate
+    preset: role/devils-advocate
+    prompt: |
+      Apply your role to the proposed structural amendment at
+      blind-inputs/spec-stripped.md. The amendment claims to relocate
+      20 of 26 active principles in ../../CONSTITUTION.md to two
+      higher-tier documents (../../../build-fractal/CONSTITUTION.md
+      Tier 1, ../../../build-fractal/conversus/CONSTITUTION.md Tier 2)
+      while keeping 6 at the original location and preserving 2
+      retired markers.
+
+      Challenge the spec's strongest consensus positions:
+
+      1. Tier classification (spec §4) — the spec implies the 10/10/6
+         split is settled. Find the principle that's MOST debatable.
+         For that principle, write the strongest possible argument for
+         a different tier. Does the argument survive scrutiny?
+
+      2. Verbatim Preservation Contract (spec §5) — the contract
+         claims byte-for-byte preservation modulo only path-prefix
+         changes. Pick 2-3 principles and trace what relocation
+         actually requires. Is the contract complete? Specifically:
+         what about footnotes, internal section numbering (e.g.,
+         "see §3 above"), inline cross-references that don't use the
+         documented patterns?
+
+      3. Tier-coherence linter (spec §6.8) — the algorithm is
+         "header + first-paragraph substring match." Construct a
+         cross-tier duplication that this algorithm would FAIL to
+         detect. If you can construct one, the algorithm is
+         insufficient for Constitutional Inclusion Criterion 1.
+
+      4. Implementation order (spec §10) — atomicity is claimed but
+         monolithic. What single failure during impl would leave the
+         tree in inconsistent state that the rollback procedure
+         doesn't recover? Construct the scenario.
+
+      Output findings each marked ACCEPT (must fix), ACKNOWLEDGE
+      (note), or DEFER (out of scope). Do not produce overall verdict.
+
+  - name: red-team
+    preset: role/red-team
+    prompt: |
+      Apply your red-team role to the proposed amendment at
+      blind-inputs/spec-stripped.md.
+
+      Your job is adversarial testing of the spec's load-bearing
+      claims:
+
+      1. **Grandfathering integrity.** The spec says grandfathering
+         protects principles relocated through tier reclassification
+         (per the originating deliberation's Dispute 2 precedent).
+         Construct an attack: a principle that, if relocated to a
+         different tier, would arguably need to re-pass the Inclusion
+         Criteria gate at the new tier. Does grandfathering correctly
+         exempt it?
+
+      2. **Cross-tier consistency invariants.** The spec implies
+         "lower tiers may strengthen but not weaken upper-tier rules"
+         and that constitutional inheritance flows downward. Find a
+         scenario in the proposed Tier 1 / Tier 2 / Component
+         arrangement where a component-tier principle (XVII-XXI,
+         XXVI) MIGHT contradict or weaken its Tier 1 / Tier 2 ancestors.
+         If you find one, the spec needs explicit reconciliation
+         language.
+
+      3. **Hostile amendment scenario.** Imagine a future amendment
+         author who wants to weaken a Tier 1 principle. Can they
+         exploit the cross-tier relationship to do it? Specifically:
+         can they propose a Tier 2 amendment that effectively
+         contradicts a Tier 1 principle without the contradiction
+         being visible to readers of either document alone?
+
+      4. **Pre-existing flaws in ../../CONSTITUTION.md.** Review the
+         current constitution. Find any principle whose body text or
+         normative claims could be subtly broken by the relocation
+         process even under byte-equal preservation — e.g., a
+         principle whose meaning depends on its position in the file
+         relative to other principles. Pre-existing flaws DEFER per
+         QUESTION.md, but flag them for the record.
+
+      Output findings each marked ACCEPT / ACKNOWLEDGE / DEFER. Do
+      not produce overall verdict.
+
+arbiter:
+  name: blind-verification-arbiter
+  preset: role/balanced-arbiter
+  prompt: |
+    Rule on the blind verification per QUESTION.md acceptance bar.
+
+    Per spec 067 §4 Leg 2 acceptance:
+    - **PASS** — 0 ACCEPT-level findings on new content from any
+      agent. Spec ratifies at v4.0.0; impl-PR may proceed.
+    - **PASS WITH FIXES** — ACCEPT findings exist; specify the fixes.
+      Spec author addresses in v3 revision; blind re-runs against v3
+      OR (for minor fixes) the v3 ships with a fix-ledger and impl-PR
+      review verifies them.
+    - **FAIL** — fundamental issues. Spec must be substantially
+      redrafted before any further verification.
+    - **OVERRIDE-WITH-RATIONALE** — apply only when the strict reading
+      of an ACCEPT finding, applied uniformly, would shrink existing
+      ratified principles in ../../CONSTITUTION.md. Per the
+      override precedent (logged 2026-04-29 by Principle XXVIII
+      ratification), override must include: (a) specific uniformity
+      argument naming existing principles that would also fail; (b)
+      explicit acknowledgment that the override is for THIS specific
+      finding's standard, not the blind verdict's authority overall.
+
+    For each agent's findings, integrate them. Pre-existing flaws in
+    ../../CONSTITUTION.md surfaced incidentally are explicitly DEFER
+    per QUESTION.md (not ACCEPT) — they go to their own follow-on
+    amendment cycle. ACCEPT findings must be on NEW content (the
+    proposed amendment text in blind-inputs/spec-stripped.md or the
+    proposed Tier 1 / Tier 2 structure).
+
+    Cite specific principles or spec sections grounding each ruling.
+    Reject positions that would weaken the acceptance bar.
+
+    Conclude with a single verdict line:
+    - "BLIND VERIFICATION VERDICT: PASS — proceed to impl-PR"
+    - "BLIND VERIFICATION VERDICT: PASS WITH FIXES — apply {N} fixes,
+      then proceed to impl-PR" (enumerate the fixes)
+    - "BLIND VERIFICATION VERDICT: FAIL — substantial redraft required"
+    - "BLIND VERIFICATION VERDICT: OVERRIDE-WITH-RATIONALE — proceed
+      with logged override" (include uniformity argument)
+
+  grounding: ../../CONSTITUTION.md
+  trigger: always
+  timing: final
+  influence: binding
