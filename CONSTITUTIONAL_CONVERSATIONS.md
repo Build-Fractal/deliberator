@@ -63,6 +63,26 @@ This file is an index, not a transcript.
 
 ---
 
+## 2026-05-08 — v4.0.0 erratum C1 — URL-reference cross-tier resolution
+
+**Type**: Erratum (PATCH-equivalent; substantive content unchanged).
+**Source**: `https://github.com/clariti-care/payer-index-mono/blob/main/build-fractal/conversus/CONSTITUTIONAL_CONVERSATIONS.md` 2026-05-08 v4.0.0-erratum-c1-url-references entry (suite-tier).
+**Effect on this repo**: cross-tier references in `CONSTITUTION.md` and `CONFORMANCE.md` converted from filesystem-relative paths (`../build-fractal/...`) to canonical GitHub URLs. Repo's standalone usability restored — readers cloning conversus-oss alone or browsing on github.com see clickable URL references to the monorepo's canonical Tier 1 / Tier 2 sources. Tooling: `linter/tier_coherence.py` Check (c) extended to validate URL form against canonical monorepo prefix.
+**No principle text changed**.
+
+## 2026-05-07 — v3.2.3 → v4.0.0 tier extraction (component-tier reduction)
+
+**Type**: Implementation of MAJOR amendment (tier-extraction-ratified at suite tier).
+**Pathway**: MAJOR per CONSTITUTION.md § Pathway Taxonomy.
+**Source**: `../build-fractal/conversus/CONSTITUTIONAL_CONVERSATIONS.md` 2026-05-07 v4.0.0-tier-extraction-ratified entry.
+**Effect on this repo**: CONSTITUTION.md reduced from 28 principle slots (26 active + 2 retired) at v3.2.3 to 6 component principles + 2 retired markers at v4.0.0. Governance section + all prior SIRs preserved verbatim. 20 principles relocated:
+- 10 to Tier 1 (`../build-fractal/CONSTITUTION.md`): I, II, III, IV, VII, VIII, IX, XI, XIV, XXVIII.
+- 10 to Tier 2 (`../build-fractal/conversus/CONSTITUTION.md`): V, XII, XIII, XV, XVI, XXII, XXIII, XXIV, XXV, XXVII.
+**Three deliberations**: originating, self-consistency, blind — all logged at suite tier. 12 fixes applied across spec v1 → v2 → v3.
+**Tooling**: `linter/tier_coherence.py` ships with this amendment (Constitutional Inclusion Criterion 1 satisfaction; 4 hard checks + weakening-words flagging).
+**Admission**: this repo formally admitted to the conversus suite via Q2 ADMIT-PROVISIONAL (originating); CONFORMANCE.md flipped Implicit-Provisional → Provisional with 5 open remediations.
+**Engine note**: auto-arbitrator crashed on both verification deliberations; manual arbitrations performed. Bug logged separately (project_conversus_arbitration_crash_2026_05_06).
+
 ## 2026-04-25 — Constitutional gap analysis since v2.2.0
 
 **Type**: Deliberation

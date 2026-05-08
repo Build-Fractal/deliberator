@@ -1,0 +1,240 @@
+mode: cooperative
+output: ./
+rounds: 1
+
+# v4.0.0 Self-Consistency Verification (Leg 1 per spec 067 §4)
+#
+# Markers VISIBLE. Goal: catch wording drift, internal contradictions,
+# broken cross-references in the proposed amendment text.
+#
+# Per spec 067 §4.3.1: use existing role presets, NOT hand-rolled
+# prompts. The prompts below provide *task framing* per agent (which
+# section to focus on); the agent's character comes from the preset.
+#
+# Three agents covering distinct concerns:
+# 1. structural-integrity — verifies tier classification consistency,
+#    relocation accounting, principle-number stability across tiers.
+# 2. wording-precision — verifies verbatim preservation contract,
+#    cross-reference rewrites, SIR preview text completeness.
+# 3. mechanical-verifiability — verifies the tier-coherence linter
+#    spec is actually mechanically feasible (Inclusion Criterion 1).
+#
+# Acceptance bar (per QUESTION.md): 0 ACCEPT-level findings on new
+# content. ACKNOWLEDGE/DEFER findings are non-blocking.
+
+target:
+  - ../../specs/v4.0.0-tier-extraction/spec.md
+  - ../../CONSTITUTION.md
+  - ../../../build-fractal/CONSTITUTION.md
+  - ../../../build-fractal/conversus/CONSTITUTION.md
+  - ../../../build-fractal/conversus/GOVERNANCE.md
+  - ../../../build-fractal/conversus/COMPLIANCE.md
+  - ../../CONFORMANCE.md
+  - ../../../conversus/CONFORMANCE.md
+  - ../v4.0.0-tier-extraction-originating-2026-05-06/VERDICT.md
+  - QUESTION.md
+
+agents:
+  - name: structural-integrity
+    preset: role/devils-advocate
+    prompt: |
+      You verify structural integrity of the proposed v4.0.0
+      amendment per QUESTION.md checks 2, 3, 7. Markers are VISIBLE
+      (this is the self-consistency leg, not blind).
+
+      Specific checks:
+
+      1. **Tier classification arithmetic.** spec §4 lists 10 + 10 + 6
+         + 2 retired = 28 numerals total. Verify that every Roman
+         numeral I through XXVIII appears exactly once across the
+         four lists (Tier 1, Tier 2, Component, Retired). Search for
+         omissions, duplications, or off-by-one errors.
+
+      2. **Cross-tier numeral non-consecutiveness.** Principle II
+         (Stable Interfaces) requires numerals to be stable across
+         tier reclassification. Verify that the spec correctly does
+         NOT renumber principles after tier assignment. Tier 1
+         contains I, II, III, IV, VII, VIII, IX, XI, XIV, XXVIII —
+         note this is non-consecutive (V is missing because V went to
+         Tier 2). Confirm the spec preserves this non-consecutive
+         pattern across all three tier lists.
+
+      3. **File-edit completeness (§6).** The spec enumerates 9 edits
+         (§6.1 through §6.9). Walk each one and check whether it
+         covers all the changes implied by §4 (tier classification)
+         and §9 (conditions). Are any necessary edits missing? E.g.,
+         does §6 mention updating CHANGELOG.md in conversus-oss but
+         not conversus? Is the v4.0.0 admission entry in
+         build-fractal/conversus/CONSTITUTIONAL_CONVERSATIONS.md
+         described with enough detail (specific event types, source
+         links)?
+
+      4. **Origin trail.** spec §1 says it "extracts" without rewriting
+         normative text. spec §5 (Verbatim Preservation Contract)
+         establishes the byte-equal rule. spec §7 specifies the
+         negative grep checks. Are these three sections internally
+         consistent? Does any of them imply changes the others
+         contradict?
+
+      Output a list of structural findings. For each finding:
+      - Severity: ACCEPT (must fix before blind), ACKNOWLEDGE (note
+        for record), DEFER (out of scope for v4.0.0).
+      - Location in spec.md (line range or section number).
+      - Specific defect.
+      - Proposed fix (if known).
+
+      Do not produce an overall verdict; let the arbiter aggregate.
+
+  - name: wording-precision
+    preset: role/devils-advocate
+    prompt: |
+      You verify wording precision of the proposed v4.0.0 amendment
+      per QUESTION.md checks 1, 5, 6. Markers are VISIBLE.
+
+      Specific checks:
+
+      1. **Verbatim Preservation Contract (§5) falsifiability.** The
+         contract says "header verbatim, body verbatim, only
+         path-prefix cross-references rewritten." A reviewer should be
+         able to mechanically falsify this. Find at least one principle
+         from each tier (Tier 1, Tier 2, Component) and trace whether
+         the spec specifies precisely how its body text and any
+         internal cross-references would change. Is the contract
+         specific enough? If a future amendment author wants to break
+         the contract subtly (e.g., reflow paragraph breaks), would the
+         contract catch it?
+
+      2. **Cross-reference rewrites (§5 third bullet).** "Tier 1
+         Principle IX (../CONSTITUTION.md)" is the example given. But
+         a Tier 2 document referencing a Tier 1 principle uses
+         `../CONSTITUTION.md`, while a component-tier document
+         referencing Tier 1 uses `../../build-fractal/CONSTITUTION.md`.
+         Are both forms documented? Is the spec internally consistent
+         about which form to use where?
+
+      3. **SIR preview (§11) completeness.** The preview SIR text will
+         become the live SIR. Verify it: (a) explicitly invokes 3.2.3
+         → 4.0.0 MAJOR; (b) lists all 20 relocated principles
+         (10 Tier 1 + 10 Tier 2); (c) lists 6 retained component-tier
+         principles; (d) marks VI and X retired with "never reuse"
+         phrasing per Principle II; (e) preserves the v3.2.2 SIR
+         comment block reference for audit trail (the existing
+         CONSTITUTION.md has multiple prior SIR blocks preserved as
+         comments — does the v4.0.0 SIR continue this pattern?).
+
+      4. **Conditions section (§9) translation accuracy.** The spec
+         claims 3 conditions DISCHARGED and 1 RESOLVED via decoupling.
+         Read the originating deliberation's `VERDICT.md` and confirm
+         the discharge evidence matches what's claimed. Specifically:
+         (a) was the templating audit grep documented with the actual
+         command and result? (b) was the Plugin Isolation audit
+         documented with the conversus/ dir contents? (c) was the
+         XXII decoupling justified with the .mcpb dual-vendoring
+         deferral? (d) was V/XXIV/XXVI Provisional translation
+         actually applied to conversus-oss/CONFORMANCE.md (verify by
+         reading that file)?
+
+      Output a list of wording findings. Severity per finding: ACCEPT
+      / ACKNOWLEDGE / DEFER.
+
+      Do not produce an overall verdict.
+
+  - name: mechanical-verifiability
+    preset: role/devils-advocate
+    prompt: |
+      You verify the mechanical-verifiability claim of the proposed
+      v4.0.0 amendment per QUESTION.md checks 4, 8.
+
+      Specific checks:
+
+      1. **Tier-coherence linter (§6.8) feasibility.** The spec says
+         the linter fails if:
+         (a) A component-tier principle text restates the body of a
+             Tier 1 or Tier 2 principle (cross-tier duplication
+             detection — string-match heuristic plus name-collision
+             check).
+         (b) A relocated Tier 1 / Tier 2 principle's body still appears
+             in conversus-oss/CONSTITUTION.md (post-relocation orphan
+             detection).
+         (c) The Version: field in any of the three constitution
+             documents disagrees with the latest SIR.
+
+         Walk each check and confirm:
+         - It is mechanically feasible (a Python script can reliably
+           implement it).
+         - The "string-match heuristic" in (a) is specific enough — is
+           it whole-paragraph match? n-gram match? What false-positive
+           rate is acceptable?
+         - The "name-collision check" in (a) is well-defined (compare
+           "### {Roman}. {Name}" header text across files).
+         - Check (b) is implementable (grep for the verbatim body of
+           each relocated principle in the reduced file).
+         - Check (c) is implementable (parse `Version:` line from each
+           file's frontmatter or first SIR block).
+
+      2. **Constitutional Inclusion Criterion 1 satisfaction.** The
+         v4.0.0 amendment is itself a structural amendment. Does the
+         tier-coherence linter satisfy Criterion 1 (mechanical
+         verification capability) FOR THIS AMENDMENT? I.e., does
+         running the linter actually detect violations of the v4.0.0
+         structural rules?
+
+      3. **§7 (Verbatim text preservation — concrete check) complement.**
+         §7 says the impl-PR review checklist runs negative greps. Are
+         these greps a substitute for the linter (§6.8) or a complement?
+         If complement, what does each catch that the other doesn't?
+
+      4. **Verification protocol invocation (§8) consistency with
+         spec 067.** Does §8.1 + §8.2 correctly invoke spec 067 §4 and
+         §4.3.1? Are the preset names cited exactly (devils-advocate,
+         balanced-arbiter)? Is the override-with-rationale precedent
+         referenced with the correct "logged in three places" rule?
+
+      Output a list of feasibility findings. Severity per finding:
+      ACCEPT / ACKNOWLEDGE / DEFER.
+
+      Do not produce an overall verdict.
+
+arbiter:
+  name: v4-self-consistency-arbiter
+  preset: role/balanced-arbiter
+  prompt: |
+    You rule on the v4.0.0 self-consistency verification.
+
+    Per QUESTION.md acceptance bar:
+    - **PASS** — 0 ACCEPT-level findings on new content from any
+      agent. The spec is ready for blind verification (step 6).
+    - **PASS WITH FIXES** — ACCEPT findings exist; specify the fixes
+      required before blind verification. The spec author addresses
+      them in a v2 revision; blind runs against v2.
+    - **FAIL** — fundamental issues. Spec must be substantially
+      redrafted before blind verification.
+
+    For each agent's findings, integrate them into a combined view:
+    - ACCEPT findings: list each, cite agent + section, specify
+      required fix.
+    - ACKNOWLEDGE findings: list for record; non-blocking.
+    - DEFER findings: list with target follow-on amendment / spec.
+
+    Per spec 067 §4 self-consistency leg, this arbiter rules ONLY on
+    new content (the v4.0.0 amendment text). Pre-existing flaws
+    surfaced incidentally are out of scope here — they belong to the
+    blind verification leg or to their own follow-on amendments.
+
+    Cite specific principles or spec 067 sections grounding each
+    ruling. Reject positions that would weaken the acceptance bar
+    (e.g., "this minor wording issue can be fixed during impl"); the
+    self-consistency gate exists precisely to catch issues before
+    impl.
+
+    Conclude with a single verdict line:
+    - "SELF-CONSISTENCY VERDICT: PASS — proceed to blind verification"
+    - "SELF-CONSISTENCY VERDICT: PASS WITH FIXES — apply {N} fixes,
+      then proceed to blind verification" (enumerate the fixes)
+    - "SELF-CONSISTENCY VERDICT: FAIL — substantial redraft required"
+      (enumerate the blocking issues)
+
+  grounding: ../../CONSTITUTION.md
+  trigger: always
+  timing: final
+  influence: binding
