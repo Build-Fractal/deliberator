@@ -1240,6 +1240,106 @@ class TestArbitration:
         assert arb_path.exists()
         assert arb_path in result.written_files
 
+    def test_arbitration_does_not_inline_target_files(self, tmp_path: Path) -> None:
+        """Regression: arbiter prompt is context-isolated (Step 4 § agent isolation).
+
+        The arbiter's prompt MUST NOT inline the deliberation's target file
+        contents. Disputes have already distilled the relevant findings; the
+        template references target file paths and the agent reads them via
+        Read tool on demand.
+
+        Inlining target files into the arbiter prompt re-packs the entire
+        deliberation's input set, which (a) violates agent isolation and
+        (b) caused pre-dispatch crashes when prompt assembly exceeded the
+        claude-code subagent context budget — observed 2026-05-06 and
+        2026-05-07 (1ms / 2ms crashes on synthesis sizes 174K-231K chars).
+        Bug investigation: project_conversus_arbitration_crash_2026_05_06.
+
+        The fix: pass ``target_files=[]`` to ``_assemble_phase_prompt`` for
+        the arbiter dispatch only. Target files remain inlined for review,
+        cross-review, revision, disputes, and synthesis phases.
+
+        Test asserts: when target file is large (e.g., 100K chars), arbiter
+        prompt size stays bounded — proving target file content was not
+        inlined.
+        """
+        # Construct a config with a deliberately large target file.
+        # If the bug regresses, this content gets inlined into the arbiter
+        # prompt and the assertion below fails.
+        large_target = tmp_path / "large-target.md"
+        # 100K chars; combined with the constitution + other context this
+        # would have caused arbitration to crash pre-fix.
+        unique_marker = "ARBITER_REGRESSION_MARKER_DO_NOT_REMOVE"
+        large_target.write_text(
+            f"# Large target\n\n{unique_marker}\n\n" + ("x" * 100_000),
+            encoding="utf-8",
+        )
+
+        arbiter = _make_arbiter_config(tmp_path)
+        config = _make_multi_round_config(tmp_path, rounds=1, arbiter=arbiter)
+        # Override target_files to use the large file
+        config_with_large = EngineConfig(
+            mode=config.mode,
+            target_files=[large_target],
+            output=config.output,
+            agents=config.agents,
+            iterations=config.iterations,
+            rounds=config.rounds,
+            stagnation=config.stagnation,
+            prior_files=config.prior_files,
+            arbiter=config.arbiter,
+            validate_templates=config.validate_templates,
+        )
+
+        # Capture the arbiter prompt by spying on dispatch_phase
+        captured_prompts: list[str] = []
+        from engine import phases as phases_mod
+        original_dispatch = phases_mod.dispatch_phase
+
+        async def spy_dispatch(*args, **kwargs):
+            phase = kwargs.get("phase", "")
+            agents = kwargs.get("agents", args[0] if args else [])
+            if phase == "arbitration":
+                for _, prompt in agents:
+                    captured_prompts.append(prompt)
+            return await original_dispatch(*args, **kwargs)
+
+        provider = MockProvider()
+        emitter, _ = _collect_events()
+        try:
+            phases_mod.dispatch_phase = spy_dispatch
+            asyncio.run(
+                run_pipeline(
+                    config_with_large, provider, emitter,
+                    config_path=_config_path(),
+                )
+            )
+        finally:
+            phases_mod.dispatch_phase = original_dispatch
+
+        # The arbiter dispatch MUST have happened
+        assert len(captured_prompts) == 1, (
+            f"Expected 1 arbiter dispatch; got {len(captured_prompts)}"
+        )
+        arbiter_prompt = captured_prompts[0]
+
+        # The unique marker is in the large target file's contents.
+        # If target file content were inlined into the arbiter prompt, the
+        # marker would appear in the prompt. The fix means it does NOT.
+        assert unique_marker not in arbiter_prompt, (
+            "Arbiter prompt inlined target file contents — "
+            "agent-isolation violation (project_conversus_arbitration_"
+            "crash_2026_05_06). Check engine/phases.py arbiter dispatch: "
+            "_assemble_phase_prompt should be called with target_files=[]."
+        )
+
+        # Sanity: prompt size is well below the 150K warning threshold,
+        # confirming the disputes-only context is bounded.
+        assert len(arbiter_prompt) < 150_000, (
+            f"Arbiter prompt size {len(arbiter_prompt):,} exceeds 150K warning threshold "
+            "— likely something else is bloating it"
+        )
+
 
 # ---------------------------------------------------------------------------
 # Cross-round synthesis tests
