@@ -917,9 +917,23 @@ async def run_pipeline(
                         round_base=_arb_round_base,
                     )
                     _arb_filled = fill_template(_arb_template, _arb_context)
+                    # Arbiter is context-isolated per CONSTITUTION.md Step 4 §
+                    # agent-isolation: the filled template already lists
+                    # TARGET_FILES + GROUNDING_PATH + ALL_DISPUTES by path,
+                    # and inlines REMAINING_DISPUTES. The agent reads
+                    # referenced files on-demand via Read tool. Inlining the
+                    # full target file set here re-packs the entire
+                    # deliberation's input documents into the arbiter prompt,
+                    # which (a) violates agent isolation (arbiter sees the
+                    # same target files as review agents) and (b) causes
+                    # pre-dispatch crashes when prompt assembly exceeds the
+                    # claude-code subagent context budget (observed
+                    # 2026-05-06 + 2026-05-07: 1ms/2ms crashes on synthesis
+                    # sizes 174K-231K chars). Disputes-only-context fix per
+                    # the project_conversus_arbitration_crash memory.
                     _arb_prompt = _assemble_phase_prompt(
                         filled_template=_arb_filled,
-                        target_files=config.target_files,
+                        target_files=[],
                         agent_docs=config.arbiter.docs,
                         base_dir=base_dir,
                     )
@@ -1166,9 +1180,11 @@ async def run_pipeline(
                     round_base=arb_round_base,
                 )
                 filled = fill_template(arb_template, arb_context)
+                # Arbiter context-isolation fix (final-timing dispatch);
+                # see inter-round dispatch above for the full rationale.
                 prompt = _assemble_phase_prompt(
                     filled_template=filled,
-                    target_files=config.target_files,
+                    target_files=[],
                     agent_docs=config.arbiter.docs,
                     base_dir=base_dir,
                 )
