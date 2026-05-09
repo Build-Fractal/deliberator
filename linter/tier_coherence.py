@@ -26,8 +26,26 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 COMPONENT = ROOT / "CONSTITUTION.md"
-TIER1 = ROOT.parent / "build-fractal" / "CONSTITUTION.md"
-TIER2 = ROOT.parent / "build-fractal" / "conversus" / "CONSTITUTION.md"
+
+
+def _find_build_fractal_root(start: Path) -> Path | None:
+    """Walk up looking for a directory named 'build-fractal/' containing CONSTITUTION.md.
+
+    Supports any monorepo layout that places conversus-oss anywhere under the
+    monorepo root, including the post-Phase-C nested layout
+    (build-fractal/conversus/conversus-oss/) and the original flat layout
+    (conversus-oss/).
+    """
+    for ancestor in [start, *start.parents]:
+        candidate = ancestor / "build-fractal" / "CONSTITUTION.md"
+        if candidate.is_file():
+            return ancestor / "build-fractal"
+    return None
+
+
+_BUILD_FRACTAL = _find_build_fractal_root(ROOT)
+TIER1 = (_BUILD_FRACTAL / "CONSTITUTION.md") if _BUILD_FRACTAL else ROOT.parent / "build-fractal" / "CONSTITUTION.md"
+TIER2 = (_BUILD_FRACTAL / "conversus" / "CONSTITUTION.md") if _BUILD_FRACTAL else ROOT.parent / "build-fractal" / "conversus" / "CONSTITUTION.md"
 
 TIER1_PRINCIPLES = {"I", "II", "III", "IV", "VII", "VIII", "IX", "XI", "XIV", "XXVIII"}
 TIER2_PRINCIPLES = {"V", "XII", "XIII", "XV", "XVI", "XXII", "XXIII", "XXIV", "XXV", "XXVII"}
@@ -189,8 +207,11 @@ def check_cross_references(text: str, name: str) -> list[str]:
                 f"check(c) broken filesystem link in {name}: {match.group(0)} → {target}"
             )
 
-    # Validate URL form: must match monorepo prefix + resolve to existing file in monorepo
-    monorepo_root = ROOT.parent  # ROOT is conversus-oss/; monorepo is one level up
+    # Validate URL form: must match monorepo prefix + resolve to existing file in monorepo.
+    # `_BUILD_FRACTAL` is the monorepo's build-fractal/ dir if found — its parent is the
+    # monorepo root, regardless of how deeply conversus-oss is nested. Falls back to
+    # `ROOT.parent` for the original flat layout.
+    monorepo_root = _BUILD_FRACTAL.parent if _BUILD_FRACTAL else ROOT.parent
     seen_urls: set[str] = set()
     url_candidates = [
         *bare_url_re.findall(text),
