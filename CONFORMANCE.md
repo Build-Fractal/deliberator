@@ -9,7 +9,7 @@
 
 **Admission deliberation:** `deliberations/v4.0.0-tier-extraction-originating-2026-05-06/` Q2 ADMIT-PROVISIONAL.
 
-**Status:** Provisional — admitted via v4.0.0 tier-extraction (2026-05-07); 5 open remediations (V, XII, XXII, XXIV, XXVI).
+**Status:** Provisional — admitted via v4.0.0 tier-extraction (2026-05-07); 4 open remediations (V, XXII, XXIV, XXVI). XII closed 2026-05-09 by `linter/dead_infra.py` + CI wiring.
 
 **Last re-audit:** 2026-05-07 (post v4.0.0 ratification + blind verification surfaced V/XXIV/XXVI Provisional updates).
 
@@ -37,7 +37,7 @@
 | # | Principle | Status | Evidence / Rationale |
 |---|---|---|---|
 | V | Observable Deliberation | Provisional | Phase progress reporting in engine; output validation via `linter/output_contract.py`. **Gap surfaced by 2026-05-06 originating deliberation:** cross-mode test coverage for output_contract not verified — output_contract was originally written for cooperative mode. **Remediation:** add cross-mode coverage tests (deadline: 2026-08-01). |
-| XII | No Dead Infrastructure | Provisional | Periodic dead-code audit performed manually; no automated linter check yet for unreferenced templates / modes. **Remediation:** add `linter/dead-infrastructure.py` (deadline: 2026-07-01). |
+| XII | No Dead Infrastructure | Satisfied | `linter/dead_infra.py` enforces schema → templates parity: every variable in `schema/variables.yml` with declared `phases:` must either appear in at least one matching template or carry an explicit `consumer:` annotation naming its orchestrator consumer. CI runs the linter on every PR (`.github/workflows/linter-checks.yml`). **Closed 2026-05-09**. |
 | XIII | Enum Completeness | Satisfied | Mode enum (`cooperative`, `winner-take-all`, `prisoners-dilemma`, `red-blue`, plus 4 game-engine modes) exhaustively dispatched. Phase enum (1-6) fixed. |
 | XV | Plugin Isolation | Satisfied | Plugin entry-points (`conversus.solvers`, `conversus.domains`) declared as the suite's monetization seam. OSS layer carries no proprietary modules. spec 016 codifies the boundary. |
 | XVI | Mathematical Transparency | Satisfied | Scoring code in `engine/` documented and deterministic. v3.2.3 disambiguated "shape" vs "assembly form" terminology to remove cross-principle collision with IX. |
@@ -69,7 +69,7 @@ These component-tier principles will remain in `conversus-oss/CONSTITUTION.md` a
 | Principle | Gap | Remediation | Deadline | Tracking |
 |---|---|---|---|---|
 | V (Observable Deliberation) | Output_contract cross-mode coverage not verified | Add cross-mode coverage tests for `linter/output_contract.py` | 2026-08-01 | TBD issue |
-| XII (No Dead Infrastructure) | No automated dead-code linter | Implement `linter/dead-infrastructure.py` walking template references, mode dispatch, and entry-points | 2026-07-01 | TBD issue |
+| ~~XII (No Dead Infrastructure)~~ | ~~No automated dead-code linter~~ | **CLOSED 2026-05-09**: `linter/dead_infra.py` shipped. Schema variables must reference at least one template OR carry a `consumer:` annotation. CI gate in `.github/workflows/linter-checks.yml`. | ~~2026-07-01~~ | Closed |
 | XXII (Distribution Surface Integrity) | Per-channel vendoring rules not in CI | Add per-channel vendoring CI to this repo (decoupled from conversus per 2026-05-06 deliberation) | 2026-08-01 | TBD issue |
 | XXIV (Safety-Critical Defense-in-Depth) | Named perimeters not enumerated | Enumerate perimeters + independent guards in CONSTITUTION.md or sibling SAFETY.md | 2026-09-01 | TBD issue |
 | XXVI (Meta-Testing) | (Mode × provider) cross-product coverage not confirmed | Audit test_skill_engine.py parametrization; add missing cells if any | 2026-08-01 | TBD issue |

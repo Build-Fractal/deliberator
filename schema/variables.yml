@@ -91,6 +91,7 @@ variables:
       referenced directly in template text.
     phases: [review, cross-review, revision, disputes, synthesis]
     required: false
+    consumer: engine.templates — feeds PRIOR_ROUND_SECTION composition
     config_conditions:
       - field: rounds
         value: "> 1"
@@ -117,6 +118,7 @@ variables:
       orchestrator to populate PRIOR_ROUND_SECTION.
     phases: [review, cross-review, revision, disputes, synthesis]
     required: false
+    consumer: engine.templates — feeds PRIOR_ROUND_SECTION composition
     config_conditions:
       - field: rounds
         value: "> 1"
@@ -129,6 +131,7 @@ variables:
       orchestrator to populate PRIOR_ROUND_SECTION.
     phases: [review, cross-review, revision, disputes, synthesis]
     required: false
+    consumer: engine.templates — feeds PRIOR_ROUND_SECTION composition
     config_conditions:
       - field: rounds
         value: "> 1"
@@ -140,6 +143,7 @@ variables:
       templates when inter-round arbitration is configured (spec 006).
     phases: [review, cross-review, revision, disputes, synthesis]
     required: false
+    consumer: engine.templates — feeds PRIOR_ARBITRATION_SECTION composition
     config_conditions:
       - field: arbiter.timing
         value: "inter-round"

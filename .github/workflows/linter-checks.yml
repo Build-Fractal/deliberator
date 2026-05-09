@@ -1,0 +1,44 @@
+name: linter-checks
+
+# Constitutional linters that run on every PR. Currently runs:
+# - Tier 1/2 tier-coherence linter (CONSTITUTION.md cross-tier integrity)
+# - Tier 2 Principle XII dead-infrastructure linter (schema → templates check)
+# - Template validation linter (templates → schema check, existing)
+#
+# All checks block merge. To bypass for an emergency, fix the underlying issue
+# rather than skipping — silent suppression of constitutional checks is itself
+# a Principle XII violation.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  linters:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Tier-coherence linter (Constitutional Inclusion Criterion 1)
+        run: uv run python -m linter.tier_coherence
+
+      - name: Dead-infrastructure linter (Tier 2 Principle XII)
+        run: uv run python -m linter.dead_infra
+
+      - name: Template validation linter
+        run: uv run python -m linter.validate
