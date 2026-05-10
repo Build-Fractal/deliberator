@@ -178,19 +178,6 @@ class TestEndToEndRealisticFlow:
     def repo_root(self) -> Path:
         return Path(__file__).resolve().parents[2]
 
-    @pytest.mark.xfail(
-        reason=(
-            "Stale post v4.0.0 tier extraction (2026-05-07): the strip-script "
-            "recipe was tuned to v3.x flat-constitution format. v4.0.0 introduced "
-            "a structural restructure (component-tier reduction with all prior SIRs "
-            "preserved as comment blocks). The candidate-date regex in "
-            "scripts/strip-constitution-for-blind.py misses an instance of the "
-            "candidate date that lands in a context the v3.x recipe didn't anticipate. "
-            "Follow-on: update the strip recipe for v4.x format. Tracked separately "
-            "from v4.0.0 ratification."
-        ),
-        strict=False,
-    )
     def test_realistic_candidate_strips_clean(
         self, repo_root: Path, tmp_path: Path
     ):
@@ -243,7 +230,7 @@ Prior amendment (v3.2.1 → v3.2.2): see prior SIR comment block below.
 
         enriched = candidate_sir + original.replace(
             current_footer,
-            "**Version**: 4.0.0 | **Ratified**: 2026-03-20 | **Last Amended**: 2027-12-15",
+            "**Version**: 5.0.0 | **Ratified**: 2026-03-20 | **Last Amended**: 2027-12-15",
         )
 
         # Write to tmp + run script
