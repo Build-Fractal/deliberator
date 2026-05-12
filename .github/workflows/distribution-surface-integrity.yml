@@ -1,0 +1,345 @@
+name: distribution-surface-integrity
+
+# Tier 2 Principle XXII (Distribution Surface Integrity) enforcement.
+#
+# Every distribution channel the project ships through gets a CI-enforced
+# vendoring + smoke gate. These gates run on every PR and push to main and
+# are SHIP-blocking: if a channel can't build clean from a fresh environment,
+# the PR is broken regardless of whether other tests pass.
+#
+# Channels covered:
+#   1. PyPI wheel       — `uv build`, install into a clean venv with `pip`,
+#                          smoke-import + assert force-included root modules
+#                          (mcp_server, capabilities) resolve post-install.
+#   2. .mcpb bundle     — invoke the same vendoring pipeline release-mcpb.yml
+#                          uses (pip --target into desktop-extension/server/lib,
+#                          copy runtime dirs, sync manifest from pyproject +
+#                          capabilities registry), build the zip, then load
+#                          the manifest and assert structural integrity.
+#   3. Plugin marketplace — validate the JSON files structurally and assert
+#                          version coherence between marketplace.json and
+#                          the inner plugin.json.
+#
+# What fails CI here:
+#   - Wheel cannot be built or force-includes drop a module.
+#   - Smoke import of conversus / mcp_server / capabilities fails post-install.
+#   - .mcpb manifest cannot be synced (capabilities registry import broken,
+#     pyproject version unreadable) or required bundle files are missing.
+#   - Plugin manifests are malformed JSON, or marketplace.json and plugin.json
+#     disagree on version / name.
+#
+# How to fix a failure:
+#   - PyPI: usually a missing force-include in pyproject.toml or a top-level
+#     module that drifted out of [tool.hatch.build.targets.wheel.force-include].
+#   - .mcpb: usually a capabilities.py or registry.projector regression that
+#     breaks manifest sync, or a missing runtime data dir (presets/, schema/,
+#     templates/) that release-mcpb expects to copy.
+#   - Plugin: bring the two manifest version fields back into agreement.
+#     Marketplace and plugin manifests are hand-edited together until a
+#     release-marketplace workflow ships.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  pypi-wheel:
+    name: PyPI wheel — vendoring + clean-install smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Build wheel
+        run: |
+          rm -rf dist
+          uv build --wheel
+          ls -lh dist/
+
+      - name: Assert force-included root modules ship in wheel
+        run: |
+          python - <<'PY'
+          import sys
+          import zipfile
+          from pathlib import Path
+
+          (wheel,) = list(Path("dist").glob("conversus-*.whl"))
+          required = {"mcp_server.py", "capabilities.py"}
+          with zipfile.ZipFile(wheel) as zf:
+              names = set(zf.namelist())
+          missing = required - names
+          if missing:
+              print(f"FAIL: wheel {wheel.name} missing force-included modules: {sorted(missing)}")
+              print("Check [tool.hatch.build.targets.wheel.force-include] in pyproject.toml.")
+              sys.exit(1)
+          print(f"OK: wheel ships {sorted(required)}")
+          PY
+
+      - name: Install wheel into a clean venv
+        run: |
+          # Install with [mcp] — mcp_server.py is force-included to support
+          # the `conversus mcp` CLI subcommand, which requires the `mcp`
+          # extra. Smoke must mirror the documented install path:
+          #   pip install 'conversus[mcp]'
+          python -m venv /tmp/smoke-venv
+          /tmp/smoke-venv/bin/python -m pip install --upgrade pip
+          WHEEL=$(ls dist/conversus-*.whl)
+          /tmp/smoke-venv/bin/python -m pip install "conversus[mcp] @ file://$(pwd)/${WHEEL}"
+
+      - name: Smoke-import wheel from clean venv
+        run: |
+          # Run from /tmp so we're not accidentally importing from the source
+          # checkout — the whole point of this gate is to prove a fresh-env
+          # install works end-to-end without falling back to repo sources.
+          cd /tmp
+          /tmp/smoke-venv/bin/python - <<'PY'
+          import sys
+          from importlib.metadata import version
+
+          # Distribution metadata must resolve — proves the wheel installed
+          # as a real package, not just unpacked into site-packages.
+          dist_version = version("conversus")
+          print(f"installed conversus dist version: {dist_version}")
+
+          # The package itself must import.
+          import conversus  # noqa: F401
+          import engine  # noqa: F401
+          import linter  # noqa: F401
+          print(f"engine.__version__ = {engine.__version__}")
+
+          # Force-included top-level modules must resolve. These do NOT live
+          # inside a packaged Python directory; hatch force-include is the
+          # only thing that ships them. If either fails to import, the
+          # wheel is broken even though the package nominally installed.
+          import mcp_server  # noqa: F401
+          import capabilities  # noqa: F401
+          print("smoke OK: conversus, engine, linter, mcp_server, capabilities all import")
+          PY
+
+      - name: Console scripts resolve
+        run: |
+          # The conversus + conversus-lint entry points are part of the
+          # public distribution contract. If pyproject [project.scripts]
+          # drops one, this catches it.
+          /tmp/smoke-venv/bin/conversus --help > /dev/null
+          /tmp/smoke-venv/bin/conversus-lint --help > /dev/null
+          echo "OK: console scripts present"
+
+  mcpb-bundle:
+    name: .mcpb bundle — vendoring + manifest integrity smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Vendor conversus + deps into bundle (mirror release-mcpb)
+        run: |
+          # This is the same vendoring step release-mcpb.yml runs. If it
+          # breaks here on a PR, the release workflow would break at tag
+          # time too — better to catch it before tagging.
+          python -m pip install --upgrade pip
+          python -m pip install \
+            --target desktop-extension/server/lib \
+            --upgrade \
+            "." \
+            "mcp[cli]>=1.0.0"
+
+      - name: Copy entry-point + runtime data into bundle
+        run: |
+          cp mcp_server.py desktop-extension/server/mcp_server.py
+          cp -r presets desktop-extension/server/presets
+          cp -r schema desktop-extension/server/schema
+          cp -r templates desktop-extension/server/templates
+
+      - name: Sync manifest version + tools from pyproject + registry
+        run: |
+          # If capabilities.py or conversus.registry.projector breaks, this
+          # step fails and the bundle is unshippable. Catch that here, not
+          # at release-tag time.
+          python - <<'PY'
+          import json
+          import sys
+          import tomllib
+          from pathlib import Path
+
+          sys.path.insert(0, str(Path(".").resolve()))
+
+          from capabilities import CAPABILITIES
+          from conversus.registry.projector import project_to_mcpb_manifest_tools
+
+          pyproject = tomllib.loads(Path("pyproject.toml").read_text())
+          version = pyproject["project"]["version"]
+          projected_tools = [dict(e) for e in project_to_mcpb_manifest_tools(CAPABILITIES)]
+
+          path = Path("desktop-extension/manifest.json")
+          manifest = json.loads(path.read_text())
+          manifest["version"] = version
+          manifest["compatibility"]["platforms"] = ["linux"]
+          manifest["tools"] = projected_tools
+          path.write_text(json.dumps(manifest, indent=2) + "\n")
+          print(f"manifest synced: version={version} tools={len(projected_tools)}")
+          PY
+
+      - name: Build .mcpb archive
+        run: |
+          # Prune __pycache__ before archiving — same as release-mcpb.
+          find desktop-extension/server -type d -name '__pycache__' -exec rm -rf {} + 2>/dev/null || true
+          find desktop-extension/server -type f -name '*.pyc' -delete 2>/dev/null || true
+          cd desktop-extension
+          python - <<'PY'
+          import shutil
+          shutil.make_archive("../conversus-ci-smoke", "zip", ".")
+          PY
+          mv ../conversus-ci-smoke.zip ../conversus-ci-smoke.mcpb
+          ls -lh ../conversus-ci-smoke.mcpb
+
+      - name: Smoke-load bundle and assert vendored layout
+        run: |
+          # The bundle has to contain: manifest.json at root, the entry-point
+          # module, the engine code, the conversus package, the runtime data
+          # dirs, and (because .mcpb runs against Claude Desktop's bundled
+          # Python) bundled wheels — pydantic_core in particular.
+          python - <<'PY'
+          import json
+          import sys
+          import zipfile
+          from pathlib import Path
+
+          bundle = Path("conversus-ci-smoke.mcpb")
+          required_paths = [
+              "manifest.json",
+              "server/mcp_server.py",
+              "server/lib/conversus/__init__.py",
+              "server/lib/engine/__init__.py",
+              "server/presets",
+              "server/schema",
+              "server/templates",
+          ]
+          with zipfile.ZipFile(bundle) as zf:
+              names = zf.namelist()
+              missing = []
+              for p in required_paths:
+                  if p.endswith("/"):
+                      p = p.rstrip("/")
+                  if not any(n == p or n.startswith(p + "/") for n in names):
+                      missing.append(p)
+              if missing:
+                  print(f"FAIL: bundle missing required entries: {missing}")
+                  sys.exit(1)
+
+              # Load manifest from inside the bundle — proves the actual
+              # archived manifest is valid JSON, not just the on-disk source.
+              with zf.open("manifest.json") as fh:
+                  manifest = json.load(fh)
+
+          # Manifest invariants per CONSTITUTION.md § Principle XXII:
+          # version single-sourced, tools[] populated from the registry.
+          import tomllib
+          pyproject = tomllib.loads(Path("pyproject.toml").read_text())
+          expected_version = pyproject["project"]["version"]
+          if manifest.get("version") != expected_version:
+              print(f"FAIL: manifest version {manifest.get('version')!r} != pyproject {expected_version!r}")
+              sys.exit(1)
+          if not manifest.get("tools"):
+              print("FAIL: manifest tools[] is empty — registry projection broke")
+              sys.exit(1)
+          print(f"OK: bundle layout + manifest version={expected_version} tools={len(manifest['tools'])}")
+          PY
+
+  plugin-marketplace:
+    name: Plugin marketplace — manifest validation + version coherence
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate marketplace + plugin manifests
+        run: |
+          python - <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          marketplace_path = Path(".claude-plugin/marketplace.json")
+          plugin_path = Path("claude-code-plugin/.claude-plugin/plugin.json")
+
+          # Structural: both files must parse as JSON. Catching this on PR
+          # avoids the failure mode where a hand-edited manifest ships
+          # broken to `/plugin install` clients.
+          marketplace = json.loads(marketplace_path.read_text())
+          plugin = json.loads(plugin_path.read_text())
+
+          errors = []
+
+          # Required top-level fields on the marketplace manifest.
+          for field in ("name", "owner", "plugins"):
+              if field not in marketplace:
+                  errors.append(f"marketplace.json missing field: {field}")
+
+          if not isinstance(marketplace.get("plugins"), list) or not marketplace["plugins"]:
+              errors.append("marketplace.json plugins[] must be a non-empty list")
+          else:
+              entry = marketplace["plugins"][0]
+              for field in ("name", "source", "version"):
+                  if field not in entry:
+                      errors.append(f"marketplace.json plugins[0] missing field: {field}")
+
+              # Name + version must agree between the marketplace listing and
+              # the inner plugin.json that ships with the source. Drift here
+              # is exactly the Principle XXII v2.3.0 origin pattern
+              # (manifest.json drifted to 0.1.0 while pyproject was 0.3.0).
+              if entry.get("name") != plugin.get("name"):
+                  errors.append(
+                      f"name drift: marketplace={entry.get('name')!r} plugin={plugin.get('name')!r}"
+                  )
+              if entry.get("version") != plugin.get("version"):
+                  errors.append(
+                      f"version drift: marketplace={entry.get('version')!r} plugin={plugin.get('version')!r}"
+                  )
+
+          # Required fields on the inner plugin.json.
+          for field in ("name", "version", "description"):
+              if field not in plugin:
+                  errors.append(f"plugin.json missing field: {field}")
+
+          # source: "./claude-code-plugin" must actually exist.
+          source_rel = marketplace["plugins"][0].get("source", "")
+          source_path = Path(source_rel.lstrip("./"))
+          if not source_path.is_dir():
+              errors.append(f"marketplace.json source path does not exist: {source_rel}")
+          if not (source_path / ".claude-plugin" / "plugin.json").is_file():
+              errors.append(
+                  f"plugin source missing .claude-plugin/plugin.json: {source_path}"
+              )
+
+          if errors:
+              print("FAIL: plugin marketplace manifest integrity:")
+              for e in errors:
+                  print(f"  - {e}")
+              sys.exit(1)
+
+          print(
+              f"OK: marketplace={marketplace['plugins'][0]['version']} "
+              f"plugin={plugin['version']} name={plugin['name']}"
+          )
+          PY
