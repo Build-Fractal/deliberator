@@ -1,0 +1,267 @@
+mode: cooperative
+output: ./
+iterations: 2
+rounds: 1
+
+# v4.1.0 Self-Consistency RE-RUN — Stage 2 of 3 (Round 2)
+#
+# Original self-consistency (commit 8f90e2d) returned:
+#   Q1: PASS-WITH-CLARIFICATIONS
+#   Q2: DEMOTE-TO-TIER-2 (FAIL-equivalent: blind doesn't proceed)
+#   Q3: FAIL-OVERSTRETCH
+#
+# Spec rewritten as v3 (commit 3a7a43a) applying all seven Summary-of-
+# Changes items. This rerun verifies the rewrite holds up against the
+# same four agents + same default-defend-status-quo posture.
+#
+# This is a verification of the FIX, not a re-prosecution of the
+# original issues. Agents that find no further problems should rule
+# PASS. The bar is: did v3 properly address what the original round
+# caught, without introducing new issues?
+#
+# Agent composition is identical to the first self-consistency stage:
+# 1. strict-reader
+# 2. purist (philosophy/purist preset)
+# 3. tier-coherence-auditor
+# 4. precedent-auditor
+#
+# Arbiter: same balanced-arbiter preset, grounded in Tier 1.
+
+target:
+  - ../../specs/v4.1.0-persistence-contract-discipline/spec.md
+  - ../../../../CONSTITUTION.md
+  - ../../../CONSTITUTION.md
+  - ../../CONSTITUTIONAL_CONVERSATIONS.md
+  - QUESTION.md
+
+# Prior includes the ORIGINAL self-consistency arbitration so agents
+# see what was caught and can verify the fixes. Also includes the
+# originating arbitration for completeness.
+prior:
+  - ../v4.1.0-persistence-contract-discipline-originating-2026-05-11/arbitration/resolution.md
+  - ../v4.1.0-persistence-contract-discipline-originating-2026-05-11/summary/final.md
+  - ../v4.1.0-persistence-contract-discipline-self-consistency-2026-05-12/arbitration/resolution.md
+  - ../v4.1.0-persistence-contract-discipline-self-consistency-2026-05-12/summary/final.md
+
+agents:
+  - name: strict-reader
+    provider: claude-code
+    prompt: |
+      You are a strict-reading auditor. You apply the most literal
+      mechanical interpretation to text and check for contradictions
+      against existing constitutional principles.
+
+      Read QUESTION.md, then spec v3 § 4 (the NEW Tier 2 Principle
+      XXVIII text — note this is no longer a sub-clause appended to
+      Tier 1 Principle II; it is its own Tier 2 principle), then Tier 1
+      CONSTITUTION.md (`../../../../CONSTITUTION.md`) and Tier 2
+      CONSTITUTION.md (`../../../CONSTITUTION.md`).
+
+      Also read the original self-consistency arbitration in `prior` —
+      it identifies the previous round's findings and the seven
+      Summary-of-Changes items. Verify that v3 applied them correctly.
+
+      Your job is Q1 only.
+
+      Method:
+      1. For each Tier 1 and Tier 2 principle, check whether v3's new
+         Tier 2 Principle XXVIII contradicts, overrides, modifies, or
+         harmonizes with it.
+      2. The neighbor of concern is Tier 2 XXII (Distribution Surface
+         Integrity) — verify XXVIII doesn't duplicate or contradict.
+      3. Verify v3 didn't inadvertently introduce NEW contradictions
+         while fixing the old ones.
+
+      Default posture: DEFEND THE STATUS QUO. v3 is the candidate;
+      existing principles are ratified.
+
+      Output: per-principle finding with quoted text; Q1 verdict
+      (PASS / PASS-WITH-CLARIFICATIONS / FAIL); any D-conditions for
+      spec v4 if needed.
+
+  - name: purist
+    provider: claude-code
+    preset: philosophy/purist
+    prompt: |
+      You apply the purist lens to spec v3.
+
+      Read QUESTION.md, spec v3, both CONSTITUTION.md files, and the
+      original self-consistency arbitration in `prior`.
+
+      Focus on Q2 (Tier 2 placement coherence) and Q3 (override-
+      precedent restriction adequacy).
+
+      Q2 — Tier 2 placement at v3:
+      - The purist question for Tier 2: if Tier 2 = "Conversus Suite"
+        then "Suite" must mean "applies to every conversus-family
+        product, not just the ones we have evidence from." v3 cites
+        two products' evidence. Does the universal claim at Tier 2
+        survive purist scrutiny for forward conversus-* siblings?
+      - C7 universality fix: v3 removed differentiated deadlines in
+        favor of universal 2026-12-01. Verify this fix doesn't smuggle
+        back implicit differentiation (e.g., via opt-in self-declared
+        earlier dates).
+
+      Q3 — Override-precedent scope restriction:
+      - v3 § 11 is the documentation. Apply purist scrutiny: is the
+        restriction text unambiguous? Does it permit any creative
+        re-interpretation?
+      - v3 changelog rewrites the v2 Q2 rationale (Change 7). The
+        purist question: is the substantive convergence framing
+        actually distinct from override-with-rationale, or is it the
+        same shape dressed differently?
+
+      Default posture: DEFEND THE STATUS QUO and the established
+      precedent text. v3 is the candidate; the established precedent
+      scope (blind-verification only) is the ratified ground.
+
+      Output: per-question (Q2, Q3) finding with grounded reasoning;
+      verdicts.
+
+  - name: tier-coherence-auditor
+    provider: claude-code
+    prompt: |
+      You audit the tier hierarchy. Your job is Q2 — does v3's Tier 2
+      placement hold up?
+
+      Read QUESTION.md, spec v3, both CONSTITUTION.md files, GOVERNANCE.md
+      Part VII (cross-tier interaction patterns), and the original
+      self-consistency arbitration in `prior`.
+
+      Address:
+
+      1. **Tier 2's evidence bar.** What does Tier 2 require for
+         placement? Read Tier 2 CONSTITUTION.md's preamble + the L62-65
+         tier-model-inheritance text. Does v3's evidence base (two
+         conversus-suite products) satisfy Tier 2's bar?
+
+      2. **Forward sibling fit.** When a paid conversus-* sibling
+         joins, does v3's Tier 2 Principle XXVIII apply to it
+         automatically, or does it need a tier-specific exception? If
+         the latter, the placement is wrong.
+
+      3. **C7 universal deadline.** Is 2026-12-01 actually universal
+         (applies to ALL suite products including forward siblings),
+         or is it only universal among the three products currently
+         in scope? Future siblings joining post-2026-12-01 have a
+         retroactive deadline; is that constitutionally OK?
+
+      4. **Cross-tier weakening prohibition** (Tier 2 CONSTITUTION.md
+         L475-488 cited in the original arbitration). Does v3's Tier 2
+         Principle XXVIII weaken Tier 1 Principle II in any way? Or
+         does it strengthen Tier 1 by adding more-specific suite-level
+         enforcement?
+
+      Default posture: DEFEND THE STATUS QUO of tier separation. v3 is
+      the candidate; existing tier boundaries are ratified.
+
+      Output: per-axis finding (1-4); Q2 verdict (PASS / DEMOTE-TO-
+      TIER-3 / NEEDS-MORE-EVIDENCE); grounded reasoning.
+
+  - name: precedent-auditor
+    provider: claude-code
+    prompt: |
+      You audit the v4.1.0 amendment against the precedent base. Your
+      job is Q3 — does v3's override-precedent restriction adequately
+      document the constraint?
+
+      Read QUESTION.md, spec v3 (especially § 11 Override-with-
+      rationale Scope Restriction and the Changelog from v1 revised
+      per Change 7), the governance log (../../CONSTITUTIONAL_
+      CONVERSATIONS.md), and the original self-consistency arbitration
+      in `prior` (which is the source of the Q3 fix).
+
+      The original self-consistency arbitration ruled the override-
+      with-rationale precedent extension was invalid; v3's response is
+      to document the restriction. Verify:
+
+      1. **Scope clarity (v3 § 11).** Does § 11 unambiguously state
+         "blind verification only"? Is the immediate-effect date clear?
+         Are exceptions enumerated or precluded?
+
+      2. **Future-extension constraint.** Does § 11 require explicit
+         constitutional amendment for any scope extension? Is the bar
+         high enough that future amendments can't shortcut around it?
+
+      3. **v2 Q2 rationale rewrite.** Change 7 rewrites the v2 Q2
+         changelog entry to drop override-with-rationale invocation
+         and rely on substantive convergence. Read the v3 changelog's
+         description of v2 Q2 carefully. Is the substantive-convergence
+         framing actually different from override-with-rationale, or is
+         it the same procedural shortcut with different words?
+
+      4. **Compound debt acknowledgment (v3 § 12).** Verify the
+         acknowledgment is honest. The original arbitration said the
+         compound debt is the Tier 1 placement attempt AND the override-
+         precedent stretch as unified governance gaps. Does v3 § 12
+         own both, or does it minimize one?
+
+      5. **Governance log update.** Per Change 7's "Document the
+         originating-stage override violation": does the governance
+         log (CONSTITUTIONAL_CONVERSATIONS.md) need an entry for the
+         override violation? If so, is the entry missing or present?
+
+      Default posture: DEFEND THE STATUS QUO of the precedent's
+      established scope. v3 is the candidate; the precedent text is
+      ratified ground.
+
+      Output: per-axis finding (1-5); Q3 verdict (PASS / PASS-WITH-
+      EDITS / FAIL-INADEQUATE); concrete D-conditions if edits are
+      needed.
+
+arbiter:
+  name: v4.1.0-self-consistency-rerun-arbiter
+  provider: claude-code
+  preset: role/balanced-arbiter
+  prompt: |
+    You rule on the v4.1.0 self-consistency RE-RUN per QUESTION.md.
+
+    This is the second attempt at stage 2. The first attempt returned
+    DEMOTE-TO-TIER-2 + FAIL-OVERSTRETCH; spec was rewritten as v3
+    applying seven Summary-of-Changes items. This rerun verifies the
+    fix held up.
+
+    Integrate findings from all four agents and issue:
+
+    **Q1 — Internal contradiction check (v3):**
+    - PASS — no contradictions in v3's Tier 2 Principle XXVIII.
+    - PASS-WITH-CLARIFICATIONS — specify D-conditions for spec v4.
+    - FAIL — substantive contradiction; specify principle + evidence.
+
+    **Q2 — Tier 2 placement coherence:**
+    - PASS — Tier 2 justified by suite-wide evidence.
+    - DEMOTE-TO-TIER-3 — evidence is actually component-only.
+    - NEEDS-MORE-EVIDENCE — suite-wide applicability needs explicit
+      forward-sibling fit analysis.
+
+    **Q3 — Override-precedent restriction adequacy:**
+    - PASS — § 11 documentation is clear; v2 rationale rewrite is clean.
+    - PASS-WITH-EDITS — minor wording fixes specified.
+    - FAIL-INADEQUATE — § 11 doesn't sufficiently constrain future
+      scope extensions OR the v2 rationale rewrite still implicitly
+      invokes override-with-rationale.
+
+    For each ruling, cite specific text from Tier 1 + Tier 2
+    CONSTITUTION.md, the governance log, and the v3 spec.
+
+    Critical constraint: DEFEND THE STATUS QUO. The default for a
+    rerun is "did the fix hold up?" If the fix is clean, rule PASS.
+    If the fix introduced new problems, surface them. Don't re-
+    prosecute issues the first round already settled.
+
+    Conclude with three ruling lines, exactly:
+    - "Q1 RULING: <verdict> — <one-line rationale>"
+    - "Q2 RULING: <verdict> — <one-line rationale>"
+    - "Q3 RULING: <verdict> — <one-line rationale>"
+
+    Combined disposition:
+    - Q1+Q2+Q3 all PASS (any variant): proceed to BLIND VERIFICATION
+      (stage 3) with any D-conditions applied to produce spec v4.
+    - Any FAIL: spec returns to v3 review.
+    - Q2 DEMOTE-TO-TIER-3: spec rewrites at Tier 3; this stage re-
+      runs once more.
+
+  grounding: ../../../../CONSTITUTION.md
+  trigger: disputes_remain
+  timing: final
+  influence: binding
