@@ -2,7 +2,7 @@
 
 **Feature ID:** `v4.1.0-persistence-contract-discipline`
 **Created:** 2026-05-11
-**Status:** v5 / post-blind / ratification-ready (2026-05-12).
+**Status:** **Ratified** (v5, 2026-05-12). All three verification stages passed; SIR final; spec promotes to constitutional doctrine via § 9.5 below.
 **Depends On:** v4.0.0-tier-extraction (Tier 1 + Tier 2 hierarchy must exist); spec 067 (verification methodology); spec 070 (Constitutional Inclusion Criteria).
 **Governed by:** `https://github.com/clariti-care/payer-index-mono/blob/main/build-fractal/conversus/GOVERNANCE.md` § Pathway Taxonomy (**MINOR** pathway at Tier 2 — strengthens the suite constitution without removing or renaming any existing principle).
 **Originating context:** Originating deliberation 2026-05-12, ruling at `deliberations/v4.1.0-persistence-contract-discipline-originating-2026-05-11/arbitration/resolution.md` (commit `026b417`). Cross-product persistence audit 2026-05-11 surfaced: (a) the V remediation revealed conversus output parse contract lives in display text and silently short-circuits across 6 of 8 modes; (b) spec-kit-orc adapter (`scripts/dispatch/adapters/tool/conversus.sh`) hardcodes 3 brittle paths/grep patterns into conversus outputs; (c) spec-kit-orc's own `state-files.md` declared schemas have drifted from production JSONL data — 4 divergent in-tree schemas; (d) cross-product Python API (`linter.output_contract`) consumed without stability guarantee.
