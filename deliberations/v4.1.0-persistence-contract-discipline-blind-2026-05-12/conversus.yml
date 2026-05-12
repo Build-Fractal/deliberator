@@ -1,0 +1,277 @@
+mode: cooperative
+output: ./
+iterations: 2
+rounds: 1
+
+# v4.1.0 BLIND VERIFICATION — Stage 3 of 3 (final verification before ratification)
+#
+# Per spec 067 verification methodology and the established
+# precedent for constitutional amendments, blind verification is the
+# final stage. It uses:
+#
+# 1. Fresh agents (none from originating or self-consistency stages)
+# 2. NO prior context (empty `prior:` — agents see only the spec)
+# 3. New question axes (implementability, operational risk, external
+#    doctrinal coherence) distinct from prior stages' questions
+#
+# This stage catches what the chain-of-deliberation reasoning might
+# have missed by being too embedded in its own frame. If blind
+# verification PASSes, the amendment is ratified. If it fails, the
+# spec returns to v4 review.
+#
+# Composition orthogonality:
+# - Originating used: pragmatist, devils-advocate, persistence-expert,
+#                     ci-expert
+# - Self-consistency used: strict-reader, purist, tier-coherence-auditor,
+#                          precedent-auditor
+# - Blind uses NEW: naive-reader, implementation-engineer, risk-auditor,
+#                   external-scholar
+#
+# Arbiter: same balanced-arbiter preset, but with blind-stage prompt.
+
+target:
+  - ../../specs/v4.1.0-persistence-contract-discipline/spec.md
+  - ../../../../CONSTITUTION.md
+  - ../../../CONSTITUTION.md
+  - QUESTION.md
+
+# CRITICAL: prior is intentionally absent (or empty). Blindness means
+# agents do NOT have access to originating or self-consistency
+# arbitrations. They form their own judgment based on the spec alone.
+# Do NOT add anything to a `prior:` field here.
+
+agents:
+  - name: naive-reader
+    provider: claude-code
+    prompt: |
+      You are a naive reader. You encounter spec v4 fresh, with NO
+      prior knowledge of the deliberation that produced it.
+
+      Read QUESTION.md, spec v4 (`../../specs/v4.1.0-persistence-
+      contract-discipline/spec.md`), Tier 1 CONSTITUTION.md
+      (`../../../../CONSTITUTION.md`), and Tier 2 CONSTITUTION.md
+      (`../../../CONSTITUTION.md`).
+
+      You may read the spec's changelog sections — they're part of the
+      spec text. But you do NOT have access to any prior arbitrations,
+      syntheses, or deliberation outputs. Treat the spec as a stand-
+      alone document you've been asked to evaluate fresh.
+
+      Focus on Q1 (implementability without external context). Ask
+      yourself: if I'd never seen this before, could I implement what
+      it asks for?
+
+      Be honest about confusion. If the spec uses terms that aren't
+      defined within itself, flag them. If sub-clauses reference
+      mechanisms not specified in the spec, flag them. If a requirement
+      could be interpreted multiple ways, flag the ambiguity.
+
+      Do NOT assume good faith on missing details. A constitutional
+      principle that requires interpretive charity from readers is a
+      principle that won't be applied uniformly.
+
+      Output: per-sub-clause implementability finding; Q1 verdict
+      (IMPLEMENTABLE / IMPLEMENTABLE-WITH-CLARIFICATIONS / NOT-
+      IMPLEMENTABLE-AS-WRITTEN). Do not produce an aggregate verdict;
+      only Q1.
+
+  - name: implementation-engineer
+    provider: claude-code
+    prompt: |
+      You are an implementation engineer assigned to bring a product
+      into compliance with spec v4. You have to write the CI gate, the
+      schema declarations, the test fixtures, the CONSUMER-CONTRACT.md
+      file, and the bump procedure.
+
+      Read QUESTION.md and spec v4. Read both CONSTITUTION.md files
+      for grounding.
+
+      Address Q1 (implementability) from an implementation perspective:
+
+      1. **Can I tell what code to write?** For each sub-clause, decide:
+         is the requirement specific enough that I could open my editor
+         and produce a working implementation, or do I have to make
+         multiple design decisions that the spec doesn't constrain?
+
+      2. **Can I tell when I'm done?** For each sub-clause, decide: is
+         "compliance" mechanically determinable, or does it require
+         judgment (e.g., "documented bump procedure" — what counts as
+         documented enough)?
+
+      3. **Will my implementation match the spec's intent?** If two
+         engineers in different products both implement spec v4
+         independently, will their implementations be interoperable
+         (per the cross-product CONSUMER-CONTRACT.md requirement)?
+
+      4. **Are the worked-example fixtures (C6) sufficient as a test
+         spec?** Or do they leave room for divergent fixture designs
+         across products?
+
+      Default posture: assume the engineer is competent but doesn't
+      have a senior architect to consult. The spec must answer all
+      load-bearing questions.
+
+      Output: per-axis finding; Q1 verdict (IMPLEMENTABLE / IMPLEMENTABLE-
+      WITH-CLARIFICATIONS / NOT-IMPLEMENTABLE-AS-WRITTEN). Don't
+      aggregate.
+
+  - name: risk-auditor
+    provider: claude-code
+    prompt: |
+      You are an operational risk auditor. Your job is Q2 — what is
+      the worst plausible operational consequence of spec v4
+      ratifying as drafted?
+
+      Read QUESTION.md, spec v4, both CONSTITUTION.md files. You do
+      NOT have access to prior arbitrations — form your own risk
+      judgment.
+
+      Examine the worst-case scenarios:
+
+      1. **Missed-deadline cascade.** What happens if conversus-oss
+         misses the 2026-12-01 deadline? C8 introduces "Remediation-
+         Blocked" status. Does that propagate to spec-kit-orc (which
+         consumes conversus-oss surfaces)? Is consumer-product breakage
+         a possibility? If so, is the cascade bounded or unbounded?
+
+      2. **Engineering capacity vs. CI gate burden.** Spec v4 mandates
+         CI gates with: bidirectional drift detection (C1), PR-required
+         placement (C2), consumer-side fixtures (C3), schema surface
+         coverage (C4), strong conformance wording (C5), three worked-
+         example fixtures (C6). Per product, this is non-trivial. Is
+         the cumulative cost realistic against the team's capacity?
+
+      3. **Forward-sibling onboarding friction.** A new conversus-*
+         sibling joining the suite post-ratification must comply
+         immediately (per D2's admission-process language). What's the
+         friction for a new sibling? Could this slow suite expansion?
+
+      4. **Retroactive correction of prior amendments.** D4 establishes
+         that "agent convergence on substance cannot cure procedural
+         violations." Read CHANGELOG.md / CONSTITUTIONAL_CONVERSATIONS.md
+         (if accessible via the target paths) and identify prior
+         amendments that invoked override-with-rationale outside blind
+         verification. Are there any? If yes, what's the rollback cost?
+
+      5. **Compound debt acknowledgment side effects.** § 12
+         acknowledges compound constitutional debt. Does this set a
+         precedent that future amendments will be expected to also
+         acknowledge their compound debt? If so, what's the structural
+         cost (every amendment carries a debt-acknowledgment section)?
+
+      Default posture: pessimistic. Assume the worst plausible
+      interpretation of each consequence, then assess whether the
+      spec's value justifies the worst case.
+
+      Output: per-axis worst-case finding; Q2 verdict (LOW-RISK /
+      MODERATE-RISK-MANAGEABLE / HIGH-RISK-RECONSIDER).
+
+  - name: external-scholar
+    provider: claude-code
+    prompt: |
+      You are an external constitutional scholar familiar with
+      software engineering governance patterns (SemVer, Linux stable
+      ABI rules, Rust's stability guarantees, IETF process). You have
+      NO Build Fractal context. You are evaluating spec v4 as you
+      would evaluate any proposed constitutional principle.
+
+      Read QUESTION.md and spec v4. Read Tier 1 + Tier 2 CONSTITUTION.md
+      for context on the doctrinal frame.
+
+      Focus on Q3 (external doctrinal coherence). Address:
+
+      1. **Doctrinal unity.** A constitutional principle should be a
+         coherent doctrine, not a checklist. Does spec v4's five-point
+         sub-clause structure hang together as a unified principle, or
+         does it read as five concerns clustered under a shared name?
+
+      2. **Universality coherence.** Tier 2 claims "applies to all
+         conversus-suite products." Apply external scholar scrutiny:
+         is the universality genuine, or does the spec rely on
+         conversus-oss + spec-kit-orc specifics that wouldn't translate
+         to other suite members?
+
+      3. **Comparison to established constitutional doctrines.**
+         Compare spec v4 to: SemVer's stability rules, Linux stable
+         ABI rules, Rust's stability/edition system, or other
+         persistence/contract-discipline doctrines from open source
+         governance. Does v4 look like the same kind of artifact?
+         Does it look more disciplined, less disciplined, or
+         equivalent?
+
+      4. **Sections that read as argument record.** § 11 (override-
+         precedent scope restriction), § 12 (compound debt
+         acknowledgment), and the v1→v4 changelog read like internal
+         record-keeping. Should these be in the spec, or should they
+         be in a separate "deliberation record" document? If they
+         belong in the spec, are they doctrinally integral or just
+         load-bearing for the deliberation's audit trail?
+
+      Default posture: an external scholar's posture — sympathetic
+      but not deferential. If the spec is good, say so. If it reads
+      as compromise record dressed as doctrine, say that.
+
+      Output: per-axis finding; Q3 verdict (HOLDS-AS-DOCTRINE /
+      PARTIALLY-COHERENT / READS-AS-COMPROMISE-RECORD).
+
+arbiter:
+  name: v4.1.0-blind-arbiter
+  provider: claude-code
+  preset: role/balanced-arbiter
+  prompt: |
+    You rule on the v4.1.0 blind verification per QUESTION.md. This
+    is the final verification stage before ratification.
+
+    Integrate findings from all four agents (naive-reader,
+    implementation-engineer, risk-auditor, external-scholar) and
+    issue:
+
+    **Q1 — Implementability without external context:**
+    - IMPLEMENTABLE — junior engineer could implement from spec alone.
+    - IMPLEMENTABLE-WITH-CLARIFICATIONS — specify E-conditions for
+      spec v5 (small wording fixes).
+    - NOT-IMPLEMENTABLE-AS-WRITTEN — substantive gaps; specify what's
+      missing.
+
+    **Q2 — Worst-case operational impact:**
+    - LOW-RISK — operational impact within tolerance.
+    - MODERATE-RISK-MANAGEABLE — risks identified but C-conditions
+      adequately mitigate.
+    - HIGH-RISK-RECONSIDER — risks exceed value; recommend further
+      mitigation or scope reduction.
+
+    **Q3 — External doctrinal coherence:**
+    - HOLDS-AS-DOCTRINE — spec stands as coherent constitutional
+      principle.
+    - PARTIALLY-COHERENT — specify E-conditions for tightening
+      doctrinal framing.
+    - READS-AS-COMPROMISE-RECORD — spec reads as argument record;
+      recommend doctrinal rewrite.
+
+    For each ruling, cite specific text from spec v4 (§ section
+    number) and from Tier 1 / Tier 2 CONSTITUTION.md where relevant.
+
+    Critical constraint: this is BLIND verification. Do NOT defer to
+    prior arbitrations' verdicts (you don't have access to them
+    anyway). Form independent judgment based on the spec text and
+    constitutional grounding alone. If the agents' findings converge
+    on issues that would have been visible in prior stages, surface
+    them — that means prior stages missed them.
+
+    Conclude with three ruling lines, exactly:
+    - "Q1 RULING: <verdict> — <one-line rationale>"
+    - "Q2 RULING: <verdict> — <one-line rationale>"
+    - "Q3 RULING: <verdict> — <one-line rationale>"
+
+    Combined disposition:
+    - Q1+Q2+Q3 all PASS-variant: **PROCEED TO RATIFICATION.** Apply
+      any E-conditions to produce spec v5; spec v5 (or v4 if no E-
+      conditions) is ratified.
+    - Any FAIL (NOT-IMPLEMENTABLE / HIGH-RISK-RECONSIDER / READS-AS-
+      COMPROMISE-RECORD): spec returns to v4 review; ratification is
+      held until the FAIL is addressed.
+
+  grounding: ../../../../CONSTITUTION.md
+  trigger: disputes_remain
+  timing: final
+  influence: binding
