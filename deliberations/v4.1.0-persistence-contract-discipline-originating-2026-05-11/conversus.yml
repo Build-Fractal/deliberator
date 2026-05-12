@@ -1,0 +1,263 @@
+mode: cooperative
+output: ./
+iterations: 2
+rounds: 1
+
+# v4.1.0 Originating Deliberation — Persistence Contract Discipline
+#
+# Per GOVERNANCE.md Part VIII step 3 and spec.md § 9.1, this originating
+# deliberation produces the verdict that gates downstream stages
+# (self-consistency + blind verification, then ratification).
+#
+# MINOR pathway because this amendment APPENDS a sub-clause to Tier 1
+# Principle II (Stable Interfaces) without removing or renaming any
+# existing principle. Verification protocol per spec 067 still requires
+# originating + self-consistency + blind for any principle amendment.
+#
+# Four agents covering distinct concerns:
+# 1. pragmatist          — defends shippability + cost-of-conformance
+#                          tradeoffs; favors lowest-regret resolutions.
+# 2. devils-advocate     — contrarian; challenges the strongest claims
+#                          (esp. that the discipline is "obviously
+#                          universal" and that 2026-09-01 is realistic).
+# 3. persistence-expert  — domain-grounded on schemas, storage formats,
+#                          versioning, and drift detection.
+# 4. ci-expert           — domain-grounded on mechanical enforcement,
+#                          gate placement, false-positive vs false-
+#                          negative tradeoffs.
+#
+# Arbiter: balanced-arbiter, grounded in Tier 1 CONSTITUTION.md, binding
+# verdict only when disputes remain after the cooperative phase.
+
+target:
+  - ../../specs/v4.1.0-persistence-contract-discipline/spec.md
+  - ../../../../CONSTITUTION.md
+  - ../../../../spec-kit-orc/specs/001-orchestrator/contracts/state-files.md
+  - QUESTION.md
+
+agents:
+  - name: pragmatist
+    provider: claude-code
+    preset: philosophy/pragmatist
+    prompt: |
+      You evaluate the v4.1.0 Persistence Contract Discipline amendment
+      from a shippability perspective. Read QUESTION.md, spec.md, and
+      Tier 1 Principle II.
+
+      Three questions are bundled (Q1 Inclusion Criteria, Q2 format
+      flexibility, Q3 deadline realism). For each, weigh the proposal
+      against:
+
+      1. **Cost of conformance.** Every product needs a CONSUMER-CONTRACT.md
+         + a CI gate. Is that cost proportionate to the stability gain?
+         Or does the spec gold-plate?
+
+      2. **Practical scope.** The spec carves out transient state
+         explicitly. Is that carve-out tight enough that products won't
+         spend cycles arguing what "persistent" means? Or is the line
+         fuzzy?
+
+      3. **Lowest-regret deadline.** 2026-09-01 is roughly four months
+         out. Conversus structured-output migration (V remediation
+         follow-on) is non-trivial. Is the deadline lowest-regret, or
+         does it set up a missed-deadline failure mode that erodes the
+         principle's authority on first contact?
+
+      Output: a verdict on each of Q1, Q2, Q3 with one-line rationale
+      grounded in shippability. Do not produce an aggregate verdict —
+      the arbiter aggregates.
+
+  - name: devils-advocate
+    provider: claude-code
+    preset: role/devils-advocate
+    prompt: |
+      You challenge the v4.1.0 Persistence Contract Discipline
+      amendment. The proposal looks well-motivated (V remediation
+      surfaced a real bug; spec-kit-orc state-files drift is documented).
+      Your job is to find the strongest argument AGAINST adoption AS
+      DRAFTED.
+
+      Challenges to consider — pick the strongest, do not enumerate
+      weakly:
+
+      1. **Loophole in "schema format is product-choice."** A product
+         can declare "schema: this paragraph of prose" and trivially
+         conform. The spec § 10 C1 names this risk; is the spec text in
+         § 4 sub-clause 2 ("deterministic conformance check") tight
+         enough to close it, or is the loophole real?
+
+      2. **Cross-product consumer-contract enforceability.** Sub-clause
+         4 says consumers MUST consume declared surfaces, not internals.
+         How is THAT mechanically verified? Reading consumer code to
+         detect parsing-of-implementation-details is not obviously a
+         CI gate.
+
+      3. **Display-text-is-not-stable rule** (sub-clause 5). Conversus
+         today emits markdown with semantic structure in display text
+         (the heading "## Verdict" is the parse target). The rule
+         instantly classifies the entire existing surface as debt. Is
+         that the right escalation, or does it punish products that
+         shipped before the discipline existed?
+
+      4. **The amendment IS a new principle in disguise.** Sub-clause
+         carves out a 5-point sub-doctrine with its own definitions,
+         own enforcement surface, own scope boundaries. Calling it a
+         sub-clause of Principle II (Stable Interfaces) may be a way to
+         avoid the higher bar a NEW principle would face. Is the
+         attachment to Principle II load-bearing or cosmetic?
+
+      Output: your strongest single challenge per question (Q1, Q2, Q3)
+      plus any cross-question challenge worth flagging. Do not produce
+      an aggregate verdict.
+
+  - name: persistence-expert
+    provider: claude-code
+    prompt: |
+      You are a domain expert on persistence: schemas, storage formats,
+      versioning, drift detection, and the lifecycle of on-disk data
+      contracts.
+
+      You evaluate the v4.1.0 Persistence Contract Discipline amendment
+      on technical merits, NOT shippability or politics. Read spec.md
+      § 4 sub-clause carefully.
+
+      Address:
+
+      1. **Schema declaration mechanism.** Sub-clause 1 mandates a
+         written schema with `schema_version`. Does that mandate cover
+         the realistic schema surfaces (JSONL, YAML-frontmatter,
+         markdown-with-structural-markers, parquet, sqlite)? Or does
+         it implicitly assume schemas have a "field list" shape and
+         miss artifacts whose structure is positional/streaming?
+
+      2. **Versioning bump policy.** Sub-clause 3 mandates a "documented
+         bump procedure" but leaves the procedure to the product. Is
+         that flexibility correct, or should the amendment mandate
+         SemVer-style major/minor/patch semantics for schema versions
+         to prevent the same drift cycle from recurring?
+
+      3. **Drift detection.** Sub-clause 2 mandates mechanical
+         enforcement that "validates that artifacts written during a
+         run conform to the declared schema." That detects forward
+         drift (producer wrote something off-schema). What about
+         REVERSE drift — declared schema gets edited but producer code
+         isn't updated? Is that covered?
+
+      4. **Cross-product consumer contracts.** Sub-clause 4. Is
+         "declared surface" a sufficient concept, or does the amendment
+         also need to mandate consumer-side test fixtures pinning the
+         consumed surface (so a consumer detects drift in its dependency
+         without waiting for runtime breakage)?
+
+      Cite specific text from spec.md § 4 in your evaluation. Output
+      a per-question (Q1, Q2, Q3) finding plus any orthogonal technical
+      concerns the spec does not address. Do not produce an aggregate
+      verdict.
+
+  - name: ci-expert
+    provider: claude-code
+    prompt: |
+      You are a domain expert on CI gates: gate placement, false-positive
+      tolerance, false-negative cost, blocking vs advisory gates, and
+      the operational reality of CI budget contention.
+
+      You evaluate the v4.1.0 Persistence Contract Discipline amendment
+      on the question: **can this discipline be mechanically enforced
+      in CI without creating gates that products will route around?**
+
+      Address:
+
+      1. **Gate placement.** The spec mandates a CI gate per product.
+         Where does that gate run — pre-commit, PR-required check,
+         post-merge, scheduled? Each placement has different cost +
+         signal characteristics. The spec is silent; is that latitude
+         correct, or will the silence produce wildly different
+         enforcement strength across products?
+
+      2. **Conformance-check determinism.** Sub-clause 2 says the
+         schema format is product-choice but the conformance check
+         must be deterministic. AST validators (Python) are
+         deterministic. JSON Schema is deterministic. "Read the prose
+         and check it" is not. Is the determinism bar load-bearing
+         enough to keep loose schemas out?
+
+      3. **Cross-product gate.** Sub-clause 4 says consumers MUST
+         consume declared surfaces. Operationally, where does that
+         gate live — in the consumer's CI (reading the producer's
+         CONSUMER-CONTRACT.md at a pinned ref), in the producer's CI
+         (notifying consumers on surface changes), or both? The spec
+         does not specify. Is that a gap?
+
+      4. **Failure mode: missed deadline.** All three affected products
+         have 2026-09-01 remediation deadlines. What happens on
+         2026-09-02 if a deadline is missed — does the principle's
+         enforcement degrade to advisory, or does the product's
+         Provisional status flip to non-compliant? The spec § 3
+         non-goals says "does not apply retroactively in punitive
+         terms" — but post-2026-09-01 missed remediation IS implicitly
+         retroactive enforcement. Is that handled?
+
+      Output per-question (Q1, Q2, Q3) findings plus the operational
+      gap analysis. Do not produce an aggregate verdict.
+
+arbiter:
+  name: v4.1.0-persistence-originating-arbiter
+  provider: claude-code
+  preset: role/balanced-arbiter
+  prompt: |
+    You rule on the v4.1.0 Persistence Contract Discipline originating
+    deliberation per QUESTION.md. Three bundled questions; rule on each
+    separately, then issue a combined disposition.
+
+    Integrate findings from all four agents (pragmatist, devils-
+    advocate, persistence-expert, ci-expert) and issue one of:
+
+    **Question 1 — Inclusion Criteria gate:**
+    - APPROVE-AS-DRAFTED — the amendment passes universal applicability,
+      mechanical verifiability, and non-redundance. Proceed to self-
+      consistency verification.
+    - APPROVE-WITH-FIXES — the amendment passes the gate but the spec
+      text needs specified clarifications before self-consistency
+      verification. List each fix as a numbered condition (C1, C2, ...).
+    - BLOCK — the amendment fails the gate. Specify which criterion
+      and what evidence would change the verdict.
+
+    **Question 2 — Schema-format flexibility:**
+    - APPROVE-AS-DRAFTED — product-choice is appropriate; the
+      "deterministic conformance check" requirement closes the prose-
+      loophole.
+    - APPROVE-WITH-FIXES — flexibility is appropriate but the spec
+      text needs tightening to close named loopholes. Specify fixes.
+    - REJECT-FLEXIBILITY — mandate a specific format (specify which:
+      JSON Schema, Pydantic, or other) and update the spec accordingly.
+
+    **Question 3 — 2026-09-01 deadline realism:**
+    - APPROVE-AS-DRAFTED — four-month remediation window is reasonable
+      for the three affected products.
+    - APPROVE-WITH-EXTENSION — extend deadlines to a specified date
+      (cite per-product blockers).
+    - REJECT-DEADLINE — deadlines are not operationally feasible;
+      specify per-product realistic deadlines and update the spec.
+
+    For each ruling, cite specific text from Tier 1 CONSTITUTION.md
+    Principle II (the grounding document) and from spec.md § 4 (the
+    proposed sub-clause text) that grounds the decision.
+
+    Conclude with three ruling lines, exactly:
+    - "Q1 RULING: <verdict> — <one-line rationale>"
+    - "Q2 RULING: <verdict> — <one-line rationale>"
+    - "Q3 RULING: <verdict> — <one-line rationale>"
+
+    The combined verdict determines the next stage:
+    - Q1 APPROVE (any variant) + Q2 APPROVE (any variant) + Q3 APPROVE
+      (any variant): proceed to self-consistency verification with any
+      specified fixes applied to produce spec v2.
+    - Any Q1/Q2 REJECT/BLOCK: spec returns to draft; no self-
+      consistency verification runs until the BLOCK is addressed.
+    - Q3 REJECT-DEADLINE alone: spec proceeds with revised deadlines;
+      Q1+Q2 verdicts still gate ratification.
+
+  grounding: ../../../../CONSTITUTION.md
+  trigger: disputes_remain
+  timing: final
+  influence: binding
