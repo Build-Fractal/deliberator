@@ -2,7 +2,7 @@
 
 **Arbiter**: The Subject (spec owner)
 **Date**: 2026-03-19
-**Grounding Document**: `/Users/business-daddy/code/payer-index-mono/conversus/specs/001-subject-arbitration/spec.md`
+**Grounding Document**: `<HOME>/code/payer-index-mono/conversus/specs/001-subject-arbitration/spec.md`
 **Scope**: 3 micro-disputes surviving the 4-phase cooperative-mode dispute resolution process
 
 ---
@@ -124,7 +124,7 @@ Add SC-011 to the Success Criteria section:
 
 ## Summary of Changes Required
 
-All changes target `/Users/business-daddy/code/payer-index-mono/conversus/specs/001-subject-arbitration/spec.md`.
+All changes target `<HOME>/code/payer-index-mono/conversus/specs/001-subject-arbitration/spec.md`.
 
 | # | Dispute | Ruling | Change |
 |---|---------|--------|--------|

@@ -169,11 +169,11 @@ constitution and with the cross-principle audit produced in parallel.
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/deliberations/068-blind-2026-04-26/skeptic-mathematical/review.md`
+- `<HOME>/code/payer-index-mono/conversus-oss/deliberations/068-blind-2026-04-26/skeptic-mathematical/review.md`
   — the audited review.
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/deliberations/068-blind-2026-04-26/skeptic-cross-principle/review.md`
+- `<HOME>/code/payer-index-mono/conversus-oss/deliberations/068-blind-2026-04-26/skeptic-cross-principle/review.md`
   — the parallel cross-principle review used as the comparison anchor.
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/deliberations/068-blind-2026-04-26/CONSTITUTION-v2.3.2-blind.md`
+- `<HOME>/code/payer-index-mono/conversus-oss/deliberations/068-blind-2026-04-26/CONSTITUTION-v2.3.2-blind.md`
   — Principles IV (lines 96-110), VII (lines 139-152), VIII (lines 154-172),
   XI (lines 277-320), XII (lines 322-344), XV (lines 393-424), XVI
   (lines 426-481), XXIV (lines 681-706) load-bearing for this cross-review.

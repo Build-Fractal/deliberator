@@ -206,8 +206,8 @@ None identified. The implementation makes no assumptions that contradict the con
 
 ## Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/005-generalized-templates/conversus-review/summary/final.md` -- Cross-round synthesis with the definitive convergence record (P1-1 through P3-8 and D1-D7)
-- `/Users/business-daddy/code/payer-index-mono/conversus/.specify/memory/constitution.md` -- Constitution v1.4.0 (Principle IX: Functional Programming, Explicit Typing)
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/006-inter-round-arbitration/spec.md` -- Source of `PRIOR_ARBITRATION_PATH`, `ARBITRATION_PATHS`, `ARBITRATION_RULINGS` variable requirements
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/005-generalized-templates/spec.md` -- Spec 005 with Section 8 extension points documentation
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/008-executable-conversus/001-executable-conversus.md` -- Downstream consumer of the programmatic API
+- `<HOME>/code/payer-index-mono/conversus/specs/005-generalized-templates/conversus-review/summary/final.md` -- Cross-round synthesis with the definitive convergence record (P1-1 through P3-8 and D1-D7)
+- `<HOME>/code/payer-index-mono/conversus/.specify/memory/constitution.md` -- Constitution v1.4.0 (Principle IX: Functional Programming, Explicit Typing)
+- `<HOME>/code/payer-index-mono/conversus/specs/006-inter-round-arbitration/spec.md` -- Source of `PRIOR_ARBITRATION_PATH`, `ARBITRATION_PATHS`, `ARBITRATION_RULINGS` variable requirements
+- `<HOME>/code/payer-index-mono/conversus/specs/005-generalized-templates/spec.md` -- Spec 005 with Section 8 extension points documentation
+- `<HOME>/code/payer-index-mono/conversus/specs/008-executable-conversus/001-executable-conversus.md` -- Downstream consumer of the programmatic API

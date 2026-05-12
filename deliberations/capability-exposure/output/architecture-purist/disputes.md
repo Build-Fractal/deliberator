@@ -9,4 +9,4 @@ The analysis also documents five areas of convergence that emerged through cross
 
 My non-negotiable properties focus on maintaining single source of behavioral truth and explicit divergence criteria, while my acceptable trade-offs show flexibility on implementation approaches as long as architectural consistency guarantees are preserved.
 
-The document has been written to `/Users/business-daddy/code/payer-index-mono/conversus-oss/deliberations/capability-exposure/output/architecture-purist/disputes.md` and provides the synthesizer with clear guidance on where architectural concerns must be balanced against practical maintenance and user experience constraints.
+The document has been written to `<HOME>/code/payer-index-mono/conversus-oss/deliberations/capability-exposure/output/architecture-purist/disputes.md` and provides the synthesizer with clear guidance on where architectural concerns must be balanced against practical maintenance and user experience constraints.

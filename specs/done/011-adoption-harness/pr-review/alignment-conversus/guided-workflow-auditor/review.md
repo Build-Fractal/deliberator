@@ -24,7 +24,7 @@ However, this delegation currently has no integration path. The engine provides 
 
 Spec 007 adds the subcommand dispatch table to SKILL.md and the `/conversus define` handler. The define command produces `problem.md` entirely in the main conversation -- no engine invocation, no Python code.
 
-The engine's entry points (`run_engine()` at `/Users/business-daddy/code/payer-index-mono/conversus/engine/run.py`, line 165; `Deliberation.run()` at `/Users/business-daddy/code/payer-index-mono/conversus/engine/sdk.py`, line 221) only handle `run` semantics. They do not interfere with other subcommands.
+The engine's entry points (`run_engine()` at `<HOME>/code/payer-index-mono/conversus/engine/run.py`, line 165; `Deliberation.run()` at `<HOME>/code/payer-index-mono/conversus/engine/sdk.py`, line 221) only handle `run` semantics. They do not interfere with other subcommands.
 
 The dispatch table in SKILL.md (lines 22-44) lists seven subcommands. The engine has no subcommand routing at all -- it is invoked only when the SKILL.md handler for `run` (or `converge`/`arbitrate`/`gate`, which delegate to `run`) decides to call it. This is the correct separation.
 
@@ -161,19 +161,19 @@ The `Deliberation(question=...)` ad-hoc mode at `engine/sdk.py:262-291` and `con
 
 **R1. Add `timing` and `influence` fields to `ArbiterConfig` and `EngineConfig`.**
 
-File: `/Users/business-daddy/code/payer-index-mono/conversus/engine/config.py`, lines 45-55 and 60-76.
+File: `<HOME>/code/payer-index-mono/conversus/engine/config.py`, lines 45-55 and 60-76.
 
 The SKILL.md config schema (SKILL.md lines 109-110) defines `arbiter.timing` (values: `final`/`inter-round`, default `final`) and `arbiter.influence` (values: `binding`/`recommended`/`advisory`, default `binding`). The `parse_config()` function must validate these fields and include them in `ArbiterConfig`. Without these, the engine cannot execute inter-round arbitration (spec 006) or influence-aware Phase 6 output (heading adjustments per influence level). Currently, `parse_config()` at line 478 silently drops these fields.
 
 **R2. Add inter-round arbitration to `run_pipeline()`.**
 
-File: `/Users/business-daddy/code/payer-index-mono/conversus/engine/phases.py`, lines 632-710 (round loop).
+File: `<HOME>/code/payer-index-mono/conversus/engine/phases.py`, lines 632-710 (round loop).
 
 The round loop at line 633 runs Phases 1-5 per round, then checks termination. SKILL.md specifies (lines 519-540) that when `arbiter.timing: inter-round`, Phase 6 fires after each round's Phase 5 synthesis AND before the termination check. The engine's round loop has no inter-round arbitration insertion point. Influence-aware dispute counting (SKILL.md lines 534-538) is also missing: `binding` arbitration reduces the dispute count for termination, `advisory` does not.
 
 **R3. Expose a Phase 6-only execution entry point.**
 
-File: `/Users/business-daddy/code/payer-index-mono/conversus/engine/run.py`, lines 165-261.
+File: `<HOME>/code/payer-index-mono/conversus/engine/run.py`, lines 165-261.
 
 The `run_engine()` function only supports `phase="all"` or `phase="review"`. The `/conversus arbitrate` handler needs to run Phase 6 on existing output without re-running Phases 1-5. Add `phase="arbitration"` support that loads the existing synthesis, evaluates the trigger, and dispatches the arbiter agent. This could also be exposed as `Deliberation.arbitrate()` on the SDK class.
 
@@ -181,19 +181,19 @@ The `run_engine()` function only supports `phase="all"` or `phase="review"`. The
 
 **R4. Expose dispute-parsing as a public API.**
 
-File: `/Users/business-daddy/code/payer-index-mono/conversus/engine/templates.py`, line 531 (`_extract_remaining_disputes`).
+File: `<HOME>/code/payer-index-mono/conversus/engine/templates.py`, line 531 (`_extract_remaining_disputes`).
 
 Rename to `extract_remaining_disputes()` (drop the underscore prefix) and export from `engine/__init__.py`. The `converge`, `arbitrate`, and `gate` SKILL.md handlers all need dispute counting. Alternatively, expose this through an MCP tool (`conversus_disputes(synthesis_path, mode)`) so SKILL.md handlers can access it.
 
 **R5. Add a `conversus_gate` MCP tool.**
 
-File: `/Users/business-daddy/code/payer-index-mono/conversus/mcp_server.py`.
+File: `<HOME>/code/payer-index-mono/conversus/mcp_server.py`.
 
 Spec 011 requires CI/CD integration with machine-readable exit codes. An MCP tool that accepts gate config (phase name, artifact path, pass criteria, agent preset), generates a temporary `conversus.yml`, runs the pipeline, parses disputes, and returns `{verdict, dispute_count, exit_code}` would enable programmatic gate execution. The tool should follow the same pure-function-then-MCP-wrapper pattern as `_decide()` / `conversus_decide()`.
 
 **R6. Add `conversus_cost` MCP tool or resource.**
 
-File: `/Users/business-daddy/code/payer-index-mono/conversus/mcp_server.py`.
+File: `<HOME>/code/payer-index-mono/conversus/mcp_server.py`.
 
 The `converge` handler needs the agent launch estimate (SKILL.md line 1420-1424). The formula is currently duplicated in SKILL.md and in `engine.cost.estimate_cost()`. Exposing a `conversus_cost(agent_count, iterations, rounds, has_arbiter)` MCP tool would let SKILL.md handlers compute costs without duplicating the formula. The `conversus_validate` tool already returns cost estimates, but it requires a full YAML config string.
 
@@ -201,13 +201,13 @@ The `converge` handler needs the agent launch estimate (SKILL.md line 1420-1424)
 
 **R7. Align `VALID_MODES` with SKILL.md.**
 
-File: `/Users/business-daddy/code/payer-index-mono/conversus/engine/config.py`, line 82.
+File: `<HOME>/code/payer-index-mono/conversus/engine/config.py`, line 82.
 
 `VALID_MODES = ("cooperative", "winner-take-all", "prisoners-dilemma", "red-blue")` matches SKILL.md line 62. This is currently aligned. Maintaining this as a single source of truth (e.g., defined in a shared constants module imported by both engine and linter) would prevent drift.
 
 **R8. Add `PRIOR_ARBITRATION_PATH` template variable support to all phase context builders.**
 
-File: `/Users/business-daddy/code/payer-index-mono/conversus/engine/templates.py`, lines 208-253 (and other context builders).
+File: `<HOME>/code/payer-index-mono/conversus/engine/templates.py`, lines 208-253 (and other context builders).
 
 The context builders (`build_review_context`, `build_cross_review_context`, etc.) accept `prior_arbitration_path` as a keyword argument and pass it to the context models. However, the context is only stored as a path -- the influence-aware context block expansion described in SKILL.md (lines 430-433) is not implemented in the engine. The engine stores the raw path; SKILL.md specifies expanding it into an influence-aware instruction block depending on `binding`/`recommended`/`advisory`. This requires `influence` to be available in the config (see R1).
 
@@ -217,7 +217,7 @@ There is no documentation explaining that SKILL.md handlers and the Python engin
 
 **R10. Add `influence`-aware heading validation to engine Phase 6.**
 
-File: `/Users/business-daddy/code/payer-index-mono/conversus/engine/phases.py`, lines 769-849.
+File: `<HOME>/code/payer-index-mono/conversus/engine/phases.py`, lines 769-849.
 
 SKILL.md (lines 682-688) specifies that Phase 6 output validation must use influence-adjusted headings: `recommended` changes "Binding Decisions" to "Recommended Resolutions", `advisory` changes it to "Advisory Opinions". The engine's Phase 6 implementation at `phases.py:769` does not perform output heading validation at all -- it writes the arbiter's response and emits events, but does not check for required section headings. This validation is specified in SKILL.md lines 671-688 and should be implemented in the engine for parity.
 
@@ -227,23 +227,23 @@ SKILL.md (lines 682-688) specifies that Phase 6 output validation must use influ
 
 | Document | Path | Relevance |
 |---|---|---|
-| Alignment check brief | `/Users/business-daddy/code/payer-index-mono/conversus/specs/011-adoption-harness/pr-review/alignment-check.md` | Defines the review scope and key questions |
-| SKILL.md | `/Users/business-daddy/code/payer-index-mono/conversus/SKILL.md` | Authoritative specification for all subcommands and execution flow |
-| Engine __init__.py | `/Users/business-daddy/code/payer-index-mono/conversus/engine/__init__.py` | Public API surface: `Deliberation`, `Result`, `validate` |
-| Engine config.py | `/Users/business-daddy/code/payer-index-mono/conversus/engine/config.py` | `EngineConfig`, `ArbiterConfig`, `parse_config()` -- missing `timing`/`influence` |
-| Engine phases.py | `/Users/business-daddy/code/payer-index-mono/conversus/engine/phases.py` | `run_pipeline()` -- no inter-round arbitration, no Phase 6-only path |
-| Engine dispatch.py | `/Users/business-daddy/code/payer-index-mono/conversus/engine/dispatch.py` | Concurrent agent dispatch -- no conflicts |
-| Engine templates.py | `/Users/business-daddy/code/payer-index-mono/conversus/engine/templates.py` | Context builders, `_extract_remaining_disputes()` (private) |
-| Engine events.py | `/Users/business-daddy/code/payer-index-mono/conversus/engine/events.py` | Event models -- no conflicts |
-| Engine output.py | `/Users/business-daddy/code/payer-index-mono/conversus/engine/output.py` | `OutputManager` -- no gate/attempt awareness |
-| Engine sdk.py | `/Users/business-daddy/code/payer-index-mono/conversus/engine/sdk.py` | `Deliberation` class -- no `arbitrate()` or gate support |
-| Engine auth.py | `/Users/business-daddy/code/payer-index-mono/conversus/engine/auth.py` | OAuth/credential management -- no conflicts |
-| Engine run.py | `/Users/business-daddy/code/payer-index-mono/conversus/engine/run.py` | `run_engine()` -- only `"all"` and `"review"` phases |
-| MCP server | `/Users/business-daddy/code/payer-index-mono/conversus/mcp_server.py` | `conversus_validate`, `conversus_run`, `conversus_decide` -- no gate/arbitrate tools |
-| Spec 007 | `/Users/business-daddy/code/payer-index-mono/conversus/specs/done/007-subcommand-dispatch-define/spec.md` | Subcommand dispatch, `/conversus define` |
-| Spec 008 | `/Users/business-daddy/code/payer-index-mono/conversus/specs/done/008-interests-mode/spec.md` | `/conversus interests`, `/conversus mode` |
-| Spec 009 | `/Users/business-daddy/code/payer-index-mono/conversus/specs/done/009-guided-execution/spec.md` | `/conversus converge` -- UX wrapper around run |
-| Spec 010 | `/Users/business-daddy/code/payer-index-mono/conversus/specs/done/010-guided-arbitration/spec.md` | `/conversus arbitrate` -- guided Phase 6 |
-| Spec 010 dispatch additions | `/Users/business-daddy/code/payer-index-mono/conversus/specs/done/010-guided-arbitration/dispatch-additions.md` | Dispatch table changes for arbitrate |
-| Spec 010 handler draft | `/Users/business-daddy/code/payer-index-mono/conversus/specs/done/010-guided-arbitration/handler-draft.md` | Full arbitrate handler specification |
-| Spec 011 | `/Users/business-daddy/code/payer-index-mono/conversus/specs/done/011-phase-consensus-gates/spec.md` | `/conversus gate` -- CI/CD quality gates |
+| Alignment check brief | `<HOME>/code/payer-index-mono/conversus/specs/011-adoption-harness/pr-review/alignment-check.md` | Defines the review scope and key questions |
+| SKILL.md | `<HOME>/code/payer-index-mono/conversus/SKILL.md` | Authoritative specification for all subcommands and execution flow |
+| Engine __init__.py | `<HOME>/code/payer-index-mono/conversus/engine/__init__.py` | Public API surface: `Deliberation`, `Result`, `validate` |
+| Engine config.py | `<HOME>/code/payer-index-mono/conversus/engine/config.py` | `EngineConfig`, `ArbiterConfig`, `parse_config()` -- missing `timing`/`influence` |
+| Engine phases.py | `<HOME>/code/payer-index-mono/conversus/engine/phases.py` | `run_pipeline()` -- no inter-round arbitration, no Phase 6-only path |
+| Engine dispatch.py | `<HOME>/code/payer-index-mono/conversus/engine/dispatch.py` | Concurrent agent dispatch -- no conflicts |
+| Engine templates.py | `<HOME>/code/payer-index-mono/conversus/engine/templates.py` | Context builders, `_extract_remaining_disputes()` (private) |
+| Engine events.py | `<HOME>/code/payer-index-mono/conversus/engine/events.py` | Event models -- no conflicts |
+| Engine output.py | `<HOME>/code/payer-index-mono/conversus/engine/output.py` | `OutputManager` -- no gate/attempt awareness |
+| Engine sdk.py | `<HOME>/code/payer-index-mono/conversus/engine/sdk.py` | `Deliberation` class -- no `arbitrate()` or gate support |
+| Engine auth.py | `<HOME>/code/payer-index-mono/conversus/engine/auth.py` | OAuth/credential management -- no conflicts |
+| Engine run.py | `<HOME>/code/payer-index-mono/conversus/engine/run.py` | `run_engine()` -- only `"all"` and `"review"` phases |
+| MCP server | `<HOME>/code/payer-index-mono/conversus/mcp_server.py` | `conversus_validate`, `conversus_run`, `conversus_decide` -- no gate/arbitrate tools |
+| Spec 007 | `<HOME>/code/payer-index-mono/conversus/specs/done/007-subcommand-dispatch-define/spec.md` | Subcommand dispatch, `/conversus define` |
+| Spec 008 | `<HOME>/code/payer-index-mono/conversus/specs/done/008-interests-mode/spec.md` | `/conversus interests`, `/conversus mode` |
+| Spec 009 | `<HOME>/code/payer-index-mono/conversus/specs/done/009-guided-execution/spec.md` | `/conversus converge` -- UX wrapper around run |
+| Spec 010 | `<HOME>/code/payer-index-mono/conversus/specs/done/010-guided-arbitration/spec.md` | `/conversus arbitrate` -- guided Phase 6 |
+| Spec 010 dispatch additions | `<HOME>/code/payer-index-mono/conversus/specs/done/010-guided-arbitration/dispatch-additions.md` | Dispatch table changes for arbitrate |
+| Spec 010 handler draft | `<HOME>/code/payer-index-mono/conversus/specs/done/010-guided-arbitration/handler-draft.md` | Full arbitrate handler specification |
+| Spec 011 | `<HOME>/code/payer-index-mono/conversus/specs/done/011-phase-consensus-gates/spec.md` | `/conversus gate` -- CI/CD quality gates |

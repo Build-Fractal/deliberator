@@ -3,7 +3,7 @@
 **Role**: governance-skeptic
 **Methodology**: self-consistency
 **Phase**: 4 (final disputes before synthesis)
-**Target**: `/Users/business-daddy/code/payer-index-mono/conversus-oss/deliberations/069-self-consistency-2026-04-26/CONSTITUTION-v2.4.0-candidate.md`
+**Target**: `<HOME>/code/payer-index-mono/conversus-oss/deliberations/069-self-consistency-2026-04-26/CONSTITUTION-v2.4.0-candidate.md`
 
 Three Phase 3 revisions read in full. Two genuine, load-bearing disputes survive the revision pass; a third, narrower dispute has emerged from the cross-revision collisions themselves. Convergence is broader than the disputes — five clean agreements remain across all three roles. Final position is below.
 

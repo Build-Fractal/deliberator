@@ -100,7 +100,7 @@ In priority order. "Remove or simplify" is permitted by the brief and is invoked
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/deliberations/069-blind-2026-04-26/CONSTITUTION-v2.4.0-blind.md` (target document, full read)
+- `<HOME>/code/payer-index-mono/conversus-oss/deliberations/069-blind-2026-04-26/CONSTITUTION-v2.4.0-blind.md` (target document, full read)
   - Governance section, Constitutional Inclusion Criteria subsection (lines 800-846)
   - Principle X (Zen of Python Output, lines 216-235) — cited as Criterion 1 conflict
   - Principle IX (Functional Programming and Clean Code, lines 136-214) — cited for prose-principle precedent and v2.3.0 Extension pattern

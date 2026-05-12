@@ -80,5 +80,5 @@ The v4.0.0 tier extraction specification proposes to restructure the conversus c
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/specs/v4.0.0-tier-extraction/spec.md` — sections cited: L102-130, L148-169, L190-201, L203-254, L252-254, L283-289
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/deliberations/v4.0.0-tier-extraction-self-consistency-2026-05-06/QUESTION.md` — sections cited: structural integrity task definition, tier classification checks
+- `<HOME>/code/payer-index-mono/conversus-oss/specs/v4.0.0-tier-extraction/spec.md` — sections cited: L102-130, L148-169, L190-201, L203-254, L252-254, L283-289
+- `<HOME>/code/payer-index-mono/conversus-oss/deliberations/v4.0.0-tier-extraction-self-consistency-2026-05-06/QUESTION.md` — sections cited: structural integrity task definition, tier classification checks

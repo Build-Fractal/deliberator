@@ -76,5 +76,5 @@ Most critically, X's sub-bullets violate the Constitutional Inclusion Criteria e
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/deliberations/070-supplemental-blind-2026-05-04/CONSTITUTION-v2.5.0-pre-migration.md` — sections cited: L484-504 (X principle), L1081-1091 (V principle), L1101-1115 (VII principle), L1973-2003 (Constitutional Inclusion Criteria)
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/CONSTITUTION.md` — sections cited: L1379-1516 (XVI path-c precedent), L1221-1227 (X retirement), L33 (path-c findings reference)
+- `<HOME>/code/payer-index-mono/conversus-oss/deliberations/070-supplemental-blind-2026-05-04/CONSTITUTION-v2.5.0-pre-migration.md` — sections cited: L484-504 (X principle), L1081-1091 (V principle), L1101-1115 (VII principle), L1973-2003 (Constitutional Inclusion Criteria)
+- `<HOME>/code/payer-index-mono/conversus-oss/CONSTITUTION.md` — sections cited: L1379-1516 (XVI path-c precedent), L1221-1227 (X retirement), L33 (path-c findings reference)

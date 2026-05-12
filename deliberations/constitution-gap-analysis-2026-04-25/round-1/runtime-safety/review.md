@@ -90,5 +90,5 @@ My most important recommendation: establish a constitutional principle for synth
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/CONSTITUTION.md` — sections referenced: L104-112 (Principle V), L190-192 (Principle IX), L231-232 (Principle X), L47-70 (Principle II)
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/deliberations/constitution-gap-analysis-2026-04-25/recent-changes.md` — sections referenced: L23-31 (PR #5), L32-41 (PR #6), L42-52 (PR #8), L53-59 (PR #9), L61-71 (PR #10), L134-139 (theme #3)
+- `<HOME>/code/payer-index-mono/conversus-oss/CONSTITUTION.md` — sections referenced: L104-112 (Principle V), L190-192 (Principle IX), L231-232 (Principle X), L47-70 (Principle II)
+- `<HOME>/code/payer-index-mono/conversus-oss/deliberations/constitution-gap-analysis-2026-04-25/recent-changes.md` — sections referenced: L23-31 (PR #5), L32-41 (PR #6), L42-52 (PR #8), L53-59 (PR #9), L61-71 (PR #10), L134-139 (theme #3)

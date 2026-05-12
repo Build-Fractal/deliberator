@@ -31,4 +31,4 @@ I've completed the cross-review of the meta-showcase-advocate's position from my
 
 My cross-review suggests that the apparent contradiction between methodology showcase and ADR approaches can be resolved through **dual presentation**: the same deliberation content can serve educational showcase for methodology learning (user-facing) AND structured decision records for institutional memory (developer-facing). This requires coordination on cross-referencing and content organization but leverages both perspectives' strengths.
 
-The cross-review has been written to `/Users/business-daddy/code/conversus-oss/deliberations/docs-specs-integration/output/decision-log-advocate/cross-reviews/meta-showcase-advocate.md` following the required cooperative format with specific citations and integration-focused recommendations.
+The cross-review has been written to `<HOME>/code/conversus-oss/deliberations/docs-specs-integration/output/decision-log-advocate/cross-reviews/meta-showcase-advocate.md` following the required cooperative format with specific citations and integration-focused recommendations.

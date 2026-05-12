@@ -82,7 +82,7 @@ In rough priority order. I'm flagging the "remove or simplify" options as legiti
 
 ## Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/deliberations/068-blind-2026-04-26/CONSTITUTION-v2.3.2-blind.md` — entire constitution, with focus on Principle XVI (lines 426–481) and adjacent principles VII (lines 140–152), IX (lines 174–253), X (lines 256–274), II (lines 58–80), XXIV (lines 681–706), and XXVI (lines 749–771)
+- `<HOME>/code/payer-index-mono/conversus-oss/deliberations/068-blind-2026-04-26/CONSTITUTION-v2.3.2-blind.md` — entire constitution, with focus on Principle XVI (lines 426–481) and adjacent principles VII (lines 140–152), IX (lines 174–253), X (lines 256–274), II (lines 58–80), XXIV (lines 681–706), and XXVI (lines 749–771)
 - Principle XVI internal references: spec 013 (objective function templates), specs 012–019 (game engine vision)
 - Principle VII as the determinism baseline that XVI extends or duplicates
 - Principle X as the readability baseline that XVI's plain-language rule duplicates

@@ -7,15 +7,15 @@ markers preserved.)
 Modified sections:
   - "Core Principles" reduced to 6 principles (XVII-XXI, XXVI) plus
     retired markers for VI and X. Cross-reference block added at top
-    pointing readers to https://github.com/clariti-care/payer-index-mono/blob/main/build-fractal/CONSTITUTION.md (Tier 1) and
-    https://github.com/clariti-care/payer-index-mono/blob/main/build-fractal/conversus/CONSTITUTION.md (Tier 2) for relocated
+    pointing readers to https://github.com/Build-Fractal/build-fractal-mono/blob/main/build-fractal/CONSTITUTION.md (Tier 1) and
+    https://github.com/Build-Fractal/build-fractal-mono/blob/main/build-fractal/conversus/CONSTITUTION.md (Tier 2) for relocated
     principles.
   - "Governance" preserved verbatim. Pathway Taxonomy, Constitutional
     Inclusion Criteria, Compliance, Amendment Process all retained
     here as the canonical procedural reference for amendments at any
     tier.
 
-Relocated to Tier 1 (https://github.com/clariti-care/payer-index-mono/blob/main/build-fractal/CONSTITUTION.md, v1.0.0):
+Relocated to Tier 1 (https://github.com/Build-Fractal/build-fractal-mono/blob/main/build-fractal/CONSTITUTION.md, v1.0.0):
   I. Spec-Driven Development
   II. Stable Interfaces
   III. Backward-Compatible Extension
@@ -27,7 +27,7 @@ Relocated to Tier 1 (https://github.com/clariti-care/payer-index-mono/blob/main/
   XIV. Spec-Implementation Parity
   XXVIII. Test-Fix Boundary Preservation
 
-Relocated to Tier 2 (https://github.com/clariti-care/payer-index-mono/blob/main/build-fractal/conversus/CONSTITUTION.md, v1.0.0):
+Relocated to Tier 2 (https://github.com/Build-Fractal/build-fractal-mono/blob/main/build-fractal/conversus/CONSTITUTION.md, v1.0.0):
   V. Observable Deliberation
   XII. No Dead Infrastructure
   XIII. Enum Completeness
@@ -80,7 +80,7 @@ Cross-tier weakening prohibition (per Fix B3):
   not-Satisfied; (iii) suite-specific adaptation bypassing a MUST.
   Enforcement: meta-arbiter review + tier-coherence linter
   flagged-words check + existing-implementation impact check on
-  every cross-tier amendment. https://github.com/clariti-care/payer-index-mono/blob/main/build-fractal/conversus/CONSTITUTION.md
+  every cross-tier amendment. https://github.com/Build-Fractal/build-fractal-mono/blob/main/build-fractal/conversus/CONSTITUTION.md
   § Cross-tier weakening prohibition documents the full operational
   definition.
 
@@ -97,7 +97,7 @@ Verification deliberations (both required per spec 067):
     Verdict: PASS WITH FIXES — 5 fixes B1-B5 applied in spec v3.
 
 Spec: specs/v4.0.0-tier-extraction/spec.md (v3 — both verifications passed).
-Governance log: https://github.com/clariti-care/payer-index-mono/blob/main/build-fractal/conversus/CONSTITUTIONAL_CONVERSATIONS.md
+Governance log: https://github.com/Build-Fractal/build-fractal-mono/blob/main/build-fractal/conversus/CONSTITUTIONAL_CONVERSATIONS.md
                 CONSTITUTIONAL_CONVERSATIONS.md (this repo)
 
 Engine note: arbitration phase auto-arbitrator crashed on both
@@ -120,8 +120,8 @@ Prior amendment SIRs preserved below for audit trail (per Fix #3 + Fix B2).
 **Status:** RATIFIED — v4.0.0 (2026-05-07).
 **Version:** 4.0.0
 **Inherits from:**
-- `https://github.com/clariti-care/payer-index-mono/blob/main/build-fractal/CONSTITUTION.md` (Tier 1 — Universal, v1.0.0)
-- `https://github.com/clariti-care/payer-index-mono/blob/main/build-fractal/conversus/CONSTITUTION.md` (Tier 2 — Suite, v1.0.0)
+- `https://github.com/Build-Fractal/build-fractal-mono/blob/main/build-fractal/CONSTITUTION.md` (Tier 1 — Universal, v1.0.0)
+- `https://github.com/Build-Fractal/build-fractal-mono/blob/main/build-fractal/conversus/CONSTITUTION.md` (Tier 2 — Suite, v1.0.0)
 
 For Universal and Suite principles, see those documents. This document holds the **6 component-tier principles** specific to the conversus-oss repo, plus the canonical Governance section (which governs amendments at all tiers), plus retired-principle markers, plus the full audit trail of prior Sync Impact Reports.
 

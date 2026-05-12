@@ -14,4 +14,4 @@ I've completed the revision analysis from the developer-power-user perspective. 
 
 The revision demonstrates how developer-focused concerns can be reconciled with architectural consistency through selective rather than universal generation - core actions get mechanical projection while complex interactions remain hand-tuned for optimal UX.
 
-The analysis has been written to `/Users/business-daddy/code/payer-index-mono/conversus-oss/deliberations/capability-exposure/output/developer-power-user/revision.md` as required.
+The analysis has been written to `<HOME>/code/payer-index-mono/conversus-oss/deliberations/capability-exposure/output/developer-power-user/revision.md` as required.

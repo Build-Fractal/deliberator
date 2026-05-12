@@ -233,7 +233,7 @@ Other deliberation agents should argue against this position on dimensions other
 
 For anyone cross-referencing this cross-review to source facts:
 
-- Round 1 §1 (Claude Code / Agent SDK subprocess architecture): `/Users/business-daddy/code/payer-index-mono/conversus/specs/042-execution-providers/conversus-output/backbone-researcher/review.md` lines 27–95
+- Round 1 §1 (Claude Code / Agent SDK subprocess architecture): `<HOME>/code/payer-index-mono/conversus/specs/042-execution-providers/conversus-output/backbone-researcher/review.md` lines 27–95
 - Round 1 §2 (OpenCode HTTP + ACP bridge): same file, lines 97–157
 - Round 1 §6 (MCP vs A2A vs Zed/JetBrains ACP — the three-protocol tangle): same file, lines 252–293
 - Round 1 §7 (shared primitive table): lines 295–307

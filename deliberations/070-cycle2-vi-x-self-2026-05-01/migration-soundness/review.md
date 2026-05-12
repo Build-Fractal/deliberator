@@ -107,7 +107,7 @@ The migration is substantially sound. All three VI sub-bullets survive in CONTRI
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/CONTRIBUTING.md` — all lines (L1-53); primary audit target for VI migration
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/docs/output-conventions.md` — all lines (L1-69); primary audit target for X migration
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/mkdocs.yml` — L77-116 (nav block); discoverability audit
+- `<HOME>/code/payer-index-mono/conversus-oss/CONTRIBUTING.md` — all lines (L1-53); primary audit target for VI migration
+- `<HOME>/code/payer-index-mono/conversus-oss/docs/output-conventions.md` — all lines (L1-69); primary audit target for X migration
+- `<HOME>/code/payer-index-mono/conversus-oss/mkdocs.yml` — L77-116 (nav block); discoverability audit
 - `CONSTITUTION-v3.0.0-candidate.md` (provided in prompt) — v3.0.0 SIR comment block (lines 1-160 of the candidate file header); versioning and migration rationale; Principle XXII (Distribution Surface Integrity)

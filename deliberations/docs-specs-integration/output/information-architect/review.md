@@ -24,4 +24,4 @@ I've completed a comprehensive information architecture review of the docs-specs
 
 The review includes 10 prioritized, actionable recommendations with specific implementation details, addresses missed opportunities in progressive disclosure and contextual cross-referencing, and corrects assumptions about ADR formats and reference section user expectations.
 
-The complete review has been written to `/Users/business-daddy/code/conversus-oss/deliberations/docs-specs-integration/output/information-architect/review.md` as requested.
+The complete review has been written to `<HOME>/code/conversus-oss/deliberations/docs-specs-integration/output/information-architect/review.md` as requested.

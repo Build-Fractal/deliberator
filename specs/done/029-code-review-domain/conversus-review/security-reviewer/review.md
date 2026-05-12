@@ -193,9 +193,9 @@ If user-defined scaffolds are ever supported via the API, the `_evaluate_hard_bl
 
 ## Referenced Files
 
-- `/Users/business-daddy/code/payer-index-mono/conversus/conversus/domains/code_review/domain.py` — `_normalize_variable` (lines 76-126), `_evaluate_hard_block` (lines 152-202), `_score_dimension` (lines 128-149)
-- `/Users/business-daddy/code/payer-index-mono/conversus/conversus/domains/code_review/extractors.py` — `SecurityExtractor` (lines 311-392), `_parse_bandit` (lines 349-376), `_parse_gitleaks` (lines 378-392)
-- `/Users/business-daddy/code/payer-index-mono/conversus/conversus/domains/code_review/scaffolds/*.yml` — hard block configurations
-- `/Users/business-daddy/code/payer-index-mono/conversus/tests/test_code_review.py` — SC-002 test (lines 667-684), SecurityExtractor tests (lines 241-298)
-- `/Users/business-daddy/code/payer-index-mono/conversus/tests/fixtures/code_review/bandit-output.json` — bandit fixture with severity/confidence mapping
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/029-code-review-domain/spec.md` — API layer (Section 3), parameters (Section 2), constraints (Section 6)
+- `<HOME>/code/payer-index-mono/conversus/conversus/domains/code_review/domain.py` — `_normalize_variable` (lines 76-126), `_evaluate_hard_block` (lines 152-202), `_score_dimension` (lines 128-149)
+- `<HOME>/code/payer-index-mono/conversus/conversus/domains/code_review/extractors.py` — `SecurityExtractor` (lines 311-392), `_parse_bandit` (lines 349-376), `_parse_gitleaks` (lines 378-392)
+- `<HOME>/code/payer-index-mono/conversus/conversus/domains/code_review/scaffolds/*.yml` — hard block configurations
+- `<HOME>/code/payer-index-mono/conversus/tests/test_code_review.py` — SC-002 test (lines 667-684), SecurityExtractor tests (lines 241-298)
+- `<HOME>/code/payer-index-mono/conversus/tests/fixtures/code_review/bandit-output.json` — bandit fixture with severity/confidence mapping
+- `<HOME>/code/payer-index-mono/conversus/specs/029-code-review-domain/spec.md` — API layer (Section 3), parameters (Section 2), constraints (Section 6)

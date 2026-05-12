@@ -117,16 +117,16 @@ The package structure also needs attention. The spec requires `conversus-schemas
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/012-game-form-schemas/spec.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/schema/game-forms/normal-form.yml`
-- `/Users/business-daddy/code/payer-index-mono/conversus/schema/game-forms/gnep.yml`
-- `/Users/business-daddy/code/payer-index-mono/conversus/schema/game-forms/parametric.yml`
-- `/Users/business-daddy/code/payer-index-mono/conversus/schema/game-forms/stackelberg.yml`
-- `/Users/business-daddy/code/payer-index-mono/conversus/schema/game-forms/mode-mapping.yml`
-- `/Users/business-daddy/code/payer-index-mono/conversus/src/conversus_schemas/game_forms.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/src/conversus_schemas/__init__.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/tests/test_game_forms.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/pyproject.toml`
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/013-objective-function-templates/spec.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/016-plugin-system/spec.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/019-config-optimizer/spec.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/012-game-form-schemas/spec.md`
+- `<HOME>/code/payer-index-mono/conversus/schema/game-forms/normal-form.yml`
+- `<HOME>/code/payer-index-mono/conversus/schema/game-forms/gnep.yml`
+- `<HOME>/code/payer-index-mono/conversus/schema/game-forms/parametric.yml`
+- `<HOME>/code/payer-index-mono/conversus/schema/game-forms/stackelberg.yml`
+- `<HOME>/code/payer-index-mono/conversus/schema/game-forms/mode-mapping.yml`
+- `<HOME>/code/payer-index-mono/conversus/src/conversus_schemas/game_forms.py`
+- `<HOME>/code/payer-index-mono/conversus/src/conversus_schemas/__init__.py`
+- `<HOME>/code/payer-index-mono/conversus/tests/test_game_forms.py`
+- `<HOME>/code/payer-index-mono/conversus/pyproject.toml`
+- `<HOME>/code/payer-index-mono/conversus/specs/013-objective-function-templates/spec.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/016-plugin-system/spec.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/019-config-optimizer/spec.md`

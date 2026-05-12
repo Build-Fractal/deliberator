@@ -48,6 +48,62 @@ AnyProvider = ExecutionProvider | ModelProvider
 DEFAULT_MODEL = "claude-sonnet-4-20250514"
 DEFAULT_MAX_TOKENS = 16384
 
+# ---------------------------------------------------------------------------
+# Terminal-phase isolation: per-phase retry policy
+# ---------------------------------------------------------------------------
+#
+# Phases 5 (synthesis), cross-round-synthesis, and 6 (arbitration) are
+# single-agent dispatches whose prompt is the union of all prior phase
+# outputs. They consistently hit two failure modes in production:
+#
+#   1. Prompt-overflow (2026-05-06): synthesis prompt ~230K chars caused
+#      arbitration dispatch to silently drop in 1ms with no error.
+#   2. Rate-limit (2026-05-12): synthesizer hit Anthropic 429 after the
+#      provider's internal 3-attempt retry and aborted the run.
+#
+# Both modes share recovery pattern: wait + re-dispatch the same prompt
+# usually succeeds. The provider-level retry (``_RETRY_MAX_ATTEMPTS = 3``
+# in :mod:`engine.providers.anthropic`) is too short and burns its
+# attempts in a single ~10s window. Terminal phases need a longer,
+# outer-loop retry that survives multi-minute rate-limit windows.
+#
+# See ``project_conversus_arbitration_crash_2026_05_06.md`` in user
+# memory and the 2026-05-12 deliberation log at
+# ``/tmp/conversus-v4.1.0-deliberation-20260512-010921.log`` for the
+# observed failures motivating this policy.
+#
+# Scope-A architecture: the eventual subprocess-isolation fix (Scope B
+# in the spike PR) is deferred; this policy is the minimal-viable
+# resilience that addresses both observed modes.
+
+#: Default number of outer-loop retry attempts for terminal-phase
+#: dispatch. Tuned for OAuth subscription tokens whose per-minute budget
+#: recovers in 30-90s.
+DEFAULT_TERMINAL_PHASE_RETRY_ATTEMPTS = 4
+
+#: Base delay (seconds) for terminal-phase retry backoff. Per attempt
+#: the delay is ``base * 2^attempt`` capped at the ceiling. Combined
+#: with the provider-level 3 attempts, total wall-clock budget is
+#: ~3-4 minutes before final failure.
+DEFAULT_TERMINAL_PHASE_BACKOFF_BASE = 15.0
+DEFAULT_TERMINAL_PHASE_BACKOFF_CAP = 120.0
+
+#: Error-message substrings that indicate a transient failure where
+#: retrying the terminal-phase dispatch is likely to succeed. Matched
+#: case-insensitively against the error string returned by
+#: :func:`dispatch_phase`. Conservative by design — we only retry on
+#: signals we have observed in production; everything else fails fast
+#: so genuine bugs are not masked by retries.
+TERMINAL_PHASE_RETRYABLE_PATTERNS: tuple[str, ...] = (
+    "rate limit",
+    "rate_limit",
+    "ratelimiterror",
+    "429",
+    # claude-code subprocess silent-drop on oversize prompts presents as
+    # "0/1 succeeded" with no error string; we detect that case via the
+    # all-empty-no-error heuristic in is_phase_failed() below.
+)
+
 
 # ---------------------------------------------------------------------------
 # Fail-fast detection for provider error strings returned as agent content.

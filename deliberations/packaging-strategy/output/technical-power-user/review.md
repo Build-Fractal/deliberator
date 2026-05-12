@@ -23,4 +23,4 @@ Key findings from my analysis:
 
 The analysis is grounded in the actual technical architecture I found in `pyproject.toml` and `README.md`, showing that conversus already has clean PyPI packaging. The main problem is distribution discovery, not core packaging architecture.
 
-My review has been written to `/Users/business-daddy/code/conversus-oss/deliberations/packaging-strategy/output/technical-power-user/review.md` following the mechanism design template structure.
+My review has been written to `<HOME>/code/conversus-oss/deliberations/packaging-strategy/output/technical-power-user/review.md` following the mechanism design template structure.

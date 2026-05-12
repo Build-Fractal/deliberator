@@ -6,7 +6,7 @@ This arbitration was triggered by the `always` condition, applying subject arbit
 
 ### Decision Framework
 
-From my grounding document (`/Users/business-daddy/code/payer-index-mono/conversus-oss/CONSTITUTION.md`), the following principles govern my arbitration decisions:
+From my grounding document (`<HOME>/code/payer-index-mono/conversus-oss/CONSTITUTION.md`), the following principles govern my arbitration decisions:
 
 - **Constitutional Inclusion Criteria Gate (L1078-1099)**: A principle qualifies for constitutional inclusion "only if it satisfies all three" criteria: (1) mechanical verification capability, (2) falsifiable scope, (3) distinct from existing principles. Each criterion must be satisfied for gate passage.
 

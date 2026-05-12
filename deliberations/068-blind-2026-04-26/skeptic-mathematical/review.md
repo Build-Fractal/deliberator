@@ -330,7 +330,7 @@ gives no clean way to say which sub-claim was violated.
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/deliberations/068-blind-2026-04-26/CONSTITUTION-v2.3.2-blind.md` (the audited constitution; Principle XVI specifically lines 426-481)
+- `<HOME>/code/payer-index-mono/conversus-oss/deliberations/068-blind-2026-04-26/CONSTITUTION-v2.3.2-blind.md` (the audited constitution; Principle XVI specifically lines 426-481)
 - Principle VII: Reproducibility Over Inconsistency (lines 140-152) — overlapping reproducibility territory
 - Principle XI: Single Source of Truth (lines 277-320) — the test XVI's clarification block fails when it restates VII's claims
 - Principle XV: Plugin Isolation (lines 393-424) — overlapping plugin-output territory

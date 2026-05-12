@@ -84,8 +84,8 @@
 
 ### Referenced Documentation
 
-- **integration's review**: `/Users/business-daddy/code/payer-index-mono/conversus/specs/010-antipattern-steering/verify/integration/review.md`
-- **compliance's review**: `/Users/business-daddy/code/payer-index-mono/conversus/specs/010-antipattern-steering/verify/compliance/review.md`
+- **integration's review**: `<HOME>/code/payer-index-mono/conversus/specs/010-antipattern-steering/verify/integration/review.md`
+- **compliance's review**: `<HOME>/code/payer-index-mono/conversus/specs/010-antipattern-steering/verify/compliance/review.md`
 - `specs/010-antipattern-steering/spec.md` -- L69-87 (FRs), L99-102 (SCs), L107 (assumptions)
 - `specs/010-antipattern-steering/data-model.md` -- L33 (bidirectional sync), L56 (example validation), L72-73 (keyword tags)
 - `specs/010-antipattern-steering/contracts/catalog-format.md` -- L7 (purpose), L12-59 (template), L77 (example requirement), L89-103 (SKILL.md integration contract), L91 (exact wording)

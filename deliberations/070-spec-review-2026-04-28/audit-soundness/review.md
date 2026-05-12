@@ -82,4 +82,4 @@ Most important recommendation: **Clarify whether the SPLIT verdict is a legitima
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/CONSTITUTION.md` — sections cited: L1078-1099 (Constitutional Inclusion Criteria), L1115-1119 (grandfathering provision)
+- `<HOME>/code/payer-index-mono/conversus-oss/CONSTITUTION.md` — sections cited: L1078-1099 (Constitutional Inclusion Criteria), L1115-1119 (grandfathering provision)

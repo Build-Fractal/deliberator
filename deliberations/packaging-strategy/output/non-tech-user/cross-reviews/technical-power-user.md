@@ -14,4 +14,4 @@ I've completed the cross-review analysis from the **non-tech-user** perspective.
 
 The cross-review identifies concrete mechanisms (weighted user segment representation, friction scoring matrices, hybrid formal/natural language preference revelation) to balance technical requirements with non-technical user accessibility in the distribution strategy decision process.
 
-The complete analysis has been written to `/Users/business-daddy/code/conversus-oss/deliberations/packaging-strategy/output/non-tech-user/cross-reviews/technical-power-user.md`.
+The complete analysis has been written to `<HOME>/code/conversus-oss/deliberations/packaging-strategy/output/non-tech-user/cross-reviews/technical-power-user.md`.

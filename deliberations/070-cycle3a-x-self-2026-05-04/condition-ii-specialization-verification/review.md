@@ -72,6 +72,6 @@ The candidate's distinctness analysis contains a critical gap that undermines Co
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/deliberations/070-cycle3a-x-self-2026-05-04/X-path-c-restoration-candidate.md` — sections cited: L63-66, L144-155
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/deliberations/070-supplemental-blind-2026-05-04/CONSTITUTION-v2.5.0-pre-migration.md` — sections cited: L337-347 (Principle V), L484-504 (original Principle X)
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/CONSTITUTION.md` — sections cited: L1081-1091 (current Principle V), L1733-1737 (Principle XXIV scope)
+- `<HOME>/code/payer-index-mono/conversus-oss/deliberations/070-cycle3a-x-self-2026-05-04/X-path-c-restoration-candidate.md` — sections cited: L63-66, L144-155
+- `<HOME>/code/payer-index-mono/conversus-oss/deliberations/070-supplemental-blind-2026-05-04/CONSTITUTION-v2.5.0-pre-migration.md` — sections cited: L337-347 (Principle V), L484-504 (original Principle X)
+- `<HOME>/code/payer-index-mono/conversus-oss/CONSTITUTION.md` — sections cited: L1081-1091 (current Principle V), L1733-1737 (Principle XXIV scope)

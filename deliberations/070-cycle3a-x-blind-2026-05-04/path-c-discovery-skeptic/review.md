@@ -82,5 +82,5 @@ Unlike Principle XVI's successful path-(c) refactor, which identified a single s
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/deliberations/070-supplemental-blind-2026-05-04/CONSTITUTION-v2.5.0-pre-migration.md` — sections cited: L102-111 (grandfathering disclosure), L484-503 (Principle X text), L1196-1218 (Constitutional Inclusion Criteria)
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/CONSTITUTION.md` — sections cited: L569-592 (XVI path-(c) precedent), L1081-1091 (Principle V), L1101-1115 (Principle VII), L1346-1373 (Principle XV), L1379-1429 (refactored XVI text)
+- `<HOME>/code/payer-index-mono/conversus-oss/deliberations/070-supplemental-blind-2026-05-04/CONSTITUTION-v2.5.0-pre-migration.md` — sections cited: L102-111 (grandfathering disclosure), L484-503 (Principle X text), L1196-1218 (Constitutional Inclusion Criteria)
+- `<HOME>/code/payer-index-mono/conversus-oss/CONSTITUTION.md` — sections cited: L569-592 (XVI path-(c) precedent), L1081-1091 (Principle V), L1101-1115 (Principle VII), L1346-1373 (Principle XV), L1379-1429 (refactored XVI text)

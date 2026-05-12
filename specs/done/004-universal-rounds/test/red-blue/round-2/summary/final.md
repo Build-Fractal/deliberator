@@ -4,7 +4,7 @@
 **Date**: 2026-03-20
 **Round**: 2 of 3
 **Target**: Spec 004 -- Universal Rounds, Stagnation Detection, and Arbitration
-**Spec path**: `/Users/business-daddy/code/payer-index-mono/conversus/specs/004-universal-rounds/spec.md`
+**Spec path**: `<HOME>/code/payer-index-mono/conversus/specs/004-universal-rounds/spec.md`
 
 ---
 

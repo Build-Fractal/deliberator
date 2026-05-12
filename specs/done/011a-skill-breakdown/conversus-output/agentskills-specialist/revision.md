@@ -195,12 +195,12 @@ The decomposition remains a content reorganization, not a technology migration. 
 
 ## Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus/SKILL.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/011a-skill-breakdown/spec.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/references/agentskills-spec.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/references/agentskills-best-practices.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/011a-skill-breakdown/conversus-output/agentskills-specialist/review.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/011a-skill-breakdown/conversus-output/functional-decomposition/cross-reviews/agentskills-specialist.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/011a-skill-breakdown/conversus-output/integration-specialist/cross-reviews/agentskills-specialist.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/011a-skill-breakdown/conversus-output/apm-specialist/cross-reviews/agentskills-specialist.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/011a-skill-breakdown/conversus-output/agents-md-specialist/cross-reviews/agentskills-specialist.md`
+- `<HOME>/code/payer-index-mono/conversus/SKILL.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/011a-skill-breakdown/spec.md`
+- `<HOME>/code/payer-index-mono/conversus/references/agentskills-spec.md`
+- `<HOME>/code/payer-index-mono/conversus/references/agentskills-best-practices.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/011a-skill-breakdown/conversus-output/agentskills-specialist/review.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/011a-skill-breakdown/conversus-output/functional-decomposition/cross-reviews/agentskills-specialist.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/011a-skill-breakdown/conversus-output/integration-specialist/cross-reviews/agentskills-specialist.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/011a-skill-breakdown/conversus-output/apm-specialist/cross-reviews/agentskills-specialist.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/011a-skill-breakdown/conversus-output/agents-md-specialist/cross-reviews/agentskills-specialist.md`

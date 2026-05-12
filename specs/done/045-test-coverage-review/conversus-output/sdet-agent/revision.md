@@ -3,10 +3,10 @@
 **Author:** SDET agent
 **Round:** 1 revision of 2 (cooperative deliberation)
 **Prior documents:**
-- Original review: `/Users/business-daddy/code/payer-index-mono/conversus/specs/045-test-coverage-review/conversus-output/sdet-agent/review.md`
-- FP-guru review: `/Users/business-daddy/code/payer-index-mono/conversus/specs/045-test-coverage-review/conversus-output/functional-programming-guru/review.md`
-- My cross-review of FP-guru: `/Users/business-daddy/code/payer-index-mono/conversus/specs/045-test-coverage-review/conversus-output/sdet-agent/cross-reviews/functional-programming-guru.md`
-- FP-guru's cross-review of me: `/Users/business-daddy/code/payer-index-mono/conversus/specs/045-test-coverage-review/conversus-output/functional-programming-guru/cross-reviews/sdet-agent.md`
+- Original review: `<HOME>/code/payer-index-mono/conversus/specs/045-test-coverage-review/conversus-output/sdet-agent/review.md`
+- FP-guru review: `<HOME>/code/payer-index-mono/conversus/specs/045-test-coverage-review/conversus-output/functional-programming-guru/review.md`
+- My cross-review of FP-guru: `<HOME>/code/payer-index-mono/conversus/specs/045-test-coverage-review/conversus-output/sdet-agent/cross-reviews/functional-programming-guru.md`
+- FP-guru's cross-review of me: `<HOME>/code/payer-index-mono/conversus/specs/045-test-coverage-review/conversus-output/functional-programming-guru/cross-reviews/sdet-agent.md`
 
 **Date:** 2026-04-03
 

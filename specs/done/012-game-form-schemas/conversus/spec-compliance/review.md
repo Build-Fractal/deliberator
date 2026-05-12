@@ -130,13 +130,13 @@ From a compliance standpoint, 7 of 11 FRs are fully met, 2 are partially met, an
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/012-game-form-schemas/spec.md` -- the specification under review
-- `/Users/business-daddy/code/payer-index-mono/conversus/schema/game-forms/normal-form.yml` -- normal form schema file
-- `/Users/business-daddy/code/payer-index-mono/conversus/schema/game-forms/gnep.yml` -- GNEP schema file
-- `/Users/business-daddy/code/payer-index-mono/conversus/schema/game-forms/parametric.yml` -- parametric schema file
-- `/Users/business-daddy/code/payer-index-mono/conversus/schema/game-forms/stackelberg.yml` -- Stackelberg schema file
-- `/Users/business-daddy/code/payer-index-mono/conversus/schema/game-forms/mode-mapping.yml` -- mode-to-form mapping file
-- `/Users/business-daddy/code/payer-index-mono/conversus/src/conversus_schemas/game_forms.py` -- Pydantic model implementation
-- `/Users/business-daddy/code/payer-index-mono/conversus/src/conversus_schemas/__init__.py` -- package exports
-- `/Users/business-daddy/code/payer-index-mono/conversus/tests/test_game_forms.py` -- test suite
-- `/Users/business-daddy/code/payer-index-mono/conversus/pyproject.toml` -- package configuration
+- `<HOME>/code/payer-index-mono/conversus/specs/012-game-form-schemas/spec.md` -- the specification under review
+- `<HOME>/code/payer-index-mono/conversus/schema/game-forms/normal-form.yml` -- normal form schema file
+- `<HOME>/code/payer-index-mono/conversus/schema/game-forms/gnep.yml` -- GNEP schema file
+- `<HOME>/code/payer-index-mono/conversus/schema/game-forms/parametric.yml` -- parametric schema file
+- `<HOME>/code/payer-index-mono/conversus/schema/game-forms/stackelberg.yml` -- Stackelberg schema file
+- `<HOME>/code/payer-index-mono/conversus/schema/game-forms/mode-mapping.yml` -- mode-to-form mapping file
+- `<HOME>/code/payer-index-mono/conversus/src/conversus_schemas/game_forms.py` -- Pydantic model implementation
+- `<HOME>/code/payer-index-mono/conversus/src/conversus_schemas/__init__.py` -- package exports
+- `<HOME>/code/payer-index-mono/conversus/tests/test_game_forms.py` -- test suite
+- `<HOME>/code/payer-index-mono/conversus/pyproject.toml` -- package configuration

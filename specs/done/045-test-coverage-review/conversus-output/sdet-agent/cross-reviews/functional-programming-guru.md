@@ -1,7 +1,7 @@
 # SDET Cross-Review of functional-programming-guru
 
 **Cross-reviewer:** SDET agent
-**Subject review:** `/Users/business-daddy/code/payer-index-mono/conversus/specs/045-test-coverage-review/conversus-output/functional-programming-guru/review.md`
+**Subject review:** `<HOME>/code/payer-index-mono/conversus/specs/045-test-coverage-review/conversus-output/functional-programming-guru/review.md`
 **Round:** 1 cross-review (cooperative deliberation)
 **Date:** 2026-04-03
 
@@ -268,23 +268,23 @@ Nine P0 items. All actionable. All justified from at least one of the two lenses
 
 ## Appendix: cited file paths
 
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/045-test-coverage-review/conversus-output/functional-programming-guru/review.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/045-test-coverage-review/conversus-output/sdet-agent/review.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/engine/config.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/engine/cost.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/engine/errors.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/engine/events.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/engine/models.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/engine/phases.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/engine/_root.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/linter/quality.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/linter/usage.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/tests/test_engine_core.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/tests/test_engine_config.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/tests/test_engine_phases.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/tests/test_linter_classifier.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/tests/test_linter_output_contract.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/tests/test_linter_usage.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/tests/test_linter_quality.py`
+- `<HOME>/code/payer-index-mono/conversus/specs/045-test-coverage-review/conversus-output/functional-programming-guru/review.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/045-test-coverage-review/conversus-output/sdet-agent/review.md`
+- `<HOME>/code/payer-index-mono/conversus/engine/config.py`
+- `<HOME>/code/payer-index-mono/conversus/engine/cost.py`
+- `<HOME>/code/payer-index-mono/conversus/engine/errors.py`
+- `<HOME>/code/payer-index-mono/conversus/engine/events.py`
+- `<HOME>/code/payer-index-mono/conversus/engine/models.py`
+- `<HOME>/code/payer-index-mono/conversus/engine/phases.py`
+- `<HOME>/code/payer-index-mono/conversus/engine/_root.py`
+- `<HOME>/code/payer-index-mono/conversus/linter/quality.py`
+- `<HOME>/code/payer-index-mono/conversus/linter/usage.py`
+- `<HOME>/code/payer-index-mono/conversus/tests/test_engine_core.py`
+- `<HOME>/code/payer-index-mono/conversus/tests/test_engine_config.py`
+- `<HOME>/code/payer-index-mono/conversus/tests/test_engine_phases.py`
+- `<HOME>/code/payer-index-mono/conversus/tests/test_linter_classifier.py`
+- `<HOME>/code/payer-index-mono/conversus/tests/test_linter_output_contract.py`
+- `<HOME>/code/payer-index-mono/conversus/tests/test_linter_usage.py`
+- `<HOME>/code/payer-index-mono/conversus/tests/test_linter_quality.py`
 
 **End of SDET cross-review of functional-programming-guru (Round 1).**

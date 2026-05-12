@@ -331,30 +331,30 @@ I expect divergence on:
 
 All paths absolute:
 
-- `/Users/business-daddy/code/payer-index-mono/conversus/tests/test_engine_core.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/tests/test_engine_phases.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/tests/test_engine_config.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/tests/test_engine_templates.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/tests/test_linter_validate.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/tests/test_linter_usage.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/tests/test_linter_quality.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/tests/test_linter_classifier.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/tests/test_linter_output_contract.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/engine/errors.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/engine/models.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/engine/_root.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/engine/cost.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/engine/events.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/engine/phases.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/engine/config.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/engine/templates.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/linter/validate.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/linter/usage.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/linter/quality.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/linter/question_classifier.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/linter/output_contract.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/linter/models.py` (reference — good patterns to replicate)
-- `/Users/business-daddy/code/payer-index-mono/conversus/conversus/schemas/modes.py` (reference)
-- `/Users/business-daddy/code/payer-index-mono/conversus/conversus/schemas/features.py` (reference)
-- `/Users/business-daddy/code/payer-index-mono/conversus/conversus/plugins/nashopt/payoffs.py` (reference)
-- `/Users/business-daddy/code/payer-index-mono/conversus/tests/test_payoffs.py` (reference)
+- `<HOME>/code/payer-index-mono/conversus/tests/test_engine_core.py`
+- `<HOME>/code/payer-index-mono/conversus/tests/test_engine_phases.py`
+- `<HOME>/code/payer-index-mono/conversus/tests/test_engine_config.py`
+- `<HOME>/code/payer-index-mono/conversus/tests/test_engine_templates.py`
+- `<HOME>/code/payer-index-mono/conversus/tests/test_linter_validate.py`
+- `<HOME>/code/payer-index-mono/conversus/tests/test_linter_usage.py`
+- `<HOME>/code/payer-index-mono/conversus/tests/test_linter_quality.py`
+- `<HOME>/code/payer-index-mono/conversus/tests/test_linter_classifier.py`
+- `<HOME>/code/payer-index-mono/conversus/tests/test_linter_output_contract.py`
+- `<HOME>/code/payer-index-mono/conversus/engine/errors.py`
+- `<HOME>/code/payer-index-mono/conversus/engine/models.py`
+- `<HOME>/code/payer-index-mono/conversus/engine/_root.py`
+- `<HOME>/code/payer-index-mono/conversus/engine/cost.py`
+- `<HOME>/code/payer-index-mono/conversus/engine/events.py`
+- `<HOME>/code/payer-index-mono/conversus/engine/phases.py`
+- `<HOME>/code/payer-index-mono/conversus/engine/config.py`
+- `<HOME>/code/payer-index-mono/conversus/engine/templates.py`
+- `<HOME>/code/payer-index-mono/conversus/linter/validate.py`
+- `<HOME>/code/payer-index-mono/conversus/linter/usage.py`
+- `<HOME>/code/payer-index-mono/conversus/linter/quality.py`
+- `<HOME>/code/payer-index-mono/conversus/linter/question_classifier.py`
+- `<HOME>/code/payer-index-mono/conversus/linter/output_contract.py`
+- `<HOME>/code/payer-index-mono/conversus/linter/models.py` (reference — good patterns to replicate)
+- `<HOME>/code/payer-index-mono/conversus/conversus/schemas/modes.py` (reference)
+- `<HOME>/code/payer-index-mono/conversus/conversus/schemas/features.py` (reference)
+- `<HOME>/code/payer-index-mono/conversus/conversus/plugins/nashopt/payoffs.py` (reference)
+- `<HOME>/code/payer-index-mono/conversus/tests/test_payoffs.py` (reference)

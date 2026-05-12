@@ -86,7 +86,7 @@ Both reviews agree that `form: str = "normal-form"` with no validation allows cr
 
 ### Referenced Documentation
 
-- schema-engineer review: `/Users/business-daddy/code/payer-index-mono/conversus/specs/012-game-form-schemas/conversus/schema-engineer/review.md`
-- spec-compliance review: `/Users/business-daddy/code/payer-index-mono/conversus/specs/012-game-form-schemas/conversus/spec-compliance/review.md`
-- spec: `/Users/business-daddy/code/payer-index-mono/conversus/specs/012-game-form-schemas/spec.md`
-- game_forms.py: `/Users/business-daddy/code/payer-index-mono/conversus/src/conversus_schemas/game_forms.py`
+- schema-engineer review: `<HOME>/code/payer-index-mono/conversus/specs/012-game-form-schemas/conversus/schema-engineer/review.md`
+- spec-compliance review: `<HOME>/code/payer-index-mono/conversus/specs/012-game-form-schemas/conversus/spec-compliance/review.md`
+- spec: `<HOME>/code/payer-index-mono/conversus/specs/012-game-form-schemas/spec.md`
+- game_forms.py: `<HOME>/code/payer-index-mono/conversus/src/conversus_schemas/game_forms.py`

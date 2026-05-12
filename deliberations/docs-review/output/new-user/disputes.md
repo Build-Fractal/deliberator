@@ -17,4 +17,4 @@ However, we achieved strong convergence on the critical factual corrections - li
 
 My non-negotiable positions focus on resolving trust-undermining contradictions and ensuring newcomer success, while showing flexibility on how technical complexity is presented as long as it's appropriately sequenced for the user journey.
 
-The document is written to `/Users/business-daddy/code/conversus-oss/deliberations/docs-review/output/new-user/disputes.md` and ready for the synthesis phase.
+The document is written to `<HOME>/code/conversus-oss/deliberations/docs-review/output/new-user/disputes.md` and ready for the synthesis phase.

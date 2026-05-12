@@ -89,5 +89,5 @@ The CONSTITUTION.md v2.2.0 establishes governance guardrails for conversus, a mu
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/CONSTITUTION.md` — sections cited: L34-45, L86-100, L102-112, L194-217, L241-260, L302-306, L312-335, L337-358, L558-571, L582-583
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/deliberations/constitution-gap-analysis-2026-04-25/recent-changes.md` — sections cited: L10-22, L23-31, L32-41, L42-52, L53-60, L61-72, L73-81, L82-93, L94-105, L106-118, L123-160
+- `<HOME>/code/payer-index-mono/conversus-oss/CONSTITUTION.md` — sections cited: L34-45, L86-100, L102-112, L194-217, L241-260, L302-306, L312-335, L337-358, L558-571, L582-583
+- `<HOME>/code/payer-index-mono/conversus-oss/deliberations/constitution-gap-analysis-2026-04-25/recent-changes.md` — sections cited: L10-22, L23-31, L32-41, L42-52, L53-60, L61-72, L73-81, L82-93, L94-105, L106-118, L123-160
