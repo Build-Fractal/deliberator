@@ -9,7 +9,7 @@
 
 **Admission deliberation:** `deliberations/v4.0.0-tier-extraction-originating-2026-05-06/` Q2 ADMIT-PROVISIONAL.
 
-**Status:** Provisional — admitted via v4.0.0 tier-extraction (2026-05-07); 2 open remediations (XXIV, XXVI). XII closed 2026-05-09 by `linter/dead_infra.py` + CI wiring. V closed 2026-05-11 by cross-mode parametrization in `linter/test_output_contract.py`. XXII closed 2026-05-11 by per-channel vendoring gates in `.github/workflows/distribution-surface-integrity.yml`.
+**Status:** Provisional — admitted via v4.0.0 tier-extraction (2026-05-07); 1 open remediation (XXIV). XII closed 2026-05-09 by `linter/dead_infra.py` + CI wiring. V closed 2026-05-11 by cross-mode parametrization in `linter/test_output_contract.py`. XXII closed 2026-05-11 by per-channel vendoring gates in `.github/workflows/distribution-surface-integrity.yml`. XXVI closed 2026-05-11 by `engine/tests/test_mode_provider_matrix.py`.
 
 **Last re-audit:** 2026-05-07 (post v4.0.0 ratification + blind verification surfaced V/XXIV/XXVI Provisional updates).
 
@@ -60,7 +60,7 @@ These component-tier principles will remain in `conversus-oss/CONSTITUTION.md` a
 | XIX | Non-Extractable Core | Satisfied | OSS engine is the truth; paid layers extend via plugin entry-points, not by reimplementation. |
 | XX | Decomposition Mechanism Precedence | Satisfied | Documented order: plugin entry-point → preset composition → spec-driven mode → constitutional amendment. |
 | XXI | Extraction Ordering | Satisfied | Documented sequence: spec → tests → implementation → templates → docs → constitution. |
-| XXVI | Meta-Testing | Provisional | Parametrized capabilities (modes, presets, providers) have meta-suites (`engine/tests/test_skill_engine.py` parametrizes across all modes; `test_concrete_providers.py` across all providers). **Gap surfaced by 2026-05-06 originating deliberation:** parametrization breadth claimed but not confirmed — does test_skill_engine.py hit every (mode × provider) cell or just cooperative × mock? **Remediation:** confirm cross-product coverage; add missing cells if any (deadline: 2026-08-01). |
+| XXVI | Meta-Testing | Satisfied | `engine/tests/test_mode_provider_matrix.py` (added 2026-05-11) closes the cross-product gap: 8 modes × {`mock`, `demo`} = 16 cell-runnable end-to-end pipeline runs, plus 13 dispatch-only provider instantiation checks covering every other registered provider (`anthropic`, `openai`, `claude-code`, `claude-desktop`, `aider`, `opencode`, `codex`, `copilot`, `gemini`, `pi`, `ollama`, `llama-cpp`, `vllm`). Live LLM calls are excluded per Principle XXV. Source-of-truth meta-assertions tie the parametrize breadth to `conversus.schemas.modes.VALID_MODES` and `engine.execution.providers.PROVIDER_REGISTRY`; adding a new mode or provider without updating the matrix trips the meta-test. **Closed 2026-05-11**. |
 
 ---
 
@@ -72,7 +72,7 @@ These component-tier principles will remain in `conversus-oss/CONSTITUTION.md` a
 | ~~XII (No Dead Infrastructure)~~ | ~~No automated dead-code linter~~ | **CLOSED 2026-05-09**: `linter/dead_infra.py` shipped. Schema variables must reference at least one template OR carry a `consumer:` annotation. CI gate in `.github/workflows/linter-checks.yml`. | ~~2026-07-01~~ | Closed |
 | ~~XXII (Distribution Surface Integrity)~~ | ~~Per-channel vendoring rules not in CI~~ | **CLOSED 2026-05-11**: `.github/workflows/distribution-surface-integrity.yml` shipped. Three SHIP-blocking jobs: `pypi-wheel` (build + clean-venv install + smoke import + force-include assertion + console-script resolution), `mcpb-bundle` (mirror `release-mcpb.yml` vendoring + manifest sync from pyproject + registry, archive structural integrity check), `plugin-marketplace` (JSON structural validation + version/name coherence between marketplace.json and plugin.json). Cross-repo .mcpb bundling with conversus-enhanced remains a follow-on spec gated on conversus-enhanced's own XXII closure. | ~~2026-08-01~~ | Closed |
 | XXIV (Safety-Critical Defense-in-Depth) | Named perimeters not enumerated | Enumerate perimeters + independent guards in CONSTITUTION.md or sibling SAFETY.md | 2026-09-01 | TBD issue |
-| XXVI (Meta-Testing) | (Mode × provider) cross-product coverage not confirmed | Audit test_skill_engine.py parametrization; add missing cells if any | 2026-08-01 | TBD issue |
+| ~~XXVI (Meta-Testing)~~ | ~~(Mode × provider) cross-product coverage not confirmed~~ | **CLOSED 2026-05-11**: `engine/tests/test_mode_provider_matrix.py` exercises 8 modes × {mock, demo} end-to-end (16 cells) plus 13 dispatch-only provider instantiation checks. Source-of-truth assertions pin the matrix to `VALID_MODES` and `PROVIDER_REGISTRY` — any future mode or provider addition without a matrix update trips the meta-test. | ~~2026-08-01~~ | Closed |
 
 ---
 
