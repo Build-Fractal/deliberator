@@ -339,8 +339,16 @@ Per spec 067, Tier 2 principle additions require **originating + self-consistenc
 
 ### 9.5 Ratification
 
-- All deliberation stages passing (with applied fixes) → flip status to `Status: Ratified` + apply file edits per § 6.
-- Update SIR blocks, version footer, CONSTITUTIONAL_CONVERSATIONS.md entries.
+**RATIFIED 2026-05-12.** All three verification stages returned PASS-variant verdicts after applied fixes:
+
+- Originating arbitration (`deliberations/v4.1.0-persistence-contract-discipline-originating-2026-05-11/arbitration/resolution.md`, commit `026b417`): APPROVE-WITH-FIXES ×3 → C1-C8.
+- Self-consistency #1 (Tier 1) (`deliberations/v4.1.0-persistence-contract-discipline-self-consistency-2026-05-12/arbitration/resolution.md`, commit `8f90e2d`): DEMOTE-TO-TIER-2 + FAIL-OVERSTRETCH → 7 Summary-of-Changes items → v3.
+- Self-consistency rerun (Tier 2) (`deliberations/v4.1.0-persistence-contract-discipline-self-consistency-rerun-2026-05-12/arbitration/resolution.md`, commit `a17d13a`): PASS-WITH-CLARIFICATIONS / PASS / PASS-WITH-EDITS → D1-D4 → v4.
+- Blind verification (`deliberations/v4.1.0-persistence-contract-discipline-blind-2026-05-12/arbitration/resolution.md`, commit `109f22f`): IMPLEMENTABLE-WITH-CLARIFICATIONS / MODERATE-RISK-MANAGEABLE / PARTIALLY-COHERENT → E1-E4 → v5 (this document).
+
+**Statement of Inclusion Resolution (SIR):** The v4.1.0 amendment adding Tier 2 Principle XXVIII (Persistence Contract Discipline) to `build-fractal/conversus/CONSTITUTION.md` is RATIFIED as of 2026-05-12. The principle binds all conversus-suite products existing at ratification (per D2 temporal scope). Implementation per § 6: edit `build-fractal/conversus/CONSTITUTION.md` to add Principle XXVIII text; update CONFORMANCE.md Provisional rows in conversus-oss, conversus-enhanced, and spec-kit-orchestrator with 2026-12-01 remediation deadlines.
+
+**Governance log entry:** Added to `build-fractal/conversus/CONSTITUTIONAL_CONVERSATIONS.md` as part of the impl PR. Override-with-rationale was NOT invoked at any ratifying verification stage; the precedent's blind-verification scope remains as established.
 
 ## 10. Conditions
 
@@ -471,9 +479,9 @@ Prior amendment (v4.0.0): tier extraction — see prior SIR block below.
 
 ## 16. Status & next steps
 
-- **Status:** v5 / post-blind / ratification-ready (2026-05-12).
+- **Status:** **Ratified** (v5, 2026-05-12).
 - **Blind verification result:** Q1 IMPLEMENTABLE-WITH-CLARIFICATIONS / Q2 MODERATE-RISK-MANAGEABLE / Q3 PARTIALLY-COHERENT; combined disposition **PROCEED TO RATIFICATION**. Four E-conditions (E1-E4) applied to produce this v5. See `deliberations/v4.1.0-persistence-contract-discipline-blind-2026-05-12/arbitration/resolution.md` and the v4 → v5 changelog above.
-- **Next step:** ratification per § 9.5 — flip status to `Status: Ratified`, apply file edits per § 6, update SIR blocks, version footer, CONSTITUTIONAL_CONVERSATIONS.md entries.
+- **Next step:** implementation PR in `payer-index-mono` (parent monorepo) — adds Tier 2 Principle XXVIII text to `build-fractal/conversus/CONSTITUTION.md` + appends governance log entry to `build-fractal/conversus/CONSTITUTIONAL_CONVERSATIONS.md`. Sibling-product CONFORMANCE.md updates follow as separate PRs in conversus-oss, conversus-enhanced, and spec-kit-orchestrator with 2026-12-01 remediation deadlines.
 
 ## 17. Fix ledger
 
