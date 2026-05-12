@@ -44,6 +44,6 @@ Audited the practitioner's review against my own logical-coherence audit of the 
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/deliberations/069-blind-2026-04-26/practitioner/review.md` — full read, all 10 actionable recommendations cross-checked against my recommendations 1-10.
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/deliberations/069-blind-2026-04-26/skeptic-mathematical/review.md` — own prior review, used as the comparison baseline.
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/deliberations/069-blind-2026-04-26/CONSTITUTION-v2.4.0-blind.md` — Governance section lines 800-846 (gate text), Principles X / XVI / IX / XVIII / XXV cross-referenced for grandfathering boundary disputes.
+- `<HOME>/code/payer-index-mono/conversus-oss/deliberations/069-blind-2026-04-26/practitioner/review.md` — full read, all 10 actionable recommendations cross-checked against my recommendations 1-10.
+- `<HOME>/code/payer-index-mono/conversus-oss/deliberations/069-blind-2026-04-26/skeptic-mathematical/review.md` — own prior review, used as the comparison baseline.
+- `<HOME>/code/payer-index-mono/conversus-oss/deliberations/069-blind-2026-04-26/CONSTITUTION-v2.4.0-blind.md` — Governance section lines 800-846 (gate text), Principles X / XVI / IX / XVIII / XXV cross-referenced for grandfathering boundary disputes.

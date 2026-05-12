@@ -68,36 +68,36 @@ The implementation of spec 024 is **substantially complete and well-structured**
 ### P1 (High Priority)
 
 1. **Add duplicate-producer detection to `_topological_sort_plugins`.** If two plugins at the same hook point both declare the same `produces` key, raise a clear error rather than silently choosing the last one. This enforces the spec's DAG constraint (section 8) and prevents data-corruption bugs.
-   - File: `/Users/business-daddy/code/payer-index-mono/conversus/conversus/plugins/base.py`, function `_topological_sort_plugins` (line 306).
+   - File: `<HOME>/code/payer-index-mono/conversus/conversus/plugins/base.py`, function `_topological_sort_plugins` (line 306).
    - Add: after building the `producers` dict (lines 333-336), check for collisions and raise `PluginDependencyCycleError` or a new `DuplicateProducerError`.
 
 2. **Add a test asserting that the Kalman path receives 3D observations end-to-end.** Current SC-001 test only checks that the predictor returns a valid prediction when the scorer runs first. Add an assertion on `results[1].data["method"] == "kalman"` or mock `_build_observation_sequence` to capture its `equilibrium_scores` argument.
-   - File: `/Users/business-daddy/code/payer-index-mono/conversus/tests/test_cross_plugin.py`, class `TestSC001ConvergencePredictorUsesEqScore`.
+   - File: `<HOME>/code/payer-index-mono/conversus/tests/test_cross_plugin.py`, class `TestSC001ConvergencePredictorUsesEqScore`.
 
 3. **Document `plugin_results` lifetime explicitly.** Add a note to the `execute_hooks` docstring or the spec clarifying that `plugin_results` is scoped to a single hook invocation (not accumulated across hooks). This prevents future consumers from assuming cross-hook availability.
-   - File: `/Users/business-daddy/code/payer-index-mono/conversus/conversus/plugins/base.py`, function `execute_hooks` docstring (line 401).
+   - File: `<HOME>/code/payer-index-mono/conversus/conversus/plugins/base.py`, function `execute_hooks` docstring (line 401).
 
 ### P2 (Medium Priority)
 
 4. **Accumulate historical equilibrium scores for multi-round trend analysis.** The predictor currently receives only the current round's score (predictor.py:261). Consider having the engine pass prior `plugin_results` from previous rounds via the state's `history` or a new `historical_plugin_results` field, so that `_equilibrium_trend` can compute a meaningful slope.
-   - Files: `/Users/business-daddy/code/payer-index-mono/conversus/conversus/plugins/base.py` (DeliberationState), `/Users/business-daddy/code/payer-index-mono/conversus/conversus/plugins/nashopt/predictor.py`.
+   - Files: `<HOME>/code/payer-index-mono/conversus/conversus/plugins/base.py` (DeliberationState), `<HOME>/code/payer-index-mono/conversus/conversus/plugins/nashopt/predictor.py`.
 
 5. **Add a test for multiple producers feeding a single consumer.** The `MultiProducerPlugin`/`MultiConsumerPlugin` helpers exist (test_cross_plugin.py:128-155) and the topological sort test covers ordering (test_cross_plugin.py:397-404), but there is no `execute_hooks` integration test verifying that both `alpha` and `beta` values propagate through `plugin_results` to the consumer.
-   - File: `/Users/business-daddy/code/payer-index-mono/conversus/tests/test_cross_plugin.py`, add a new test in `TestExecuteHooksCrossPlugin`.
+   - File: `<HOME>/code/payer-index-mono/conversus/tests/test_cross_plugin.py`, add a new test in `TestExecuteHooksCrossPlugin`.
 
 6. **Consider using plugin name instead of `id(p)` in the topological sort.** Replace `id(p)` keys in `plugin_index`, `predecessors`, `successors`, and `in_degree` with `p.name` for readability and stability. Plugin names are already required to be unique non-empty strings by the `__init_subclass__` validation.
-   - File: `/Users/business-daddy/code/payer-index-mono/conversus/conversus/plugins/base.py`, function `_topological_sort_plugins` (lines 340-392).
+   - File: `<HOME>/code/payer-index-mono/conversus/conversus/plugins/base.py`, function `_topological_sort_plugins` (lines 340-392).
    - Caveat: Plugin names are unique per class but not validated unique per instance at runtime. If two instances of the same class can coexist, `id()` is actually correct. Validate uniqueness first.
 
 ### P3 (Low Priority)
 
 7. **Add a negative test for a plugin that declares `produces` but omits the key from `result.data`.** Currently, if a producer declares `produces = ["foo"]` but returns `data={}`, the key silently stays absent from `plugin_results` (base.py:476: `if key in result.data`). This is arguably correct (graceful degradation) but a warning log would aid debugging.
-   - File: `/Users/business-daddy/code/payer-index-mono/conversus/conversus/plugins/base.py`, line 476.
+   - File: `<HOME>/code/payer-index-mono/conversus/conversus/plugins/base.py`, line 476.
 
 8. **Consider a `PluginManifest` frozen dataclass for declarations.** Rather than class-level list attributes, a `manifest: PluginManifest` field with `produces`, `consumes`, `hooks`, and `name` would make the contract more explicit, enable schema validation, and simplify serialization for future tooling.
 
 9. **Test cycle detection with 3+ plugins in a chain.** Current cycle test covers a simple A<->B cycle. Add a test with A->B->C->A to verify Kahn's algorithm handles longer cycles.
-   - File: `/Users/business-daddy/code/payer-index-mono/conversus/tests/test_cross_plugin.py`.
+   - File: `<HOME>/code/payer-index-mono/conversus/tests/test_cross_plugin.py`.
 
 10. **Spec section 8 states "This spec adds declarations to the Plugin ABC. It does NOT implement the orchestration layer (#6/ORC)."** But the implementation does wire orchestration logic in `execute_hooks`. This is strictly beyond spec scope -- it works correctly, but the spec should be updated to reflect that orchestration was implemented inline rather than deferred.
 
@@ -105,11 +105,11 @@ The implementation of spec 024 is **substantially complete and well-structured**
 
 ## Referenced Documentation
 
-- **Spec**: `/Users/business-daddy/code/payer-index-mono/conversus/specs/024-cross-plugin-interfaces/spec.md`
-- **Plugin ABC**: `/Users/business-daddy/code/payer-index-mono/conversus/conversus/plugins/base.py`
-- **EquilibriumScorer**: `/Users/business-daddy/code/payer-index-mono/conversus/conversus/plugins/nashopt/scorer.py`
-- **ConvergencePredictor**: `/Users/business-daddy/code/payer-index-mono/conversus/conversus/plugins/nashopt/predictor.py`
-- **Convergence functions**: `/Users/business-daddy/code/payer-index-mono/conversus/conversus/plugins/nashopt/convergence.py`
-- **ConfigOptimizer**: `/Users/business-daddy/code/payer-index-mono/conversus/conversus/plugins/optimizer/optimizer.py`
-- **ScenarioPlugin**: `/Users/business-daddy/code/payer-index-mono/conversus/conversus/plugins/scenarios/plugin.py`
-- **Tests**: `/Users/business-daddy/code/payer-index-mono/conversus/tests/test_cross_plugin.py`
+- **Spec**: `<HOME>/code/payer-index-mono/conversus/specs/024-cross-plugin-interfaces/spec.md`
+- **Plugin ABC**: `<HOME>/code/payer-index-mono/conversus/conversus/plugins/base.py`
+- **EquilibriumScorer**: `<HOME>/code/payer-index-mono/conversus/conversus/plugins/nashopt/scorer.py`
+- **ConvergencePredictor**: `<HOME>/code/payer-index-mono/conversus/conversus/plugins/nashopt/predictor.py`
+- **Convergence functions**: `<HOME>/code/payer-index-mono/conversus/conversus/plugins/nashopt/convergence.py`
+- **ConfigOptimizer**: `<HOME>/code/payer-index-mono/conversus/conversus/plugins/optimizer/optimizer.py`
+- **ScenarioPlugin**: `<HOME>/code/payer-index-mono/conversus/conversus/plugins/scenarios/plugin.py`
+- **Tests**: `<HOME>/code/payer-index-mono/conversus/tests/test_cross_plugin.py`

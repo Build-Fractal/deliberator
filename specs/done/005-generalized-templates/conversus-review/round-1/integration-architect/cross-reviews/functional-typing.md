@@ -131,11 +131,11 @@ functional-typing's Recommendation 9 (P3) calls out the spec's inconsistent use 
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/005-generalized-templates/conversus-review/functional-typing/review.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/005-generalized-templates/conversus-review/integration-architect/review.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/linter/models.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/linter/validate.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/005-generalized-templates/spec.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/006-inter-round-arbitration/spec.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/008-executable-conversus/001-executable-conversus.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/SKILL.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/005-generalized-templates/conversus-review/functional-typing/review.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/005-generalized-templates/conversus-review/integration-architect/review.md`
+- `<HOME>/code/payer-index-mono/conversus/linter/models.py`
+- `<HOME>/code/payer-index-mono/conversus/linter/validate.py`
+- `<HOME>/code/payer-index-mono/conversus/specs/005-generalized-templates/spec.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/006-inter-round-arbitration/spec.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/008-executable-conversus/001-executable-conversus.md`
+- `<HOME>/code/payer-index-mono/conversus/SKILL.md`

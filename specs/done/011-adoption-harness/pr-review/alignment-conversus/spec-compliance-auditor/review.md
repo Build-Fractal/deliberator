@@ -76,31 +76,31 @@ The engine is a faithful extraction of SKILL.md as it existed before specs 006-0
 
 The SKILL.md config schema now includes `timing` (default: `final`, values: `final | inter-round`) and `influence` (default: `binding`, values: `binding | recommended | advisory`). Add these fields with defaults matching SKILL.md. Add the inter-round / rounds > 1 cross-validation rule: "arbiter.timing: inter-round requires rounds > 1."
 
-File: `/Users/business-daddy/code/payer-index-mono/conversus/engine/config.py`, class `ArbiterConfig`
+File: `<HOME>/code/payer-index-mono/conversus/engine/config.py`, class `ArbiterConfig`
 
 **R02. Pass `INFLUENCE_LEVEL` in `build_arbitration_context()`**
 
 The `ArbitrationContext` model already has `INFLUENCE_LEVEL: InfluenceLevel` with a default of `binding`. The engine must read the influence from the parsed config and pass it explicitly. Currently, the arbitration templates receive `{INFLUENCE_LEVEL}` = `binding` regardless of config. After R01, read `config.arbiter.influence` and pass it as `INFLUENCE_LEVEL=InfluenceLevel(config.arbiter.influence)`.
 
-File: `/Users/business-daddy/code/payer-index-mono/conversus/engine/templates.py`, function `build_arbitration_context()`
+File: `<HOME>/code/payer-index-mono/conversus/engine/templates.py`, function `build_arbitration_context()`
 
 **R03. Fix arbiter output directory name: `arbiter/` to `arbitration/`**
 
 SKILL.md uses `arbitration/` everywhere. The engine uses `arbiter/`. This causes a path mismatch for any consumer of the output (including `/conversus arbitrate` and any tests that check output paths against SKILL.md conventions). Rename `arbiter/` to `arbitration/` in `OutputManager` methods: `create_phase1_dirs()`, `get_arbitration_path()`, `_FLAT_LAYOUT_DIRS`, and the directory layout docstring.
 
-File: `/Users/business-daddy/code/payer-index-mono/conversus/engine/output.py`
+File: `<HOME>/code/payer-index-mono/conversus/engine/output.py`
 
 **R04. Populate `PRIOR_ARBITRATION_SECTION` in review context builders**
 
 All four review templates include `{PRIOR_ARBITRATION_SECTION}`. The engine always leaves this empty. For round 2+ when prior arbitration exists, the engine should compose the influence-aware block per SKILL.md: binding = "arbiter has issued binding rulings... MUST treat as settled", recommended = "should adopt unless counter-evidence", advisory = "consider their reasoning... not bound". This requires R01 (influence field on config).
 
-File: `/Users/business-daddy/code/payer-index-mono/conversus/engine/templates.py`, function `build_review_context()`
+File: `<HOME>/code/payer-index-mono/conversus/engine/templates.py`, function `build_review_context()`
 
 **R05. Populate `PRIOR_ROUND_SECTION` in review context builders**
 
 The engine always sets `PRIOR_ROUND_SECTION=""`. For round 2+, SKILL.md specifies this should expand to a block including the prior synthesis path and engagement instructions. The engine passes `PRIOR_SYNTHESIS_PATH` separately, but if templates reference `{PRIOR_ROUND_SECTION}` as a composite block, they get nothing.
 
-File: `/Users/business-daddy/code/payer-index-mono/conversus/engine/templates.py`, function `build_review_context()`
+File: `<HOME>/code/payer-index-mono/conversus/engine/templates.py`, function `build_review_context()`
 
 ### P2 -- Functional Gaps (Not Crashes, But Missing Behavior)
 
@@ -108,19 +108,19 @@ File: `/Users/business-daddy/code/payer-index-mono/conversus/engine/templates.py
 
 SKILL.md specifies that when `arbiter.timing: inter-round`, Phase 6 fires after each round's Phase 5 (before the termination check). The engine only runs arbitration after the final round. After R01 adds the timing field, add conditional inter-round arbitration dispatch inside the round loop, between the single-round result and the stagnation/convergence check. This is a significant feature addition.
 
-File: `/Users/business-daddy/code/payer-index-mono/conversus/engine/phases.py`, function `run_pipeline()`
+File: `<HOME>/code/payer-index-mono/conversus/engine/phases.py`, function `run_pipeline()`
 
 **R07. Implement influence-aware dispute counting for termination**
 
 SKILL.md specifies that after inter-round arbitration: binding subtracts addressed disputes from the count, recommended subtracts provisionally, advisory does not adjust. The engine's termination check uses raw dispute count from `check_disagreement()` with no adjustment. This requires R06 first.
 
-File: `/Users/business-daddy/code/payer-index-mono/conversus/engine/phases.py`, function `run_pipeline()`
+File: `<HOME>/code/payer-index-mono/conversus/engine/phases.py`, function `run_pipeline()`
 
 **R08. Warn on unknown config fields (`timing`, `influence`)**
 
 Until R01 is implemented, `parse_config()` silently ignores `timing` and `influence` fields in the arbiter section. Add a warning (not an error) when the raw YAML contains known SKILL.md fields that the engine does not yet support, so users know their config is not fully honored.
 
-File: `/Users/business-daddy/code/payer-index-mono/conversus/engine/config.py`, function `parse_config()`
+File: `<HOME>/code/payer-index-mono/conversus/engine/config.py`, function `parse_config()`
 
 ### P3 -- Documentation / Future-Proofing
 
@@ -128,26 +128,26 @@ File: `/Users/business-daddy/code/payer-index-mono/conversus/engine/config.py`, 
 
 The engine handles `run` only. Specs 007-011 added 6 new subcommands to SKILL.md. Document in the engine's module docstring or a README that these subcommands are SKILL.md-native (run in-conversation) and not yet engine-routed. This prevents future contributors from assuming the engine should handle `/conversus define` etc.
 
-File: `/Users/business-daddy/code/payer-index-mono/conversus/engine/__init__.py`
+File: `<HOME>/code/payer-index-mono/conversus/engine/__init__.py`
 
 **R10. Validate `PRIOR_ARBITRATION_SECTION` template references against engine population**
 
 Add a test that verifies: for each template that references `{PRIOR_ARBITRATION_SECTION}`, the engine's context builder provides a non-empty value when prior arbitration exists (round 2+ with arbiter.timing: inter-round). Currently this would fail, confirming the gap. After R04, the test should pass.
 
-File: New test in `/Users/business-daddy/code/payer-index-mono/conversus/engine/tests/`
+File: New test in `<HOME>/code/payer-index-mono/conversus/engine/tests/`
 
 ---
 
 ## Referenced Documentation
 
-- **SKILL.md** (merged, post-specs 006-013): `/Users/business-daddy/code/payer-index-mono/conversus/SKILL.md` -- the authoritative spec for engine behavior, including subcommand dispatch, guided workflow, inter-round arbitration, and phase consensus gates.
-- **STATUS.md**: `/Users/business-daddy/code/payer-index-mono/conversus/specs/STATUS.md` -- spec 006 is "Not started" (inter-round arbitration), specs 007-011 are "Implementation-complete" (SKILL.md only), specs 012-013 are "Not started" (schema packages).
-- **Engine config**: `/Users/business-daddy/code/payer-index-mono/conversus/engine/config.py` -- `ArbiterConfig` lacks `timing` and `influence` fields.
-- **Engine templates**: `/Users/business-daddy/code/payer-index-mono/conversus/engine/templates.py` -- `build_arbitration_context()` does not pass `INFLUENCE_LEVEL`; `build_review_context()` does not populate `PRIOR_ARBITRATION_SECTION` or `PRIOR_ROUND_SECTION`.
-- **Engine output**: `/Users/business-daddy/code/payer-index-mono/conversus/engine/output.py` -- uses `arbiter/` directory name vs SKILL.md's `arbitration/`.
-- **Engine pipeline**: `/Users/business-daddy/code/payer-index-mono/conversus/engine/phases.py` -- no inter-round arbitration, no influence-aware dispute counting.
-- **Linter models**: `/Users/business-daddy/code/payer-index-mono/conversus/linter/models.py` -- already declares `InfluenceLevel`, `ArbiterTiming` enums, and `INFLUENCE_LEVEL` field on `ArbitrationContext`.
-- **Schema variables**: `/Users/business-daddy/code/payer-index-mono/conversus/schema/variables.yml` -- already declares `INFLUENCE_LEVEL` and `PRIOR_ARBITRATION_SECTION` as valid template variables.
-- **Templates**: `/Users/business-daddy/code/payer-index-mono/conversus/templates/cooperative/arbitration.md` (and all other modes) -- reference `{INFLUENCE_LEVEL}`. Review templates reference `{PRIOR_ARBITRATION_SECTION}`.
-- **Spec 011 (adoption harness)**: `/Users/business-daddy/code/payer-index-mono/conversus/specs/011-adoption-harness/spec.md` -- FR-005 (engine sub-phases), FR-027 (backward compatibility), FR-028 (power-user workflows).
-- **Spec 011 alignment check**: `/Users/business-daddy/code/payer-index-mono/conversus/specs/011-adoption-harness/pr-review/alignment-check.md` -- the 7 key questions this review answers.
+- **SKILL.md** (merged, post-specs 006-013): `<HOME>/code/payer-index-mono/conversus/SKILL.md` -- the authoritative spec for engine behavior, including subcommand dispatch, guided workflow, inter-round arbitration, and phase consensus gates.
+- **STATUS.md**: `<HOME>/code/payer-index-mono/conversus/specs/STATUS.md` -- spec 006 is "Not started" (inter-round arbitration), specs 007-011 are "Implementation-complete" (SKILL.md only), specs 012-013 are "Not started" (schema packages).
+- **Engine config**: `<HOME>/code/payer-index-mono/conversus/engine/config.py` -- `ArbiterConfig` lacks `timing` and `influence` fields.
+- **Engine templates**: `<HOME>/code/payer-index-mono/conversus/engine/templates.py` -- `build_arbitration_context()` does not pass `INFLUENCE_LEVEL`; `build_review_context()` does not populate `PRIOR_ARBITRATION_SECTION` or `PRIOR_ROUND_SECTION`.
+- **Engine output**: `<HOME>/code/payer-index-mono/conversus/engine/output.py` -- uses `arbiter/` directory name vs SKILL.md's `arbitration/`.
+- **Engine pipeline**: `<HOME>/code/payer-index-mono/conversus/engine/phases.py` -- no inter-round arbitration, no influence-aware dispute counting.
+- **Linter models**: `<HOME>/code/payer-index-mono/conversus/linter/models.py` -- already declares `InfluenceLevel`, `ArbiterTiming` enums, and `INFLUENCE_LEVEL` field on `ArbitrationContext`.
+- **Schema variables**: `<HOME>/code/payer-index-mono/conversus/schema/variables.yml` -- already declares `INFLUENCE_LEVEL` and `PRIOR_ARBITRATION_SECTION` as valid template variables.
+- **Templates**: `<HOME>/code/payer-index-mono/conversus/templates/cooperative/arbitration.md` (and all other modes) -- reference `{INFLUENCE_LEVEL}`. Review templates reference `{PRIOR_ARBITRATION_SECTION}`.
+- **Spec 011 (adoption harness)**: `<HOME>/code/payer-index-mono/conversus/specs/011-adoption-harness/spec.md` -- FR-005 (engine sub-phases), FR-027 (backward compatibility), FR-028 (power-user workflows).
+- **Spec 011 alignment check**: `<HOME>/code/payer-index-mono/conversus/specs/011-adoption-harness/pr-review/alignment-check.md` -- the 7 key questions this review answers.

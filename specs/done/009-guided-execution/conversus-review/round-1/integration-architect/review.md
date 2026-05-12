@@ -148,8 +148,8 @@ The spec states (FR-001): "estimated agent launches." The implementation compute
 
 ## Referenced Documentation
 
-- **Spec**: `/Users/business-daddy/code/payer-index-mono/conversus/specs/009-guided-execution/spec.md` -- 10 FRs, 4 SCs, 2 constraints
-- **Implementation**: `/Users/business-daddy/code/payer-index-mono/conversus/SKILL.md` -- Converge handler at lines 1326-1508; dispatch table at lines 20-39; run engine at lines 44-745; dispute-parsing subsystem at lines 747-774; define handler at lines 778-927; interests handler at lines 930-1105; mode handler at lines 1108-1323
+- **Spec**: `<HOME>/code/payer-index-mono/conversus/specs/009-guided-execution/spec.md` -- 10 FRs, 4 SCs, 2 constraints
+- **Implementation**: `<HOME>/code/payer-index-mono/conversus/SKILL.md` -- Converge handler at lines 1326-1508; dispatch table at lines 20-39; run engine at lines 44-745; dispute-parsing subsystem at lines 747-774; define handler at lines 778-927; interests handler at lines 930-1105; mode handler at lines 1108-1323
 - **Dispatch table**: SKILL.md lines 24-31 -- `converge` routes to `Converge: Guided Execution` anchor
 - **Future subcommands**: SKILL.md line 34 -- `arbitrate` and `gate` listed as not yet implemented
 - **Agent launch formula**: SKILL.md lines 1402-1406 -- `per_round_agents = N + iterations * (N*(N-1) + N) + N + 1`

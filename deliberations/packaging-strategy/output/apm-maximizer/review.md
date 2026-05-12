@@ -29,4 +29,4 @@ I have completed my mechanism design analysis as the **apm-maximizer** agent. Th
 
 The analysis grounds every recommendation in the technical documentation, particularly APM's proven sub-skill promotion system that already handles similar decomposition problems in conversus's existing 2200+ line SKILL.md.
 
-The complete analysis with detailed incentive properties, vulnerability assessments, and 8 prioritized recommendations has been written to `/Users/business-daddy/code/conversus-oss/deliberations/packaging-strategy/output/apm-maximizer/review.md`.
+The complete analysis with detailed incentive properties, vulnerability assessments, and 8 prioritized recommendations has been written to `<HOME>/code/conversus-oss/deliberations/packaging-strategy/output/apm-maximizer/review.md`.

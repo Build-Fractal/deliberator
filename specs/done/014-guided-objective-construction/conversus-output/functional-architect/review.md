@@ -114,10 +114,10 @@ Verify that while `gap_list.gaps = [...]` raises `AttributeError`, `gap_list.gap
 
 ## Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/014-guided-objective-construction/spec.md` -- Feature specification, functional requirements FR-001 through FR-023, success criteria SC-001 through SC-005.
-- `/Users/business-daddy/code/payer-index-mono/conversus/conversus/schemas/construction.py` -- Implementation under review.
-- `/Users/business-daddy/code/payer-index-mono/conversus/tests/test_construction.py` -- Test suite under review.
-- `/Users/business-daddy/code/payer-index-mono/conversus/conversus/schemas/game_forms.py` -- Reference pattern for Pydantic models, mixin validation, mode mapping.
-- `/Users/business-daddy/code/payer-index-mono/conversus/conversus/schemas/objectives.py` -- Reference pattern for parameter validation, frozenset constants, cross-field invariants.
-- `/Users/business-daddy/code/payer-index-mono/conversus/conversus/schemas/extraction.py` -- Reference pattern for pipeline architecture, logging, `write_features` as standalone I/O function.
-- `/Users/business-daddy/code/payer-index-mono/conversus/conversus/schemas/__init__.py` -- Public API surface for the schemas package.
+- `<HOME>/code/payer-index-mono/conversus/specs/014-guided-objective-construction/spec.md` -- Feature specification, functional requirements FR-001 through FR-023, success criteria SC-001 through SC-005.
+- `<HOME>/code/payer-index-mono/conversus/conversus/schemas/construction.py` -- Implementation under review.
+- `<HOME>/code/payer-index-mono/conversus/tests/test_construction.py` -- Test suite under review.
+- `<HOME>/code/payer-index-mono/conversus/conversus/schemas/game_forms.py` -- Reference pattern for Pydantic models, mixin validation, mode mapping.
+- `<HOME>/code/payer-index-mono/conversus/conversus/schemas/objectives.py` -- Reference pattern for parameter validation, frozenset constants, cross-field invariants.
+- `<HOME>/code/payer-index-mono/conversus/conversus/schemas/extraction.py` -- Reference pattern for pipeline architecture, logging, `write_features` as standalone I/O function.
+- `<HOME>/code/payer-index-mono/conversus/conversus/schemas/__init__.py` -- Public API surface for the schemas package.

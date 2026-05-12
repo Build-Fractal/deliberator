@@ -14,4 +14,4 @@ Key changes in my thinking:
 - **Added** new recommendations for migration guidance and conditional availability indicators
 - **Maintained** factual corrections like CLI command counts that remain uncontested
 
-The revision is written to `/Users/business-daddy/code/conversus-oss/deliberations/docs-review/output/code-verifier/revision.md` and ready for the next phase.
+The revision is written to `<HOME>/code/conversus-oss/deliberations/docs-review/output/code-verifier/revision.md` and ready for the next phase.

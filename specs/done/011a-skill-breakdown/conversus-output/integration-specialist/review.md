@@ -88,8 +88,8 @@ The most dangerous decomposition boundary would be one that separates the run en
 
 ## Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus/SKILL.md` (lines 1-2199 — the decomposition target)
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/011a-skill-breakdown/spec.md` (the decomposition problem statement)
-- `/Users/business-daddy/code/payer-index-mono/conversus/README.md` (architectural invariants, competition modes, process phases, directory structure)
-- `/Users/business-daddy/code/payer-index-mono/conversus/schema/variables.yml` (template variable contract — stable seam evidence)
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/011a-skill-breakdown/conversus.yml` (deliberation configuration for this run)
+- `<HOME>/code/payer-index-mono/conversus/SKILL.md` (lines 1-2199 — the decomposition target)
+- `<HOME>/code/payer-index-mono/conversus/specs/011a-skill-breakdown/spec.md` (the decomposition problem statement)
+- `<HOME>/code/payer-index-mono/conversus/README.md` (architectural invariants, competition modes, process phases, directory structure)
+- `<HOME>/code/payer-index-mono/conversus/schema/variables.yml` (template variable contract — stable seam evidence)
+- `<HOME>/code/payer-index-mono/conversus/specs/011a-skill-breakdown/conversus.yml` (deliberation configuration for this run)

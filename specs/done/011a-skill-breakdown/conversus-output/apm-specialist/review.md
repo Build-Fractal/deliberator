@@ -72,10 +72,10 @@ However, the overhead calculus matters. Conversus is currently used by one proje
 
 ## Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus/SKILL.md` — the monolithic skill specification under review (2215 lines)
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/011a-skill-breakdown/spec.md` — the spec motivating this review
-- `/Users/business-daddy/code/payer-index-mono/apm/docs/src/content/docs/guides/skills.md` — APM skills guide: sub-skill promotion, SKILL.md format, bundled resources, multi-skill packages
-- `/Users/business-daddy/code/payer-index-mono/apm/docs/src/content/docs/guides/compilation.md` — APM compilation guide: context optimization, `applyTo` placement, instruction distribution scoring
-- `/Users/business-daddy/code/payer-index-mono/apm/docs/src/content/docs/introduction/key-concepts.md` — APM key concepts: primitive types (instructions, agents, skills, context, hooks), context linking, discovery
-- `/Users/business-daddy/code/payer-index-mono/conversus/README.md` — conversus overview: game theory framework, competition modes, architectural invariant
-- `/Users/business-daddy/code/payer-index-mono/conversus/apm.yml` — current APM manifest: `type: skill`, `target: all`, version 0.1.0
+- `<HOME>/code/payer-index-mono/conversus/SKILL.md` — the monolithic skill specification under review (2215 lines)
+- `<HOME>/code/payer-index-mono/conversus/specs/011a-skill-breakdown/spec.md` — the spec motivating this review
+- `<HOME>/code/payer-index-mono/apm/docs/src/content/docs/guides/skills.md` — APM skills guide: sub-skill promotion, SKILL.md format, bundled resources, multi-skill packages
+- `<HOME>/code/payer-index-mono/apm/docs/src/content/docs/guides/compilation.md` — APM compilation guide: context optimization, `applyTo` placement, instruction distribution scoring
+- `<HOME>/code/payer-index-mono/apm/docs/src/content/docs/introduction/key-concepts.md` — APM key concepts: primitive types (instructions, agents, skills, context, hooks), context linking, discovery
+- `<HOME>/code/payer-index-mono/conversus/README.md` — conversus overview: game theory framework, competition modes, architectural invariant
+- `<HOME>/code/payer-index-mono/conversus/apm.yml` — current APM manifest: `type: skill`, `target: all`, version 0.1.0

@@ -74,10 +74,10 @@ The missed opportunity is in the subdirectories. The `templates/`, `presets/`, `
 
 ## Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus/SKILL.md` — the monolithic execution specification (2216 lines, 119KB)
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/011a-skill-breakdown/spec.md` — the decomposition spec triggering this review
-- `/Users/business-daddy/code/payer-index-mono/conversus/references/agents-md.md` — the agents.md community standard reference
-- `/Users/business-daddy/code/payer-index-mono/conversus/README.md` — human-facing documentation for conversus
-- `/Users/business-daddy/code/payer-index-mono/conversus/AGENTS.md` — the existing agents.md file (51 lines)
-- `/Users/business-daddy/code/payer-index-mono/conversus/CLAUDE.md` — auto-generated project context
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/011a-skill-breakdown/conversus.yml` — the deliberation configuration for this review
+- `<HOME>/code/payer-index-mono/conversus/SKILL.md` — the monolithic execution specification (2216 lines, 119KB)
+- `<HOME>/code/payer-index-mono/conversus/specs/011a-skill-breakdown/spec.md` — the decomposition spec triggering this review
+- `<HOME>/code/payer-index-mono/conversus/references/agents-md.md` — the agents.md community standard reference
+- `<HOME>/code/payer-index-mono/conversus/README.md` — human-facing documentation for conversus
+- `<HOME>/code/payer-index-mono/conversus/AGENTS.md` — the existing agents.md file (51 lines)
+- `<HOME>/code/payer-index-mono/conversus/CLAUDE.md` — auto-generated project context
+- `<HOME>/code/payer-index-mono/conversus/specs/011a-skill-breakdown/conversus.yml` — the deliberation configuration for this review

@@ -10,4 +10,4 @@ I've completed my cross-review of the information-architect's review. The analys
 
 **Path Forward**: The contradictions are resolvable through compromise - using Developer Guide placement with minimal curation (3 specs max) and basic information scent without detailed summaries.
 
-The cross-review has been written to `/Users/business-daddy/code/conversus-oss/deliberations/docs-specs-integration/output/minimalist/cross-reviews/information-architect.md` with detailed analysis of 3 dangerous contradictions, 4 productive tensions, and 4 safe agreements that can anchor the final synthesis.
+The cross-review has been written to `<HOME>/code/conversus-oss/deliberations/docs-specs-integration/output/minimalist/cross-reviews/information-architect.md` with detailed analysis of 3 dangerous contradictions, 4 productive tensions, and 4 safe agreements that can anchor the final synthesis.

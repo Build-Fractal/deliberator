@@ -2,7 +2,7 @@
 
 **Role**: strictness-skeptic
 **Methodology**: self-consistency (v2.4.0 markers visible)
-**Target**: `/Users/business-daddy/code/payer-index-mono/conversus-oss/deliberations/069-self-consistency-2026-04-26/CONSTITUTION-v2.4.0-candidate.md`
+**Target**: `<HOME>/code/payer-index-mono/conversus-oss/deliberations/069-self-consistency-2026-04-26/CONSTITUTION-v2.4.0-candidate.md`
 **Position**: The proposed gate is too strict and structurally mis-calibrated. It would have rejected principles that have empirically generated value, and as written it will systematically push qualitative-but-essential invariants out of the constitution and into operational guidance — where they will drift, degrade, and disappear.
 
 ---
@@ -193,7 +193,7 @@ Add a final sentence to the §Governance Constitutional Inclusion Criteria block
 
 ### Referenced Documentation
 
-- **Target document**: `/Users/business-daddy/code/payer-index-mono/conversus-oss/deliberations/069-self-consistency-2026-04-26/CONSTITUTION-v2.4.0-candidate.md` (lines 872–905 for the new gate; lines 146–159 for VI; lines 278–296 for X; lines 448–478 for XVI; lines 627–826 for the v2.3.0 additions XXII–XXVII as calibration anchors)
+- **Target document**: `<HOME>/code/payer-index-mono/conversus-oss/deliberations/069-self-consistency-2026-04-26/CONSTITUTION-v2.4.0-candidate.md` (lines 872–905 for the new gate; lines 146–159 for VI; lines 278–296 for X; lines 448–478 for XVI; lines 627–826 for the v2.3.0 additions XXII–XXVII as calibration anchors)
 - **Spec 069 §5 worked-examples analysis** (referenced in the prompt, asserts 3 of 27 grandfathered principles fail the gate)
 - **v2.3.0 Sync Impact Report** (lines 23–60 of target) documenting the 6-new-principles + 2-extensions amendment that this gate would have filtered
 - **v2.3.1 Sync Impact Report** (lines 1–21) documenting the XV/XXVII coordination clarification — used here as evidence that explicit coordination between principles has constitutional value the gate undervalues

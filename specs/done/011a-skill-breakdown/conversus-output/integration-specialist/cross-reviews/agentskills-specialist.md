@@ -96,8 +96,8 @@ Both reviews agree that the subcommand dispatch table (lines 22-44) should remai
 
 ## Referenced Documentation
 
-- agentskills-specialist review: `/Users/business-daddy/code/payer-index-mono/conversus/specs/011a-skill-breakdown/conversus-output/agentskills-specialist/review.md`
-- integration-specialist review: `/Users/business-daddy/code/payer-index-mono/conversus/specs/011a-skill-breakdown/conversus-output/integration-specialist/review.md`
-- Target SKILL.md: `/Users/business-daddy/code/payer-index-mono/conversus/SKILL.md`
-- Spec 011a: `/Users/business-daddy/code/payer-index-mono/conversus/specs/011a-skill-breakdown/spec.md`
-- Conversus README: `/Users/business-daddy/code/payer-index-mono/conversus/README.md`
+- agentskills-specialist review: `<HOME>/code/payer-index-mono/conversus/specs/011a-skill-breakdown/conversus-output/agentskills-specialist/review.md`
+- integration-specialist review: `<HOME>/code/payer-index-mono/conversus/specs/011a-skill-breakdown/conversus-output/integration-specialist/review.md`
+- Target SKILL.md: `<HOME>/code/payer-index-mono/conversus/SKILL.md`
+- Spec 011a: `<HOME>/code/payer-index-mono/conversus/specs/011a-skill-breakdown/spec.md`
+- Conversus README: `<HOME>/code/payer-index-mono/conversus/README.md`

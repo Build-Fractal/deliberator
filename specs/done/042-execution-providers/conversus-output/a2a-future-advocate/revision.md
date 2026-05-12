@@ -260,13 +260,13 @@ That is the honest version of the position, and it is the one I am defending in 
 ---
 
 **Files referenced**:
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/042-execution-providers/spec.md` (§2, §3, §4, §11, §12)
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/042-execution-providers/research/tool-landscape.md` (§14, §Candidate B, §Candidate C)
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/048-autonomous-governance-mode/spec.md` (§3.1, §5.1, §6, §10 Q4/Q8, §11, FR-021)
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/042-execution-providers/conversus-output/a2a-future-advocate/review.md` (Round 1 original)
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/042-execution-providers/conversus-output/backbone-researcher/cross-reviews/a2a-future-advocate.md` (§1, §2, §4.2, §5.2, §5.3)
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/042-execution-providers/conversus-output/build-our-own-advocate/cross-reviews/a2a-future-advocate.md` (§1, §2, §4, §5.4, §6, §8)
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/042-execution-providers/conversus-output/litellm-hybrid-advocate/cross-reviews/a2a-future-advocate.md` (§1, §2, §3, §6, §7)
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/042-execution-providers/conversus-output/a2a-future-advocate/cross-reviews/backbone-researcher.md` (Phase 2 concessions, §3.3, §5)
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/042-execution-providers/conversus-output/a2a-future-advocate/cross-reviews/build-our-own-advocate.md` (Phase 2 concessions, §4.1, §7)
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/042-execution-providers/conversus-output/a2a-future-advocate/cross-reviews/litellm-hybrid-advocate.md` (Phase 2 concessions, §2, §5, §6, §7)
+- `<HOME>/code/payer-index-mono/conversus/specs/042-execution-providers/spec.md` (§2, §3, §4, §11, §12)
+- `<HOME>/code/payer-index-mono/conversus/specs/042-execution-providers/research/tool-landscape.md` (§14, §Candidate B, §Candidate C)
+- `<HOME>/code/payer-index-mono/conversus/specs/048-autonomous-governance-mode/spec.md` (§3.1, §5.1, §6, §10 Q4/Q8, §11, FR-021)
+- `<HOME>/code/payer-index-mono/conversus/specs/042-execution-providers/conversus-output/a2a-future-advocate/review.md` (Round 1 original)
+- `<HOME>/code/payer-index-mono/conversus/specs/042-execution-providers/conversus-output/backbone-researcher/cross-reviews/a2a-future-advocate.md` (§1, §2, §4.2, §5.2, §5.3)
+- `<HOME>/code/payer-index-mono/conversus/specs/042-execution-providers/conversus-output/build-our-own-advocate/cross-reviews/a2a-future-advocate.md` (§1, §2, §4, §5.4, §6, §8)
+- `<HOME>/code/payer-index-mono/conversus/specs/042-execution-providers/conversus-output/litellm-hybrid-advocate/cross-reviews/a2a-future-advocate.md` (§1, §2, §3, §6, §7)
+- `<HOME>/code/payer-index-mono/conversus/specs/042-execution-providers/conversus-output/a2a-future-advocate/cross-reviews/backbone-researcher.md` (Phase 2 concessions, §3.3, §5)
+- `<HOME>/code/payer-index-mono/conversus/specs/042-execution-providers/conversus-output/a2a-future-advocate/cross-reviews/build-our-own-advocate.md` (Phase 2 concessions, §4.1, §7)
+- `<HOME>/code/payer-index-mono/conversus/specs/042-execution-providers/conversus-output/a2a-future-advocate/cross-reviews/litellm-hybrid-advocate.md` (Phase 2 concessions, §2, §5, §6, §7)

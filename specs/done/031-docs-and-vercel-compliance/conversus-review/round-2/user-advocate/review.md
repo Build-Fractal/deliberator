@@ -98,18 +98,18 @@ The Round 1 synthesis identified this as Systemic Contradiction #3 but did not r
 
 ## Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus/docs/index.md` -- index page with "4 competition modes" claim and `pip install` discrepancy
-- `/Users/business-daddy/code/payer-index-mono/conversus/docs/user-guide/quickstart.md` -- primary evaluation target for first-contact experience
-- `/Users/business-daddy/code/payer-index-mono/conversus/docs/user-guide/cli.md` -- CLI reference with bare `conversus` commands (no `uv run` prefix)
-- `/Users/business-daddy/code/payer-index-mono/conversus/docs/user-guide/modes.md` -- 8 modes documented, contradicting index page's 4
-- `/Users/business-daddy/code/payer-index-mono/conversus/docs/user-guide/sdk.md` -- async-first Quick Start that fails the copy-paste test
-- `/Users/business-daddy/code/payer-index-mono/conversus/docs/user-guide/config-reference.md` -- complete and well-structured; no new issues
-- `/Users/business-daddy/code/payer-index-mono/conversus/docs/user-guide/guided-workflow.md` -- slash command workflow, well-written once you know the context
-- `/Users/business-daddy/code/payer-index-mono/conversus/docs/user-guide/mcp-setup.md` -- MCP setup guide, good troubleshooting section
-- `/Users/business-daddy/code/payer-index-mono/conversus/docs/developer-guide/architecture.md` -- clear three-layer diagram, good data flow
-- `/Users/business-daddy/code/payer-index-mono/conversus/docs/developer-guide/building-plugins.md` -- solid but missing wiring steps (Round 1 captured)
-- `/Users/business-daddy/code/payer-index-mono/conversus/docs/developer-guide/building-domains.md` -- promises 5-stage lifecycle, delivers 2 stages (Round 1 captured)
-- `/Users/business-daddy/code/payer-index-mono/conversus/docs/api/schemas/construction.md` -- mkdocstrings stub, blank on GitHub
-- `/Users/business-daddy/code/payer-index-mono/conversus/docs/api/plugins/base.md` -- mkdocstrings stub with member list, blank on GitHub
-- `/Users/business-daddy/code/payer-index-mono/conversus/docs/api/domains/base.md` -- mkdocstrings stub without member list, blank on GitHub
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/031-docs-and-vercel-compliance/conversus-review/round-1/summary/final.md` -- Round 1 synthesis with 7 convergence points and 7 remaining disputes
+- `<HOME>/code/payer-index-mono/conversus/docs/index.md` -- index page with "4 competition modes" claim and `pip install` discrepancy
+- `<HOME>/code/payer-index-mono/conversus/docs/user-guide/quickstart.md` -- primary evaluation target for first-contact experience
+- `<HOME>/code/payer-index-mono/conversus/docs/user-guide/cli.md` -- CLI reference with bare `conversus` commands (no `uv run` prefix)
+- `<HOME>/code/payer-index-mono/conversus/docs/user-guide/modes.md` -- 8 modes documented, contradicting index page's 4
+- `<HOME>/code/payer-index-mono/conversus/docs/user-guide/sdk.md` -- async-first Quick Start that fails the copy-paste test
+- `<HOME>/code/payer-index-mono/conversus/docs/user-guide/config-reference.md` -- complete and well-structured; no new issues
+- `<HOME>/code/payer-index-mono/conversus/docs/user-guide/guided-workflow.md` -- slash command workflow, well-written once you know the context
+- `<HOME>/code/payer-index-mono/conversus/docs/user-guide/mcp-setup.md` -- MCP setup guide, good troubleshooting section
+- `<HOME>/code/payer-index-mono/conversus/docs/developer-guide/architecture.md` -- clear three-layer diagram, good data flow
+- `<HOME>/code/payer-index-mono/conversus/docs/developer-guide/building-plugins.md` -- solid but missing wiring steps (Round 1 captured)
+- `<HOME>/code/payer-index-mono/conversus/docs/developer-guide/building-domains.md` -- promises 5-stage lifecycle, delivers 2 stages (Round 1 captured)
+- `<HOME>/code/payer-index-mono/conversus/docs/api/schemas/construction.md` -- mkdocstrings stub, blank on GitHub
+- `<HOME>/code/payer-index-mono/conversus/docs/api/plugins/base.md` -- mkdocstrings stub with member list, blank on GitHub
+- `<HOME>/code/payer-index-mono/conversus/docs/api/domains/base.md` -- mkdocstrings stub without member list, blank on GitHub
+- `<HOME>/code/payer-index-mono/conversus/specs/031-docs-and-vercel-compliance/conversus-review/round-1/summary/final.md` -- Round 1 synthesis with 7 convergence points and 7 remaining disputes

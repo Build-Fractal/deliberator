@@ -20,4 +20,4 @@ I've completed my revision based on the cross-review feedback. The revision addr
 
 The **license contradiction** remains my highest priority recommendation since all three agents agreed it's a critical blocker that undermines trust in the entire documentation.
 
-The revision is written to `/Users/business-daddy/code/conversus-oss/deliberations/docs-review/output/new-user/revision.md` and ready for the disputes phase.
+The revision is written to `<HOME>/code/conversus-oss/deliberations/docs-review/output/new-user/revision.md` and ready for the disputes phase.

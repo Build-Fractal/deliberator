@@ -2,7 +2,7 @@
 
 **Auditor**: The Purist
 **Date**: 2026-03-19
-**Subject**: `/Users/business-daddy/code/payer-index-mono/conversus/SKILL.md`
+**Subject**: `<HOME>/code/payer-index-mono/conversus/SKILL.md`
 **Scope**: 10 specification gap categories, all 24 templates across 4 modes
 
 ---

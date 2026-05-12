@@ -164,32 +164,32 @@ The SDK docs at `sdk.md` L148-157 show a clean happy path for `construct_objecti
 ## Referenced Documentation
 
 ### Target files reviewed
-- `/Users/business-daddy/code/payer-index-mono/conversus/docs/user-guide/quickstart.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/docs/user-guide/cli.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/docs/user-guide/modes.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/docs/user-guide/sdk.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/docs/user-guide/config-reference.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/docs/developer-guide/architecture.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/docs/developer-guide/building-plugins.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/docs/developer-guide/building-domains.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/docs/api/schemas/construction.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/docs/api/plugins/base.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/docs/api/domains/base.md`
+- `<HOME>/code/payer-index-mono/conversus/docs/user-guide/quickstart.md`
+- `<HOME>/code/payer-index-mono/conversus/docs/user-guide/cli.md`
+- `<HOME>/code/payer-index-mono/conversus/docs/user-guide/modes.md`
+- `<HOME>/code/payer-index-mono/conversus/docs/user-guide/sdk.md`
+- `<HOME>/code/payer-index-mono/conversus/docs/user-guide/config-reference.md`
+- `<HOME>/code/payer-index-mono/conversus/docs/developer-guide/architecture.md`
+- `<HOME>/code/payer-index-mono/conversus/docs/developer-guide/building-plugins.md`
+- `<HOME>/code/payer-index-mono/conversus/docs/developer-guide/building-domains.md`
+- `<HOME>/code/payer-index-mono/conversus/docs/api/schemas/construction.md`
+- `<HOME>/code/payer-index-mono/conversus/docs/api/plugins/base.md`
+- `<HOME>/code/payer-index-mono/conversus/docs/api/domains/base.md`
 
 ### Source files verified
-- `/Users/business-daddy/code/payer-index-mono/conversus/conversus/plugins/base.py` -- Plugin ABC, HookPoint, DeliberationState, PluginResult, load_plugins, execute_hooks, topological sort
-- `/Users/business-daddy/code/payer-index-mono/conversus/conversus/schemas/construction.py` -- Construction pipeline, DecisionType, AssembledObjective, GapFiller, TemplateSelector, construct_objective
-- `/Users/business-daddy/code/payer-index-mono/conversus/conversus/schemas/modes.py` -- VALID_MODES canonical source (8 modes confirmed)
-- `/Users/business-daddy/code/payer-index-mono/conversus/conversus/domains/base.py` -- DomainPlugin ABC, DomainContext, DomainScore, DomainRecord, Scaffold, VariableExtractor, scoring pipeline
-- `/Users/business-daddy/code/payer-index-mono/conversus/conversus/domains/store.py` -- DomainStore protocol, JSONLStore, SQLiteStore
-- `/Users/business-daddy/code/payer-index-mono/conversus/conversus/domains/api.py` -- create_domain_router, scaffolds endpoint (YAML bug confirmed at L208)
-- `/Users/business-daddy/code/payer-index-mono/conversus/engine/config.py` -- parse_config, EngineConfig, AgentConfig, ArbiterConfig, VALID_MODES, AGENT_NAME_RE
-- `/Users/business-daddy/code/payer-index-mono/conversus/engine/cli/__init__.py` -- CLI group, run, decide, validate, login, logout, status commands
-- `/Users/business-daddy/code/payer-index-mono/conversus/engine/sdk.py` -- Deliberation, Result, ValidateResult, validate, classify
-- `/Users/business-daddy/code/payer-index-mono/conversus/engine/events.py` -- PhaseStarted, AgentDispatched, AgentCompleted, PhaseCompleted, CallbackEmitter, NullEmitter, AsyncQueueEmitter
-- `/Users/business-daddy/code/payer-index-mono/conversus/engine/cost.py` -- estimate_cost, estimate_cost_usd, MODEL_PRICING, PROVIDER_DEFAULT_MODELS
-- `/Users/business-daddy/code/payer-index-mono/conversus/engine/run.py` -- run_engine, run_phase1
-- `/Users/business-daddy/code/payer-index-mono/conversus/engine/__init__.py` -- Public exports (Deliberation, Result, validate; classify NOT exported)
+- `<HOME>/code/payer-index-mono/conversus/conversus/plugins/base.py` -- Plugin ABC, HookPoint, DeliberationState, PluginResult, load_plugins, execute_hooks, topological sort
+- `<HOME>/code/payer-index-mono/conversus/conversus/schemas/construction.py` -- Construction pipeline, DecisionType, AssembledObjective, GapFiller, TemplateSelector, construct_objective
+- `<HOME>/code/payer-index-mono/conversus/conversus/schemas/modes.py` -- VALID_MODES canonical source (8 modes confirmed)
+- `<HOME>/code/payer-index-mono/conversus/conversus/domains/base.py` -- DomainPlugin ABC, DomainContext, DomainScore, DomainRecord, Scaffold, VariableExtractor, scoring pipeline
+- `<HOME>/code/payer-index-mono/conversus/conversus/domains/store.py` -- DomainStore protocol, JSONLStore, SQLiteStore
+- `<HOME>/code/payer-index-mono/conversus/conversus/domains/api.py` -- create_domain_router, scaffolds endpoint (YAML bug confirmed at L208)
+- `<HOME>/code/payer-index-mono/conversus/engine/config.py` -- parse_config, EngineConfig, AgentConfig, ArbiterConfig, VALID_MODES, AGENT_NAME_RE
+- `<HOME>/code/payer-index-mono/conversus/engine/cli/__init__.py` -- CLI group, run, decide, validate, login, logout, status commands
+- `<HOME>/code/payer-index-mono/conversus/engine/sdk.py` -- Deliberation, Result, ValidateResult, validate, classify
+- `<HOME>/code/payer-index-mono/conversus/engine/events.py` -- PhaseStarted, AgentDispatched, AgentCompleted, PhaseCompleted, CallbackEmitter, NullEmitter, AsyncQueueEmitter
+- `<HOME>/code/payer-index-mono/conversus/engine/cost.py` -- estimate_cost, estimate_cost_usd, MODEL_PRICING, PROVIDER_DEFAULT_MODELS
+- `<HOME>/code/payer-index-mono/conversus/engine/run.py` -- run_engine, run_phase1
+- `<HOME>/code/payer-index-mono/conversus/engine/__init__.py` -- Public exports (Deliberation, Result, validate; classify NOT exported)
 
 ### Prior round context
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/031-docs-and-vercel-compliance/conversus-review/round-1/summary/final.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/031-docs-and-vercel-compliance/conversus-review/round-1/summary/final.md`

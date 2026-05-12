@@ -62,9 +62,9 @@ agentskills-specialist praises the dispatch table as "an exemplary implementatio
 
 ## Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/011a-skill-breakdown/conversus-output/agentskills-specialist/review.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/011a-skill-breakdown/conversus-output/agents-md-specialist/review.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/SKILL.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/011a-skill-breakdown/spec.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/references/agents-md.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/AGENTS.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/011a-skill-breakdown/conversus-output/agentskills-specialist/review.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/011a-skill-breakdown/conversus-output/agents-md-specialist/review.md`
+- `<HOME>/code/payer-index-mono/conversus/SKILL.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/011a-skill-breakdown/spec.md`
+- `<HOME>/code/payer-index-mono/conversus/references/agents-md.md`
+- `<HOME>/code/payer-index-mono/conversus/AGENTS.md`

@@ -1,6 +1,6 @@
 I'll read the relevant files to conduct this cross-review analysis.
 
-I've completed the cross-review analysis comparing the decision-log-advocate's review with my own information architecture perspective. The analysis has been written to `/Users/business-daddy/code/conversus-oss/deliberations/docs-specs-integration/output/information-architect/cross-reviews/decision-log-advocate.md`.
+I've completed the cross-review analysis comparing the decision-log-advocate's review with my own information architecture perspective. The analysis has been written to `<HOME>/code/conversus-oss/deliberations/docs-specs-integration/output/information-architect/cross-reviews/decision-log-advocate.md`.
 
 ## Key findings from the cross-review:
 

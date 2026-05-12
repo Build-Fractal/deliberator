@@ -86,5 +86,5 @@ The most critical finding is that while Principle XXII mandates single-source ve
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/CONSTITUTION.md` — sections/lines cited: L837-848 (Principle XXII), L456-474 (Principle XI extension), L1077-1143 (Constitutional Inclusion Criteria), L476-499 (Principle XII), L923-966 (Principle XXV)
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/deliberations/post-v2.4.0-gap-analysis-2026-04-27/recent-changes.md` — sections/lines cited: L25-26 (PR #18), L34-35 (PR #22), L38-39 (PR #25), L48-49 (PR #31), L52-53 (PR #33), L95-103 (verification cost discipline theme)
+- `<HOME>/code/payer-index-mono/conversus-oss/CONSTITUTION.md` — sections/lines cited: L837-848 (Principle XXII), L456-474 (Principle XI extension), L1077-1143 (Constitutional Inclusion Criteria), L476-499 (Principle XII), L923-966 (Principle XXV)
+- `<HOME>/code/payer-index-mono/conversus-oss/deliberations/post-v2.4.0-gap-analysis-2026-04-27/recent-changes.md` — sections/lines cited: L25-26 (PR #18), L34-35 (PR #22), L38-39 (PR #25), L48-49 (PR #31), L52-53 (PR #33), L95-103 (verification cost discipline theme)

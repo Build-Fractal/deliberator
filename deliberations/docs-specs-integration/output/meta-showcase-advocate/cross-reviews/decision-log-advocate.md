@@ -12,7 +12,7 @@ Let me also quickly review the original proposal to understand the full context:
 
 Now I'll write the comprehensive cross-review based on the positions I've identified:
 
-I've completed the cross-review of decision-log-advocate's review from my perspective as meta-showcase-advocate. The cross-review is now written to `/Users/business-daddy/code/conversus-oss/deliberations/docs-specs-integration/output/meta-showcase-advocate/cross-reviews/decision-log-advocate.md`.
+I've completed the cross-review of decision-log-advocate's review from my perspective as meta-showcase-advocate. The cross-review is now written to `<HOME>/code/conversus-oss/deliberations/docs-specs-integration/output/meta-showcase-advocate/cross-reviews/decision-log-advocate.md`.
 
 ## Key Findings
 

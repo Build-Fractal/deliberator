@@ -18,4 +18,4 @@ Most importantly, it finds four areas of strong agreement that reinforce our com
 
 The suggested resolutions generally propose hybrid approaches - implementing my ADR structure within the information-architect's progressive disclosure framework, and using their curation strategy as the entry point while maintaining my comprehensive access model for those who need complete decision context.
 
-The cross-review has been written to `/Users/business-daddy/code/conversus-oss/deliberations/docs-specs-integration/output/decision-log-advocate/cross-reviews/information-architect.md` as requested.
+The cross-review has been written to `<HOME>/code/conversus-oss/deliberations/docs-specs-integration/output/decision-log-advocate/cross-reviews/information-architect.md` as requested.

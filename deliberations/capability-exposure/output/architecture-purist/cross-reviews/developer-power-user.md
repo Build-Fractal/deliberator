@@ -16,4 +16,4 @@ I've completed the cross-review analysis from the architecture-purist perspectiv
 
 The cross-review recommends implementing a capability registry that supports both mechanical projection for core capabilities and bounded surface-specificity for features that truly require different interaction models. This balances the developer-power-user's concerns about UX quality with the architecture-purist's requirements for structural consistency.
 
-The analysis has been written to `/Users/business-daddy/code/payer-index-mono/conversus-oss/deliberations/capability-exposure/output/architecture-purist/cross-reviews/developer-power-user.md` as required.
+The analysis has been written to `<HOME>/code/payer-index-mono/conversus-oss/deliberations/capability-exposure/output/architecture-purist/cross-reviews/developer-power-user.md` as required.

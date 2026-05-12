@@ -6,7 +6,7 @@ This arbitration was activated under the `always` condition for this cooperative
 
 # Decision Framework
 
-Drawing from `/Users/business-daddy/code/payer-index-mono/conversus-oss/CONSTITUTION.md` v3.2.3, the following principles are relevant to the remaining disputes:
+Drawing from `<HOME>/code/payer-index-mono/conversus-oss/CONSTITUTION.md` v3.2.3, the following principles are relevant to the remaining disputes:
 
 - **Constitutional Inclusion Criteria (§ Governance, lines 2018-2091)**: Principles qualify for constitutional inclusion only if they satisfy mechanical verification capability, falsifiable scope, and distinctness from existing principles.
 - **Grandfathering Immunity (§ Governance, lines 2075-2091)**: Pre-v2.4.0 principles retain ratified status and are protected from Constitutional Inclusion Criteria re-evaluation.

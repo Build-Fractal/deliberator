@@ -115,12 +115,12 @@ The `max_k == 0` branch in `_build_rb_matrix` returns raw counts (`landed_attack
 
 ## Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/done/021-nashopt-integration/spec.md` -- Spec 021 (target spec)
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/done/017-equilibrium-scorer/spec.md` -- Spec 017 (backward compatibility baseline)
-- `/Users/business-daddy/code/payer-index-mono/conversus/conversus/plugins/nashopt/solver.py` -- Solver wrapper
-- `/Users/business-daddy/code/payer-index-mono/conversus/conversus/plugins/nashopt/scorer.py` -- Scorer plugin (dispatch logic)
-- `/Users/business-daddy/code/payer-index-mono/conversus/conversus/plugins/nashopt/payoffs.py` -- Heuristic payoff functions (spec 017)
-- `/Users/business-daddy/code/payer-index-mono/conversus/conversus/plugins/nashopt/__init__.py` -- Package exports
-- `/Users/business-daddy/code/payer-index-mono/conversus/conversus/plugins/base.py` -- Plugin base class, PluginResult
-- `/Users/business-daddy/code/payer-index-mono/conversus/conversus/schemas/features.py` -- RoundFeatures, AgentFeatures
-- `/Users/business-daddy/code/payer-index-mono/conversus/tests/test_solver.py` -- Test suite
+- `<HOME>/code/payer-index-mono/conversus/specs/done/021-nashopt-integration/spec.md` -- Spec 021 (target spec)
+- `<HOME>/code/payer-index-mono/conversus/specs/done/017-equilibrium-scorer/spec.md` -- Spec 017 (backward compatibility baseline)
+- `<HOME>/code/payer-index-mono/conversus/conversus/plugins/nashopt/solver.py` -- Solver wrapper
+- `<HOME>/code/payer-index-mono/conversus/conversus/plugins/nashopt/scorer.py` -- Scorer plugin (dispatch logic)
+- `<HOME>/code/payer-index-mono/conversus/conversus/plugins/nashopt/payoffs.py` -- Heuristic payoff functions (spec 017)
+- `<HOME>/code/payer-index-mono/conversus/conversus/plugins/nashopt/__init__.py` -- Package exports
+- `<HOME>/code/payer-index-mono/conversus/conversus/plugins/base.py` -- Plugin base class, PluginResult
+- `<HOME>/code/payer-index-mono/conversus/conversus/schemas/features.py` -- RoundFeatures, AgentFeatures
+- `<HOME>/code/payer-index-mono/conversus/tests/test_solver.py` -- Test suite

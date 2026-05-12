@@ -101,9 +101,9 @@ integration-specialist (Recommendation 5): "Extract preset resolution to `refere
 
 ## Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/011a-skill-breakdown/conversus-output/integration-specialist/review.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/011a-skill-breakdown/conversus-output/agentskills-specialist/review.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/SKILL.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/011a-skill-breakdown/spec.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/references/agentskills-spec.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/references/agentskills-best-practices.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/011a-skill-breakdown/conversus-output/integration-specialist/review.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/011a-skill-breakdown/conversus-output/agentskills-specialist/review.md`
+- `<HOME>/code/payer-index-mono/conversus/SKILL.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/011a-skill-breakdown/spec.md`
+- `<HOME>/code/payer-index-mono/conversus/references/agentskills-spec.md`
+- `<HOME>/code/payer-index-mono/conversus/references/agentskills-best-practices.md`

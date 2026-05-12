@@ -81,9 +81,9 @@ Strictness-skeptic's HF-1 hypothesizes "every load-trigger-resolved bundle stays
 
 ### Referenced Documents
 
-- strictness-skeptic review: `/Users/business-daddy/code/payer-index-mono/conversus-oss/deliberations/069-self-consistency-2026-04-26/strictness-skeptic/review.md`
-- governance-skeptic review (mine): `/Users/business-daddy/code/payer-index-mono/conversus-oss/deliberations/069-self-consistency-2026-04-26/governance-skeptic/review.md`
-- Target: `/Users/business-daddy/code/payer-index-mono/conversus-oss/deliberations/069-self-consistency-2026-04-26/CONSTITUTION-v2.4.0-candidate.md`
+- strictness-skeptic review: `<HOME>/code/payer-index-mono/conversus-oss/deliberations/069-self-consistency-2026-04-26/strictness-skeptic/review.md`
+- governance-skeptic review (mine): `<HOME>/code/payer-index-mono/conversus-oss/deliberations/069-self-consistency-2026-04-26/governance-skeptic/review.md`
+- Target: `<HOME>/code/payer-index-mono/conversus-oss/deliberations/069-self-consistency-2026-04-26/CONSTITUTION-v2.4.0-candidate.md`
 - Specifically lines 872-905 (gate text), lines 1-60 (Sync Impact Report format precedent), Principle XII (No Dead Infrastructure, cited in DC-2), Principle XX (Decomposition Mechanism Precedence, cited in DC-3 as a template for tie-breaker rules).
 
 ---

@@ -2,8 +2,8 @@
 
 **Role**: Blue Team Defender
 **Date**: 2026-03-20
-**Spec Under Review**: `/Users/business-daddy/code/payer-index-mono/conversus/specs/004-universal-rounds/spec.md`
-**Implementation Record**: `/Users/business-daddy/code/payer-index-mono/conversus/specs/004-universal-rounds/work_done.md`
+**Spec Under Review**: `<HOME>/code/payer-index-mono/conversus/specs/004-universal-rounds/spec.md`
+**Implementation Record**: `<HOME>/code/payer-index-mono/conversus/specs/004-universal-rounds/work_done.md`
 
 ---
 
@@ -87,7 +87,7 @@ This means even if the validation rules had been removed prematurely (before tem
 
 Verification that no draft markers remain:
 
-A grep for `TEMPLATE_STATUS.*draft` across all templates under `/Users/business-daddy/code/payer-index-mono/conversus/templates/` returns zero matches. All templates are production-ready.
+A grep for `TEMPLATE_STATUS.*draft` across all templates under `<HOME>/code/payer-index-mono/conversus/templates/` returns zero matches. All templates are production-ready.
 
 ### Safeguard 2: Dispute-Parsing Subsystem Fail-Safe
 

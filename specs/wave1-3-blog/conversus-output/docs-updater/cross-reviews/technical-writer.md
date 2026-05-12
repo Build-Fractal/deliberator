@@ -60,7 +60,7 @@ packages/
   swe.toml        # pip install conversus-swe
 ```
 
-Verified: all four files exist at `/Users/business-daddy/code/payer-index-mono/conversus/packages/`. The build script at `scripts/build-packages.sh` iterates over `packages/*.toml` and runs `hatch build` for each. The claim is accurate.
+Verified: all four files exist at `<HOME>/code/payer-index-mono/conversus/packages/`. The build script at `scripts/build-packages.sh` iterates over `packages/*.toml` and runs `hatch build` for each. The claim is accurate.
 
 No docs page documents the `packages/` directory, the build script, or the multi-package build process. `docs/developer-guide/architecture.md` describes the three-layer coupling rules but does not mention the build-time splitting. `docs/developer-guide/contributing.md` presumably does not cover this either.
 

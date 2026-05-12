@@ -88,5 +88,5 @@ The Conversus Constitution v2.4.0 establishes a verification methodology framewo
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/CONSTITUTION.md` — sections/lines cited: L1089-1126 (Constitutional Inclusion Criteria), L911-943 (Principle XXIV), L1127-1130 (Governance versioning), L1035-1045 (Antipattern catalog)
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/deliberations/post-v2.4.0-gap-analysis-2026-04-27/recent-changes.md` — sections/lines cited: references to spec 067 methodology, verification cost estimates, infrastructure stall documentation, artifact retention numbers
+- `<HOME>/code/payer-index-mono/conversus-oss/CONSTITUTION.md` — sections/lines cited: L1089-1126 (Constitutional Inclusion Criteria), L911-943 (Principle XXIV), L1127-1130 (Governance versioning), L1035-1045 (Antipattern catalog)
+- `<HOME>/code/payer-index-mono/conversus-oss/deliberations/post-v2.4.0-gap-analysis-2026-04-27/recent-changes.md` — sections/lines cited: references to spec 067 methodology, verification cost estimates, infrastructure stall documentation, artifact retention numbers

@@ -107,7 +107,7 @@ Everything else is reconcilable through editorial refinement. The reviews are mo
 
 ### Referenced Documentation
 
-- functional-typing review: `/Users/business-daddy/code/payer-index-mono/conversus/specs/007-subcommand-dispatch-define/conversus-review/functional-typing/review.md`
-- devils-advocate review: `/Users/business-daddy/code/payer-index-mono/conversus/specs/007-subcommand-dispatch-define/conversus-review/devils-advocate/review.md`
-- Spec: `/Users/business-daddy/code/payer-index-mono/conversus/specs/007-subcommand-dispatch-define/spec.md`
-- SKILL.md: `/Users/business-daddy/code/payer-index-mono/conversus/SKILL.md`
+- functional-typing review: `<HOME>/code/payer-index-mono/conversus/specs/007-subcommand-dispatch-define/conversus-review/functional-typing/review.md`
+- devils-advocate review: `<HOME>/code/payer-index-mono/conversus/specs/007-subcommand-dispatch-define/conversus-review/devils-advocate/review.md`
+- Spec: `<HOME>/code/payer-index-mono/conversus/specs/007-subcommand-dispatch-define/spec.md`
+- SKILL.md: `<HOME>/code/payer-index-mono/conversus/SKILL.md`

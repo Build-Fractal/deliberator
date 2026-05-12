@@ -2,7 +2,7 @@
 
 **Arbiter**: Synthesis arbiter
 **Date**: 2026-03-19
-**Grounding document**: `/Users/business-daddy/code/payer-index-mono/conversus/SKILL.md`
+**Grounding document**: `<HOME>/code/payer-index-mono/conversus/SKILL.md`
 **Inputs**: Synthesis at `summary/final.md`, all 15 deliberation artifacts
 
 ---

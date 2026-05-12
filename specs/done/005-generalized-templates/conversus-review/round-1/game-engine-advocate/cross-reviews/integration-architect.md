@@ -123,10 +123,10 @@ Integration-architect's Rec #6 proposes `TestSchemaEvolution` covering new varia
 
 ## Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/005-generalized-templates/conversus-review/integration-architect/review.md` -- Full review text, Recs #1-10, Off-Base Assumptions, Alignment section
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/005-generalized-templates/conversus-review/game-engine-advocate/review.md` -- Full review text, Recs #1-10, Off-Base Assumptions, Missed Opportunities
-- `/Users/business-daddy/code/payer-index-mono/conversus/linter/models.py` -- L23-35 (frozen sets), L105-123 (ModeSchema), L129-140 (TemplateContext with extra=forbid), L262-270 (PHASE_CONTEXT_MODELS)
-- `/Users/business-daddy/code/payer-index-mono/conversus/linter/validate.py` -- L108-144 (MODE_PRESENCE), L281-305 (validate_template composition), L312-371 (CLI entry point)
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/005-generalized-templates/spec.md` -- L71 (US-3 AC-2 auction mode), L353 (SC-003 new mode), Section 6 (development-time framing)
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/007-game-engine/spec.md` -- L96-112 (lifecycle hooks), L131-157 (plugin API), L138-146 (DeliberationState), L335-336 (plugin isolation constraint), L412-448 (objective function templates), L509-608 (scenario storage)
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/007-game-engine/ideation-context.md` -- L86-115 (objective function pipeline), L129-152 (scenario storage ideation)
+- `<HOME>/code/payer-index-mono/conversus/specs/005-generalized-templates/conversus-review/integration-architect/review.md` -- Full review text, Recs #1-10, Off-Base Assumptions, Alignment section
+- `<HOME>/code/payer-index-mono/conversus/specs/005-generalized-templates/conversus-review/game-engine-advocate/review.md` -- Full review text, Recs #1-10, Off-Base Assumptions, Missed Opportunities
+- `<HOME>/code/payer-index-mono/conversus/linter/models.py` -- L23-35 (frozen sets), L105-123 (ModeSchema), L129-140 (TemplateContext with extra=forbid), L262-270 (PHASE_CONTEXT_MODELS)
+- `<HOME>/code/payer-index-mono/conversus/linter/validate.py` -- L108-144 (MODE_PRESENCE), L281-305 (validate_template composition), L312-371 (CLI entry point)
+- `<HOME>/code/payer-index-mono/conversus/specs/005-generalized-templates/spec.md` -- L71 (US-3 AC-2 auction mode), L353 (SC-003 new mode), Section 6 (development-time framing)
+- `<HOME>/code/payer-index-mono/conversus/specs/007-game-engine/spec.md` -- L96-112 (lifecycle hooks), L131-157 (plugin API), L138-146 (DeliberationState), L335-336 (plugin isolation constraint), L412-448 (objective function templates), L509-608 (scenario storage)
+- `<HOME>/code/payer-index-mono/conversus/specs/007-game-engine/ideation-context.md` -- L86-115 (objective function pipeline), L129-152 (scenario storage ideation)

@@ -117,8 +117,8 @@ Both reviews agree that the decomposition is a content reorganization, not a tec
 
 ## Referenced Documents
 
-- agentskills-specialist review: `/Users/business-daddy/code/payer-index-mono/conversus/specs/011a-skill-breakdown/conversus-output/agentskills-specialist/review.md`
-- functional-decomposition review: `/Users/business-daddy/code/payer-index-mono/conversus/specs/011a-skill-breakdown/conversus-output/functional-decomposition/review.md`
-- SKILL.md: `/Users/business-daddy/code/payer-index-mono/conversus/SKILL.md`
-- spec 011a: `/Users/business-daddy/code/payer-index-mono/conversus/specs/011a-skill-breakdown/spec.md`
-- agentskills best practices: `/Users/business-daddy/code/payer-index-mono/conversus/references/agentskills-best-practices.md`
+- agentskills-specialist review: `<HOME>/code/payer-index-mono/conversus/specs/011a-skill-breakdown/conversus-output/agentskills-specialist/review.md`
+- functional-decomposition review: `<HOME>/code/payer-index-mono/conversus/specs/011a-skill-breakdown/conversus-output/functional-decomposition/review.md`
+- SKILL.md: `<HOME>/code/payer-index-mono/conversus/SKILL.md`
+- spec 011a: `<HOME>/code/payer-index-mono/conversus/specs/011a-skill-breakdown/spec.md`
+- agentskills best practices: `<HOME>/code/payer-index-mono/conversus/references/agentskills-best-practices.md`

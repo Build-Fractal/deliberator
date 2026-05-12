@@ -100,7 +100,7 @@ Concrete changes to make the gate usable for a future amendment author:
 
 ## Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/deliberations/069-self-consistency-2026-04-26/CONSTITUTION-v2.4.0-candidate.md` — primary target, lines 872–905 (the new gate), lines 862–871 (surrounding Governance section), lines 1–60 (Sync Impact Reports as precedent format)
+- `<HOME>/code/payer-index-mono/conversus-oss/deliberations/069-self-consistency-2026-04-26/CONSTITUTION-v2.4.0-candidate.md` — primary target, lines 872–905 (the new gate), lines 862–871 (surrounding Governance section), lines 1–60 (Sync Impact Reports as precedent format)
 - Principle XI (lines 298–342) — Single Source of Truth, the dogfooded basis for criterion 3
 - Principle XVII (lines 480–508) — Content Classification, the precedent for routing rules
 - Principle XXII (lines 627–654) — Distribution Surface Integrity, the precedent for "declare explicitly or it doesn't ship" enforcement

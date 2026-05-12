@@ -116,10 +116,10 @@ The single most important recommendation: fix the RLS/user_id mismatch in migrat
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/011-adoption-harness/pr-review/global-synthesis.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/011-adoption-harness/pr-review/reviews/m004-cli-polish.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/011-adoption-harness/pr-review/reviews/m005-web-interface.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/011-adoption-harness/pr-review/reviews/m003-provider-cli-sdk.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/011-adoption-harness/pr-review/global-synthesis.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/011-adoption-harness/pr-review/reviews/m004-cli-polish.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/011-adoption-harness/pr-review/reviews/m005-web-interface.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/011-adoption-harness/pr-review/reviews/m003-provider-cli-sdk.md`
 - `engine/auth.py` (PR branch: `remotes/origin/011-adoption-harness`)
 - `engine/providers/anthropic.py` (PR branch: `remotes/origin/011-adoption-harness`)
 - `web/app.py` (PR branch: `remotes/origin/011-adoption-harness`)

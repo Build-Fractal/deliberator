@@ -252,7 +252,7 @@ has carefully separated.
 
 ## Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/deliberations/068-blind-2026-04-26/CONSTITUTION-v2.3.2-blind.md`
+- `<HOME>/code/payer-index-mono/conversus-oss/deliberations/068-blind-2026-04-26/CONSTITUTION-v2.3.2-blind.md`
   — full constitution text under audit; Principles VII, VIII, XVI,
   and the determinism-scope clarification block were the load-bearing
   passages for this review.

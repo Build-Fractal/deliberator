@@ -72,9 +72,9 @@ Consumer-advocate validates share links as "genuinely self-contained" with SSR a
 
 ## Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/011-adoption-harness/pr-review/conversus/consumer-advocate/review.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/011-adoption-harness/pr-review/conversus/security-reviewer/review.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/011-adoption-harness/pr-review/global-synthesis.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/011-adoption-harness/pr-review/reviews/m003-provider-cli-sdk.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/011-adoption-harness/pr-review/reviews/m004-cli-polish.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/011-adoption-harness/pr-review/reviews/m005-web-interface.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/011-adoption-harness/pr-review/conversus/consumer-advocate/review.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/011-adoption-harness/pr-review/conversus/security-reviewer/review.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/011-adoption-harness/pr-review/global-synthesis.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/011-adoption-harness/pr-review/reviews/m003-provider-cli-sdk.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/011-adoption-harness/pr-review/reviews/m004-cli-polish.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/011-adoption-harness/pr-review/reviews/m005-web-interface.md`

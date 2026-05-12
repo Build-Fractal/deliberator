@@ -167,7 +167,7 @@ def check_post_relocation_orphans(component: dict[str, str]) -> list[str]:
     return failures
 
 
-MONOREPO_URL_PREFIX = "https://github.com/clariti-care/payer-index-mono/blob/main/"
+MONOREPO_URL_PREFIX = "https://github.com/Build-Fractal/build-fractal-mono/blob/main/"
 
 
 def check_cross_references(text: str, name: str) -> list[str]:
@@ -176,7 +176,7 @@ def check_cross_references(text: str, name: str) -> list[str]:
     Two reference forms supported:
     1. **Filesystem-relative paths** (legacy): `[text](relative-path)` resolves to a file on disk.
     2. **GitHub URLs** (canonical for cross-repo references per v4.0.0 erratum):
-       `https://github.com/clariti-care/payer-index-mono/blob/main/<path>` —
+       `https://github.com/Build-Fractal/build-fractal-mono/blob/main/<path>` —
        the URL's path portion is validated against the monorepo's actual file tree.
 
     URL form is preferred for cross-tier references because it makes per-repo
@@ -186,7 +186,7 @@ def check_cross_references(text: str, name: str) -> list[str]:
     failures: list[str] = []
     # Match both bare URLs and Markdown links + backtick-quoted paths.
     link_re = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
-    bare_url_re = re.compile(r"`(https://github\.com/clariti-care/payer-index-mono/blob/main/[^`\s]+)`")
+    bare_url_re = re.compile(r"`(https://github\.com/Build-Fractal/build-fractal-mono/blob/main/[^`\s]+)`")
 
     base_dir = (
         ROOT if name == "component"
@@ -223,7 +223,7 @@ def check_cross_references(text: str, name: str) -> list[str]:
         seen_urls.add(url)
         if not url.startswith(MONOREPO_URL_PREFIX):
             # Cross-org URL — accept (e.g., to anthropic.com docs) without validation
-            if "github.com/clariti-care/payer-index-mono" in url:
+            if "github.com/Build-Fractal/build-fractal-mono" in url:
                 failures.append(
                     f"check(c) URL ref in {name} uses non-canonical monorepo URL form: {url}"
                 )

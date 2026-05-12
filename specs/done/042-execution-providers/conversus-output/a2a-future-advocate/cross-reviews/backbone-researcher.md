@@ -1,7 +1,7 @@
 # Cross-Review: Backbone Researcher's Ground-Truth Report
 
 **Reviewer**: a2a-future-advocate
-**Reviewing**: `/Users/business-daddy/code/payer-index-mono/conversus/specs/042-execution-providers/conversus-output/backbone-researcher/review.md`
+**Reviewing**: `<HOME>/code/payer-index-mono/conversus/specs/042-execution-providers/conversus-output/backbone-researcher/review.md`
 **Round**: 1, Cross-Review Phase
 **Verdict on researcher's report**: Factually solid. Largely refutes my original review. I concede the core naming error and narrow my position significantly.
 
@@ -245,6 +245,6 @@ These are nine points the other advocates cannot relitigate without bringing new
 ---
 
 **Files referenced**:
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/042-execution-providers/conversus-output/backbone-researcher/review.md` (§0 TL;DR, §6 three-protocol tangle, §7 common patterns table, §8 MCP scope, §9 A2A maturity, §10 mapping table, §11 spec-042 implications, §13 one-paragraph summary)
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/042-execution-providers/conversus-output/a2a-future-advocate/review.md` (my own original review — §2.1–2.6 arguments, §3.1–3.2 attacks, §4 spec 048, §5 proposed commitment)
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/042-execution-providers/spec.md` (§2 Protocol Alignment, §4 ACP-Native Provider, §12 Q8 JetBrains ACP footnote)
+- `<HOME>/code/payer-index-mono/conversus/specs/042-execution-providers/conversus-output/backbone-researcher/review.md` (§0 TL;DR, §6 three-protocol tangle, §7 common patterns table, §8 MCP scope, §9 A2A maturity, §10 mapping table, §11 spec-042 implications, §13 one-paragraph summary)
+- `<HOME>/code/payer-index-mono/conversus/specs/042-execution-providers/conversus-output/a2a-future-advocate/review.md` (my own original review — §2.1–2.6 arguments, §3.1–3.2 attacks, §4 spec 048, §5 proposed commitment)
+- `<HOME>/code/payer-index-mono/conversus/specs/042-execution-providers/spec.md` (§2 Protocol Alignment, §4 ACP-Native Provider, §12 Q8 JetBrains ACP footnote)

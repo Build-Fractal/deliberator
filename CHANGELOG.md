@@ -16,7 +16,7 @@ All notable changes to this project are documented here. The format is based on 
 - Suite admission via Q2 ADMIT-PROVISIONAL of originating deliberation 2026-05-06.
 
 ### Fixed
-- **v4.0.0 erratum C1 (2026-05-08)**: cross-tier references in `CONSTITUTION.md` and `CONFORMANCE.md` were filesystem-relative paths (`../build-fractal/...`), which broke standalone repo usability — readers cloning conversus-oss alone or viewing it on github.com saw dangling references to nonexistent paths. Erratum converts all such references to canonical GitHub URLs (`https://github.com/clariti-care/payer-index-mono/blob/main/...`). Single-source-of-truth model preserved; repo standalone usability restored. No principle text changed. See `specs/v4.0.0-tier-extraction/spec.md` §13 v4 fixes subsection.
+- **v4.0.0 erratum C1 (2026-05-08)**: cross-tier references in `CONSTITUTION.md` and `CONFORMANCE.md` were filesystem-relative paths (`../build-fractal/...`), which broke standalone repo usability — readers cloning conversus-oss alone or viewing it on github.com saw dangling references to nonexistent paths. Erratum converts all such references to canonical GitHub URLs (`https://github.com/Build-Fractal/build-fractal-mono/blob/main/...`). Single-source-of-truth model preserved; repo standalone usability restored. No principle text changed. See `specs/v4.0.0-tier-extraction/spec.md` §13 v4 fixes subsection.
 
 ## [0.4.0] - 2026-05-01
 

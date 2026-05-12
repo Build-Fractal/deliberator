@@ -118,8 +118,8 @@ Of 19 functional requirements (FR-001 through FR-019) and 5 success criteria (SC
 
 ## Referenced Files
 
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/029-code-review-domain/spec.md` — all FRs and SCs
-- `/Users/business-daddy/code/payer-index-mono/conversus/conversus/domains/code_review/domain.py` — scoring implementation
-- `/Users/business-daddy/code/payer-index-mono/conversus/conversus/domains/code_review/extractors.py` — all extractors
-- `/Users/business-daddy/code/payer-index-mono/conversus/conversus/domains/base.py` — DomainPlugin, DomainScore, DomainRecord, Scaffold, VariableExtractor, ReviewStore infrastructure
-- `/Users/business-daddy/code/payer-index-mono/conversus/tests/test_code_review.py` — test coverage for FRs and SCs
+- `<HOME>/code/payer-index-mono/conversus/specs/029-code-review-domain/spec.md` — all FRs and SCs
+- `<HOME>/code/payer-index-mono/conversus/conversus/domains/code_review/domain.py` — scoring implementation
+- `<HOME>/code/payer-index-mono/conversus/conversus/domains/code_review/extractors.py` — all extractors
+- `<HOME>/code/payer-index-mono/conversus/conversus/domains/base.py` — DomainPlugin, DomainScore, DomainRecord, Scaffold, VariableExtractor, ReviewStore infrastructure
+- `<HOME>/code/payer-index-mono/conversus/tests/test_code_review.py` — test coverage for FRs and SCs

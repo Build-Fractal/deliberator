@@ -20,4 +20,4 @@ I've completed my cross-review of the mergeability-auditor's review from my new-
 
 The cross-review takes a cooperative approach, framing these differences as coordination challenges rather than conflicts. Both perspectives bring legitimate concerns - the mergeability-auditor's focus on technical integration requirements and my focus on user adoption barriers both matter for the project's success.
 
-The file has been written to `/Users/business-daddy/code/conversus-oss/deliberations/docs-review/output/new-user/cross-reviews/mergeability-auditor.md` with the complete analysis including specific citations from both reviews and suggested resolutions for each identified issue.
+The file has been written to `<HOME>/code/conversus-oss/deliberations/docs-review/output/new-user/cross-reviews/mergeability-auditor.md` with the complete analysis including specific citations from both reviews and suggested resolutions for each identified issue.

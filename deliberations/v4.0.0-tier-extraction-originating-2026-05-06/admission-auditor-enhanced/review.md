@@ -84,7 +84,7 @@ The declaration systematically overstates compliance while understating the scop
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus/CONFORMANCE.md` — L12, L20-48, L41-42, L27, L45, L63-65
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/COMPLIANCE.md` — L20-21, L40-41, L67, L75-136, L192-195, L248-254
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/CONSTITUTION.md` — L1344-1354, L1391-1401, L1162-1172, L1745-1755
-- `/Users/business-daddy/code/payer-index-mono/conversus/pyproject.toml` — L102-105, L108-111, L41-47
+- `<HOME>/code/payer-index-mono/conversus/CONFORMANCE.md` — L12, L20-48, L41-42, L27, L45, L63-65
+- `<HOME>/code/payer-index-mono/build-fractal/conversus/COMPLIANCE.md` — L20-21, L40-41, L67, L75-136, L192-195, L248-254
+- `<HOME>/code/payer-index-mono/conversus-oss/CONSTITUTION.md` — L1344-1354, L1391-1401, L1162-1172, L1745-1755
+- `<HOME>/code/payer-index-mono/conversus/pyproject.toml` — L102-105, L108-111, L41-47

@@ -42,4 +42,4 @@ The cross-review maintains a cooperative tone while identifying specific integra
 
 The most critical resolution needed is agreeing on a primary strategy rather than trying to implement competing approaches. I suggest the information-architect's curation expertise should inform which deliberations to feature in my methodology showcase approach.
 
-The complete cross-review has been written to `/Users/business-daddy/code/conversus-oss/deliberations/docs-specs-integration/output/meta-showcase-advocate/cross-reviews/information-architect.md` with detailed citations, failure mode analysis, and concrete resolution suggestions.
+The complete cross-review has been written to `<HOME>/code/conversus-oss/deliberations/docs-specs-integration/output/meta-showcase-advocate/cross-reviews/information-architect.md` with detailed citations, failure mode analysis, and concrete resolution suggestions.

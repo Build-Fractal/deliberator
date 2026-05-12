@@ -8,7 +8,7 @@ The template-first approach is the correct architecture for extending conversus 
 
 ### 1. The Implementation Proves the Architecture
 
-Spec 004's `work_done.md` documents the complete changeset (`/Users/business-daddy/code/payer-index-mono/conversus/specs/004-universal-rounds/work_done.md`). The SKILL.md changes were:
+Spec 004's `work_done.md` documents the complete changeset (`<HOME>/code/payer-index-mono/conversus/specs/004-universal-rounds/work_done.md`). The SKILL.md changes were:
 
 | Change | Scope |
 |--------|-------|
@@ -41,7 +41,7 @@ These are not different algorithms. They are different lenses applied to the sam
 
 ### 3. Each Template Is Independently Reviewable and Testable
 
-The constitution compliance review (`/Users/business-daddy/code/payer-index-mono/conversus/specs/004-universal-rounds/work_done_constitution_review/templates_review.md`) demonstrates this concretely. The reviewer examined each template against all nine constitutional principles independently. Findings were scoped to individual templates:
+The constitution compliance review (`<HOME>/code/payer-index-mono/conversus/specs/004-universal-rounds/work_done_constitution_review/templates_review.md`) demonstrates this concretely. The reviewer examined each template against all nine constitutional principles independently. Findings were scoped to individual templates:
 
 - Red-blue cross-round synthesis: 9/9 PASS
 - Winner-take-all cross-round synthesis: 8/9 PASS, 1 VIOLATION (heading naming -- low severity, functional parser still works)
@@ -77,7 +77,7 @@ No orchestration logic changes. No new conditional branches. No risk of breaking
 
 ### 6. Constitutional Alignment Is Explicit
 
-Constitution Principle VIII (`/Users/business-daddy/code/payer-index-mono/conversus/.specify/memory/constitution.md`, lines 121-139) is titled "Templating Engines Over Inference" and states:
+Constitution Principle VIII (`<HOME>/code/payer-index-mono/conversus/.specify/memory/constitution.md`, lines 121-139) is titled "Templating Engines Over Inference" and states:
 
 > Prefer mechanical template-driven behavior over LLM inference and improvisation. When an outcome can be achieved by variable substitution, structured config, or deterministic rules, do NOT delegate it to agent reasoning.
 

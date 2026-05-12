@@ -18,4 +18,4 @@ Key findings:
 
 The analysis argues that the mechanism should optimize for developer workflows (CLI-first) rather than trying to achieve feature parity across all surfaces. This aligns with the developer-power-user perspective that the CLI is the product and everything else should be a lightweight wrapper.
 
-The file has been written to `/Users/business-daddy/code/payer-index-mono/conversus-oss/deliberations/capability-exposure/output/developer-power-user/review.md` as required.
+The file has been written to `<HOME>/code/payer-index-mono/conversus-oss/deliberations/capability-exposure/output/developer-power-user/review.md` as required.

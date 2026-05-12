@@ -6,7 +6,7 @@ This arbitration was triggered by the `always` condition, meaning the deliberati
 
 ### Decision Framework
 
-Based on my grounding document (`/Users/business-daddy/code/payer-index-mono/conversus-oss/CONSTITUTION.md`), the following principles are relevant to evaluating this deliberation:
+Based on my grounding document (`<HOME>/code/payer-index-mono/conversus-oss/CONSTITUTION.md`), the following principles are relevant to evaluating this deliberation:
 
 - **Constitutional Amendment Pathways (§ 3)**: PATCH amendments with verbatim contract require "sub-headings within existing structure" with "absence of new normative content" as authorization basis (CONSTITUTION.md L2166).
 

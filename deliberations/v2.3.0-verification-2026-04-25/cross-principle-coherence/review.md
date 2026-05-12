@@ -76,4 +76,4 @@ No significant off-base assumptions were identified in the amendment. The princi
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/CONSTITUTION.md` — sections/lines cited: L1-end (complete constitutional analysis), specific principle interactions in XXII, XXV, XXVII
+- `<HOME>/code/payer-index-mono/conversus-oss/CONSTITUTION.md` — sections/lines cited: L1-end (complete constitutional analysis), specific principle interactions in XXII, XXV, XXVII

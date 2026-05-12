@@ -179,8 +179,8 @@ These are not deal-breakers. They are "yes, and..." refinements that make build-
 ---
 
 **Files referenced**:
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/042-execution-providers/conversus-output/a2a-future-advocate/review.md` (my Round 1)
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/042-execution-providers/conversus-output/build-our-own-advocate/review.md` (target)
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/042-execution-providers/conversus-output/backbone-researcher/review.md` (§6.2, §9, §10, §13)
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/042-execution-providers/spec.md` (§3, §5, §11)
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/048-autonomous-governance-mode/spec.md` (§9, FR-021)
+- `<HOME>/code/payer-index-mono/conversus/specs/042-execution-providers/conversus-output/a2a-future-advocate/review.md` (my Round 1)
+- `<HOME>/code/payer-index-mono/conversus/specs/042-execution-providers/conversus-output/build-our-own-advocate/review.md` (target)
+- `<HOME>/code/payer-index-mono/conversus/specs/042-execution-providers/conversus-output/backbone-researcher/review.md` (§6.2, §9, §10, §13)
+- `<HOME>/code/payer-index-mono/conversus/specs/042-execution-providers/spec.md` (§3, §5, §11)
+- `<HOME>/code/payer-index-mono/conversus/specs/048-autonomous-governance-mode/spec.md` (§9, FR-021)

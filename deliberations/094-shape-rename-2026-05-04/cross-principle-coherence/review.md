@@ -58,4 +58,4 @@ The proposed terminology rename addresses a documented collision between Princip
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/CONSTITUTION.md` — sections cited: L1103-1104 (VII structurally identical output), L1120-1123 (VIII-XVI coordination), L1130 (VIII output shape), L1195-1219 (IX behavior-over-shape testing), L1407-1409 (XVI deterministic assembly), L1446-1461 (XVI clarification scope), L1485-1489 (XVI enforcement terminology)
+- `<HOME>/code/payer-index-mono/conversus-oss/CONSTITUTION.md` — sections cited: L1103-1104 (VII structurally identical output), L1120-1123 (VIII-XVI coordination), L1130 (VIII output shape), L1195-1219 (IX behavior-over-shape testing), L1407-1409 (XVI deterministic assembly), L1446-1461 (XVI clarification scope), L1485-1489 (XVI enforcement terminology)

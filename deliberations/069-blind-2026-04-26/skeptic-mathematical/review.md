@@ -99,4 +99,4 @@ The strongest argument for restructuring is that the gate, as written, is more r
 
 ## Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/deliberations/069-blind-2026-04-26/CONSTITUTION-v2.4.0-blind.md` — entire document audited; specific focus on Governance section, "Constitutional Inclusion Criteria" subsection (lines 811-844), and grandfathering clause (lines 840-844). Cross-referenced against Principles X, XII, XVI, and XXII as calibration cases.
+- `<HOME>/code/payer-index-mono/conversus-oss/deliberations/069-blind-2026-04-26/CONSTITUTION-v2.4.0-blind.md` — entire document audited; specific focus on Governance section, "Constitutional Inclusion Criteria" subsection (lines 811-844), and grandfathering clause (lines 840-844). Cross-referenced against Principles X, XII, XVI, and XXII as calibration cases.

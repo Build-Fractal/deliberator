@@ -209,14 +209,14 @@ Currently the models silently accept extra YAML keys (e.g., `computed_objective`
 
 ## Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/013-objective-function-templates/spec.md` -- feature spec defining all FR and SC requirements
-- `/Users/business-daddy/code/payer-index-mono/conversus/conversus/schemas/objectives.py` -- Pydantic models (ObjectiveTemplate, ConstraintTemplate, ParameterDefinition)
-- `/Users/business-daddy/code/payer-index-mono/conversus/conversus/schemas/game_forms.py` -- sibling Pydantic models for game forms (load_mode_mapping pattern)
-- `/Users/business-daddy/code/payer-index-mono/conversus/conversus/schemas/__init__.py` -- package re-exports
-- `/Users/business-daddy/code/payer-index-mono/conversus/schema/objective-functions/cooperative-integration.yml` -- cooperative mode template
-- `/Users/business-daddy/code/payer-index-mono/conversus/schema/objective-functions/competitive-selection.yml` -- winner-take-all mode template
-- `/Users/business-daddy/code/payer-index-mono/conversus/schema/objective-functions/territory-claiming.yml` -- prisoners-dilemma mode template
-- `/Users/business-daddy/code/payer-index-mono/conversus/schema/objective-functions/risk-adversarial.yml` -- red-blue mode template
-- `/Users/business-daddy/code/payer-index-mono/conversus/schema/objective-functions/weighted-sum.yml` -- cross-mode template (example format inconsistency)
-- `/Users/business-daddy/code/payer-index-mono/conversus/schema/objective-functions/constraints/budget.yml` -- constraint template
-- `/Users/business-daddy/code/payer-index-mono/conversus/README.md` -- conversus framework documentation (mode definitions, directory structure)
+- `<HOME>/code/payer-index-mono/conversus/specs/013-objective-function-templates/spec.md` -- feature spec defining all FR and SC requirements
+- `<HOME>/code/payer-index-mono/conversus/conversus/schemas/objectives.py` -- Pydantic models (ObjectiveTemplate, ConstraintTemplate, ParameterDefinition)
+- `<HOME>/code/payer-index-mono/conversus/conversus/schemas/game_forms.py` -- sibling Pydantic models for game forms (load_mode_mapping pattern)
+- `<HOME>/code/payer-index-mono/conversus/conversus/schemas/__init__.py` -- package re-exports
+- `<HOME>/code/payer-index-mono/conversus/schema/objective-functions/cooperative-integration.yml` -- cooperative mode template
+- `<HOME>/code/payer-index-mono/conversus/schema/objective-functions/competitive-selection.yml` -- winner-take-all mode template
+- `<HOME>/code/payer-index-mono/conversus/schema/objective-functions/territory-claiming.yml` -- prisoners-dilemma mode template
+- `<HOME>/code/payer-index-mono/conversus/schema/objective-functions/risk-adversarial.yml` -- red-blue mode template
+- `<HOME>/code/payer-index-mono/conversus/schema/objective-functions/weighted-sum.yml` -- cross-mode template (example format inconsistency)
+- `<HOME>/code/payer-index-mono/conversus/schema/objective-functions/constraints/budget.yml` -- constraint template
+- `<HOME>/code/payer-index-mono/conversus/README.md` -- conversus framework documentation (mode definitions, directory structure)
