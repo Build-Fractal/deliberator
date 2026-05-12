@@ -37,6 +37,7 @@ target:
 
 agents:
   - name: pragmatist
+    provider: claude-code
     preset: philosophy/pragmatist
     prompt: |
       You evaluate the v4.1.0 Persistence Contract Discipline amendment
@@ -67,6 +68,7 @@ agents:
       the arbiter aggregates.
 
   - name: devils-advocate
+    provider: claude-code
     preset: role/devils-advocate
     prompt: |
       You challenge the v4.1.0 Persistence Contract Discipline
@@ -109,6 +111,7 @@ agents:
       an aggregate verdict.
 
   - name: persistence-expert
+    provider: claude-code
     prompt: |
       You are a domain expert on persistence: schemas, storage formats,
       versioning, drift detection, and the lifecycle of on-disk data
@@ -152,6 +155,7 @@ agents:
       verdict.
 
   - name: ci-expert
+    provider: claude-code
     prompt: |
       You are a domain expert on CI gates: gate placement, false-positive
       tolerance, false-negative cost, blocking vs advisory gates, and
@@ -198,6 +202,7 @@ agents:
 
 arbiter:
   name: v4.1.0-persistence-originating-arbiter
+  provider: claude-code
   preset: role/balanced-arbiter
   prompt: |
     You rule on the v4.1.0 Persistence Contract Discipline originating
