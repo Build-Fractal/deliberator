@@ -26,7 +26,12 @@ from pydantic import BaseModel
 
 from engine.cancel import CancellationFlag
 from engine.config import AgentConfig, EngineConfig
-from engine.dispatch import DEFAULT_MAX_TOKENS, DEFAULT_MODEL, dispatch_phase
+from engine.dispatch import (
+    DEFAULT_MAX_TOKENS,
+    DEFAULT_MODEL,
+    dispatch_phase,
+    dispatch_phase_with_retry,
+)
 from engine.events import (
     EventEmitter,
     PhaseCompleted,
@@ -616,7 +621,12 @@ async def _run_single_round(
         base_dir=base_dir,
     )
 
-    synth_results = await dispatch_phase(
+    # Terminal-phase isolation: use the retry-wrapped dispatcher.
+    # Synthesis is a single-agent dispatch whose prompt is the union of
+    # all prior phase outputs — it disproportionately encounters
+    # rate-limit and prompt-size failures (see engine.dispatch module
+    # docstring + project_conversus_arbitration_crash memory).
+    synth_results = await dispatch_phase_with_retry(
         agents=[("synthesizer", prompt)],
         model=model,
         max_tokens=max_tokens,
@@ -938,7 +948,9 @@ async def run_pipeline(
                         base_dir=base_dir,
                     )
 
-                    _arb_results = await dispatch_phase(
+                    # Terminal-phase isolation: retry-wrapped dispatch
+                    # (see synthesis call site for rationale).
+                    _arb_results = await dispatch_phase_with_retry(
                         agents=[(config.arbiter.name, _arb_prompt)],
                         model=model,
                         max_tokens=max_tokens,
@@ -1109,7 +1121,9 @@ async def run_pipeline(
             base_dir=base_dir,
         )
 
-        crs_results = await dispatch_phase(
+        # Terminal-phase isolation: retry-wrapped dispatch (see
+        # synthesis call site for rationale).
+        crs_results = await dispatch_phase_with_retry(
             agents=[("cross-round-synthesizer", prompt)],
             model=model,
             max_tokens=max_tokens,
@@ -1189,7 +1203,9 @@ async def run_pipeline(
                     base_dir=base_dir,
                 )
 
-                arb_results = await dispatch_phase(
+                # Terminal-phase isolation: retry-wrapped dispatch (see
+                # synthesis call site for rationale).
+                arb_results = await dispatch_phase_with_retry(
                     agents=[(config.arbiter.name, prompt)],
                     model=model,
                     max_tokens=max_tokens,

@@ -1291,10 +1291,16 @@ class TestArbitration:
             validate_templates=config.validate_templates,
         )
 
-        # Capture the arbiter prompt by spying on dispatch_phase
+        # Capture the arbiter prompt by spying on dispatch_phase AND on
+        # dispatch_phase_with_retry (the retry wrapper used by terminal
+        # phases — synthesis, arbitration, cross-round-synthesis — for
+        # fix/engine-terminal-phase-isolation). The spy is at the
+        # phases_mod attribute level so it catches whichever wrapper the
+        # arbiter dispatch goes through.
         captured_prompts: list[str] = []
         from engine import phases as phases_mod
         original_dispatch = phases_mod.dispatch_phase
+        original_retry = phases_mod.dispatch_phase_with_retry
 
         async def spy_dispatch(*args, **kwargs):
             phase = kwargs.get("phase", "")
@@ -1304,10 +1310,19 @@ class TestArbitration:
                     captured_prompts.append(prompt)
             return await original_dispatch(*args, **kwargs)
 
+        async def spy_retry(*args, **kwargs):
+            phase = kwargs.get("phase", "")
+            agents = kwargs.get("agents", args[0] if args else [])
+            if phase == "arbitration":
+                for _, prompt in agents:
+                    captured_prompts.append(prompt)
+            return await original_retry(*args, **kwargs)
+
         provider = MockProvider()
         emitter, _ = _collect_events()
         try:
             phases_mod.dispatch_phase = spy_dispatch
+            phases_mod.dispatch_phase_with_retry = spy_retry
             asyncio.run(
                 run_pipeline(
                     config_with_large, provider, emitter,
@@ -1316,6 +1331,7 @@ class TestArbitration:
             )
         finally:
             phases_mod.dispatch_phase = original_dispatch
+            phases_mod.dispatch_phase_with_retry = original_retry
 
         # The arbiter dispatch MUST have happened
         assert len(captured_prompts) == 1, (
