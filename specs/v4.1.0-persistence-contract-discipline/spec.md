@@ -2,11 +2,20 @@
 
 **Feature ID:** `v4.1.0-persistence-contract-discipline`
 **Created:** 2026-05-11
-**Status:** v3 / post-self-consistency-demote / pre-self-consistency-rerun (2026-05-12).
+**Status:** v4 / post-rerun-D-conditions / pre-blind-verification (2026-05-12).
 **Depends On:** v4.0.0-tier-extraction (Tier 1 + Tier 2 hierarchy must exist); spec 067 (verification methodology); spec 070 (Constitutional Inclusion Criteria).
 **Governed by:** `https://github.com/clariti-care/payer-index-mono/blob/main/build-fractal/conversus/GOVERNANCE.md` § Pathway Taxonomy (**MINOR** pathway at Tier 2 — strengthens the suite constitution without removing or renaming any existing principle).
 **Originating context:** Originating deliberation 2026-05-12, ruling at `deliberations/v4.1.0-persistence-contract-discipline-originating-2026-05-11/arbitration/resolution.md` (commit `026b417`). Cross-product persistence audit 2026-05-11 surfaced: (a) the V remediation revealed conversus output parse contract lives in display text and silently short-circuits across 6 of 8 modes; (b) spec-kit-orc adapter (`scripts/dispatch/adapters/tool/conversus.sh`) hardcodes 3 brittle paths/grep patterns into conversus outputs; (c) spec-kit-orc's own `state-files.md` declared schemas have drifted from production JSONL data — 4 divergent in-tree schemas; (d) cross-product Python API (`linter.output_contract`) consumed without stability guarantee.
-**Self-consistency verification:** Self-consistency arbitration 2026-05-12 at `deliberations/v4.1.0-persistence-contract-discipline-self-consistency-2026-05-12/arbitration/resolution.md` (commit `8f90e2d`). Ruled **Q1 PASS-WITH-CLARIFICATIONS / Q2 DEMOTE-TO-TIER-2 / Q3 FAIL-OVERSTRETCH**. Seven required changes produced this v3.
+**Self-consistency verification:** Initial self-consistency arbitration 2026-05-12 at `deliberations/v4.1.0-persistence-contract-discipline-self-consistency-2026-05-12/arbitration/resolution.md` (commit `8f90e2d`). Ruled **Q1 PASS-WITH-CLARIFICATIONS / Q2 DEMOTE-TO-TIER-2 / Q3 FAIL-OVERSTRETCH**. Seven required changes produced v3. Self-consistency re-run on v3 arbitration 2026-05-12 at `deliberations/v4.1.0-persistence-contract-discipline-self-consistency-rerun-2026-05-12/arbitration/resolution.md` (commit `a17d13a`). Ruled **Q1 PASS-WITH-CLARIFICATIONS / Q2 PASS / Q3 PASS-WITH-EDITS**. Four D-conditions (D1-D4) produced this v4. Combined disposition: **PROCEED TO BLIND VERIFICATION**.
+
+## Changelog from v3 (self-consistency-rerun D-conditions, 2026-05-12)
+
+The self-consistency re-run on v3 (arbitration commit `a17d13a`) returned **Q1 PASS-WITH-CLARIFICATIONS / Q2 PASS / Q3 PASS-WITH-EDITS** — combined disposition PROCEED TO BLIND VERIFICATION with four D-conditions applied to produce this v4:
+
+- **D1 — Q1/Q2 sequencing in verification methodology.** Per the rerun arbitration's ruling on "Evidence Base Verification Priority Classification" (strict-reader adopted, High confidence): within each verification stage (originating, self-consistency, blind), Q1 constitutional coherence assessment MUST complete before Q2 evidence base adequacy analysis. Q1 (internal contradictions with existing principles) is structurally independent of Q2 (tier-placement evidence adequacy). *(Applied: § 9 verification protocol; § 13 methodological lessons.)*
+- **D2 — Temporal scope of universal deadline.** Per the rerun arbitration's ruling on "Universal Deadline Temporal Framework" (tier-coherence-auditor adopted, High confidence): the universal 2026-12-01 deadline applies to **products existing at ratification**. Future siblings joining the conversus suite after ratification are governed by their admission process — they receive admission-time deadlines, not retroactive inheritance of this date. Temporal scope preservation avoids the logical impossibility of retroactive obligations on non-existent products (Principle VII constraint). *(Applied: § 2 goals 3-5 + universal-deadline rationale paragraph; § 3 non-goals; § 7 cross-product implications table; § 10.2 C7.)*
+- **D3 — Constitutional adequacy precedes enforcement design.** Per the rerun arbitration's ruling on "Constitutional-Enforcement Coordination Priority" (precedent-auditor adopted, Medium confidence): ratification-blocking issues (constitutional contradictions, tier-evidence mismatches, precedent-scope violations) MUST be evaluated before enforcement-mechanism design issues (CI gate placement, fixture requirements, deadlines). The latter are post-ratification operational enhancements; the former are ratification-blocking. Companion to D1. *(Applied: § 9 verification protocol; § 13 methodological lessons.)*
+- **D4 — § 11 procedural boundary language.** Per the rerun arbitration's ruling on "Agent Convergence vs Procedural Override Authority Boundaries" (precedent-auditor adopted, High confidence): § 11 (override-with-rationale scope restriction) is extended with explicit language clarifying that **agent convergence on substance cannot cure procedural violations**, but substantive outcomes MAY be preserved when procedures are corrected through proper channels. The v2-Q2 originating-stage override invocation is the worked example: the procedural invocation was rolled back in v3, and the substantive Q2 disposition (format-choice preserved) survived intact by being re-grounded on independent agent-convergence rather than via the invalid override. *(Applied: § 11.)*
 
 ## Changelog from v2 (self-consistency fixes, 2026-05-12)
 
@@ -53,12 +62,14 @@ The amendment is **MINOR** under the pathway taxonomy because it adds a new norm
 
 1. Tier 2 (conversus suite) constitution gains a new Principle XXVIII "Persistence Contract Discipline" with operational definitions for "declared schema", "mechanical enforcement", "schema drift", and "cross-product consumer contract".
 2. Conversus-oss adds a `CONSUMER-CONTRACT.md` at the repo root declaring its cross-product stability surface (output filenames, heading text used by external parsers, the `linter.output_contract` Python API surface).
-3. Conversus-oss `CONFORMANCE.md` adds a new Provisional remediation row: implement structured XML output for deliberation phases (closes the V parser gap surfaced by PR #139; deadline **2026-12-01**). This row is the bridge to the follow-on component-tier spec.
-4. Conversus-enhanced `CONFORMANCE.md` gains the same Provisional remediation row for ITS persistence artifacts (per-solver run metadata, if any) — deadline **2026-12-01**.
-5. spec-kit-orc `CONFORMANCE.md` (created 2026-05-10) gains a new Provisional remediation row: reconcile `state-files.md` declared schemas with production JSONL data; add mechanical validator at `bin/validate-state.sh`; deadline **2026-12-01**.
+3. Conversus-oss `CONFORMANCE.md` adds a new Provisional remediation row: implement structured XML output for deliberation phases (closes the V parser gap surfaced by PR #139; deadline **2026-12-01**). This row is the bridge to the follow-on component-tier spec. *(Temporal scope per D2: deadline binds conversus-oss as it exists at ratification, projected 2026-05-12. Future siblings joining the conversus suite after ratification are governed by their admission process, not retroactively bound to this date.)*
+4. Conversus-enhanced `CONFORMANCE.md` gains the same Provisional remediation row for ITS persistence artifacts (per-solver run metadata, if any) — deadline **2026-12-01**. *(Temporal scope per D2: deadline binds conversus-enhanced as it exists at ratification, projected 2026-05-12. Future siblings joining the conversus suite after ratification are governed by their admission process, not retroactively bound to this date.)*
+5. spec-kit-orc `CONFORMANCE.md` (created 2026-05-10) gains a new Provisional remediation row: reconcile `state-files.md` declared schemas with production JSONL data; add mechanical validator at `bin/validate-state.sh`; deadline **2026-12-01**. *(Temporal scope per D2: deadline binds spec-kit-orc as it exists at ratification, projected 2026-05-12. Future siblings joining the conversus suite after ratification are governed by their admission process, not retroactively bound to this date.)*
 6. `build-fractal/conversus/README.md` (or, if absent, suite-level entry-point doc) gains a new section "Persistence Contract Discipline" linking to the Principle XXVIII text and listing each product's CONSUMER-CONTRACT.md.
 
-> **Universal-deadline rationale (v3, per C-SC-2).** A Tier 2 principle applies to every conversus-family repo; granting per-repo deadline relief contradicts the principle's universality claim and would be mechanically verifiable as inconsistent with the principle's own scope. v3 sets a single universal 2026-12-01 deadline — the later of v2's two dates (the universal bar must accommodate the longest realistic remediation, not the shortest). Products MAY self-declare earlier ready dates as opt-in; the principle's normative bar is uniform.
+> **Universal-deadline rationale (v3, per C-SC-2; refined v4 per D2).** A Tier 2 principle applies to every conversus-family repo; granting per-repo deadline relief contradicts the principle's universality claim and would be mechanically verifiable as inconsistent with the principle's own scope. v3 sets a single universal 2026-12-01 deadline — the later of v2's two dates (the universal bar must accommodate the longest realistic remediation, not the shortest). Products MAY self-declare earlier ready dates as opt-in; the principle's normative bar is uniform.
+>
+> **Temporal scope (v4, per D2):** the 2026-12-01 deadline applies to products **existing at ratification**. Future siblings admitted to the conversus suite after ratification receive their persistence-contract-discipline deadline through their admission process — not retroactive inheritance of 2026-12-01. This preserves the universality claim (uniform within temporal scope) while avoiding the logical impossibility (per Principle VII) of retroactive obligations on products that did not exist when the deadline was set. The temporal-scope distinction is between *membership universality* (every conversus-family repo at the relevant point in time is bound) and *temporal universality* (a single fixed past date binds future entrants). The principle adopts membership universality; temporal universality is rejected as logically impossible.
 
 ## 3. Non-goals
 
@@ -66,7 +77,7 @@ The amendment is **MINOR** under the pathway taxonomy because it adds a new norm
 - **Does NOT migrate conversus outputs to XML in this spec.** That's a follow-on component-tier spec (`v4.1.1-conversus-structured-output` or similar) that conforms to this amendment.
 - **Does NOT rewrite spec-kit-orc's `state-files.md` in this spec.** Spec-kit-orc's reconciliation is its own follow-on under the Provisional remediation goal #5.
 - **Does NOT introduce a Tier 1 principle.** v3 placement is Tier 2 per C-SC-1. Cross-tier promotion to Tier 1 requires multi-product-family evidence (a non-conversus Build Fractal sibling exhibiting the same persistence-contract failure pattern) and its own amendment cycle.
-- **Does NOT apply retroactively to existing Implicit-Provisional or Compliant-Provisional repos in punitive terms.** Existing conversus-family products gain a Provisional remediation row on a unified 2026-12-01 deadline per § 2 goals 3-5. New product admissions to the conversus suite after ratification MUST include a CONSUMER-CONTRACT.md (or equivalent) and CI gate at admission time.
+- **Does NOT apply retroactively to existing Implicit-Provisional or Compliant-Provisional repos in punitive terms.** Existing conversus-family products gain a Provisional remediation row on a unified 2026-12-01 deadline per § 2 goals 3-5. *(Per D2: the 2026-12-01 deadline binds products existing at ratification only.)* New product admissions to the conversus suite after ratification MUST include a CONSUMER-CONTRACT.md (or equivalent) and CI gate at admission time, **with their persistence-contract-discipline deadline assigned via their admission process** — not retroactive inheritance of 2026-12-01.
 - **Does NOT govern transient state.** In-memory state, temp files outside `.conversus/`/`.orchestrator/`, and ephemeral session artifacts are out of scope. The principle governs persistent on-disk state intended to outlive the writing process.
 - **Does NOT bind product families outside the conversus suite.** Tier 2 scope is the conversus product family. Cross-suite extension is out of scope for this amendment.
 
@@ -234,7 +245,7 @@ Sync Impact Report comment blocks accumulated across prior Tier 2 amendments are
 | conversus-oss | Output parse contract in display text; no CONSUMER-CONTRACT.md; V parser short-circuits on 6/8 modes | CONSUMER-CONTRACT.md declares current surfaces; new Provisional row tracks structured-output migration | Structured XML output (or equivalent) ships; XSD CI gate active; V's 6 xfail tests un-xfail |
 | conversus-enhanced | No documented cross-product consumer surface | CONSUMER-CONTRACT.md declares surface (or asserts N/A with rationale) | If applicable: schema enforcement on whatever stateful artifacts the paid layer writes |
 | spec-kit-orc | state-files.md exists but drifted from production data; consumer of conversus implementation details (hardcoded paths, awk-grep on `## Verdict`, KNOWN_PROVIDER_ERROR_PATTERNS) | New Provisional row tracks: (a) reconcile state-files.md with production data, (b) add mechanical validator, (c) rewrite Conversus adapter against conversus's CONSUMER-CONTRACT.md | Both gaps closed: spec-kit-orc validates its own state; Conversus adapter consumes only declared surfaces |
-| Future conversus-family siblings | No discipline | Admission requires CONSUMER-CONTRACT.md + CI gate at admission time | (same — admission gate enforces discipline going forward) |
+| Future conversus-family siblings | No discipline | Admission requires CONSUMER-CONTRACT.md + CI gate at admission time; persistence-contract-discipline deadline assigned via admission process (NOT retroactive inheritance of 2026-12-01 per D2 temporal scope) | (same — admission gate enforces discipline going forward; admission-time deadline applies) |
 | Non-conversus Build Fractal products | Out of scope of this amendment | Out of scope | Out of scope (Tier 2 = conversus suite only per C-SC-1) |
 
 ## 8. Constitutional Inclusion Criteria gate
@@ -257,6 +268,10 @@ Per spec 067, Tier 2 principle additions require **originating + self-consistenc
 
 > **Coordinated governance analysis (v3, per C-SC-5):** future amendments should conduct tier-placement analysis and precedent-methodology analysis as mutually informing domains in parallel rather than sequentially. The self-consistency arbitration in this amendment cycle revealed genuine circular dependency between the two — tier placement affects precedent rules while precedent scope affects constitutional foundation. Sequential treatment creates artificial prioritization where coordinated treatment preserves the structural relationship.
 
+> **Intra-stage Q1/Q2 sequencing (v4, per D1):** within each verification stage (originating, self-consistency, blind), question evaluation MUST proceed in order: **Q1 (constitutional coherence — internal contradictions with existing principles) before Q2 (evidence base adequacy — tier-placement justification) before Q3 (precedent/scope concerns).** Q1 is structurally independent of Q2 — a principle's text either coheres with existing principles or it does not, regardless of whether the evidence base supports its claimed tier. Q2 evidence gaps may affect tier placement but do not create constitutional contradictions. The QUESTION.md framework is itself a stable interface (Principle II) whose tri-question separation must be honored procedurally. Q1 issues are evaluated to completion before Q2 analysis begins; Q2 feeds Q1's completeness check only insofar as evidence informs whether the principle text *as it stands* coheres at the asserted scope.
+>
+> **Constitutional adequacy before enforcement design (v4, per D3 — companion to D1):** ratification-blocking issues (constitutional contradictions, tier-evidence mismatches, precedent-scope violations) MUST be evaluated and resolved **before** enforcement-mechanism design issues (CI gate placement, fixture requirements, deadline length, conformance-row schema). The former determine whether the principle CAN ratify; the latter are post-ratification operational enhancements that calibrate HOW it operates. Constitutional foundation (behavior, per Principle IX) must be sound before operational superstructure (shape) is built atop it. The cross-review process that produced D1+D3 surfaced this distinction as the load-bearing methodological insight of the rerun: arbiters who collapse adequacy and enforcement into a single P1 axis risk building elaborate enforcement machinery atop constitutionally invalid foundations, or conversely, blocking ratification on enforcement-design refinements that should be post-ratification follow-ups.
+
 ### 9.1 Originating deliberation
 
 - Config: `deliberations/v4.1.0-persistence-contract-discipline-originating-2026-05-11/conversus.yml`
@@ -273,13 +288,15 @@ Per spec 067, Tier 2 principle additions require **originating + self-consistenc
 
 ### 9.3 Self-consistency re-run
 
-v3 ships substantively re-targeted content (tier demotion + universal deadline) — a re-run of self-consistency on v3 is warranted before blind verification. Stage under `deliberations/v4.1.0-persistence-contract-discipline-self-consistency-rerun-2026-MM-DD/` with a fresh agent composition.
+- Config: `deliberations/v4.1.0-persistence-contract-discipline-self-consistency-rerun-2026-05-12/conversus.yml`
+- Fresh agent composition (strict-reader, purist, tier-coherence-auditor, precedent-auditor) targeting v3's substantively re-targeted content (tier demotion + universal deadline).
+- Result: arbitration ruling at commit `a17d13a`. Q1 PASS-WITH-CLARIFICATIONS, Q2 PASS, Q3 PASS-WITH-EDITS. Combined disposition: PROCEED TO BLIND VERIFICATION. Four D-conditions (D1-D4) applied to produce v4 (this document).
 
 ### 9.4 Blind verification
 
-- Strip candidate version/date markers from spec v3 (or v3-passed) using the existing `scripts/strip-constitution-for-blind.py` pattern (adapted to this spec).
+- Strip candidate version/date markers from spec v4 using the existing `scripts/strip-constitution-for-blind.py` pattern (adapted to this spec).
 - Run blind deliberation with agents not exposed to prior verdicts.
-- Apply fixes (if any) to produce spec v4.
+- Apply fixes (if any) to produce spec v5-or-final.
 
 ### 9.5 Ratification
 
@@ -303,7 +320,7 @@ C1-C6 from the originating arbitration ruling (commit `026b417`) survive in v3 u
 
 C7 in v2 specified differentiated deadlines. The self-consistency arbitration ruled this constitutionally invalid (High confidence): differentiated deadlines violate the principle's universality regardless of tier, because a universally-scoped principle cannot grant product-specific accommodations.
 
-**v3 C7:** Update spec § 2 goals 3-5 (conversus-oss + conversus-enhanced + spec-kit-orc) to a uniform deadline of **2026-12-01**, reflecting the conversus-suite-wide remediation window. The longer of v2's two dates (2026-12-01 vs 2026-09-01) is chosen because the universal bar must accommodate the longest realistic remediation, not the shortest. Products MAY self-declare earlier ready dates as opt-in; the principle's normative deadline is uniform. *(Applied: § 2 goals 3-5; § 6.3, § 6.4, § 6.5; § 7 table; § 11; § 12.)*
+**v3 C7 (refined in v4 per D2):** Update spec § 2 goals 3-5 (conversus-oss + conversus-enhanced + spec-kit-orc) to a uniform deadline of **2026-12-01**, reflecting the conversus-suite-wide remediation window. The longer of v2's two dates (2026-12-01 vs 2026-09-01) is chosen because the universal bar must accommodate the longest realistic remediation, not the shortest. Products MAY self-declare earlier ready dates as opt-in; the principle's normative deadline is uniform. **Temporal scope (v4, per D2):** the 2026-12-01 deadline binds products existing at ratification only. Future siblings admitted to the conversus suite after ratification receive their deadline via their admission process, not retroactively. This adopts *membership universality* (every conversus-family repo at the relevant point in time is bound) and rejects *temporal universality* (a single past date binding future entrants), which would be logically impossible per Principle VII. *(Applied: § 2 goals 3-5 + universal-deadline rationale paragraph; § 3 non-goals; § 6.3, § 6.4, § 6.5; § 7 table; § 11; § 12.)*
 
 ### 10.3 C8 — preserved in v3 (deadline-text scrubbed of differentiation)
 
@@ -336,6 +353,12 @@ The "override-with-rationale" precedent — established by prior amendments and 
 
 **Extension procedure:** any future expansion of the override-with-rationale scope (e.g., to self-consistency, to originating, to ratification-stage challenges) requires its own explicit constitutional amendment going through originating + self-consistency + blind verification stages. Implicit scope extension via case-by-case invocation is prohibited.
 
+**Procedural boundary — substance does not cure procedure (v4, per D4):** **Agent convergence on substance CANNOT cure procedural violations.** When an arbiter invokes override-with-rationale outside its blind-verification scope (e.g., at originating or self-consistency), the procedural invocation is invalid regardless of how many agents subsequently converge on the substantive outcome. The invocation does not count toward authority, and the override's documented effects (SIR entry, governance log entry, spec status notation) must NOT be entered as if the procedure had executed validly.
+
+**However, substantive outcomes MAY be preserved when procedures are corrected through proper channels.** When a procedurally invalid invocation is rolled back and the substantive disposition is re-grounded on independent agent-convergence (or other procedurally valid foundations), the substantive outcome can survive intact. The v2-Q2 originating-stage override invocation against pragmatist's technology mandate is the worked example: in v3 the procedural invocation was rolled back (per C-SC-7) and the substantive Q2 disposition (format-choice preserved) was re-grounded on the substantive technical convergence of three of four originating agents — independent of override-with-rationale. The substantive outcome survived; the procedural invocation did not.
+
+**The distinction is load-bearing:** procedure cannot be shortcut via substance (otherwise procedural rules collapse into "whatever the substantive majority wants"), but substance can be re-grounded after procedure is corrected (otherwise every procedurally invalid invocation would force re-litigating substantive outcomes that may be independently supportable). This boundary is itself a stable interface (Principle II) for governance discipline and prevents the failure mode in which procedural violations are retroactively justified by substantive agreement.
+
 ## 12. Compound constitutional debt (per C-SC-4)
 
 The self-consistency arbitration identified two governance discipline gaps in v2 that share a common cause:
@@ -365,6 +388,12 @@ The self-consistency arbitration established methodological constraints binding 
 
 5. **Self-consistency defends procedural status quo against originating-stage ratification bias.** Per § 12 above. The originating-stage arbiter's bias toward APPROVE is the failure mode self-consistency exists to catch.
 
+6. **Intra-stage Q1/Q2 sequencing (per D1).** Within each verification stage, Q1 constitutional coherence assessment MUST complete before Q2 evidence base adequacy analysis. Q1 (internal contradictions) is structurally independent of Q2 (tier-placement evidence adequacy); the QUESTION.md tri-question separation is a stable interface that must be honored procedurally. Per § 9 above.
+
+7. **Constitutional adequacy precedes enforcement design (per D3).** Ratification-blocking issues (constitutional contradictions, tier-evidence mismatches, precedent-scope violations) MUST be evaluated and resolved before enforcement-mechanism design issues (CI gate placement, fixture requirements, deadline length). The former determine whether the principle CAN ratify; the latter are post-ratification operational enhancements. Per § 9 above.
+
+8. **Substance does not cure procedure (per D4).** Agent convergence on substance cannot cure procedural violations. Substantive outcomes may survive when procedures are corrected through proper channels, but the procedural invocation itself does not count toward authority. Per § 11 above.
+
 These constraints apply regardless of the disposition of this specific amendment.
 
 ## 14. Implementation order
@@ -387,26 +416,28 @@ Version change: 1.0.0 → 1.1.0 (MINOR — Persistence Contract Discipline princ
 Governance log entry: 2026-MM-DD in build-fractal/conversus/CONSTITUTIONAL_CONVERSATIONS.md.
 Originating deliberation: deliberations/v4.1.0-persistence-contract-discipline-originating-2026-05-11/ (arbitration commit 026b417).
 Self-consistency verification: deliberations/v4.1.0-persistence-contract-discipline-self-consistency-2026-05-12/ (arbitration commit 8f90e2d — DEMOTE-TO-TIER-2, FAIL-OVERSTRETCH).
-Self-consistency re-run on v3: deliberations/v4.1.0-persistence-contract-discipline-self-consistency-rerun-2026-MM-DD/ (TBD).
+Self-consistency re-run on v3: deliberations/v4.1.0-persistence-contract-discipline-self-consistency-rerun-2026-05-12/ (arbitration commit a17d13a — Q1 PASS-WITH-CLARIFICATIONS, Q2 PASS, Q3 PASS-WITH-EDITS; PROCEED TO BLIND VERIFICATION; four D-conditions D1-D4 applied to produce v4).
 Blind verification: deliberations/v4.1.0-persistence-contract-discipline-blind-2026-MM-DD/ (TBD).
 Inclusion Criteria gate: PASS at Tier 2 (universal applicability within conversus suite + mechanical verifiability + non-redundant).
 Pathway: MINOR (new Tier 2 principle XXVIII; no principle removed or renamed).
-Per-product impact: new CONSUMER-CONTRACT.md at each suite repo root; new Provisional remediation rows in conversus-oss / conversus-enhanced / spec-kit-orc CONFORMANCE.md with a universal 2026-12-01 deadline; follow-on component-tier specs for structured-output (conversus-oss) and state-files reconciliation (spec-kit-orc).
+Per-product impact: new CONSUMER-CONTRACT.md at each suite repo root; new Provisional remediation rows in conversus-oss / conversus-enhanced / spec-kit-orc CONFORMANCE.md with a universal 2026-12-01 deadline (binding products existing at ratification only per v4 D2 temporal scope); follow-on component-tier specs for structured-output (conversus-oss) and state-files reconciliation (spec-kit-orc).
 Procedural notes:
   - Tier 1 placement attempted in v2; demoted to Tier 2 in v3 per self-consistency arbitration 8f90e2d.
   - Override-with-rationale precedent restricted to blind-verification scope only (per v3 § 11). v2's originating-stage invocation logged as procedurally invalid; substantive Q2 disposition preserved on independent agent-convergence grounds.
+  - v4 D1-D4 applied per self-consistency rerun a17d13a: intra-stage Q1/Q2 sequencing (D1), temporal scope of universal deadline — existing products only (D2), constitutional adequacy precedes enforcement design (D3), § 11 procedural boundary language — substance does not cure procedure (D4).
 Prior amendment (v4.0.0): tier extraction — see prior SIR block below.
 -->
 ```
 
 ## 16. Status & next steps
 
-- **Status:** v3 / post-self-consistency-demote / pre-self-consistency-rerun (2026-05-12).
-- **Next step:** stage a fresh self-consistency verification on v3 under `deliberations/v4.1.0-persistence-contract-discipline-self-consistency-rerun-2026-MM-DD/` with a different agent composition than the prior self-consistency run, since v3's substantive content (tier-demotion + universal deadline) differs from v2's. Apply any fixes to produce spec v4 (or confirm PASS unchanged).
-- **Then:** blind verification per § 9.4, producing spec v4-or-v5 as appropriate, followed by ratification per § 9.5.
+- **Status:** v4 / post-rerun-D-conditions / pre-blind-verification (2026-05-12).
+- **Next step:** blind verification per § 9.4 — strip candidate version/date markers using the existing `scripts/strip-constitution-for-blind.py` pattern (adapted to this spec), then run blind deliberation with agents not exposed to prior verdicts. Apply any fixes to produce spec v5-or-final.
+- **Then:** ratification per § 9.5 — flip status to `Status: Ratified`, apply file edits per § 6, update SIR blocks, version footer, CONSTITUTIONAL_CONVERSATIONS.md entries.
 
 ## 17. Fix ledger
 
 - **v1 → v2 (originating-fixes, 2026-05-12):** Applied conditions C1-C8 from binding arbitration ruling at `deliberations/v4.1.0-persistence-contract-discipline-originating-2026-05-11/arbitration/resolution.md` (commit `026b417`). Q1 APPROVE-WITH-FIXES (C1-C4 applied to § 4 sub-clauses 1, 2, 4). Q2 APPROVE-WITH-FIXES (C5-C6 applied to § 4 sub-clause 2; v2 noted override-with-rationale invoked against pragmatist's technology mandate — that invocation is rolled back in v3 per C-SC-7, with substantive Q2 disposition preserved on independent agent-convergence grounds). Q3 APPROVE-WITH-EXTENSION (C7 differentiated deadlines + C8 missed-deadline consequence; C7 superseded in v3 per C-SC-2). Draft placeholder conditions superseded.
 - **v2 → v3 (self-consistency fixes, 2026-05-12):** Applied seven required changes from self-consistency arbitration `deliberations/v4.1.0-persistence-contract-discipline-self-consistency-2026-05-12/arbitration/resolution.md` (commit `8f90e2d`). C-SC-1 tier demotion (Tier 1 → Tier 2; new Principle XXVIII). C-SC-2 universal deadline (2026-12-01 across all suite products; differentiated deadlines removed). C-SC-3 override-with-rationale scope restricted to blind-verification only (§ 11). C-SC-4 compound constitutional debt acknowledged (§ 12). C-SC-5 coordinated governance analysis (§ 9 + § 13). C-SC-6 conditional constitutional coordination analysis preserved (§ 13). C-SC-7 originating-stage override violation documented + v2 Q2 changelog rewritten on substantive-convergence grounds.
-- **v3 → vN (self-consistency-rerun fixes, blind fixes, errata):** TBD.
+- **v3 → v4 (self-consistency-rerun D-conditions, 2026-05-12):** Applied four D-conditions from self-consistency rerun arbitration `deliberations/v4.1.0-persistence-contract-discipline-self-consistency-rerun-2026-05-12/arbitration/resolution.md` (commit `a17d13a`). Rerun ruled Q1 PASS-WITH-CLARIFICATIONS / Q2 PASS / Q3 PASS-WITH-EDITS; combined disposition PROCEED TO BLIND VERIFICATION with four D-conditions applied. D1 intra-stage Q1/Q2 sequencing (§ 9, § 13). D2 temporal scope of universal deadline — products existing at ratification only; future siblings receive admission-time deadlines (§ 2 goals 3-5 + rationale, § 3 non-goals, § 7 table, § 10.2 C7). D3 constitutional adequacy precedes enforcement design (§ 9, § 13). D4 § 11 procedural boundary language — substance does not cure procedure, but substance can be re-grounded after procedure is corrected (§ 11).
+- **v4 → vN (blind fixes, errata):** TBD.
