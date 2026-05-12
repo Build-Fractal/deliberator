@@ -86,4 +86,4 @@ The constitution under review establishes comprehensive testing principles acros
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/deliberations/071-blind-2026-04-28/CONSTITUTION-v2.5.0-blind.md` — sections cited: L346-366 (Principle IX behavior-over-shape), L573-595 (Principle XXIV safety-critical), L597-632 (Principle XXV cost discipline), L654-675 (Principle XXVI meta-testing), L677-714 (Principle XXVIII test-fix), L361-363 (IX assertion rules), L693-695 (XXVIII assertion fidelity), L440-470 (constitutional inclusion criteria)
+- `<HOME>/code/payer-index-mono/conversus-oss/deliberations/071-blind-2026-04-28/CONSTITUTION-v2.5.0-blind.md` — sections cited: L346-366 (Principle IX behavior-over-shape), L573-595 (Principle XXIV safety-critical), L597-632 (Principle XXV cost discipline), L654-675 (Principle XXVI meta-testing), L677-714 (Principle XXVIII test-fix), L361-363 (IX assertion rules), L693-695 (XXVIII assertion fidelity), L440-470 (constitutional inclusion criteria)

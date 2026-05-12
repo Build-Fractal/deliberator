@@ -953,3 +953,269 @@ class TestMetadataBlock:
         # Must not raise — agent_count from metadata is structural evidence.
         result = parse_synthesis(text, mode="red-blue")
         assert result.quality_indicators.agent_count == 2
+
+
+# ---------------------------------------------------------------------------
+# Cross-mode coverage — Tier 2 Principle V (Observable Deliberation)
+# ---------------------------------------------------------------------------
+#
+# The conversus suite ships 8 deliberation modes (see ``templates/`` and the
+# CONFORMANCE.md Tier 2 declaration). ``linter/output_contract.py`` was
+# originally written when only ``cooperative`` mode existed. Principle V
+# requires every deliberation phase to emit observable output that downstream
+# tooling can validate against the canonical contract — and that the linter
+# enforcing the contract MUST be verified across every mode the suite
+# supports.
+#
+# These parametrized tests are the cross-mode coverage gate. They:
+#   1. Exercise ``parse_synthesis`` against a representative synthesis-output
+#      fixture for each of the 8 modes.
+#   2. Assert the mode-agnostic guarantees (the metadata block + structural
+#      evidence path) hold for every mode.
+#   3. Assert dispute-counting for modes where it works today, and pin
+#      ``xfail`` the modes where it is genuinely broken so the gap is visible
+#      as failing-but-expected coverage rather than silent absence.
+#
+# Follow-on (see PR body for details): 6 of 8 modes have a genuine bug in the
+# marker-tier dispute parser — ``_parse_marker_disputes`` only recognizes the
+# literal ``**Dispute:`` entry keyword, so modes whose templates use mode-
+# specific keywords inside the ``DISPUTES_BEGIN/END`` block
+# (``**Disputed:``, ``**Vulnerability:``, ``**Term:``, ``**Contested:``, plus
+# the heading-style entries used by ``red-blue`` and ``prisoners-dilemma``)
+# fall through to ``return _empty`` instead of dispatching to the fallback
+# parser. The fix belongs in ``linter/quality.py`` and is tracked separately.
+# These tests document the gap.
+
+ALL_MODES = [
+    "cooperative",
+    "red-blue",
+    "winner-take-all",
+    "prisoners-dilemma",
+    "fair-division",
+    "mechanism-design",
+    "negotiation",
+    "resource-allocation",
+]
+
+
+def _metadata_only_synthesis(mode: str) -> str:
+    """Engine-injected metadata block + minimal title. The metadata block alone
+    is structural evidence (see :class:`TestMetadataBlock`) and the parser must
+    accept it for every mode."""
+    return (
+        "<!-- CONVERSUS:METADATA\n"
+        "agents: 2\n"
+        "agent_names: a, b\n"
+        f"mode: {mode}\n"
+        "phases_completed: 5\n"
+        "iterations: 1\n"
+        "-->\n\n"
+        f"# Synthesis: Cross-mode coverage probe — {mode}\n\n"
+        "Body content.\n"
+    )
+
+
+# Mode → DISPUTES_BEGIN/END inner body, modelled directly on the
+# ``templates/<mode>/synthesis.md`` "For each:" entry shape. Each fixture
+# contains exactly 2 dispute entries so a working parser must yield 2.
+#
+# Note on fixture style: templates show entries as list items (``- **Dispute:
+# [Label]**``), but real synthesizer outputs frequently drop the list dash
+# (compare ``conversus/quality_floor/reference-outputs/passing/monorepo-vs-
+# polyrepo/summary/final.md`` — entries are flush-left ``**Dispute: ...**``).
+# These fixtures use the flush-left form to mirror what reference outputs
+# actually look like; the marker-tier regex anchors to ``(?:^|\n)\s*`` so
+# both forms should ultimately be supported by a correct parser.
+_MODE_DISPUTE_BODIES: dict[str, str] = {
+    "cooperative": (
+        "### Remaining Disputes\n\n"
+        "**Dispute: Item A**\n"
+        "- Positions: X vs Y.\n\n"
+        "**Dispute: Item B**\n"
+        "- Positions: X vs Y.\n"
+    ),
+    "winner-take-all": (
+        "### Remaining Disputes\n\n"
+        "**Dispute: tie on criterion A**\n"
+        "- text\n\n"
+        "**Dispute: tie on criterion B**\n"
+        "- text\n"
+    ),
+    "red-blue": (
+        "### Disputed Risks\n\n"
+        "**[RISK-A]: First risk**\n"
+        "- text\n\n"
+        "**[RISK-B]: Second risk**\n"
+        "- text\n"
+    ),
+    "prisoners-dilemma": (
+        "## Disputed Boundaries\n\n"
+        "### [Capability-A]\n\n"
+        "- text\n\n"
+        "### [Capability-B]\n\n"
+        "- text\n"
+    ),
+    "fair-division": (
+        "### Disputed Valuations\n\n"
+        "**Disputed: Item-A**\n"
+        "- Valuations: A=100 vs B=50.\n\n"
+        "**Disputed: Item-B**\n"
+        "- Valuations: A=30 vs B=80.\n"
+    ),
+    "mechanism-design": (
+        "### Mechanism Vulnerabilities\n\n"
+        "**Vulnerability: V-A**\n"
+        "- text\n\n"
+        "**Vulnerability: V-B**\n"
+        "- text\n"
+    ),
+    "negotiation": (
+        "### Unresolved Terms\n\n"
+        "**Term: T-A**\n"
+        "- text\n\n"
+        "**Term: T-B**\n"
+        "- text\n"
+    ),
+    "resource-allocation": (
+        "### Contested Allocations\n\n"
+        "**Contested: R-A**\n"
+        "- text\n\n"
+        "**Contested: R-B**\n"
+        "- text\n"
+    ),
+}
+
+
+def _synthesis_with_disputes(mode: str) -> str:
+    """A realistic synthesis: metadata block + title + Process Summary table +
+    a DISPUTES_BEGIN/END section whose inner body matches the mode's
+    ``templates/<mode>/synthesis.md`` "For each:" entry shape exactly."""
+    return (
+        "<!-- CONVERSUS:METADATA\n"
+        "agents: 2\n"
+        "agent_names: a, b\n"
+        f"mode: {mode}\n"
+        "phases_completed: 5\n"
+        "iterations: 1\n"
+        "-->\n\n"
+        f"# Synthesis: Cross-mode dispute probe — {mode}\n\n"
+        "## Process Summary\n\n"
+        "| Agents | 2 (a, b) |\n\n"
+        "<!-- CONVERSUS:DISPUTES_BEGIN -->\n"
+        + _MODE_DISPUTE_BODIES[mode]
+        + "<!-- CONVERSUS:DISPUTES_END -->\n"
+    )
+
+
+# Modes whose dispute parser is genuinely broken today (see follow-on note
+# above). When the fix lands, remove the relevant entries from this set and
+# the corresponding xfail markers will start failing as XPASS, prompting
+# removal of the strict-xfail annotation.
+_DISPUTE_PARSER_BROKEN_MODES: set[str] = {
+    "red-blue",
+    "prisoners-dilemma",
+    "fair-division",
+    "mechanism-design",
+    "negotiation",
+    "resource-allocation",
+}
+
+
+class TestCrossModeMetadataCoverage:
+    """Mode-agnostic guarantees: the metadata block is authoritative for every
+    one of the 8 modes the suite supports. Failure of any parametrization
+    means a regression in the metadata extraction path, not a per-mode bug."""
+
+    @pytest.mark.parametrize("mode", ALL_MODES)
+    def test_metadata_supplies_agent_count(self, mode: str) -> None:
+        result = parse_synthesis(_metadata_only_synthesis(mode), mode=mode)
+        assert result.quality_indicators.agent_count == 2
+
+    @pytest.mark.parametrize("mode", ALL_MODES)
+    def test_metadata_supplies_mode(self, mode: str) -> None:
+        # Pass a deliberately wrong caller default to confirm metadata wins.
+        result = parse_synthesis(
+            _metadata_only_synthesis(mode), mode="cooperative"
+        )
+        assert result.quality_indicators.mode == mode
+
+    @pytest.mark.parametrize("mode", ALL_MODES)
+    def test_metadata_supplies_phases_completed(self, mode: str) -> None:
+        result = parse_synthesis(_metadata_only_synthesis(mode), mode=mode)
+        assert result.quality_indicators.phases_completed == 5
+
+    @pytest.mark.parametrize("mode", ALL_MODES)
+    def test_metadata_block_is_structural_evidence(self, mode: str) -> None:
+        """A metadata block alone must be sufficient structural evidence to
+        satisfy the unparseable-synthesis guard for every mode."""
+        result = parse_synthesis(_metadata_only_synthesis(mode), mode=mode)
+        # Reaching this line means the guard did not fire.
+        assert result.full_analysis  # non-empty
+
+    @pytest.mark.parametrize("mode", ALL_MODES)
+    def test_output_serializes_to_valid_json(self, mode: str) -> None:
+        """``model_dump_json()`` must produce valid, parseable JSON containing
+        the canonical contract fields for every mode."""
+        result = parse_synthesis(_metadata_only_synthesis(mode), mode=mode)
+        parsed = json.loads(result.model_dump_json())
+        for field in (
+            "headline",
+            "summary",
+            "full_analysis",
+            "quality_indicators",
+            "debate_transcript",
+        ):
+            assert field in parsed, f"missing field {field} for mode={mode}"
+        assert parsed["quality_indicators"]["mode"] == mode
+
+
+class TestCrossModeDisputeCoverage:
+    """Per-mode dispute parsing across all 8 modes.
+
+    For each mode we synthesize a realistic DISPUTES_BEGIN/END block whose
+    inner entries match the mode's template shape exactly, then assert the
+    parser returns ``surviving == 2``. Modes whose parser is genuinely
+    broken today are marked ``strict xfail`` so:
+      - the gap is visible as failing-but-expected coverage (not silent
+        absence);
+      - fixing the parser will flip them to XPASS and force a follow-up
+        commit to drop the xfail marker.
+    """
+
+    @pytest.mark.parametrize(
+        "mode",
+        [
+            pytest.param(
+                m,
+                marks=pytest.mark.xfail(
+                    strict=True,
+                    reason=(
+                        "Output-contract follow-on: marker-tier "
+                        "_parse_marker_disputes only matches `**Dispute:`; "
+                        "mode-specific entry keywords short-circuit to "
+                        "return _empty before the fallback dispatch runs."
+                    ),
+                ),
+            )
+            if m in _DISPUTE_PARSER_BROKEN_MODES
+            else m
+            for m in ALL_MODES
+        ],
+    )
+    def test_dispute_block_yields_two_surviving(self, mode: str) -> None:
+        result = parse_synthesis(_synthesis_with_disputes(mode), mode=mode)
+        qi = result.quality_indicators
+        assert qi.genuine_disagreements_surviving == 2, (
+            f"mode={mode}: expected 2 surviving disputes from the "
+            f"template-shaped fixture, got "
+            f"{qi.genuine_disagreements_surviving}"
+        )
+
+    @pytest.mark.parametrize("mode", ALL_MODES)
+    def test_dispute_fixture_parses_without_raising(self, mode: str) -> None:
+        """Independent of dispute-count correctness: the fixture must parse
+        for every mode — the structural-evidence guard must not fire on a
+        well-formed metadata block + DISPUTES_BEGIN/END section."""
+        # Must not raise UnparseableSynthesisError or ValueError.
+        result = parse_synthesis(_synthesis_with_disputes(mode), mode=mode)
+        assert result.quality_indicators.mode == mode

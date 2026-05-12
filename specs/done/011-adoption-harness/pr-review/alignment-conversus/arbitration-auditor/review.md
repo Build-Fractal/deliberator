@@ -78,31 +78,31 @@ The schema/linter layer (outside the engine) is fully spec-006-compliant: `linte
 ### P1 (Must-fix: blocks spec 006 correctness)
 
 **R1. Add `timing` and `influence` fields to `ArbiterConfig` and parse them in `_resolve_arbiter`.**
-- File: `/Users/business-daddy/code/payer-index-mono/conversus/engine/config.py`
+- File: `<HOME>/code/payer-index-mono/conversus/engine/config.py`
 - Add `timing: Literal["final", "inter-round"] = "final"` and `influence: Literal["binding", "recommended", "advisory"] = "binding"` to `ArbiterConfig`.
 - In `_resolve_arbiter`, extract `raw.get("timing", "final")` and `raw.get("influence", "binding")`, validate their values, and pass them to the model constructor.
 - Implement FR-003: reject `timing: inter-round` when `config.rounds <= 1`.
 
 **R2. Implement inter-round arbitration in `run_pipeline`.**
-- File: `/Users/business-daddy/code/payer-index-mono/conversus/engine/phases.py`
+- File: `<HOME>/code/payer-index-mono/conversus/engine/phases.py`
 - After `_run_single_round` returns and before the stagnation/termination check, if `config.arbiter.timing == "inter-round"`, evaluate the trigger condition and dispatch Phase 6.
 - Write output to `round_base/arbiter/resolution.md`.
 - Pass the prior-round arbitration path to the next round's `_run_single_round` call.
 - Keep the existing post-loop arbitration for `timing: final` and for cumulative final arbitration when `timing: inter-round` and disputes remain.
 
 **R3. Pass `INFLUENCE_LEVEL` from config in `build_arbitration_context`.**
-- File: `/Users/business-daddy/code/payer-index-mono/conversus/engine/templates.py`
+- File: `<HOME>/code/payer-index-mono/conversus/engine/templates.py`
 - In `build_arbitration_context`, set `INFLUENCE_LEVEL=config.arbiter.influence` (mapping the string to `InfluenceLevel` enum) in the `ArbitrationContext` constructor.
 
 **R4. Construct `PRIOR_ARBITRATION_SECTION` in `build_review_context`.**
-- File: `/Users/business-daddy/code/payer-index-mono/conversus/engine/templates.py`
+- File: `<HOME>/code/payer-index-mono/conversus/engine/templates.py`
 - When `prior_arbitration_path` is not None and points to an existing file, construct the influence-aware text block per FR-014 using `config.arbiter.influence`.
 - Pass the assembled string as `PRIOR_ARBITRATION_SECTION` to the `ReviewContext` constructor.
 
 ### P2 (Should-fix: required for full spec 006 compliance)
 
 **R5. Implement influence-aware dispute counting for stagnation detection.**
-- File: `/Users/business-daddy/code/payer-index-mono/conversus/engine/phases.py`
+- File: `<HOME>/code/payer-index-mono/conversus/engine/phases.py`
 - After inter-round arbitration runs, parse the arbitration output to count addressed disputes.
 - For `binding`: subtract addressed disputes from the count before the stagnation check.
 - For `recommended`: subtract addressed disputes (provisionally).
@@ -110,12 +110,12 @@ The schema/linter layer (outside the engine) is fully spec-006-compliant: `linte
 - This requires a new helper function to parse arbitration output and count addressed disputes.
 
 **R6. Pass `arbitration_paths` and `arbitration_rulings` to `build_cross_round_synthesis_context`.**
-- File: `/Users/business-daddy/code/payer-index-mono/conversus/engine/phases.py`
+- File: `<HOME>/code/payer-index-mono/conversus/engine/phases.py`
 - Collect per-round arbitration paths as the round loop executes.
 - After the loop, pass the collected paths and formatted rulings text to the cross-round synthesis builder.
 
 **R7. Change `PipelineResult.arbitration_ran` from `bool` to a richer type.**
-- File: `/Users/business-daddy/code/payer-index-mono/conversus/engine/phases.py`
+- File: `<HOME>/code/payer-index-mono/conversus/engine/phases.py`
 - Replace `arbitration_ran: bool = False` with a structure that can express per-round arbitration (e.g., `arbitration_rounds: list[int] = []` or `arbitration_count: int = 0`). Keep backward compatibility by retaining the boolean as a computed property.
 
 ### P3 (Nice-to-have: improves robustness)
@@ -133,11 +133,11 @@ The schema/linter layer (outside the engine) is fully spec-006-compliant: `linte
 
 ## Referenced Documentation
 
-- **Spec 006**: `/Users/business-daddy/code/payer-index-mono/conversus/specs/done/006-inter-round-arbitration/spec.md` -- FR-001 through FR-023, SC-001 through SC-008.
-- **SKILL.md**: `/Users/business-daddy/code/payer-index-mono/conversus/SKILL.md` -- Lines 99-111 (arbiter config schema), 218-222 (timing/influence validation), 346-366 (round loop with inter-round arbitration), 430-433 (PRIOR_ARBITRATION_SECTION expansion), 519-539 (inter-round arbitration subsection), 534-538 (influence-aware dispute counting), 656 (INFLUENCE_LEVEL template variable), 673-688 (influence-adjusted heading validation).
-- **engine/config.py**: `/Users/business-daddy/code/payer-index-mono/conversus/engine/config.py` -- `ArbiterConfig` (L45-53), `_resolve_arbiter` (L400-471), `parse_config` (L478-642).
-- **engine/phases.py**: `/Users/business-daddy/code/payer-index-mono/conversus/engine/phases.py` -- `_run_single_round` (L191-565), `run_pipeline` (L573-860), stagnation detection (L691-711), Phase 6 block (L768-849).
-- **engine/templates.py**: `/Users/business-daddy/code/payer-index-mono/conversus/engine/templates.py` -- `build_review_context` (L208-253), `build_arbitration_context` (L566-613), `build_cross_round_synthesis_context` (L620-669).
-- **engine/output.py**: `/Users/business-daddy/code/payer-index-mono/conversus/engine/output.py` -- `get_arbitration_path` (L257-264), round-aware path methods.
+- **Spec 006**: `<HOME>/code/payer-index-mono/conversus/specs/done/006-inter-round-arbitration/spec.md` -- FR-001 through FR-023, SC-001 through SC-008.
+- **SKILL.md**: `<HOME>/code/payer-index-mono/conversus/SKILL.md` -- Lines 99-111 (arbiter config schema), 218-222 (timing/influence validation), 346-366 (round loop with inter-round arbitration), 430-433 (PRIOR_ARBITRATION_SECTION expansion), 519-539 (inter-round arbitration subsection), 534-538 (influence-aware dispute counting), 656 (INFLUENCE_LEVEL template variable), 673-688 (influence-adjusted heading validation).
+- **engine/config.py**: `<HOME>/code/payer-index-mono/conversus/engine/config.py` -- `ArbiterConfig` (L45-53), `_resolve_arbiter` (L400-471), `parse_config` (L478-642).
+- **engine/phases.py**: `<HOME>/code/payer-index-mono/conversus/engine/phases.py` -- `_run_single_round` (L191-565), `run_pipeline` (L573-860), stagnation detection (L691-711), Phase 6 block (L768-849).
+- **engine/templates.py**: `<HOME>/code/payer-index-mono/conversus/engine/templates.py` -- `build_review_context` (L208-253), `build_arbitration_context` (L566-613), `build_cross_round_synthesis_context` (L620-669).
+- **engine/output.py**: `<HOME>/code/payer-index-mono/conversus/engine/output.py` -- `get_arbitration_path` (L257-264), round-aware path methods.
 - **linter/models.py**: `InfluenceLevel` enum, `ArbitrationContext.INFLUENCE_LEVEL` (L361), `ReviewContext.PRIOR_ARBITRATION_SECTION` (L263).
 - **Templates**: All four mode arbitration templates reference `{INFLUENCE_LEVEL}` (e.g., `templates/cooperative/arbitration.md` L11, L71-73). All four mode review templates reference `{PRIOR_ARBITRATION_SECTION}`.

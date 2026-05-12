@@ -8,7 +8,7 @@ The v3.0.0 amendment removes Principles VI and X from the constitution and migra
 
 - **SIR audit methodology is transparent** (SIR lines 80–88): The amendment explicitly discloses its regex search terms and claims "manually verified." Disclosing the audit methodology is correct practice; it makes the audit falsifiable and enabled this review to locate the exact gap.
 
-- **Both receiving documents exist** (CONTRIBUTING.md L1–53; docs/output-conventions.md L1–69): CONTRIBUTING.md at `/Users/business-daddy/code/payer-index-mono/conversus-oss/CONTRIBUTING.md` and docs/output-conventions.md at `/Users/business-daddy/code/payer-index-mono/conversus-oss/docs/output-conventions.md` are confirmed present. The SIR's migration clause was executed.
+- **Both receiving documents exist** (CONTRIBUTING.md L1–53; docs/output-conventions.md L1–69): CONTRIBUTING.md at `<HOME>/code/payer-index-mono/conversus-oss/CONTRIBUTING.md` and docs/output-conventions.md at `<HOME>/code/payer-index-mono/conversus-oss/docs/output-conventions.md` are confirmed present. The SIR's migration clause was executed.
 
 - **CONTRIBUTING.md cross-references output-conventions** (CONTRIBUTING.md L42–48): The "Output Conventions (cross-reference)" subsection in CONTRIBUTING.md links directly to docs/output-conventions.md, establishing a two-hop path from constitution-referencing CONTRIBUTING.md to the output guidance. This chained reachability is coherent at the inter-document level even if the initial hop from the constitution is weak.
 
@@ -84,6 +84,6 @@ The v3.0.0 amendment removes Principles VI and X from the constitution and migra
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/deliberations/070-cycle2-vi-x-self-2026-05-01/CONSTITUTION-v3.0.0-candidate.md` — SIR cross-reference audit claim: lines 80–88; SIR Path (c) attestation: lines 62–78; SIR migration clause: lines 10–14; Governance body: lines 1500–1599; path (c) precedent paragraph: lines 1573–1589; operational guidance destinations: lines 1543–1546; grandfathering range: line 1550; Development Workflow: lines 1466–1484; Known Antipatterns: lines 1485–1498
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/CONTRIBUTING.md` — full file (L1–53); Scripts Over Markdown section: L17–40; Output Conventions cross-reference: L42–48; migration attribution: L52–53
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/docs/output-conventions.md` — full file (L1–69); Conventions section: L12–27; Recommended patterns: L30–46; Why operational guidance: L49–57; migration attribution: L68–69
+- `<HOME>/code/payer-index-mono/conversus-oss/deliberations/070-cycle2-vi-x-self-2026-05-01/CONSTITUTION-v3.0.0-candidate.md` — SIR cross-reference audit claim: lines 80–88; SIR Path (c) attestation: lines 62–78; SIR migration clause: lines 10–14; Governance body: lines 1500–1599; path (c) precedent paragraph: lines 1573–1589; operational guidance destinations: lines 1543–1546; grandfathering range: line 1550; Development Workflow: lines 1466–1484; Known Antipatterns: lines 1485–1498
+- `<HOME>/code/payer-index-mono/conversus-oss/CONTRIBUTING.md` — full file (L1–53); Scripts Over Markdown section: L17–40; Output Conventions cross-reference: L42–48; migration attribution: L52–53
+- `<HOME>/code/payer-index-mono/conversus-oss/docs/output-conventions.md` — full file (L1–69); Conventions section: L12–27; Recommended patterns: L30–46; Why operational guidance: L49–57; migration attribution: L68–69

@@ -73,4 +73,4 @@ The Conversus Constitution defines 27 principles governing development of a mult
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/deliberations/v2.3.0-blind-verification-2026-04-25/CONSTITUTION-blind.md` — sections/lines cited: L73-83, L135-189, L237-277, L728-741, L745-756, throughout document for principle references
+- `<HOME>/code/payer-index-mono/conversus-oss/deliberations/v2.3.0-blind-verification-2026-04-25/CONSTITUTION-blind.md` — sections/lines cited: L73-83, L135-189, L237-277, L728-741, L745-756, throughout document for principle references

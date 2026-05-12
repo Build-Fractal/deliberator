@@ -251,6 +251,6 @@ This is the core autonomous-mode requirement. The easiest, most future-proof way
 ---
 
 **Files referenced**:
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/042-execution-providers/spec.md` (§2 Protocol Alignment, §4 ACP-Native Provider, §11 Provider Matrix, §12 Open Questions)
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/042-execution-providers/research/tool-landscape.md` (§14 A2A Protocol, §Candidate B A2A Fit Assessment, §Candidate C Hybrid, §Part 3 Tradeoff Matrix, §Part 4 Recommendation)
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/048-autonomous-governance-mode/spec.md` (§3 .conversusrc, §6 GitHub Actions, §9 Constraints, §11 "CLI that runs outside your CLI")
+- `<HOME>/code/payer-index-mono/conversus/specs/042-execution-providers/spec.md` (§2 Protocol Alignment, §4 ACP-Native Provider, §11 Provider Matrix, §12 Open Questions)
+- `<HOME>/code/payer-index-mono/conversus/specs/042-execution-providers/research/tool-landscape.md` (§14 A2A Protocol, §Candidate B A2A Fit Assessment, §Candidate C Hybrid, §Part 3 Tradeoff Matrix, §Part 4 Recommendation)
+- `<HOME>/code/payer-index-mono/conversus/specs/048-autonomous-governance-mode/spec.md` (§3 .conversusrc, §6 GitHub Actions, §9 Constraints, §11 "CLI that runs outside your CLI")

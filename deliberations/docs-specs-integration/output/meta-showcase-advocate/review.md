@@ -18,4 +18,4 @@ I've completed my review as the **meta-showcase-advocate**. My review argues tha
 
 The review challenges assumptions that meta-content dilutes docs and that verbose deliberations need summarizing, arguing instead that showing the full methodology builds user confidence and teaches decision-making patterns.
 
-I've written the complete review to `/Users/business-daddy/code/conversus-oss/deliberations/docs-specs-integration/output/meta-showcase-advocate/review.md` with all required sections and proper documentation citations.
+I've written the complete review to `<HOME>/code/conversus-oss/deliberations/docs-specs-integration/output/meta-showcase-advocate/review.md` with all required sections and proper documentation citations.

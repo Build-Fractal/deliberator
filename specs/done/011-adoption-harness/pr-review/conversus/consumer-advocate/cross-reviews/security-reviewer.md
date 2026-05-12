@@ -68,8 +68,8 @@ The security-reviewer identifies share_id entropy concerns (32-bit, ~4 billion p
 
 ## Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/011-adoption-harness/pr-review/conversus/security-reviewer/review.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/011-adoption-harness/pr-review/conversus/consumer-advocate/review.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/011-adoption-harness/pr-review/global-synthesis.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/011-adoption-harness/pr-review/reviews/m001-foundation.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/011-adoption-harness/pr-review/reviews/m005-web-interface.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/011-adoption-harness/pr-review/conversus/security-reviewer/review.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/011-adoption-harness/pr-review/conversus/consumer-advocate/review.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/011-adoption-harness/pr-review/global-synthesis.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/011-adoption-harness/pr-review/reviews/m001-foundation.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/011-adoption-harness/pr-review/reviews/m005-web-interface.md`

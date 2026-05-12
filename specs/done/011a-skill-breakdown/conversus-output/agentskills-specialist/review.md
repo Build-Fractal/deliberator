@@ -114,10 +114,10 @@ This restructuring reduces SKILL.md from 31k tokens to approximately 4,000-5,000
 
 ## Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus/SKILL.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/011a-skill-breakdown/spec.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/references/agentskills-spec.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/references/agentskills-best-practices.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/references/agentskills-quickstart.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/README.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/011a-skill-breakdown/conversus.yml`
+- `<HOME>/code/payer-index-mono/conversus/SKILL.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/011a-skill-breakdown/spec.md`
+- `<HOME>/code/payer-index-mono/conversus/references/agentskills-spec.md`
+- `<HOME>/code/payer-index-mono/conversus/references/agentskills-best-practices.md`
+- `<HOME>/code/payer-index-mono/conversus/references/agentskills-quickstart.md`
+- `<HOME>/code/payer-index-mono/conversus/README.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/011a-skill-breakdown/conversus.yml`

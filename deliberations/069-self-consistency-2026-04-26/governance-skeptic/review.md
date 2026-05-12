@@ -302,7 +302,7 @@ route around the gate by appending to an existing principle's body.
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/deliberations/069-self-consistency-2026-04-26/CONSTITUTION-v2.4.0-candidate.md`
+- `<HOME>/code/payer-index-mono/conversus-oss/deliberations/069-self-consistency-2026-04-26/CONSTITUTION-v2.4.0-candidate.md`
   - Sync Impact Reports (lines 1-60) — amendment audit-trail format
   - Principle IX (lines 196-275) — host of v2.3.0 behavior-over-shape extension
   - Principle XI (lines 298-342) — host of v2.3.0 Registry-First extension

@@ -84,5 +84,5 @@ The Conversus Constitution has undergone rapid expansion from v2.2.0 (21 princip
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/CONSTITUTION.md` — sections/lines cited: L488-540, L499-502
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/deliberations/post-v2.4.0-gap-analysis-2026-04-27/recent-changes.md` — sections/lines cited: L60-64, L79-90, L95-103
+- `<HOME>/code/payer-index-mono/conversus-oss/CONSTITUTION.md` — sections/lines cited: L488-540, L499-502
+- `<HOME>/code/payer-index-mono/conversus-oss/deliberations/post-v2.4.0-gap-analysis-2026-04-27/recent-changes.md` — sections/lines cited: L60-64, L79-90, L95-103

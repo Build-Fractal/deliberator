@@ -1,7 +1,7 @@
 # Cross-Review of Practitioner — by skeptic-mathematical
 
-**My review**: `/Users/business-daddy/code/payer-index-mono/conversus-oss/deliberations/068-blind-2026-04-26/skeptic-mathematical/review.md`
-**Their review**: `/Users/business-daddy/code/payer-index-mono/conversus-oss/deliberations/068-blind-2026-04-26/practitioner/review.md`
+**My review**: `<HOME>/code/payer-index-mono/conversus-oss/deliberations/068-blind-2026-04-26/skeptic-mathematical/review.md`
+**Their review**: `<HOME>/code/payer-index-mono/conversus-oss/deliberations/068-blind-2026-04-26/practitioner/review.md`
 **Target**: Constitution v2.3.2-blind, Principle XVI (Mathematical Transparency)
 
 The two reviews converge on the diagnosis — XVI bundles too many concerns

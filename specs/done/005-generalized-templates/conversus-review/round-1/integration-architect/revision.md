@@ -210,14 +210,14 @@ After processing both cross-reviews, my overall assessment of spec 005 is streng
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/005-generalized-templates/conversus-review/integration-architect/review.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/005-generalized-templates/conversus-review/functional-typing/cross-reviews/integration-architect.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/005-generalized-templates/conversus-review/game-engine-advocate/cross-reviews/integration-architect.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/005-generalized-templates/conversus-review/integration-architect/cross-reviews/functional-typing.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/005-generalized-templates/conversus-review/integration-architect/cross-reviews/game-engine-advocate.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/005-generalized-templates/spec.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/linter/models.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/linter/validate.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/006-inter-round-arbitration/spec.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/008-executable-conversus/001-executable-conversus.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/SKILL.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/005-generalized-templates/conversus-review/integration-architect/review.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/005-generalized-templates/conversus-review/functional-typing/cross-reviews/integration-architect.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/005-generalized-templates/conversus-review/game-engine-advocate/cross-reviews/integration-architect.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/005-generalized-templates/conversus-review/integration-architect/cross-reviews/functional-typing.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/005-generalized-templates/conversus-review/integration-architect/cross-reviews/game-engine-advocate.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/005-generalized-templates/spec.md`
+- `<HOME>/code/payer-index-mono/conversus/linter/models.py`
+- `<HOME>/code/payer-index-mono/conversus/linter/validate.py`
+- `<HOME>/code/payer-index-mono/conversus/specs/006-inter-round-arbitration/spec.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/008-executable-conversus/001-executable-conversus.md`
+- `<HOME>/code/payer-index-mono/conversus/SKILL.md`

@@ -114,5 +114,5 @@ The Q1/Q2/Q3/Q4 decision points are secondary to these implementation gaps. Fix 
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/engine/auth.py` — L64 (DEFAULT_AUTH_PATH), L73–118 (CredentialStore), L82–89 (_read_all), L91–95 (_write_all), L102–106 (save), L114–117 (clear)
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/deliberations/057-sc4-migration-strategy-2026-04-30/QUESTION.md` — L17–22 (conservative strategy), L26–44 (decision points Q1–Q4)
+- `<HOME>/code/payer-index-mono/conversus-oss/engine/auth.py` — L64 (DEFAULT_AUTH_PATH), L73–118 (CredentialStore), L82–89 (_read_all), L91–95 (_write_all), L102–106 (save), L114–117 (clear)
+- `<HOME>/code/payer-index-mono/conversus-oss/deliberations/057-sc4-migration-strategy-2026-04-30/QUESTION.md` — L17–22 (conservative strategy), L26–44 (decision points Q1–Q4)

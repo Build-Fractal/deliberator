@@ -2,7 +2,7 @@
 
 **Arbiter**: spec-069-arbiter
 **Persona**: balanced-arbiter (impartial; weighs all perspectives equally; binding rulings grounded in declared principles)
-**Subject**: `/Users/business-daddy/code/payer-index-mono/conversus-oss/deliberations/069-self-consistency-2026-04-26/CONSTITUTION-v2.4.0-candidate.md`
+**Subject**: `<HOME>/code/payer-index-mono/conversus-oss/deliberations/069-self-consistency-2026-04-26/CONSTITUTION-v2.4.0-candidate.md`
 **Acceptance bar (per spec 067 §4.4)**: 0 ACCEPT-level findings on the spec 069 amendment specifically.
 
 ---

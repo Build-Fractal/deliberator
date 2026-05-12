@@ -120,17 +120,17 @@ The single most important recommendation is: add a `config_condition` field to `
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/006-inter-round-arbitration/spec.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/008-executable-conversus/001-executable-conversus.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/SKILL.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/.specify/memory/constitution.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/schema/variables.yml`
-- `/Users/business-daddy/code/payer-index-mono/conversus/schema/modes/cooperative.yml`
-- `/Users/business-daddy/code/payer-index-mono/conversus/schema/modes/red-blue.yml`
-- `/Users/business-daddy/code/payer-index-mono/conversus/schema/modes/winner-take-all.yml`
-- `/Users/business-daddy/code/payer-index-mono/conversus/schema/modes/prisoners-dilemma.yml`
-- `/Users/business-daddy/code/payer-index-mono/conversus/linter/models.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/linter/validate.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/linter/test_validate.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/pyproject.toml`
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/005-generalized-templates/spec.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/006-inter-round-arbitration/spec.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/008-executable-conversus/001-executable-conversus.md`
+- `<HOME>/code/payer-index-mono/conversus/SKILL.md`
+- `<HOME>/code/payer-index-mono/conversus/.specify/memory/constitution.md`
+- `<HOME>/code/payer-index-mono/conversus/schema/variables.yml`
+- `<HOME>/code/payer-index-mono/conversus/schema/modes/cooperative.yml`
+- `<HOME>/code/payer-index-mono/conversus/schema/modes/red-blue.yml`
+- `<HOME>/code/payer-index-mono/conversus/schema/modes/winner-take-all.yml`
+- `<HOME>/code/payer-index-mono/conversus/schema/modes/prisoners-dilemma.yml`
+- `<HOME>/code/payer-index-mono/conversus/linter/models.py`
+- `<HOME>/code/payer-index-mono/conversus/linter/validate.py`
+- `<HOME>/code/payer-index-mono/conversus/linter/test_validate.py`
+- `<HOME>/code/payer-index-mono/conversus/pyproject.toml`
+- `<HOME>/code/payer-index-mono/conversus/specs/005-generalized-templates/spec.md`

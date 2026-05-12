@@ -93,5 +93,5 @@ The tier extraction amendment proposes to split conversus-oss/CONSTITUTION.md in
 ### Referenced Documentation
 
 - `blind-inputs/spec-stripped.md` — sections cited: L15-25 (motivation), L37 (grandfathering), L80-92 (classification), L110-124 (cross-references), L150-151 (SIR preservation), L185-191 (linter algorithm), L291-318 (implementation)
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/CONSTITUTION.md` — sections cited: L512-518 (audit methodology), L1425-1561 (XVI content), L2075-2091 (grandfathering), L1-595 (SIR blocks)
+- `<HOME>/code/payer-index-mono/conversus-oss/CONSTITUTION.md` — sections cited: L512-518 (audit methodology), L1425-1561 (XVI content), L2075-2091 (grandfathering), L1-595 (SIR blocks)
 - `QUESTION.md` — sections cited: L9-15 (verification scope), L20-32 (review requirements)

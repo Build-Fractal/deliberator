@@ -134,28 +134,28 @@ Spec 022's `compute_kalman_confidence()` uses `1 - trace(P_final) / trace(P_init
 Change the base class to search for `.yml`, `.yaml`, then `.json` in order. This is already recommended in spec 030's action items. Elevating to P1 because it blocks the core architectural promise of spec 030.
 
 **Affects**: specs 029, 030
-**Files**: `/Users/business-daddy/code/payer-index-mono/conversus/conversus/domains/base.py` line 447
+**Files**: `<HOME>/code/payer-index-mono/conversus/conversus/domains/base.py` line 447
 
 ### R-2 [P1]: Fix `DomainScore.variables` omission in `CodeReviewDomain.score()` (domain.py line 448)
 
 Add `variables=variables` to the `DomainScore` constructor call. Already identified as P1 in spec 029. Confirmed via code inspection.
 
 **Affects**: spec 029
-**Files**: `/Users/business-daddy/code/payer-index-mono/conversus/conversus/domains/code_review/domain.py` line 448
+**Files**: `<HOME>/code/payer-index-mono/conversus/conversus/domains/code_review/domain.py` line 448
 
 ### R-3 [P1]: Refactor `CodeReviewDomain.score()` to delegate to `super().score()` with dimension normalization
 
 The current `CodeReviewDomain.score()` reimplements the entire scoring pipeline (computing weighted scores, evaluating hard blocks, determining verdicts, generating recommendations) instead of using the generic pipeline inherited from `DomainPlugin`. This is the root cause of CSI-1 and CSI-2: the override diverges from the base class. The domain-specific logic (dimension scoring via `DIMENSION_VARIABLES`, custom `_normalize_variable`, custom `_evaluate_hard_block`) should be implemented as a pre-processing step that produces a normalized variable dict, which is then passed to `super().score()`.
 
 **Affects**: specs 029, 030
-**Files**: `/Users/business-daddy/code/payer-index-mono/conversus/conversus/domains/code_review/domain.py`
+**Files**: `<HOME>/code/payer-index-mono/conversus/conversus/domains/code_review/domain.py`
 
 ### R-4 [P1]: Add `highspy` to the AMPL import guard (ampl_model.py lines 29-34)
 
 Confirmed via code inspection: only `amplpy` is checked. Spec 023's synthesis unanimously recommends adding `highspy`. The current code will activate the AMPL path without a usable solver.
 
 **Affects**: spec 023
-**Files**: `/Users/business-daddy/code/payer-index-mono/conversus/conversus/plugins/optimizer/ampl_model.py` lines 29-34
+**Files**: `<HOME>/code/payer-index-mono/conversus/conversus/plugins/optimizer/ampl_model.py` lines 29-34
 
 ### R-5 [P2]: Establish a shared optional-import convention document
 
@@ -186,7 +186,7 @@ Spec 021 establishes `solver: "nashopt" | "heuristic"` as a provenance field. Sp
 Confirmed via code inspection: `BayesianGame.validate_structure()` in `game_forms.py` (lines 403-412) validates that prior probabilities sum to 1.0 but does not validate that prior keys are valid type profile tuples from the Cartesian product of `type_spaces`. This is unanimously agreed upon in spec 025's synthesis.
 
 **Affects**: spec 025
-**Files**: `/Users/business-daddy/code/payer-index-mono/conversus/conversus/schemas/game_forms.py` lines 403-412
+**Files**: `<HOME>/code/payer-index-mono/conversus/conversus/schemas/game_forms.py` lines 403-412
 
 ### R-10 [P3]: Cross-spec dependency map
 

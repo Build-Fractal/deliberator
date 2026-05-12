@@ -38,4 +38,4 @@ I have completed the comprehensive mechanism design synthesis for the Conversus 
 
 **Next Steps**: The synthesis identifies that the current implementation gap (only 2/7 proposed channels exist) requires immediate attention before expanding strategy scope.
 
-The complete analysis with recommendation scorecard, property assessments, vulnerability reports, and actionable implementation priorities has been written to `/Users/business-daddy/code/conversus-oss/deliberations/packaging-strategy/output/summary/final.md`.
+The complete analysis with recommendation scorecard, property assessments, vulnerability reports, and actionable implementation priorities has been written to `<HOME>/code/conversus-oss/deliberations/packaging-strategy/output/summary/final.md`.

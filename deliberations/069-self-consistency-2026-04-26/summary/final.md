@@ -1,7 +1,7 @@
 # Spec 069 Self-Consistency Synthesis — Constitutional Inclusion Criteria (v2.4.0)
 
 **Methodology**: cooperative self-consistency, single round, 3 agents (governance-skeptic, strictness-skeptic, practitioner). Subject arbitration to follow.
-**Target**: `/Users/business-daddy/code/payer-index-mono/conversus-oss/deliberations/069-self-consistency-2026-04-26/CONSTITUTION-v2.4.0-candidate.md`
+**Target**: `<HOME>/code/payer-index-mono/conversus-oss/deliberations/069-self-consistency-2026-04-26/CONSTITUTION-v2.4.0-candidate.md`
 
 ---
 

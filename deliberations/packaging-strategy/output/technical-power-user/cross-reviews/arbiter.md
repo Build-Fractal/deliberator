@@ -12,4 +12,4 @@ I've completed my cross-review of the arbiter's analysis from the technical powe
 
 **Impossibility Trade-offs**: The mechanism cannot simultaneously maximize distribution reach while minimizing maintenance burden, enable easy community contributions while maintaining quality control, or provide deep platform integration while maintaining platform independence.
 
-The cross-review has been written to `/Users/business-daddy/code/conversus-oss/deliberations/packaging-strategy/output/technical-power-user/cross-reviews/arbiter.md` and provides specific resolutions for each conflict while highlighting the fundamental trade-offs that must be managed rather than resolved.
+The cross-review has been written to `<HOME>/code/conversus-oss/deliberations/packaging-strategy/output/technical-power-user/cross-reviews/arbiter.md` and provides specific resolutions for each conflict while highlighting the fundamental trade-offs that must be managed rather than resolved.

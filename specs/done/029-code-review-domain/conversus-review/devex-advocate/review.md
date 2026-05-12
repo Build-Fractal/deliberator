@@ -110,8 +110,8 @@ A developer cannot currently predict their score before running the tool. The we
 
 ## Referenced Files
 
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/029-code-review-domain/spec.md` — FR-001 through FR-019, SC-001 through SC-005
-- `/Users/business-daddy/code/payer-index-mono/conversus/conversus/domains/code_review/domain.py` — scoring logic, lines 76-150 (normalization), 152-202 (hard blocks), 204-300 (recommendations), 315-465 (CodeReviewDomain)
-- `/Users/business-daddy/code/payer-index-mono/conversus/conversus/domains/code_review/extractors.py` — all 8 extractors, lines 68-745
-- `/Users/business-daddy/code/payer-index-mono/conversus/tests/test_code_review.py` — test coverage assessment
-- `/Users/business-daddy/code/payer-index-mono/conversus/conversus/domains/code_review/scaffolds/*.yml` — all 5 scaffolds
+- `<HOME>/code/payer-index-mono/conversus/specs/029-code-review-domain/spec.md` — FR-001 through FR-019, SC-001 through SC-005
+- `<HOME>/code/payer-index-mono/conversus/conversus/domains/code_review/domain.py` — scoring logic, lines 76-150 (normalization), 152-202 (hard blocks), 204-300 (recommendations), 315-465 (CodeReviewDomain)
+- `<HOME>/code/payer-index-mono/conversus/conversus/domains/code_review/extractors.py` — all 8 extractors, lines 68-745
+- `<HOME>/code/payer-index-mono/conversus/tests/test_code_review.py` — test coverage assessment
+- `<HOME>/code/payer-index-mono/conversus/conversus/domains/code_review/scaffolds/*.yml` — all 5 scaffolds

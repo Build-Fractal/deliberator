@@ -206,12 +206,12 @@ These are unchanged from Round 1 consensus. I list them for completeness and to 
 
 | Document | Location | Relevance |
 |----------|----------|-----------|
-| Spec 007 | `/Users/business-daddy/code/payer-index-mono/conversus/specs/007-subcommand-dispatch-define/spec.md` | Target specification: 12 FRs, 5 SCs, 3 constraints |
-| SKILL.md | `/Users/business-daddy/code/payer-index-mono/conversus/SKILL.md` | Implementation: dispatch table (L18-34), define handler (L769-876), run handler (L36-766) |
-| Round 1 synthesis | `/Users/business-daddy/code/payer-index-mono/conversus/specs/007-subcommand-dispatch-define/conversus-review/round-1/summary/final.md` | Prior round convergence (C-1 through C-13), disputes (RD-1 through RD-5), actionable changes (1-14) |
-| Arbitration resolution | `/Users/business-daddy/code/payer-index-mono/conversus/specs/007-subcommand-dispatch-define/conversus-review/round-1/arbitration/resolution.md` | Advisory opinions on all five disputes, operational grounding from the executing system |
-| Round 1 integration-architect disputes | `/Users/business-daddy/code/payer-index-mono/conversus/specs/007-subcommand-dispatch-define/conversus-review/round-1/integration-architect/disputes.md` | Own prior positions on disputes 1-5, convergence 1-10 |
-| Round 1 integration-architect revision | `/Users/business-daddy/code/payer-index-mono/conversus/specs/007-subcommand-dispatch-define/conversus-review/round-1/integration-architect/revision.md` | Own revised recommendations: 8 disposition changes, 3 new recommendations |
+| Spec 007 | `<HOME>/code/payer-index-mono/conversus/specs/007-subcommand-dispatch-define/spec.md` | Target specification: 12 FRs, 5 SCs, 3 constraints |
+| SKILL.md | `<HOME>/code/payer-index-mono/conversus/SKILL.md` | Implementation: dispatch table (L18-34), define handler (L769-876), run handler (L36-766) |
+| Round 1 synthesis | `<HOME>/code/payer-index-mono/conversus/specs/007-subcommand-dispatch-define/conversus-review/round-1/summary/final.md` | Prior round convergence (C-1 through C-13), disputes (RD-1 through RD-5), actionable changes (1-14) |
+| Arbitration resolution | `<HOME>/code/payer-index-mono/conversus/specs/007-subcommand-dispatch-define/conversus-review/round-1/arbitration/resolution.md` | Advisory opinions on all five disputes, operational grounding from the executing system |
+| Round 1 integration-architect disputes | `<HOME>/code/payer-index-mono/conversus/specs/007-subcommand-dispatch-define/conversus-review/round-1/integration-architect/disputes.md` | Own prior positions on disputes 1-5, convergence 1-10 |
+| Round 1 integration-architect revision | `<HOME>/code/payer-index-mono/conversus/specs/007-subcommand-dispatch-define/conversus-review/round-1/integration-architect/revision.md` | Own revised recommendations: 8 disposition changes, 3 new recommendations |
 
 ### Key SKILL.md Line References
 

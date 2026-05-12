@@ -202,16 +202,16 @@ This is a known incremental gap rather than an oversight -- the `LintError` mode
 
 | Document | Relevance |
 |----------|-----------|
-| `/Users/business-daddy/code/payer-index-mono/conversus/linter/models.py` | Primary implementation: all Pydantic models, `get_valid_modes()`, `ConfigCondition`, `LintError`, `ModeSchema` |
-| `/Users/business-daddy/code/payer-index-mono/conversus/linter/validate.py` | Validation logic: `validate_all()`, `ValidationConfig`, `ValidationResult`, all `check_*` functions |
-| `/Users/business-daddy/code/payer-index-mono/conversus/linter/test_validate.py` | Test suite: schema evolution tests, `get_valid_modes` discovery test, data-driven validation |
-| `/Users/business-daddy/code/payer-index-mono/conversus/schema/variables.yml` | Variable schema with `schema_version`, `config_conditions`, plugin-variable namespace comment |
-| `/Users/business-daddy/code/payer-index-mono/conversus/schema/modes/cooperative.yml` | Mode schema with `mode_in_phases` (7 phases) |
-| `/Users/business-daddy/code/payer-index-mono/conversus/schema/modes/red-blue.yml` | Mode schema with `mode_in_phases` (5 phases) |
-| `/Users/business-daddy/code/payer-index-mono/conversus/schema/modes/winner-take-all.yml` | Mode schema with `mode_in_phases` (3 phases) |
-| `/Users/business-daddy/code/payer-index-mono/conversus/schema/modes/prisoners-dilemma.yml` | Mode schema with `mode_in_phases` (2 phases) |
-| `/Users/business-daddy/code/payer-index-mono/conversus/pyproject.toml` | Packaging: `conversus-lint` entry point |
-| `/Users/business-daddy/code/payer-index-mono/conversus/specs/005-generalized-templates/spec.md` | Spec with Section 8 extension contracts |
-| `/Users/business-daddy/code/payer-index-mono/conversus/specs/005-generalized-templates/conversus-review/summary/final.md` | Prior iteration convergence record |
-| `/Users/business-daddy/code/payer-index-mono/conversus/specs/007-game-engine/spec.md` | Downstream spec that validates extension surface adequacy |
-| `/Users/business-daddy/code/payer-index-mono/conversus/.specify/memory/constitution.md` | Governing principles (IX: Pydantic/FP, II: Stable Interfaces) |
+| `<HOME>/code/payer-index-mono/conversus/linter/models.py` | Primary implementation: all Pydantic models, `get_valid_modes()`, `ConfigCondition`, `LintError`, `ModeSchema` |
+| `<HOME>/code/payer-index-mono/conversus/linter/validate.py` | Validation logic: `validate_all()`, `ValidationConfig`, `ValidationResult`, all `check_*` functions |
+| `<HOME>/code/payer-index-mono/conversus/linter/test_validate.py` | Test suite: schema evolution tests, `get_valid_modes` discovery test, data-driven validation |
+| `<HOME>/code/payer-index-mono/conversus/schema/variables.yml` | Variable schema with `schema_version`, `config_conditions`, plugin-variable namespace comment |
+| `<HOME>/code/payer-index-mono/conversus/schema/modes/cooperative.yml` | Mode schema with `mode_in_phases` (7 phases) |
+| `<HOME>/code/payer-index-mono/conversus/schema/modes/red-blue.yml` | Mode schema with `mode_in_phases` (5 phases) |
+| `<HOME>/code/payer-index-mono/conversus/schema/modes/winner-take-all.yml` | Mode schema with `mode_in_phases` (3 phases) |
+| `<HOME>/code/payer-index-mono/conversus/schema/modes/prisoners-dilemma.yml` | Mode schema with `mode_in_phases` (2 phases) |
+| `<HOME>/code/payer-index-mono/conversus/pyproject.toml` | Packaging: `conversus-lint` entry point |
+| `<HOME>/code/payer-index-mono/conversus/specs/005-generalized-templates/spec.md` | Spec with Section 8 extension contracts |
+| `<HOME>/code/payer-index-mono/conversus/specs/005-generalized-templates/conversus-review/summary/final.md` | Prior iteration convergence record |
+| `<HOME>/code/payer-index-mono/conversus/specs/007-game-engine/spec.md` | Downstream spec that validates extension surface adequacy |
+| `<HOME>/code/payer-index-mono/conversus/.specify/memory/constitution.md` | Governing principles (IX: Pydantic/FP, II: Stable Interfaces) |

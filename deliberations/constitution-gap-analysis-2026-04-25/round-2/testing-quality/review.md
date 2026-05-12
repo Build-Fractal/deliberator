@@ -102,5 +102,5 @@ The CONSTITUTION.md establishes solid architectural principles for the conversus
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/CONSTITUTION.md` — sections/lines cited: L88-100 (Documentation Is Product), L104-112 (Observable Deliberation), L172-181 (Functional Programming), L302 (Enum Completeness)
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/deliberations/constitution-gap-analysis-2026-04-25/round-1/recent-changes.md` — sections/lines cited: L47-51 (PR #8 live tests), L82-92 (PR #12 prompt coverage), L60-72 (PR #10 red-blue fix)
+- `<HOME>/code/payer-index-mono/conversus-oss/CONSTITUTION.md` — sections/lines cited: L88-100 (Documentation Is Product), L104-112 (Observable Deliberation), L172-181 (Functional Programming), L302 (Enum Completeness)
+- `<HOME>/code/payer-index-mono/conversus-oss/deliberations/constitution-gap-analysis-2026-04-25/round-1/recent-changes.md` — sections/lines cited: L47-51 (PR #8 live tests), L82-92 (PR #12 prompt coverage), L60-72 (PR #10 red-blue fix)

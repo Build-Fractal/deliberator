@@ -23,4 +23,4 @@ I've completed the cross-review as the **meta-showcase-advocate** reviewing **mi
 
 The cross-review suggests **progressive disclosure** as a synthesis approach - my methodology showcase page could present the deliberation structure and key decisions while linking to GitHub for users who want the full verbose experience. This preserves my educational narrative while respecting minimalist's cognitive load concerns.
 
-The file has been written to `/Users/business-daddy/code/conversus-oss/deliberations/docs-specs-integration/output/meta-showcase-advocate/cross-reviews/minimalist.md` with detailed analysis of each contradiction, tension, and agreement, including specific citations and suggested resolutions.
+The file has been written to `<HOME>/code/conversus-oss/deliberations/docs-specs-integration/output/meta-showcase-advocate/cross-reviews/minimalist.md` with detailed analysis of each contradiction, tension, and agreement, including specific citations and suggested resolutions.

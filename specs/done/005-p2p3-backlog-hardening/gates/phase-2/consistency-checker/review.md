@@ -100,11 +100,11 @@ My single most important recommendation: add a third acceptance-tier label ("not
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/STATUS.md` — sections/lines cited: L3-24 (taxonomy), L31-33 (spec 001 entry), L36-38 (spec 002 entry), L41-43 (spec 003 entry), L46-48 (spec 004 entry)
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/005-p2p3-backlog-hardening/spec.md` — sections/lines cited: L211 (FR-007), L225-226 (FR-012/FR-013), L276 (assumption), L279 (spec 005 self-tracking)
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/005-p2p3-backlog-hardening/tasks.md` — sections/lines cited: L34-47 (Phase 2), L38 (critical note), L44-46 (T006/T007), L68 (T012a), L86-88 (T019/T013), L111-112 (dependency chain)
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/005-p2p3-backlog-hardening/gates/phase-1/summary/final.md` — sections/lines cited: L107-108 (T019 behavioral expansion), L197-203 (P2-4 post-T019 update), L262 (gate verdict)
-- `/Users/business-daddy/code/payer-index-mono/conversus/SKILL.md` — sections/lines cited: L34-35 (rounds config), L186-193 (rounds validation), L249 (draft marker check), L286-305 (round loop), L453-475 (stagnation detection), L496-521 (cross-round synthesis), L581-582 (output validation), L641-668 (dispute-parsing subsystem), L692-704 (baseline features)
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/001-subject-arbitration/spec.md` — sections/lines cited: L159-161 (FR-025/FR-026), L173 (FR-023)
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/002-recursive-rounds/spec.md` — sections/lines cited: L340-428 (all 36 FRs)
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/004-preset-agents/spec.md` — sections/lines cited: L86-143 (US-3 through US-6), L883-918 (FR-001 through FR-024)
+- `<HOME>/code/payer-index-mono/conversus/specs/STATUS.md` — sections/lines cited: L3-24 (taxonomy), L31-33 (spec 001 entry), L36-38 (spec 002 entry), L41-43 (spec 003 entry), L46-48 (spec 004 entry)
+- `<HOME>/code/payer-index-mono/conversus/specs/005-p2p3-backlog-hardening/spec.md` — sections/lines cited: L211 (FR-007), L225-226 (FR-012/FR-013), L276 (assumption), L279 (spec 005 self-tracking)
+- `<HOME>/code/payer-index-mono/conversus/specs/005-p2p3-backlog-hardening/tasks.md` — sections/lines cited: L34-47 (Phase 2), L38 (critical note), L44-46 (T006/T007), L68 (T012a), L86-88 (T019/T013), L111-112 (dependency chain)
+- `<HOME>/code/payer-index-mono/conversus/specs/005-p2p3-backlog-hardening/gates/phase-1/summary/final.md` — sections/lines cited: L107-108 (T019 behavioral expansion), L197-203 (P2-4 post-T019 update), L262 (gate verdict)
+- `<HOME>/code/payer-index-mono/conversus/SKILL.md` — sections/lines cited: L34-35 (rounds config), L186-193 (rounds validation), L249 (draft marker check), L286-305 (round loop), L453-475 (stagnation detection), L496-521 (cross-round synthesis), L581-582 (output validation), L641-668 (dispute-parsing subsystem), L692-704 (baseline features)
+- `<HOME>/code/payer-index-mono/conversus/specs/001-subject-arbitration/spec.md` — sections/lines cited: L159-161 (FR-025/FR-026), L173 (FR-023)
+- `<HOME>/code/payer-index-mono/conversus/specs/002-recursive-rounds/spec.md` — sections/lines cited: L340-428 (all 36 FRs)
+- `<HOME>/code/payer-index-mono/conversus/specs/004-preset-agents/spec.md` — sections/lines cited: L86-143 (US-3 through US-6), L883-918 (FR-001 through FR-024)

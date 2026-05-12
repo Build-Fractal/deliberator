@@ -5,7 +5,7 @@
 **Rounds completed**: 2 of 3
 **Termination reason**: Converged (all disputes resolved)
 **Target**: Spec 004 -- Universal Rounds, Stagnation Detection, and Arbitration
-**Spec path**: `/Users/business-daddy/code/payer-index-mono/conversus/specs/004-universal-rounds/spec.md`
+**Spec path**: `<HOME>/code/payer-index-mono/conversus/specs/004-universal-rounds/spec.md`
 
 ---
 

@@ -70,4 +70,4 @@ The constitution establishes five testing-related principles that attempt to gov
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/deliberations/071-blind-v2-2026-04-29/CONSTITUTION-v2.5.0-blind.md` — sections/lines cited: L383-407 (IX behavior-over-shape), L894-922 (XXIV safety-critical), L923-967 (XXV cost discipline), L972-994 (XXVI meta-testing), L1032-1075 (XXVIII test-fix), L1139-1143 (inclusion criteria)
+- `<HOME>/code/payer-index-mono/conversus-oss/deliberations/071-blind-v2-2026-04-29/CONSTITUTION-v2.5.0-blind.md` — sections/lines cited: L383-407 (IX behavior-over-shape), L894-922 (XXIV safety-critical), L923-967 (XXV cost discipline), L972-994 (XXVI meta-testing), L1032-1075 (XXVIII test-fix), L1139-1143 (inclusion criteria)

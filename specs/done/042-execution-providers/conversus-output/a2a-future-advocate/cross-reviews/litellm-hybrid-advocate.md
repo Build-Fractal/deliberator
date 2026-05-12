@@ -161,8 +161,8 @@ These amendments cost maybe ~2 days of engineering thought across all of Week 1-
 ---
 
 **Files referenced**:
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/042-execution-providers/conversus-output/litellm-hybrid-advocate/review.md` (full review)
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/042-execution-providers/conversus-output/backbone-researcher/review.md` (§9 A2A maturity, §10 tool mapping, §11 neutral observations)
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/042-execution-providers/conversus-output/a2a-future-advocate/review.md` (my Round 1 position being revised)
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/042-execution-providers/spec.md` (§2 Protocol Alignment, §3 ExecutionProvider protocol, §11 Provider Matrix, §12 Open Questions)
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/048-autonomous-governance-mode/spec.md` (§3 .conversusrc, §10 Q4 multi-repo governance, §11 execution surfaces)
+- `<HOME>/code/payer-index-mono/conversus/specs/042-execution-providers/conversus-output/litellm-hybrid-advocate/review.md` (full review)
+- `<HOME>/code/payer-index-mono/conversus/specs/042-execution-providers/conversus-output/backbone-researcher/review.md` (§9 A2A maturity, §10 tool mapping, §11 neutral observations)
+- `<HOME>/code/payer-index-mono/conversus/specs/042-execution-providers/conversus-output/a2a-future-advocate/review.md` (my Round 1 position being revised)
+- `<HOME>/code/payer-index-mono/conversus/specs/042-execution-providers/spec.md` (§2 Protocol Alignment, §3 ExecutionProvider protocol, §11 Provider Matrix, §12 Open Questions)
+- `<HOME>/code/payer-index-mono/conversus/specs/048-autonomous-governance-mode/spec.md` (§3 .conversusrc, §10 Q4 multi-repo governance, §11 execution surfaces)

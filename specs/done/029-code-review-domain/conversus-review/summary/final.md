@@ -173,9 +173,9 @@
 
 ## Referenced Files
 
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/029-code-review-domain/spec.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/conversus/domains/code_review/domain.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/conversus/domains/code_review/extractors.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/conversus/domains/base.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/tests/test_code_review.py`
-- `/Users/business-daddy/code/payer-index-mono/conversus/conversus/domains/code_review/scaffolds/*.yml`
+- `<HOME>/code/payer-index-mono/conversus/specs/029-code-review-domain/spec.md`
+- `<HOME>/code/payer-index-mono/conversus/conversus/domains/code_review/domain.py`
+- `<HOME>/code/payer-index-mono/conversus/conversus/domains/code_review/extractors.py`
+- `<HOME>/code/payer-index-mono/conversus/conversus/domains/base.py`
+- `<HOME>/code/payer-index-mono/conversus/tests/test_code_review.py`
+- `<HOME>/code/payer-index-mono/conversus/conversus/domains/code_review/scaffolds/*.yml`

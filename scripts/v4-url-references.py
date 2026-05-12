@@ -22,7 +22,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]  # monorepo root
-URL_PREFIX = "https://github.com/clariti-care/payer-index-mono/blob/main"
+URL_PREFIX = "https://github.com/Build-Fractal/build-fractal-mono/blob/main"
 
 # Files to convert (relative to monorepo root). Each file's references to
 # the monorepo's build-fractal/ + sibling-submodule paths get converted.

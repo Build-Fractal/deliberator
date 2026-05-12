@@ -18,4 +18,4 @@ I also identified several productive tensions around maintenance philosophy, Git
 
 Both reviews converge strongly on Option F (GitHub link-out) as the solution, with high confidence agreements on rejecting navigation bloat and recognizing the scale challenges. The cross-review provides specific suggestions for resolving each contradiction cooperatively.
 
-The complete cross-review has been written to `/Users/business-daddy/code/conversus-oss/deliberations/docs-specs-integration/output/information-architect/cross-reviews/minimalist.md` as requested.
+The complete cross-review has been written to `<HOME>/code/conversus-oss/deliberations/docs-specs-integration/output/information-architect/cross-reviews/minimalist.md` as requested.

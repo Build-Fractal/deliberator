@@ -76,8 +76,8 @@ However, the synthesis reveals that three of the five P1 global issues directly 
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/011-adoption-harness/pr-review/global-synthesis.md` -- G3, G5, G11, G16, G17; cross-cutting patterns; vision alignment; FR scorecard
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/011-adoption-harness/pr-review/reviews/m005-web-interface.md` -- BYOK handling, RLS/user_id mismatch, deployment assessment, error mapping, frontend architecture, share page SSR, code quality issues
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/011-adoption-harness/pr-review/reviews/m001-foundation.md` -- FR-001/FR-002 compliance, QualityIndicators structure, question classifier, usage logging
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/011-adoption-harness/spec.md` -- FR-016 (BYOK requirement), FR-018 (dual-primary paths), FR-025 (consumer adoption gates), SC-001 (60-second target), SC-005 (25+ non-technical users), US-4 (consumer web validation scenarios)
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/011-adoption-harness/conversus/consumer-advocate/review.md` -- original deliberation review: recommendations #3, #4, #6, #8, #10 referenced for implementation status
+- `<HOME>/code/payer-index-mono/conversus/specs/011-adoption-harness/pr-review/global-synthesis.md` -- G3, G5, G11, G16, G17; cross-cutting patterns; vision alignment; FR scorecard
+- `<HOME>/code/payer-index-mono/conversus/specs/011-adoption-harness/pr-review/reviews/m005-web-interface.md` -- BYOK handling, RLS/user_id mismatch, deployment assessment, error mapping, frontend architecture, share page SSR, code quality issues
+- `<HOME>/code/payer-index-mono/conversus/specs/011-adoption-harness/pr-review/reviews/m001-foundation.md` -- FR-001/FR-002 compliance, QualityIndicators structure, question classifier, usage logging
+- `<HOME>/code/payer-index-mono/conversus/specs/011-adoption-harness/spec.md` -- FR-016 (BYOK requirement), FR-018 (dual-primary paths), FR-025 (consumer adoption gates), SC-001 (60-second target), SC-005 (25+ non-technical users), US-4 (consumer web validation scenarios)
+- `<HOME>/code/payer-index-mono/conversus/specs/011-adoption-harness/conversus/consumer-advocate/review.md` -- original deliberation review: recommendations #3, #4, #6, #8, #10 referenced for implementation status

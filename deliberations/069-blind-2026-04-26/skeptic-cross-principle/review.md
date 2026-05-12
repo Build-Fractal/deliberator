@@ -76,7 +76,7 @@ The gate's third criterion ("distinct from existing principles") is also a **red
 
 ## Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/deliberations/069-blind-2026-04-26/CONSTITUTION-v2.4.0-blind.md` — target constitution, lines 800-848 (Governance, Constitutional Inclusion Criteria, grandfather clause)
+- `<HOME>/code/payer-index-mono/conversus-oss/deliberations/069-blind-2026-04-26/CONSTITUTION-v2.4.0-blind.md` — target constitution, lines 800-848 (Governance, Constitutional Inclusion Criteria, grandfather clause)
 - Principle II (lines 18-41) — exemplar of falsifiable scope
 - Principle VI (lines 85-98) — gate-failure candidate (judgment-laden)
 - Principle X (lines 217-235) — gate-failure candidate (irreducibly subjective)

@@ -102,7 +102,7 @@ The implementation has two material gaps. First, a cluster of deferred items are
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/specs/done/070-grandfathered-audit/spec.md` — §6 (verification requirements §6.1–§6.4), §9 (acceptance criteria AC #1–#7)
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/CONSTITUTION.md` — Principle VI tombstone, Principle X tombstone, Principle XVI body (refactored; Enforcement sub-bullet, Clarification v2.3.2 block), Governance § Constitutional Inclusion Criteria (grandfathering enumeration, path (c) paragraph, Principle Number Stability subsection, Removal checklist), SIR comment blocks (v2.6.0, v3.0.0, v3.1.0, v3.1.1, v3.1.2, v3.1.3)
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/CONTRIBUTING.md` — § Authoring Conventions, § Scripts Over Markdown (full section), § Output Conventions cross-reference
-- `/Users/business-daddy/code/payer-index-mono/conversus-oss/docs/output-conventions.md` — full document (Conventions section, Recommended implementation patterns section, Why operational guidance section, migration attribution footer)
+- `<HOME>/code/payer-index-mono/conversus-oss/specs/done/070-grandfathered-audit/spec.md` — §6 (verification requirements §6.1–§6.4), §9 (acceptance criteria AC #1–#7)
+- `<HOME>/code/payer-index-mono/conversus-oss/CONSTITUTION.md` — Principle VI tombstone, Principle X tombstone, Principle XVI body (refactored; Enforcement sub-bullet, Clarification v2.3.2 block), Governance § Constitutional Inclusion Criteria (grandfathering enumeration, path (c) paragraph, Principle Number Stability subsection, Removal checklist), SIR comment blocks (v2.6.0, v3.0.0, v3.1.0, v3.1.1, v3.1.2, v3.1.3)
+- `<HOME>/code/payer-index-mono/conversus-oss/CONTRIBUTING.md` — § Authoring Conventions, § Scripts Over Markdown (full section), § Output Conventions cross-reference
+- `<HOME>/code/payer-index-mono/conversus-oss/docs/output-conventions.md` — full document (Conventions section, Recommended implementation patterns section, Why operational guidance section, migration attribution footer)

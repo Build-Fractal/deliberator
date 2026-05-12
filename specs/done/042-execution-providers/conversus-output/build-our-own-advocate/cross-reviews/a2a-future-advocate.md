@@ -234,7 +234,7 @@ Build the protocol. Ship the direct providers. Add `a2a` to the matrix. Let A2A 
 ---
 
 **Files referenced**:
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/042-execution-providers/conversus-output/a2a-future-advocate/review.md`
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/042-execution-providers/conversus-output/backbone-researcher/review.md` (§0, §6, §6.2, §6.3, §6.4, §9, §10)
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/042-execution-providers/conversus-output/build-our-own-advocate/review.md` (§3.4, §4, §11)
-- `/Users/business-daddy/code/payer-index-mono/conversus/specs/042-execution-providers/spec.md` (§2, §3, §5, §11, §12)
+- `<HOME>/code/payer-index-mono/conversus/specs/042-execution-providers/conversus-output/a2a-future-advocate/review.md`
+- `<HOME>/code/payer-index-mono/conversus/specs/042-execution-providers/conversus-output/backbone-researcher/review.md` (§0, §6, §6.2, §6.3, §6.4, §9, §10)
+- `<HOME>/code/payer-index-mono/conversus/specs/042-execution-providers/conversus-output/build-our-own-advocate/review.md` (§3.4, §4, §11)
+- `<HOME>/code/payer-index-mono/conversus/specs/042-execution-providers/spec.md` (§2, §3, §5, §11, §12)

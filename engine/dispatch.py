@@ -48,6 +48,119 @@ AnyProvider = ExecutionProvider | ModelProvider
 DEFAULT_MODEL = "claude-sonnet-4-20250514"
 DEFAULT_MAX_TOKENS = 16384
 
+# ---------------------------------------------------------------------------
+# Terminal-phase isolation: per-phase retry policy
+# ---------------------------------------------------------------------------
+#
+# Phases 5 (synthesis), cross-round-synthesis, and 6 (arbitration) are
+# single-agent dispatches whose prompt is the union of all prior phase
+# outputs. They consistently hit two failure modes in production:
+#
+#   1. Prompt-overflow (2026-05-06): synthesis prompt ~230K chars caused
+#      arbitration dispatch to silently drop in 1ms with no error.
+#   2. Rate-limit (2026-05-12): synthesizer hit Anthropic 429 after the
+#      provider's internal 3-attempt retry and aborted the run.
+#
+# Both modes share recovery pattern: wait + re-dispatch the same prompt
+# usually succeeds. The provider-level retry (``_RETRY_MAX_ATTEMPTS = 3``
+# in :mod:`engine.providers.anthropic`) is too short and burns its
+# attempts in a single ~10s window. Terminal phases need a longer,
+# outer-loop retry that survives multi-minute rate-limit windows.
+#
+# See ``project_conversus_arbitration_crash_2026_05_06.md`` in user
+# memory and the 2026-05-12 deliberation log at
+# ``/tmp/conversus-v4.1.0-deliberation-20260512-010921.log`` for the
+# observed failures motivating this policy.
+#
+# Scope-A architecture: the eventual subprocess-isolation fix (Scope B
+# in the spike PR) is deferred; this policy is the minimal-viable
+# resilience that addresses both observed modes.
+
+#: Default number of outer-loop retry attempts for terminal-phase
+#: dispatch. Tuned for OAuth subscription tokens whose per-minute budget
+#: recovers in 30-90s.
+DEFAULT_TERMINAL_PHASE_RETRY_ATTEMPTS = 4
+
+#: Base delay (seconds) for terminal-phase retry backoff. Per attempt
+#: the delay is ``base * 2^attempt`` capped at the ceiling. Combined
+#: with the provider-level 3 attempts, total wall-clock budget is
+#: ~3-4 minutes before final failure.
+DEFAULT_TERMINAL_PHASE_BACKOFF_BASE = 15.0
+DEFAULT_TERMINAL_PHASE_BACKOFF_CAP = 120.0
+
+#: Error-message substrings that indicate a transient failure where
+#: retrying the terminal-phase dispatch is likely to succeed. Matched
+#: case-insensitively against the error string returned by
+#: :func:`dispatch_phase`. Conservative by design — we only retry on
+#: signals we have observed in production; everything else fails fast
+#: so genuine bugs are not masked by retries.
+TERMINAL_PHASE_RETRYABLE_PATTERNS: tuple[str, ...] = (
+    "rate limit",
+    "rate_limit",
+    "ratelimiterror",
+    "429",
+    # claude-code subprocess silent-drop on oversize prompts presents as
+    # "0/1 succeeded" with no error string; we detect that case via the
+    # all-empty-no-error heuristic in is_phase_failed() below.
+)
+
+
+# ---------------------------------------------------------------------------
+# Terminal-phase isolation: per-phase retry policy
+# ---------------------------------------------------------------------------
+#
+# Phases 5 (synthesis), cross-round-synthesis, and 6 (arbitration) are
+# single-agent dispatches whose prompt is the union of all prior phase
+# outputs. They consistently hit two failure modes in production:
+#
+#   1. Prompt-overflow (2026-05-06): synthesis prompt ~230K chars caused
+#      arbitration dispatch to silently drop in 1ms with no error.
+#   2. Rate-limit (2026-05-12): synthesizer hit Anthropic 429 after the
+#      provider's internal 3-attempt retry and aborted the run.
+#
+# Both modes share recovery pattern: wait + re-dispatch the same prompt
+# usually succeeds. The provider-level retry (``_RETRY_MAX_ATTEMPTS = 3``
+# in :mod:`engine.providers.anthropic`) is too short and burns its
+# attempts in a single ~10s window. Terminal phases need a longer,
+# outer-loop retry that survives multi-minute rate-limit windows.
+#
+# See ``project_conversus_arbitration_crash_2026_05_06.md`` in user
+# memory and the 2026-05-12 deliberation log at
+# ``/tmp/conversus-v4.1.0-deliberation-20260512-010921.log`` for the
+# observed failures motivating this policy.
+#
+# Scope-A architecture: the eventual subprocess-isolation fix (Scope B
+# in the spike PR) is deferred; this policy is the minimal-viable
+# resilience that addresses both observed modes.
+
+#: Default number of outer-loop retry attempts for terminal-phase
+#: dispatch. Tuned for OAuth subscription tokens whose per-minute budget
+#: recovers in 30-90s.
+DEFAULT_TERMINAL_PHASE_RETRY_ATTEMPTS = 4
+
+#: Base delay (seconds) for terminal-phase retry backoff. Per attempt
+#: the delay is ``base * 2^attempt`` capped at the ceiling. Combined
+#: with the provider-level 3 attempts, total wall-clock budget is
+#: ~3-4 minutes before final failure.
+DEFAULT_TERMINAL_PHASE_BACKOFF_BASE = 15.0
+DEFAULT_TERMINAL_PHASE_BACKOFF_CAP = 120.0
+
+#: Error-message substrings that indicate a transient failure where
+#: retrying the terminal-phase dispatch is likely to succeed. Matched
+#: case-insensitively against the error string returned by
+#: :func:`dispatch_phase`. Conservative by design — we only retry on
+#: signals we have observed in production; everything else fails fast
+#: so genuine bugs are not masked by retries.
+TERMINAL_PHASE_RETRYABLE_PATTERNS: tuple[str, ...] = (
+    "rate limit",
+    "rate_limit",
+    "ratelimiterror",
+    "429",
+    # claude-code subprocess silent-drop on oversize prompts presents as
+    # "0/1 succeeded" with no error string; we detect that case via the
+    # all-empty-no-error heuristic in _is_retryable_phase_failure() below.
+)
+
 
 # ---------------------------------------------------------------------------
 # Fail-fast detection for provider error strings returned as agent content.
@@ -587,3 +700,134 @@ async def dispatch_phase(
             output.append((agent_name, response_text, error))
 
     return output
+
+
+# ---------------------------------------------------------------------------
+# Terminal-phase dispatch with outer-loop retry
+# ---------------------------------------------------------------------------
+
+
+def _is_retryable_phase_failure(
+    results: list[tuple[str, str, str | None]],
+) -> bool:
+    """Return True if the phase failed in a way worth retrying.
+
+    Retry is appropriate when:
+
+    - At least one agent reported an error matching a known transient
+      failure pattern (rate-limit / 429), OR
+    - All agents returned no error but produced empty response text,
+      which is the signature of the claude-code subprocess silently
+      dropping an oversize prompt (the 2026-05-06 arbitration-crash
+      mode: "0/1 succeeded" in ~1ms with no error string).
+
+    Args:
+        results: The per-agent results returned by :func:`dispatch_phase`.
+
+    Returns:
+        ``True`` if a retry is likely to help, ``False`` if the failure
+        looks permanent (config/auth/model errors) and retrying would
+        only delay the inevitable.
+    """
+    if not results:
+        return False
+
+    has_explicit_retryable = False
+    all_empty_no_error = True
+    for _name, response_text, error in results:
+        if error is not None:
+            err_lc = error.lower()
+            if any(p in err_lc for p in TERMINAL_PHASE_RETRYABLE_PATTERNS):
+                has_explicit_retryable = True
+            # Non-retryable error present — disable the silent-drop heuristic
+            all_empty_no_error = False
+        else:
+            # No error but missing response text → silent drop
+            if response_text.strip():
+                all_empty_no_error = False
+
+    return has_explicit_retryable or all_empty_no_error
+
+
+async def dispatch_phase_with_retry(
+    agents: list[tuple[str, str]],
+    model: str | None,
+    max_tokens: int,
+    provider: AnyProvider,
+    emitter: EventEmitter,
+    *,
+    phase: str = "review",
+    agent_providers: dict[str, AnyProvider] | None = None,
+    agent_models: dict[str, str | None] | None = None,
+    agent_timeouts: dict[str, int] | None = None,
+    max_attempts: int = DEFAULT_TERMINAL_PHASE_RETRY_ATTEMPTS,
+    backoff_base_seconds: float = DEFAULT_TERMINAL_PHASE_BACKOFF_BASE,
+    backoff_cap_seconds: float = DEFAULT_TERMINAL_PHASE_BACKOFF_CAP,
+) -> list[tuple[str, str, str | None]]:
+    """Dispatch a phase with outer-loop retry on transient failures.
+
+    This is the terminal-phase equivalent of :func:`dispatch_phase` —
+    same signature plus retry knobs — for the synthesis / cross-round
+    synthesis / arbitration phases whose prompts are the union of all
+    prior outputs and which therefore disproportionately encounter
+    rate-limit and prompt-size failure modes.
+
+    The function calls :func:`dispatch_phase` once. If the result is a
+    retryable failure (see :func:`_is_retryable_phase_failure`), it
+    sleeps with exponential backoff and re-dispatches up to
+    ``max_attempts`` total times. The first attempt that produces a
+    non-retryable result (success or non-transient error) is returned.
+
+    Args:
+        agents: As :func:`dispatch_phase`.
+        model: As :func:`dispatch_phase`.
+        max_tokens: As :func:`dispatch_phase`.
+        provider: As :func:`dispatch_phase`.
+        emitter: As :func:`dispatch_phase`.
+        phase: As :func:`dispatch_phase`.
+        agent_providers: As :func:`dispatch_phase`.
+        agent_models: As :func:`dispatch_phase`.
+        agent_timeouts: As :func:`dispatch_phase`.
+        max_attempts: Outer-loop attempt ceiling. ``1`` disables retry
+            (equivalent to calling :func:`dispatch_phase` directly).
+        backoff_base_seconds: Base for exponential-backoff sleep
+            ``base * 2^attempt``.
+        backoff_cap_seconds: Maximum sleep between attempts.
+
+    Returns:
+        The per-agent result list from the final dispatch attempt
+        (same shape as :func:`dispatch_phase`).
+    """
+    if max_attempts < 1:
+        raise ValueError("max_attempts must be >= 1")
+
+    last_results: list[tuple[str, str, str | None]] = []
+    for attempt in range(max_attempts):
+        last_results = await dispatch_phase(
+            agents=agents,
+            model=model,
+            max_tokens=max_tokens,
+            provider=provider,
+            emitter=emitter,
+            phase=phase,
+            agent_providers=agent_providers,
+            agent_models=agent_models,
+            agent_timeouts=agent_timeouts,
+        )
+
+        if not _is_retryable_phase_failure(last_results):
+            return last_results
+
+        if attempt == max_attempts - 1:
+            # Exhausted attempts — return the last (still failing) result
+            # so the caller can surface the original error message rather
+            # than a synthetic "retries exhausted" wrapper.
+            return last_results
+
+        delay = min(
+            backoff_base_seconds * (2 ** attempt),
+            backoff_cap_seconds,
+        )
+        await asyncio.sleep(delay)
+
+    return last_results

@@ -132,7 +132,7 @@ The Kalman filter's `run_kalman_filter()` uses `default_Q()` and `default_R()` w
 
 ### P1 (Critical): Fix Q/R dimension mismatch in `run_kalman_filter` default handling
 
-**File**: `/Users/business-daddy/code/payer-index-mono/conversus/conversus/plugins/nashopt/kalman.py`, lines 370-376
+**File**: `<HOME>/code/payer-index-mono/conversus/conversus/plugins/nashopt/kalman.py`, lines 370-376
 
 **Problem**: `default_Q()` and `default_R()` always return 2x2. When 3D observations are passed without explicit Q/R, the filter operates with mismatched dimensions.
 
@@ -152,7 +152,7 @@ Alternatively, add dimension validation that raises early if `len(Q) != len(obse
 
 ### P1 (Critical): Fix the all-zero equilibrium score sentinel logic
 
-**File**: `/Users/business-daddy/code/payer-index-mono/conversus/conversus/plugins/nashopt/convergence.py`, lines 268-271
+**File**: `<HOME>/code/payer-index-mono/conversus/conversus/plugins/nashopt/convergence.py`, lines 268-271
 
 **Problem**: `any(s != 0.0 for s in equilibrium_scores)` treats a legitimate score of 0.0 as "no data." Now that spec 024 wires real scores, a 0.0 score is meaningful.
 
@@ -166,7 +166,7 @@ use_3d = (
 
 ### P1 (Critical): Accumulate per-round equilibrium score history
 
-**File**: `/Users/business-daddy/code/payer-index-mono/conversus/conversus/plugins/nashopt/predictor.py`, lines 255-261
+**File**: `<HOME>/code/payer-index-mono/conversus/conversus/plugins/nashopt/predictor.py`, lines 255-261
 
 **Problem**: Only the current round's score is available. Prior rounds' scores are lost between hook invocations. The Kalman filter receives fabricated repeated values instead of real per-round data.
 
@@ -174,7 +174,7 @@ use_3d = (
 
 ### P2 (High): Add duplicate producer key detection
 
-**File**: `/Users/business-daddy/code/payer-index-mono/conversus/conversus/plugins/base.py`, lines 333-336
+**File**: `<HOME>/code/payer-index-mono/conversus/conversus/plugins/base.py`, lines 333-336
 
 **Problem**: Two plugins producing the same key silently overwrites.
 
@@ -193,7 +193,7 @@ for p in plugins:
 
 ### P2 (High): Log a warning when a plugin declares produces but omits the key from result.data
 
-**File**: `/Users/business-daddy/code/payer-index-mono/conversus/conversus/plugins/base.py`, lines 474-477
+**File**: `<HOME>/code/payer-index-mono/conversus/conversus/plugins/base.py`, lines 474-477
 
 **Problem**: Silent contract violation when a plugin fails to include its declared key.
 
@@ -212,7 +212,7 @@ for key in getattr(plugin, "produces", []):
 
 ### P2 (High): Define cross-hook data lifetime in the spec
 
-**File**: `/Users/business-daddy/code/payer-index-mono/conversus/specs/024-cross-plugin-interfaces/spec.md`
+**File**: `<HOME>/code/payer-index-mono/conversus/specs/024-cross-plugin-interfaces/spec.md`
 
 **Problem**: The spec does not define whether `plugin_results` persists across hook points or is reset per hook.
 
@@ -220,7 +220,7 @@ for key in getattr(plugin, "produces", []):
 
 ### P3 (Medium): Deep-copy plugin_results values to prevent mutation leakage
 
-**File**: `/Users/business-daddy/code/payer-index-mono/conversus/conversus/plugins/base.py`, line 477
+**File**: `<HOME>/code/payer-index-mono/conversus/conversus/plugins/base.py`, line 477
 
 **Problem**: Mutable values in `plugin_results` can be mutated by consumers.
 
@@ -228,7 +228,7 @@ for key in getattr(plugin, "produces", []):
 
 ### P3 (Medium): Add test for producer failure followed by consumer graceful degradation
 
-**File**: `/Users/business-daddy/code/payer-index-mono/conversus/tests/test_cross_plugin.py`
+**File**: `<HOME>/code/payer-index-mono/conversus/tests/test_cross_plugin.py`
 
 **Problem**: No test covers a producer raising an exception and the consumer handling the absence.
 
@@ -236,7 +236,7 @@ for key in getattr(plugin, "produces", []):
 
 ### P3 (Medium): Replace queue re-sort with heapq in topological sort
 
-**File**: `/Users/business-daddy/code/payer-index-mono/conversus/conversus/plugins/base.py`, lines 366-369
+**File**: `<HOME>/code/payer-index-mono/conversus/conversus/plugins/base.py`, lines 366-369
 
 **Problem**: O(N^2 log N) worst case. Negligible now but poor algorithmic hygiene.
 
@@ -244,7 +244,7 @@ for key in getattr(plugin, "produces", []):
 
 ### P3 (Medium): Eliminate the self-nesting boilerplate in scorer
 
-**File**: `/Users/business-daddy/code/payer-index-mono/conversus/conversus/plugins/nashopt/scorer.py`, line 413
+**File**: `<HOME>/code/payer-index-mono/conversus/conversus/plugins/nashopt/scorer.py`, line 413
 
 **Problem**: `score_data["equilibrium_score"] = score_data["score"]` is manual boilerplate that every producer must remember.
 
