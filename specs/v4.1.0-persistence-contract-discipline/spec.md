@@ -2,10 +2,19 @@
 
 **Feature ID:** `v4.1.0-persistence-contract-discipline`
 **Created:** 2026-05-11
-**Status:** Draft — pending originating deliberation.
+**Status:** v2 / post-originating-deliberation / pre-self-consistency-verification (2026-05-12).
 **Depends On:** v4.0.0-tier-extraction (Tier 1 + Tier 2 hierarchy must exist); spec 067 (verification methodology); spec 070 (Constitutional Inclusion Criteria).
 **Governed by:** `https://github.com/clariti-care/payer-index-mono/blob/main/build-fractal/conversus/conversus-oss/CONSTITUTION.md` § Governance — Pathway Taxonomy (**MINOR** pathway; strengthens Tier 1 Principle II without removing or renaming any existing principle).
-**Originating context:** None yet. Spec drafted from cross-product persistence audit 2026-05-11 surfacing: (a) the V remediation revealed conversus output parse contract lives in display text and silently short-circuits across 6 of 8 modes; (b) spec-kit-orc adapter (`scripts/dispatch/adapters/tool/conversus.sh`) hardcodes 3 brittle paths/grep patterns into conversus outputs; (c) spec-kit-orc's own `state-files.md` declared schemas have drifted from production JSONL data — 4 divergent in-tree schemas; (d) cross-product Python API (`linter.output_contract`) consumed without stability guarantee.
+**Originating context:** Originating deliberation completed 2026-05-12. Binding arbitration ruling at `deliberations/v4.1.0-persistence-contract-discipline-originating-2026-05-11/arbitration/resolution.md` (commit `026b417` on branch `spec/v4.1.0-persistence-contract-discipline`). Cross-product persistence audit 2026-05-11 surfaced: (a) the V remediation revealed conversus output parse contract lives in display text and silently short-circuits across 6 of 8 modes; (b) spec-kit-orc adapter (`scripts/dispatch/adapters/tool/conversus.sh`) hardcodes 3 brittle paths/grep patterns into conversus outputs; (c) spec-kit-orc's own `state-files.md` declared schemas have drifted from production JSONL data — 4 divergent in-tree schemas; (d) cross-product Python API (`linter.output_contract`) consumed without stability guarantee.
+
+## Changelog from v1
+
+Originating-deliberation arbitration (2026-05-12) ruled APPROVE-variant on all three questions and produced eight binding conditions (C1-C8) applied in this v2:
+
+- **Q1 ruling: APPROVE-WITH-FIXES.** Conditions C1-C4 applied (bidirectional drift detection, pre-merge gate placement, consumer-side fixtures, schema surface coverage) — sharpens mechanical verifiability.
+- **Q2 ruling: APPROVE-WITH-FIXES.** Conditions C5-C6 applied (strengthened conformance wording + worked-example fixtures); format choice preserved per spec § 3 non-goal. **Override-with-rationale invoked** against pragmatist's technology mandate (mandate JSON Schema / XSD / Pydantic only); see `arbitration/resolution.md` Q2 section for the multilayered rationale logged.
+- **Q3 ruling: APPROVE-WITH-EXTENSION.** Conditions C7-C8 applied (differentiated deadlines: 2026-12-01 for conversus-oss + conversus-enhanced reflecting cross-product coordination complexity; 2026-09-01 preserved for spec-kit-orc; named "Remediation-Blocked" status with escalation path on miss).
+- Eight conditions total; § 4 sub-clauses 1-4 tightened; § 2 goals 3-4 deadlines shifted to 2026-12-01; § 10 placeholder C1/C2/C3 superseded by binding C1-C8.
 
 > **Scope discipline:** This spec amends Tier 1 Principle II (Stable Interfaces) by adding a Persistence Contract Discipline sub-clause. It does NOT remove or rename any existing principle. It does NOT prescribe a specific schema format (XSD, JSON Schema, Pydantic, AST validator) — products pick. It does NOT mandate XML for conversus outputs; the XML migration is a follow-on component-tier spec that conforms to this amendment. It DOES mandate mechanical enforcement of declared schemas — declaration without enforcement is itself a violation.
 
@@ -29,10 +38,12 @@ The amendment is **MINOR** under the pathway taxonomy because it adds normative 
 
 1. Tier 1 Principle II gains a Persistence Contract Discipline sub-clause with operational definitions for "declared schema", "mechanical enforcement", "schema drift", and "cross-product consumer contract".
 2. Conversus-oss adds a `CONSUMER-CONTRACT.md` at the repo root declaring its cross-product stability surface (output filenames, heading text used by external parsers, the `linter.output_contract` Python API surface).
-3. Conversus-oss `CONFORMANCE.md` adds a new Provisional remediation row: implement structured XML output for deliberation phases (closes the V parser gap surfaced by PR #139; deadline 2026-09-01). This row is the bridge to the follow-on component-tier spec.
-4. Conversus-enhanced `CONFORMANCE.md` gains the same Provisional remediation row for ITS persistence artifacts (per-solver run metadata, if any) — deadline 2026-09-01.
-5. spec-kit-orc `CONFORMANCE.md` (created 2026-05-10) gains a new Provisional remediation row: reconcile `state-files.md` declared schemas with production JSONL data; add mechanical validator at `bin/validate-state.sh`; deadline 2026-09-01.
+3. Conversus-oss `CONFORMANCE.md` adds a new Provisional remediation row: implement structured XML output for deliberation phases (closes the V parser gap surfaced by PR #139; deadline **2026-12-01**). This row is the bridge to the follow-on component-tier spec.
+4. Conversus-enhanced `CONFORMANCE.md` gains the same Provisional remediation row for ITS persistence artifacts (per-solver run metadata, if any) — deadline **2026-12-01**.
+5. spec-kit-orc `CONFORMANCE.md` (created 2026-05-10) gains a new Provisional remediation row: reconcile `state-files.md` declared schemas with production JSONL data; add mechanical validator at `bin/validate-state.sh`; deadline **2026-09-01**.
 6. `build-fractal/README.md` gains a new section "Persistence Contract Discipline" linking to the Principle II extension and listing each product's CONSUMER-CONTRACT.md.
+
+> **Differentiated-deadline rationale (C7).** Differentiated deadlines reflect cross-product coordination complexity. Conversus structured-output migration plus spec-kit-orc adapter rewrite is a two-product coordination problem (serial dependency: conversus structured output ships first, then spec-kit-orc adapter rewrites against the new CONSUMER-CONTRACT.md surface), which justifies the longer 2026-12-01 horizon for the conversus goals. Spec-kit-orc's own state-files reconciliation is independent of the conversus migration and remains at 2026-09-01.
 
 ## 3. Non-goals
 
@@ -40,7 +51,7 @@ The amendment is **MINOR** under the pathway taxonomy because it adds normative 
 - **Does NOT migrate conversus outputs to XML in this spec.** That's a follow-on component-tier spec (`v4.1.1-conversus-structured-output` or similar) that conforms to this amendment.
 - **Does NOT rewrite spec-kit-orc's `state-files.md` in this spec.** Spec-kit-orc's reconciliation is its own follow-on under the Provisional remediation goal #5.
 - **Does NOT introduce a new principle.** This is an extension of existing Principle II (Stable Interfaces), not a new principle slot. No retired-principle reuse, no renumbering.
-- **Does NOT apply retroactively to existing Implicit-Provisional or Compliant-Provisional repos in punitive terms.** Existing products gain Provisional remediation rows on a 2026-09-01 timeline. New product admissions after ratification MUST include a CONSUMER-CONTRACT.md (or equivalent) and CI gate at admission time.
+- **Does NOT apply retroactively to existing Implicit-Provisional or Compliant-Provisional repos in punitive terms.** Existing products gain Provisional remediation rows on differentiated timelines (conversus-oss + conversus-enhanced 2026-12-01; spec-kit-orc 2026-09-01) per § 2 goals 3-5 rationale. New product admissions after ratification MUST include a CONSUMER-CONTRACT.md (or equivalent) and CI gate at admission time.
 - **Does NOT govern transient state.** In-memory state, temp files outside `.conversus/`/`.orchestrator/`, and ephemeral session artifacts are out of scope. The principle governs persistent on-disk state intended to outlive the writing process.
 
 ## 4. Principle Amendment — text being added
@@ -57,13 +68,40 @@ artifact a Build Fractal product writes to disk MUST satisfy:
    in a discoverable location (typically `STATE-FILES.md`,
    `CONSUMER-CONTRACT.md`, or an equivalent canonical doc at the repo
    root). The schema specifies field names, types, structural
-   requirements, and a `schema_version` field.
+   requirements, and a `schema_version` field. Coverage extends to any
+   persisted state regardless of structural shape, including but not
+   limited to: field-based formats (JSON, YAML, TOML), JSONL streaming
+   (with explicit line semantics — one record per line, record type
+   discrimination, ordering guarantees if any), positional formats
+   (CSV, TSV, fixed-width), binary formats (with byte-layout or
+   serialization-library declaration), and hybrid formats such as
+   YAML-frontmatter-plus-markdown (with both the frontmatter schema
+   and the body-section structure declared). The discipline applies
+   to every persisted on-disk artifact; format shape does not exempt
+   an artifact from the declared-schema mandate.
 
 2. **Mechanical enforcement.** A CI gate validates that artifacts
-   written during a run conform to the declared schema. Schema format
-   is product-choice — XSD, JSON Schema, Pydantic model, AST validator,
-   or any other format with a deterministic conformance check. Schemas
-   declared without enforcement do not satisfy this discipline.
+   written during a run conform to the declared schema. The gate MUST
+   be PR-required and merge-blocking — not advisory, not post-merge,
+   not informational. Schema format is product-choice — XSD, JSON
+   Schema, Pydantic model, AST validator, or any other format whose
+   conformance check is machine-executable, produces a binary
+   pass/fail result with specific failure descriptions, and verifies
+   field presence, types, and value constraints — explicitly
+   excluding prose descriptions, manual checklists, and subjective
+   interpretation. Validation MUST be bidirectional: not only do
+   artifacts written by the producer conform to the schema (forward
+   validation), but any change to the schema itself MUST trigger
+   CI verification that the existing producer code still emits
+   conformant artifacts under the new schema (drift detection on
+   schema edits). Each product's CI gate MUST ship with at least
+   three test fixtures committed to the repo: (a) a known-conformant
+   artifact that validation passes, (b) a known-non-conformant
+   artifact with a missing required field that validation fails on,
+   and (c) a known-non-conformant artifact with a wrong field type
+   that validation fails on. Schemas declared without enforcement,
+   without bidirectional drift detection, or without the worked-
+   example fixtures do not satisfy this discipline.
 
 3. **Versioning.** The schema carries a `schema_version` field with a
    documented bump procedure. Schema evolution MUST update the version;
@@ -76,7 +114,13 @@ artifact a Build Fractal product writes to disk MUST satisfy:
    consume the declared surface, not implementation details (heading
    text, hardcoded paths, English error strings). Changes to declared
    surfaces require a version bump and consumer-coordinated migration;
-   changes to undeclared internals are free.
+   changes to undeclared internals are free. Consumer-side
+   enforcement: product B MUST ship test fixtures pinning the
+   consumed surface from the consumer's perspective, validated in
+   *consumer* CI (not only in producer CI). Producer-side fixtures
+   alone do not satisfy this sub-clause — the consumer pins the
+   contract as it actually depends on it, so producer-side drift
+   surfaces as consumer-side CI failure.
 
 5. **Declaration scope.** Display text inside an artifact is NOT a
    stable contract unless explicitly declared as such. Parsing display
@@ -127,7 +171,7 @@ Sync Impact Report comment blocks accumulated across v0.1.0 → v4.0.0 in conver
 
 **Edits:**
 - `CONFORMANCE.md` Tier 1 row II: status update with evidence note (`CONSUMER-CONTRACT.md` present; structured-output schema follow-on tracked).
-- `CONFORMANCE.md` Provisional remediation plan: ADD a new row for "deliberation-output structured schema" with deadline 2026-09-01 and tracking pointer to the follow-on spec.
+- `CONFORMANCE.md` Provisional remediation plan: ADD a new row for "deliberation-output structured schema" with deadline **2026-12-01** and tracking pointer to the follow-on spec.
 
 ### 6.3 conversus-enhanced — `build-fractal/conversus/conversus-enhanced/`
 
@@ -136,13 +180,13 @@ Sync Impact Report comment blocks accumulated across v0.1.0 → v4.0.0 in conver
 
 **Edits:**
 - `CONFORMANCE.md` Tier 1 row II: same status update + evidence note.
-- `CONFORMANCE.md` Provisional remediation plan: ADD row if any stateful artifacts exist that need schema declaration; if no stateful artifacts beyond what's already covered by upstream conversus-oss, mark this row N/A with rationale.
+- `CONFORMANCE.md` Provisional remediation plan: ADD row if any stateful artifacts exist that need schema declaration with deadline **2026-12-01**; if no stateful artifacts beyond what's already covered by upstream conversus-oss, mark this row N/A with rationale.
 
 ### 6.4 spec-kit-orc — `build-fractal/spec-kit-orc/`
 
 **Edits:**
 - `CONFORMANCE.md` Tier 1 row II (currently Provisional from the 2026-05-10 initial declaration): update with evidence note + the new amendment scope.
-- `CONFORMANCE.md` Provisional remediation plan: ADD a row for "reconcile state-files.md declared schemas with production JSONL data; add `bin/validate-state.sh`" with deadline 2026-09-01.
+- `CONFORMANCE.md` Provisional remediation plan: ADD a row for "reconcile state-files.md declared schemas with production JSONL data; add `bin/validate-state.sh`" with deadline **2026-09-01**.
 - Existing `specs/001-orchestrator/contracts/state-files.md` is referenced by this amendment as a positive example (declared contract exists) but flagged as needing mechanical enforcement to satisfy the new sub-clause.
 
 ### 6.5 build-fractal/ — `build-fractal/README.md`
@@ -161,7 +205,7 @@ Sync Impact Report comment blocks accumulated across v0.1.0 → v4.0.0 in conver
 
 ## 7. Cross-product implications
 
-| Product | Today | Post-v4.1.0 (declaration) | Post-remediation (2026-09-01) |
+| Product | Today | Post-v4.1.0 (declaration) | Post-remediation (differentiated: conversus-oss / conversus-enhanced 2026-12-01; spec-kit-orc 2026-09-01) |
 |---|---|---|---|
 | conversus-oss | Output parse contract in display text; no CONSUMER-CONTRACT.md; V parser short-circuits on 6/8 modes | CONSUMER-CONTRACT.md declares current surfaces; new Provisional row tracks structured-output migration | Structured XML output (or equivalent) ships; XSD CI gate active; V's 6 xfail tests un-xfail |
 | conversus-enhanced | No documented cross-product consumer surface | CONSUMER-CONTRACT.md declares surface (or asserts N/A with rationale) | If applicable: schema enforcement on whatever stateful artifacts the paid layer writes |
@@ -215,13 +259,37 @@ Per spec 067, principle amendments require **originating + self-consistency + bl
 
 ## 10. Conditions from originating
 
-Placeholders to be filled during deliberation. Expected condition shapes:
+The draft placeholder conditions in spec v1 (C1 schema-format-loophole, C2 cross-product enforceability, C3 deadline feasibility) are **superseded** by the binding arbitration ruling at `deliberations/v4.1.0-persistence-contract-discipline-originating-2026-05-11/arbitration/resolution.md`. The eight binding conditions C1-C8 below come from that ruling and are **Applied in spec v2 (2026-05-12)**.
 
-- **C1**: Confirm the schema-format flexibility clause does not create a loophole (e.g., a product declaring "schema: this paragraph" trivially conforms).
-- **C2**: Confirm the cross-product consumer-contract requirement is enforceable for the conversus-oss ↔ spec-kit-orc surface specifically (the only known live integration today).
-- **C3**: Confirm the 2026-09-01 remediation deadlines are operationally feasible (conversus structured-output migration is non-trivial).
+### 10.1 Binding conditions (verbatim from arbitration ruling)
 
-(Conditions to be revised based on actual originating deliberation rulings.)
+- **C1 — Bidirectional drift detection.** Sub-clause 2 currently mandates only forward validation (artifacts written conform to schema). Append a requirement that schema *changes* are validated against existing producer code — i.e., the producer can still emit conformant artifacts after a schema edit. *(Applied: § 4 sub-clause 2.)*
+
+- **C2 — Pre-merge gate placement.** Sub-clause 2 is silent on whether the CI gate runs as PR-required, post-merge, or advisory. Spec § 4 must mandate **PR-required / merge-blocking**. *(Applied: § 4 sub-clause 2.)*
+
+- **C3 — Consumer-side contract validation fixtures.** Sub-clause 4 mandates consumers consume declared surfaces but does not specify the enforcement mechanism. Spec § 4 sub-clause 4 must add: consumers SHIP test fixtures pinning consumed surfaces and validated in *consumer* CI. *(Applied: § 4 sub-clause 4.)*
+
+- **C4 — Schema surface coverage.** Sub-clause 1's mandate of "field names, types, structural requirements" implicitly assumes a field-based schema shape. Spec § 4 must extend coverage to JSONL streaming (line semantics), positional formats, binary formats, and hybrid YAML-frontmatter-plus-markdown. *(Applied: § 4 sub-clause 1.)*
+
+- **C5 — Strengthen conformance wording.** Replace spec § 4 sub-clause 2 phrase "any other format with a deterministic conformance check" with: "any other format whose conformance check is machine-executable, produces a binary pass/fail result with specific failure descriptions, and verifies field presence, types, and value constraints — explicitly excluding prose descriptions, manual checklists, and subjective interpretation." *(Applied: § 4 sub-clause 2.)*
+
+- **C6 — Worked-example test fixtures.** Spec § 4 sub-clause 2 should require each product's CI gate to ship with at least three test fixtures: (a) a known-conformant artifact that validation passes, (b) a known-non-conformant artifact with a missing required field that validation fails on, (c) a known-non-conformant artifact with a wrong field type that validation fails on. *(Applied: § 4 sub-clause 2.)*
+
+- **C7 — Differentiated remediation deadlines.** Update spec § 2 goals 3-4 (conversus-oss + conversus-enhanced) to deadline **2026-12-01**, reflecting cross-product coordination complexity with spec-kit-orc adapter. Preserve spec § 2 goal 5 (spec-kit-orc state-files reconciliation) at **2026-09-01**, reflecting its self-contained scope. Update the matching CONFORMANCE.md Provisional rows in spec § 6.2 / § 6.3 / § 6.4. *(Applied: § 2 goals 3-5; § 6.2, § 6.3, § 6.4; § 7 table; § 11; § 12.)*
+
+- **C8 — Missed-deadline consequence specified.** Spec § 10 must specify that products missing their differentiated deadline transition to a named status (e.g., "Remediation-Blocked") with a documented escalation path, not an indefinite transition state. This addresses devils-advocate's authority-erosion concern by making the consequence mechanically determinable rather than ambiguous. *(Applied: § 10.2 below.)*
+
+### 10.2 Missed-deadline consequence (C8)
+
+Products that fail to ship their Provisional remediation by the deadline assigned in their CONFORMANCE.md row (per C7: conversus-oss + conversus-enhanced 2026-12-01; spec-kit-orc 2026-09-01; future products per their admission-time assignment) transition to a named compliance status **"Remediation-Blocked"** with the following documented escalation path:
+
+1. **Automatic status flip.** On the day after the assigned deadline passes without a closing remediation PR merged, the product's CONFORMANCE.md row for the Persistence Contract Discipline obligation flips from **Provisional** to **Remediation-Blocked**. The flip is mechanically determinable (date comparison + remediation PR merge check) and not subject to interpretation.
+
+2. **Mandatory follow-up amendment cycle.** Within 30 days of the status flip, a follow-up **MINOR amendment** cycle MUST be opened that either (a) accepts an extended remediation deadline with a re-scoped plan and grounded engineering rationale, or (b) downgrades the product's compliance status (e.g., from Compliant-Provisional to Compliant-Withdrawn per the suite COMPLIANCE.md taxonomy). Inaction is not permitted: the follow-up amendment cycle is the only mechanically valid exit from Remediation-Blocked.
+
+3. **Suite-level visibility.** Each Remediation-Blocked status MUST be logged in the suite-level `CONSTITUTIONAL_CONVERSATIONS.md` on the day of the automatic flip, with a pointer to the open follow-up amendment thread.
+
+This mechanism resolves the apparent tension between fixed-deadline accountability (the ci-expert position) and missed-deadline authority erosion (the devils-advocate concern): consequences are concrete and mechanically determinable, while the path forward is structured rather than punitive.
 
 ## 11. Implementation order
 
@@ -230,7 +298,7 @@ Once ratified:
 1. **Tier 1 edit** (§ 6.1) — append sub-clause to `build-fractal/CONSTITUTION.md`, bump version, add SIR.
 2. **build-fractal/README.md** (§ 6.5) — add Persistence Contract Discipline section.
 3. **Per-product CONSUMER-CONTRACT.md drafts** (§§ 6.2, 6.3) — create placeholder files; declare current surfaces; flag follow-on remediation rows.
-4. **CONFORMANCE.md updates** (§§ 6.2, 6.3, 6.4) — add Provisional remediation rows on each affected product with 2026-09-01 deadlines.
+4. **CONFORMANCE.md updates** (§§ 6.2, 6.3, 6.4) — add Provisional remediation rows on each affected product with differentiated deadlines (conversus-oss + conversus-enhanced 2026-12-01; spec-kit-orc 2026-09-01) per C7.
 5. **CONSTITUTIONAL_CONVERSATIONS.md log entries** (§ 6.6).
 6. **Follow-on spec drafts** — `v4.1.1-conversus-structured-output` and `v4.1.2-spec-kit-orc-state-files-reconciliation` open as separate specs implementing the Provisional rows. Each is its own component-tier amendment cycle.
 
@@ -246,17 +314,19 @@ Self-consistency verification: deliberations/v4.1.0-persistence-contract-discipl
 Blind verification: deliberations/v4.1.0-persistence-contract-discipline-blind-2026-MM-DD/.
 Inclusion Criteria gate: PASS (universal applicability + mechanical verifiability + non-redundant).
 Pathway: MINOR (text appended to existing Principle II; no principle removed or renamed).
-Per-product impact: new CONSUMER-CONTRACT.md at each suite repo root; new Provisional remediation rows in conversus-oss / conversus-enhanced / spec-kit-orc CONFORMANCE.md with 2026-09-01 deadlines; follow-on component-tier specs for structured-output (conversus-oss) and state-files reconciliation (spec-kit-orc).
+Per-product impact: new CONSUMER-CONTRACT.md at each suite repo root; new Provisional remediation rows in conversus-oss / conversus-enhanced / spec-kit-orc CONFORMANCE.md with differentiated deadlines (conversus-oss + conversus-enhanced 2026-12-01; spec-kit-orc 2026-09-01) per C7; follow-on component-tier specs for structured-output (conversus-oss) and state-files reconciliation (spec-kit-orc).
 Prior amendment (v4.0.0): tier extraction — see prior SIR block below.
 -->
 ```
 
 ## 13. Status & next steps
 
-- **Status:** Draft — pending originating deliberation.
-- **Next step:** stage originating deliberation config under `deliberations/v4.1.0-persistence-contract-discipline-originating-2026-MM-DD/`. Recommend bundling the cross-product audit report from 2026-05-11 as a target file alongside this spec.
-- **Sequencing recommendation:** do NOT run deliberation until Batch 1 (V/XXVI/XXIV) and Batch 2 (XXII × 2) PRs are merged. The empirical evidence from those merges informs the amendment — specifically, the V remediation's xfail discovery is the primary motivating example, and locking that empirical observation in before deliberating makes the spec stronger.
+- **Status:** v2 / post-originating-deliberation / pre-self-consistency-verification (2026-05-12).
+- **Next step:** stage self-consistency verification deliberation under `deliberations/v4.1.0-persistence-contract-discipline-self-consistency-2026-MM-DD/` with a different agent composition and the SAME spec text as v2. Apply any fixes to produce spec v3 (or confirm PASS unchanged).
+- **Then:** blind verification per § 9.3, producing spec v3-or-v4 as appropriate, followed by ratification per § 9.4.
 
 ## 14. Fix ledger
 
-(Empty at draft. Populated during deliberation cycles per spec 067 convention: v1 → v2 (self-consistency fixes) → v3 (blind fixes) → vN (errata).)
+- **v1 → v2 (originating-fixes, 2026-05-12):** Applied conditions C1-C8 from binding arbitration ruling at `deliberations/v4.1.0-persistence-contract-discipline-originating-2026-05-11/arbitration/resolution.md` (commit `026b417` on branch `spec/v4.1.0-persistence-contract-discipline`). Q1 APPROVE-WITH-FIXES (C1-C4 applied to § 4 sub-clauses 1, 2, 4). Q2 APPROVE-WITH-FIXES (C5-C6 applied to § 4 sub-clause 2; override-with-rationale invoked on pragmatist's technology mandate). Q3 APPROVE-WITH-EXTENSION (C7 differentiated deadlines applied to § 2 goals 3-5 + § 6.2-6.4 + § 7 table + § 11 + § 12; C8 missed-deadline consequence specified in § 10.2). Draft placeholder conditions superseded.
+- **v2 → v3 (self-consistency fixes):** TBD.
+- **v3 → vN (blind fixes, errata):** TBD.
