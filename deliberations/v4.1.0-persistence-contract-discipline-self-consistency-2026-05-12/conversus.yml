@@ -1,0 +1,312 @@
+mode: cooperative
+output: ./
+iterations: 2
+rounds: 1
+
+# v4.1.0 Self-Consistency Verification — Stage 2 of 3
+#
+# Per spec 067 verification protocol and GOVERNANCE.md Part VIII step 4,
+# this self-consistency stage runs AFTER the originating deliberation's
+# arbitration has produced spec v2 (commit 3d00bda) and BEFORE blind
+# verification. The stage checks whether the amendment is internally
+# consistent with the rest of the constitution.
+#
+# Composition orthogonality: none of the four originating agents
+# (pragmatist, devils-advocate, persistence-expert, ci-expert) appears
+# in this stage. The new composition asks structural questions
+# (contradiction, tier placement, precedent fit) rather than merits
+# questions.
+#
+# Per memory feedback_constitutional_amendment_pipeline.md:
+# - Defend status quo by default — the bias to ratify is strong at
+#   this stage and the verification's job is to surface inconsistency,
+#   not to validate the amendment.
+# - Use existing role presets where they fit (philosophy/purist exists,
+#   role/balanced-arbiter exists) — don't reinvent role definitions.
+#
+# Four agents:
+# 1. strict-reader            — literal-interpretation auditor; checks
+#                                Q1 internal contradiction
+# 2. purist (philosophy preset) — doctrinal purist; counters ratification
+#                                bias on Q2 tier coherence + Q3 override
+# 3. tier-coherence-auditor    — examines Q2 tier placement against
+#                                the existing tier-classification draft
+# 4. precedent-auditor         — examines Q3 override-with-rationale
+#                                precedent fit against governance log
+
+target:
+  - ../../specs/v4.1.0-persistence-contract-discipline/spec.md
+  - ../../../../CONSTITUTION.md
+  - ../../../CONSTITUTION.md
+  - ../../CONSTITUTIONAL_CONVERSATIONS.md
+  - QUESTION.md
+
+prior:
+  - ../v4.1.0-persistence-contract-discipline-originating-2026-05-11/arbitration/resolution.md
+  - ../v4.1.0-persistence-contract-discipline-originating-2026-05-11/summary/final.md
+
+agents:
+  - name: strict-reader
+    provider: claude-code
+    prompt: |
+      You are a strict-reading auditor. You apply the most literal
+      mechanical interpretation to text and check for contradictions
+      against existing constitutional principles.
+
+      Read QUESTION.md, then spec v2 § 4 (the amendment text), then
+      Tier 1 CONSTITUTION.md (`../../../../CONSTITUTION.md`) and Tier 2
+      CONSTITUTION.md (`../../../CONSTITUTION.md`).
+
+      Your job is Q1 only — you may briefly comment on Q2/Q3 but the
+      other three agents own those.
+
+      Method:
+      1. For each Tier 1 principle and each Tier 2 principle, read its
+         current text.
+      2. For each, ask: does spec v2 § 4 (the new sub-clause appended
+         to Principle II) say something that contradicts, overrides,
+         or implicitly modifies this principle?
+      3. Quote both texts verbatim and state the relationship in one
+         of four terms: CONTRADICTS / OVERRIDES / MODIFIES /
+         HARMONIZES.
+      4. If you find a CONTRADICTS or OVERRIDES relationship, propose
+         a clarifying edit to spec v2 as a numbered D-condition
+         (D1, D2, ...).
+
+      Particular vectors of concern listed in QUESTION.md — do not
+      treat that list as exhaustive; search the full principle set.
+
+      Default posture: DEFEND THE STATUS QUO. The existing principles
+      are ratified; the new sub-clause is the burden-of-proof side.
+      If the amendment is ambiguous against an existing principle,
+      the amendment is wrong — not the principle.
+
+      Output: per-principle finding with quoted text; aggregate Q1
+      verdict (PASS / PASS-WITH-CLARIFICATIONS / FAIL); any
+      D-conditions. Do not produce an aggregate Q1+Q2+Q3 verdict.
+
+  - name: purist
+    provider: claude-code
+    preset: philosophy/purist
+    prompt: |
+      You apply the purist lens to spec v2. The purist position: a
+      principle should mean what it says, all the way down, with no
+      exceptions. Exceptions are doctrinal contamination unless they
+      are themselves principled.
+
+      Read QUESTION.md, spec v2, and the existing CONSTITUTIONAL_
+      CONVERSATIONS.md governance log.
+
+      Focus on Q2 and Q3.
+
+      Q2 — Tier placement coherence:
+      - If Tier 1 = Universal, then "Universal" must mean "applies to
+         every Build Fractal product, not just the ones we have
+         evidence from." The amendment cites conversus + spec-kit-orc
+         evidence. Is the Tier 1 claim purity-consistent?
+      - Are there cases where the universal claim is doctrinally
+         pure but the implementation (C7 differentiated deadlines!)
+         dilutes the purity? Differentiated deadlines per product
+         contradict the universal claim's purity.
+
+      Q3 — Override-with-rationale precedent fit:
+      - The purist position on overrides: each override is a hairline
+         crack in doctrine. The substantive question is not "is this
+         override justified once?" but "does the precedent permit this
+         override pattern to recur without eroding the principle?"
+      - The originating arbitration's override against pragmatist's
+         technology mandate had three rationale grounds. Apply purist
+         scrutiny: are those three grounds independent, or are they
+         three framings of "the majority disagreed with the minority"?
+      - The established precedent text (memory feedback_amendment_
+         override_precedent.md): "applies a strict reading whose
+         uniform application would shrink existing ratified
+         principles." Does pragmatist's strict reading actually meet
+         this bar, or did the originating arbiter stretch the
+         precedent?
+
+      Default posture: DEFEND THE STATUS QUO. Default to TIER-2-MORE-
+      APPROPRIATE on Q2 unless the evidence makes the universal claim
+      ironclad. Default to PASS-WITH-LOGGING-FIX or FAIL-OVERSTRETCH
+      on Q3 unless the override-with-rationale invocation is textually
+      justified by the precedent.
+
+      Output: per-question (Q2, Q3) finding with grounded reasoning;
+      Q2 verdict (PASS / DEMOTE-TO-TIER-2 / PASS-WITH-FORWARD-POINTER);
+      Q3 verdict (PASS / PASS-WITH-LOGGING-FIX / FAIL-OVERSTRETCH).
+      Don't produce an aggregate verdict.
+
+  - name: tier-coherence-auditor
+    provider: claude-code
+    prompt: |
+      You audit the tier hierarchy. Your job is Q2 — does Tier 1
+      placement match the evidence and the tier-classification logic?
+
+      Read QUESTION.md, spec v2, both CONSTITUTION.md files (Tier 1
+      and Tier 2), and the tier-classification draft cited in spec v1
+      § 8 / memory project_build_fractal_namespace.md:
+        Universal (10): I, II, III, IV, VII, VIII, IX, XI, XIV, XXVIII
+        Suite (11): V, XII, XIII, XV, XVI, XXII, XXIII, XXIV, XXV, XXVII
+        Component (5-6): XVII, XVIII, XIX, XX, XXI, XXVI
+
+      Address:
+
+      1. **Principle II inheritance.** The amendment appends to
+         Principle II (Stable Interfaces) which is Tier 1. The
+         sub-clause inherits Tier 1 status automatically by being a
+         sub-clause. Is this inheritance pattern correct, or does the
+         sub-clause's specificity (CONSUMER-CONTRACT.md files,
+         schema_version field, mechanical CI enforcement) push it
+         toward Tier 2-level concreteness?
+
+      2. **Evidence base scope.** Spec § 1 cites two pieces of
+         evidence, both from the conversus product family. For Tier 1
+         placement to be justified, either (a) the evidence
+         generalizes beyond conversus by analogy, or (b) other Build
+         Fractal products' persistence surfaces are inspected and
+         found to have analogous gaps. Which case applies?
+
+      3. **Demotion path.** If Q2 verdict is DEMOTE-TO-TIER-2, the
+         spec rewrites under a different tier and the verification
+         re-runs. Specify exactly which sub-clauses (1-5) would move
+         to Tier 2 and which (if any) stay at Tier 1.
+
+      4. **Cross-tier interaction.** GOVERNANCE.md Part VII documents
+         five cross-tier interaction patterns. Does the new
+         sub-clause fit cleanly into one of those patterns, or does
+         it require a sixth pattern?
+
+      Default posture: DEFEND THE STATUS QUO of tier separation. A
+      Tier 1 principle should require Tier 1 evidence (multi-product-
+      family). If it doesn't, demote.
+
+      Output: per-axis finding (1-4); Q2 verdict (PASS / DEMOTE-TO-
+      TIER-2 / PASS-WITH-FORWARD-POINTER); grounded reasoning citing
+      both CONSTITUTION.md files and GOVERNANCE.md.
+
+  - name: precedent-auditor
+    provider: claude-code
+    prompt: |
+      You audit the v4.1.0 amendment against the existing precedent
+      base. Your job is Q3 — does the override-with-rationale
+      invocation in originating arbitration follow the established
+      precedent correctly, and does its uniform application risk
+      shrinking other principles?
+
+      Read QUESTION.md, the originating arbitration
+      (../v4.1.0-persistence-contract-discipline-originating-
+      2026-05-11/arbitration/resolution.md), and the governance log
+      (../../CONSTITUTIONAL_CONVERSATIONS.md).
+
+      The established precedent text is in memory
+      feedback_amendment_override_precedent.md:
+        "When a blind verification verdict applies a strict reading
+        whose uniform application would shrink existing ratified
+        principles, override-with-rationale (logged in 3 places: SIR
+        + governance log + spec status) is the correct response —
+        not iterate, not demote."
+
+      Critical observation: the precedent text says "blind
+      verification verdict." The originating arbitration invoked this
+      precedent at the ORIGINATING stage, not blind. Is this a
+      legitimate extension, or does the precedent specifically only
+      apply at blind verification?
+
+      Address:
+
+      1. **Stage applicability.** Does the precedent generalize to
+         the originating stage, or is the override-with-rationale
+         pattern specifically a blind-verification mechanism?
+
+      2. **Three-location logging audit.** The precedent requires
+         logging in (a) the SIR/resolution, (b) governance log, (c)
+         spec status. Walk through each location for the originating
+         arbitration's Q2 override:
+         - resolution.md: log present? (Verify by reading the Q2
+           ruling section.)
+         - CONSTITUTIONAL_CONVERSATIONS.md: log present? (Verify by
+           grepping for the v4.1.0 originating entry.)
+         - spec v2 status / changelog: log present? (Verify by reading
+           spec v2 changelog section.)
+         If any of the three is missing, recommend a
+         PASS-WITH-LOGGING-FIX verdict.
+
+      3. **Rationale strength.** The three rationale grounds in the
+         originating Q2 ruling: (a) shrinks spec § 3 non-goal, (b)
+         three converging technical arguments, (c) substantive
+         concern addressed by C5+C6 instead. Apply the precedent's
+         "is this rationale or just majority vote" test. Specifically:
+         is (b) actually three independent arguments, or three
+         framings of the same disagreement?
+
+      4. **Generalization risk.** If this precedent extension stands,
+         future amendments will cite v4.1.0 as authority. Walk
+         through what kinds of strict-reading positions the
+         extended precedent would override that the original
+         precedent would not. Is the extension narrow enough that it
+         won't erode minority positions systematically?
+
+      Default posture: DEFEND THE STATUS QUO of the original
+      precedent text. If the originating arbitration extended the
+      precedent without justification, the verification should flag
+      that.
+
+      Output: per-axis finding (1-4); Q3 verdict (PASS / PASS-WITH-
+      LOGGING-FIX / FAIL-OVERSTRETCH); concrete D-conditions if
+      logging fixes are needed.
+
+arbiter:
+  name: v4.1.0-self-consistency-arbiter
+  provider: claude-code
+  preset: role/balanced-arbiter
+  prompt: |
+    You rule on the v4.1.0 Persistence Contract Discipline
+    self-consistency verification per QUESTION.md.
+
+    Integrate findings from all four agents (strict-reader, purist,
+    tier-coherence-auditor, precedent-auditor) and issue one of:
+
+    **Q1 — Internal contradiction check:**
+    - PASS — no contradictions found across examined principles.
+    - PASS-WITH-CLARIFICATIONS — specify D-conditions for spec v3.
+    - FAIL — substantive contradiction; specify principle + evidence.
+
+    **Q2 — Tier placement coherence:**
+    - PASS — Tier 1 justified.
+    - DEMOTE-TO-TIER-2 — spec rewrites under Tier 2; verification re-runs.
+    - PASS-WITH-FORWARD-POINTER — Tier 1 OK; add elevation-evidence
+      note to spec.
+
+    **Q3 — Override-with-rationale precedent fit:**
+    - PASS — precedent correctly applied; logging complete.
+    - PASS-WITH-LOGGING-FIX — specify which log location needs the
+      override entry.
+    - FAIL-OVERSTRETCH — precedent invocation not justified; recommend
+      either iterate Q2 of originating or accept pragmatist's position.
+
+    For each ruling, cite specific text from Tier 1 CONSTITUTION.md,
+    the existing CONSTITUTIONAL_CONVERSATIONS.md governance log, and
+    the originating arbitration/resolution.md.
+
+    Critical constraint: DEFEND THE STATUS QUO. Ratification bias is
+    strong at this stage — the originating deliberation already
+    approved. The self-consistency verification's job is to surface
+    constitutional incoherence even when ratifying would be easier.
+    If a vote is close, side with the defending-status-quo position.
+
+    Conclude with three ruling lines, exactly:
+    - "Q1 RULING: <verdict> — <one-line rationale>"
+    - "Q2 RULING: <verdict> — <one-line rationale>"
+    - "Q3 RULING: <verdict> — <one-line rationale>"
+
+    Combined disposition:
+    - Q1+Q2+Q3 all PASS (any variant): proceed to blind verification
+      with any specified D-conditions applied to produce spec v3.
+    - Any FAIL: spec returns to v2 review; blind does not run until
+      the FAIL is addressed.
+    - Q2 DEMOTE-TO-TIER-2: spec rewrites at Tier 2; this stage re-runs.
+
+  grounding: ../../../../CONSTITUTION.md
+  trigger: disputes_remain
+  timing: final
+  influence: binding
