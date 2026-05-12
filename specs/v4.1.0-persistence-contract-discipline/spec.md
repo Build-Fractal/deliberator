@@ -2,11 +2,23 @@
 
 **Feature ID:** `v4.1.0-persistence-contract-discipline`
 **Created:** 2026-05-11
-**Status:** v4 / post-rerun-D-conditions / pre-blind-verification (2026-05-12).
+**Status:** v5 / post-blind / ratification-ready (2026-05-12).
 **Depends On:** v4.0.0-tier-extraction (Tier 1 + Tier 2 hierarchy must exist); spec 067 (verification methodology); spec 070 (Constitutional Inclusion Criteria).
 **Governed by:** `https://github.com/clariti-care/payer-index-mono/blob/main/build-fractal/conversus/GOVERNANCE.md` § Pathway Taxonomy (**MINOR** pathway at Tier 2 — strengthens the suite constitution without removing or renaming any existing principle).
 **Originating context:** Originating deliberation 2026-05-12, ruling at `deliberations/v4.1.0-persistence-contract-discipline-originating-2026-05-11/arbitration/resolution.md` (commit `026b417`). Cross-product persistence audit 2026-05-11 surfaced: (a) the V remediation revealed conversus output parse contract lives in display text and silently short-circuits across 6 of 8 modes; (b) spec-kit-orc adapter (`scripts/dispatch/adapters/tool/conversus.sh`) hardcodes 3 brittle paths/grep patterns into conversus outputs; (c) spec-kit-orc's own `state-files.md` declared schemas have drifted from production JSONL data — 4 divergent in-tree schemas; (d) cross-product Python API (`linter.output_contract`) consumed without stability guarantee.
-**Self-consistency verification:** Initial self-consistency arbitration 2026-05-12 at `deliberations/v4.1.0-persistence-contract-discipline-self-consistency-2026-05-12/arbitration/resolution.md` (commit `8f90e2d`). Ruled **Q1 PASS-WITH-CLARIFICATIONS / Q2 DEMOTE-TO-TIER-2 / Q3 FAIL-OVERSTRETCH**. Seven required changes produced v3. Self-consistency re-run on v3 arbitration 2026-05-12 at `deliberations/v4.1.0-persistence-contract-discipline-self-consistency-rerun-2026-05-12/arbitration/resolution.md` (commit `a17d13a`). Ruled **Q1 PASS-WITH-CLARIFICATIONS / Q2 PASS / Q3 PASS-WITH-EDITS**. Four D-conditions (D1-D4) produced this v4. Combined disposition: **PROCEED TO BLIND VERIFICATION**.
+**Self-consistency verification:** Initial self-consistency arbitration 2026-05-12 at `deliberations/v4.1.0-persistence-contract-discipline-self-consistency-2026-05-12/arbitration/resolution.md` (commit `8f90e2d`). Ruled **Q1 PASS-WITH-CLARIFICATIONS / Q2 DEMOTE-TO-TIER-2 / Q3 FAIL-OVERSTRETCH**. Seven required changes produced v3. Self-consistency re-run on v3 arbitration 2026-05-12 at `deliberations/v4.1.0-persistence-contract-discipline-self-consistency-rerun-2026-05-12/arbitration/resolution.md` (commit `a17d13a`). Ruled **Q1 PASS-WITH-CLARIFICATIONS / Q2 PASS / Q3 PASS-WITH-EDITS**. Four D-conditions (D1-D4) produced v4.
+**Blind verification:** Blind arbitration 2026-05-12 at `deliberations/v4.1.0-persistence-contract-discipline-blind-2026-05-12/arbitration/resolution.md`. Ruled **Q1 IMPLEMENTABLE-WITH-CLARIFICATIONS / Q2 MODERATE-RISK-MANAGEABLE / Q3 PARTIALLY-COHERENT**. Four E-conditions (E1-E4) produced this v5. Combined disposition: **PROCEED TO RATIFICATION**.
+
+## Changelog from v4 (blind-verification E-conditions, 2026-05-12)
+
+The blind verification (stage 3 of 3) returned **Q1 IMPLEMENTABLE-WITH-CLARIFICATIONS / Q2 MODERATE-RISK-MANAGEABLE / Q3 PARTIALLY-COHERENT** — combined disposition **PROCEED TO RATIFICATION** with four E-conditions (E1-E4) applied to produce this v5 (the ratification-ready version). The blind verification arbitration recorded unanimous agent convergence on three wording-level Q1 gaps (E1-E3) plus one Q3 doctrinal-framing tightening (E4); the substantive content of the principle is preserved unchanged.
+
+- **E1 — § 4 sub-clause 3 `schema_version` format mandate.** Per the blind arbitration's Q1 ruling (unanimous agent convergence): the `schema_version` field MUST use semantic versioning (MAJOR.MINOR.PATCH) by default, OR a documented alternative with explicit total-ordering semantics. Products choosing an alternative MUST document the format and its ordering semantics in their `CONSUMER-CONTRACT.md`. *(Applied: § 4 sub-clause 3.)*
+- **E2 — § 4 sub-clause 5 declaration mechanism.** Per the blind arbitration's Q1 ruling (unanimous agent convergence — the load-bearing implementability fix): explicit declaration of a display-text surface as a stable contract MUST appear in the producer's `CONSUMER-CONTRACT.md` (or equivalent declared canonical doc), naming the specific display-text surface (heading text, error string, marker) and stating the stability guarantee (e.g., "MAJOR `schema_version` bump required to change"). Spec v4 said display text was not stable by default unless explicitly declared, but did not specify HOW to declare — E2 closes this gap. *(Applied: § 4 sub-clause 5.)*
+- **E3 — § 4 sub-clause 1 "discoverable location" criteria.** Per the blind arbitration's Q1 ruling (unanimous agent convergence): a schema-declaration location is "discoverable" if it (a) lives at the producer repo root (or under a suite-convention directory documented in that repo's `CONFORMANCE.md`), (b) follows the suite naming convention (`STATE-FILES.md`, `CONSUMER-CONTRACT.md`, `CONFORMANCE.md`, `schemas/`, or an equivalent declared in the repo's `CONFORMANCE.md`), AND (c) is linked from both the repo's top-level `README.md` AND its `CLAUDE.md` (or the equivalent agent entry-point doc). *(Applied: § 4 sub-clause 1.)*
+- **E4 — § 4 preamble unifying statement.** Per the blind arbitration's Q3 ruling (doctrinal-framing tightening): a single-sentence preamble is added at the start of § 4 making the principle's doctrinal frame explicit — "Persistence contracts ARE stable interfaces. This principle elaborates the Tier 1 Principle II stable-interface doctrine specifically for persistent on-disk state — the same doctrinal frame, applied to a different surface category." This integrates the principle into the broader constitutional architecture rather than letting it stand as a separate concern. *(Applied: § 4 preamble.)*
+
+The four E-conditions are wording-level fixes per the blind arbitration; no sub-clause is removed, renamed, or substantively re-scoped. The principle's normative content (declared schema → mechanical enforcement → versioning → cross-product consumer contracts → declaration scope) and its conditions (C1-C8, D1-D4) survive unchanged into v5.
 
 ## Changelog from v3 (self-consistency-rerun D-conditions, 2026-05-12)
 
@@ -88,14 +100,27 @@ The following new principle is appended to `build-fractal/conversus/CONSTITUTION
 ```markdown
 ### XXVIII. Persistence Contract Discipline
 
+Persistence contracts ARE stable interfaces. This principle elaborates
+the Tier 1 Principle II stable-interface doctrine specifically for
+persistent on-disk state — the same doctrinal frame, applied to a
+different surface category.
+
 Persistent on-disk state is itself a stable interface. Every stateful
 artifact a conversus-family product writes to disk MUST satisfy:
 
 1. **Declared schema.** The artifact has a written schema declaration
    in a discoverable location (typically `STATE-FILES.md`,
    `CONSUMER-CONTRACT.md`, or an equivalent canonical doc at the repo
-   root). The schema specifies field names, types, structural
-   requirements, and a `schema_version` field. Coverage extends to any
+   root). A location is "discoverable" if it (a) lives at the
+   producer repo root, OR under a suite-convention directory (e.g.,
+   `schemas/`) documented in the repo's `CONFORMANCE.md`; (b) follows
+   the suite naming convention (`STATE-FILES.md`,
+   `CONSUMER-CONTRACT.md`, `CONFORMANCE.md`, `schemas/`, or an
+   equivalent declared in the repo's `CONFORMANCE.md`); AND (c) is
+   linked from BOTH the repo's top-level `README.md` AND its
+   `CLAUDE.md` (or the equivalent agent entry-point doc). The schema
+   specifies field names, types, structural requirements, and a
+   `schema_version` field. Coverage extends to any
    persisted state regardless of structural shape, including but not
    limited to: field-based formats (JSON, YAML, TOML), JSONL streaming
    (with explicit line semantics — one record per line, record type
@@ -131,8 +156,12 @@ artifact a conversus-family product writes to disk MUST satisfy:
    example fixtures do not satisfy this discipline.
 
 3. **Versioning.** The schema carries a `schema_version` field with a
-   documented bump procedure. Schema evolution MUST update the version;
-   silent format changes are a violation.
+   documented bump procedure. The `schema_version` field MUST use
+   semantic versioning (MAJOR.MINOR.PATCH) by default, OR a documented
+   alternative with explicit total-ordering semantics. Products
+   choosing an alternative MUST document the format and its ordering
+   semantics in their `CONSUMER-CONTRACT.md`. Schema evolution MUST
+   update the version; silent format changes are a violation.
 
 4. **Cross-product consumer contracts.** When a conversus-family
    product B consumes artifacts written by conversus-family product A,
@@ -150,11 +179,21 @@ artifact a conversus-family product writes to disk MUST satisfy:
    surfaces as consumer-side CI failure.
 
 5. **Declaration scope.** Display text inside an artifact is NOT a
-   stable contract unless explicitly declared as such. Parsing display
-   text for semantic content is forbidden when a structural surface
-   exists; if no structural surface exists, declaring display text as
-   the contract is permitted but creates a debt the product MUST
-   close.
+   stable contract unless explicitly declared as such. **Explicit
+   declaration MUST appear in the producer's `CONSUMER-CONTRACT.md`
+   (or equivalent declared canonical doc per sub-clause 1), naming
+   the specific display-text surface — heading text, error string,
+   marker, or other concrete textual token — and stating the
+   stability guarantee** (e.g., "the `## Verdict` heading is a stable
+   parse target; a MAJOR `schema_version` bump is required to change
+   it"). A producer who omits this declaration leaves the display
+   text undeclared and therefore unstable; consumers parsing
+   undeclared display text are violating sub-clause 4 (cross-product
+   consumer contracts) regardless of the producer's behavior. Parsing
+   display text for semantic content is forbidden when a structural
+   surface exists; if no structural surface exists, declaring display
+   text as the contract is permitted (via the mechanism above) but
+   creates a debt the product MUST close.
 
 The principle scope is persistent on-disk state intended to outlive
 the writing process within the conversus product family. Transient
@@ -294,9 +333,9 @@ Per spec 067, Tier 2 principle additions require **originating + self-consistenc
 
 ### 9.4 Blind verification
 
-- Strip candidate version/date markers from spec v4 using the existing `scripts/strip-constitution-for-blind.py` pattern (adapted to this spec).
-- Run blind deliberation with agents not exposed to prior verdicts.
-- Apply fixes (if any) to produce spec v5-or-final.
+- Config: `deliberations/v4.1.0-persistence-contract-discipline-blind-2026-05-12/conversus.yml`
+- Stripped spec presented to fresh agent composition (naive-reader, implementation-engineer, risk-auditor, external-scholar) with no prior arbitration context.
+- Result: arbitration ruling at `deliberations/v4.1.0-persistence-contract-discipline-blind-2026-05-12/arbitration/resolution.md`. Q1 IMPLEMENTABLE-WITH-CLARIFICATIONS, Q2 MODERATE-RISK-MANAGEABLE, Q3 PARTIALLY-COHERENT. Combined disposition: **PROCEED TO RATIFICATION**. Four E-conditions (E1-E4) applied to produce v5 (this document).
 
 ### 9.5 Ratification
 
@@ -417,7 +456,7 @@ Governance log entry: 2026-MM-DD in build-fractal/conversus/CONSTITUTIONAL_CONVE
 Originating deliberation: deliberations/v4.1.0-persistence-contract-discipline-originating-2026-05-11/ (arbitration commit 026b417).
 Self-consistency verification: deliberations/v4.1.0-persistence-contract-discipline-self-consistency-2026-05-12/ (arbitration commit 8f90e2d — DEMOTE-TO-TIER-2, FAIL-OVERSTRETCH).
 Self-consistency re-run on v3: deliberations/v4.1.0-persistence-contract-discipline-self-consistency-rerun-2026-05-12/ (arbitration commit a17d13a — Q1 PASS-WITH-CLARIFICATIONS, Q2 PASS, Q3 PASS-WITH-EDITS; PROCEED TO BLIND VERIFICATION; four D-conditions D1-D4 applied to produce v4).
-Blind verification: deliberations/v4.1.0-persistence-contract-discipline-blind-2026-MM-DD/ (TBD).
+Blind verification: deliberations/v4.1.0-persistence-contract-discipline-blind-2026-05-12/ (Q1 IMPLEMENTABLE-WITH-CLARIFICATIONS / Q2 MODERATE-RISK-MANAGEABLE / Q3 PARTIALLY-COHERENT; PROCEED TO RATIFICATION; four E-conditions E1-E4 applied to produce v5).
 Inclusion Criteria gate: PASS at Tier 2 (universal applicability within conversus suite + mechanical verifiability + non-redundant).
 Pathway: MINOR (new Tier 2 principle XXVIII; no principle removed or renamed).
 Per-product impact: new CONSUMER-CONTRACT.md at each suite repo root; new Provisional remediation rows in conversus-oss / conversus-enhanced / spec-kit-orc CONFORMANCE.md with a universal 2026-12-01 deadline (binding products existing at ratification only per v4 D2 temporal scope); follow-on component-tier specs for structured-output (conversus-oss) and state-files reconciliation (spec-kit-orc).
@@ -425,19 +464,21 @@ Procedural notes:
   - Tier 1 placement attempted in v2; demoted to Tier 2 in v3 per self-consistency arbitration 8f90e2d.
   - Override-with-rationale precedent restricted to blind-verification scope only (per v3 § 11). v2's originating-stage invocation logged as procedurally invalid; substantive Q2 disposition preserved on independent agent-convergence grounds.
   - v4 D1-D4 applied per self-consistency rerun a17d13a: intra-stage Q1/Q2 sequencing (D1), temporal scope of universal deadline — existing products only (D2), constitutional adequacy precedes enforcement design (D3), § 11 procedural boundary language — substance does not cure procedure (D4).
+  - v5 E1-E4 applied per blind verification 2026-05-12: schema_version format mandate — SemVer default (E1), declaration mechanism via producer CONSUMER-CONTRACT.md (E2), discoverable-location criteria (E3), unifying preamble linking Principle XXVIII to Principle II (E4). All wording-level; principle's normative content unchanged.
 Prior amendment (v4.0.0): tier extraction — see prior SIR block below.
 -->
 ```
 
 ## 16. Status & next steps
 
-- **Status:** v4 / post-rerun-D-conditions / pre-blind-verification (2026-05-12).
-- **Next step:** blind verification per § 9.4 — strip candidate version/date markers using the existing `scripts/strip-constitution-for-blind.py` pattern (adapted to this spec), then run blind deliberation with agents not exposed to prior verdicts. Apply any fixes to produce spec v5-or-final.
-- **Then:** ratification per § 9.5 — flip status to `Status: Ratified`, apply file edits per § 6, update SIR blocks, version footer, CONSTITUTIONAL_CONVERSATIONS.md entries.
+- **Status:** v5 / post-blind / ratification-ready (2026-05-12).
+- **Blind verification result:** Q1 IMPLEMENTABLE-WITH-CLARIFICATIONS / Q2 MODERATE-RISK-MANAGEABLE / Q3 PARTIALLY-COHERENT; combined disposition **PROCEED TO RATIFICATION**. Four E-conditions (E1-E4) applied to produce this v5. See `deliberations/v4.1.0-persistence-contract-discipline-blind-2026-05-12/arbitration/resolution.md` and the v4 → v5 changelog above.
+- **Next step:** ratification per § 9.5 — flip status to `Status: Ratified`, apply file edits per § 6, update SIR blocks, version footer, CONSTITUTIONAL_CONVERSATIONS.md entries.
 
 ## 17. Fix ledger
 
 - **v1 → v2 (originating-fixes, 2026-05-12):** Applied conditions C1-C8 from binding arbitration ruling at `deliberations/v4.1.0-persistence-contract-discipline-originating-2026-05-11/arbitration/resolution.md` (commit `026b417`). Q1 APPROVE-WITH-FIXES (C1-C4 applied to § 4 sub-clauses 1, 2, 4). Q2 APPROVE-WITH-FIXES (C5-C6 applied to § 4 sub-clause 2; v2 noted override-with-rationale invoked against pragmatist's technology mandate — that invocation is rolled back in v3 per C-SC-7, with substantive Q2 disposition preserved on independent agent-convergence grounds). Q3 APPROVE-WITH-EXTENSION (C7 differentiated deadlines + C8 missed-deadline consequence; C7 superseded in v3 per C-SC-2). Draft placeholder conditions superseded.
 - **v2 → v3 (self-consistency fixes, 2026-05-12):** Applied seven required changes from self-consistency arbitration `deliberations/v4.1.0-persistence-contract-discipline-self-consistency-2026-05-12/arbitration/resolution.md` (commit `8f90e2d`). C-SC-1 tier demotion (Tier 1 → Tier 2; new Principle XXVIII). C-SC-2 universal deadline (2026-12-01 across all suite products; differentiated deadlines removed). C-SC-3 override-with-rationale scope restricted to blind-verification only (§ 11). C-SC-4 compound constitutional debt acknowledged (§ 12). C-SC-5 coordinated governance analysis (§ 9 + § 13). C-SC-6 conditional constitutional coordination analysis preserved (§ 13). C-SC-7 originating-stage override violation documented + v2 Q2 changelog rewritten on substantive-convergence grounds.
 - **v3 → v4 (self-consistency-rerun D-conditions, 2026-05-12):** Applied four D-conditions from self-consistency rerun arbitration `deliberations/v4.1.0-persistence-contract-discipline-self-consistency-rerun-2026-05-12/arbitration/resolution.md` (commit `a17d13a`). Rerun ruled Q1 PASS-WITH-CLARIFICATIONS / Q2 PASS / Q3 PASS-WITH-EDITS; combined disposition PROCEED TO BLIND VERIFICATION with four D-conditions applied. D1 intra-stage Q1/Q2 sequencing (§ 9, § 13). D2 temporal scope of universal deadline — products existing at ratification only; future siblings receive admission-time deadlines (§ 2 goals 3-5 + rationale, § 3 non-goals, § 7 table, § 10.2 C7). D3 constitutional adequacy precedes enforcement design (§ 9, § 13). D4 § 11 procedural boundary language — substance does not cure procedure, but substance can be re-grounded after procedure is corrected (§ 11).
-- **v4 → vN (blind fixes, errata):** TBD.
+- **v4 → v5 (blind-verification E-conditions, 2026-05-12):** Applied four E-conditions from blind verification arbitration `deliberations/v4.1.0-persistence-contract-discipline-blind-2026-05-12/arbitration/resolution.md`. Blind verification ruled Q1 IMPLEMENTABLE-WITH-CLARIFICATIONS / Q2 MODERATE-RISK-MANAGEABLE / Q3 PARTIALLY-COHERENT; combined disposition PROCEED TO RATIFICATION with four E-conditions applied. E1 `schema_version` format mandate — SemVer by default, or documented alternative with explicit total-ordering semantics (§ 4 sub-clause 3). E2 declaration mechanism for sub-clause 5 — explicit declaration MUST appear in the producer's `CONSUMER-CONTRACT.md`, naming the specific display-text surface and stating the stability guarantee (§ 4 sub-clause 5; the load-bearing implementability fix). E3 "discoverable location" criteria for sub-clause 1 — repo root (or documented suite-convention directory) + suite-convention naming + linked from both `README.md` AND `CLAUDE.md` (§ 4 sub-clause 1). E4 unifying preamble — single-sentence statement at start of § 4 linking Principle XXVIII to the Tier 1 Principle II stable-interface doctrine (§ 4 preamble). All four E-conditions are wording-level; the principle's normative content and conditions (C1-C8, D1-D4) survive unchanged. v5 is ratification-ready.
+- **v5 → vN (post-ratification errata):** TBD.
