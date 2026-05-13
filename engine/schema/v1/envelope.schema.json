@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://build-fractal.org/conversus/schema/v1/envelope.schema.json",
+  "title": "Conversus Deliberation Output Envelope",
+  "description": "Common envelope per v4.2.0 spec § 4.1. Wraps a body whose shape is determined by output_type.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "output_type",
+    "agent_name",
+    "deliberation_id",
+    "deliberation_stage",
+    "engine_version",
+    "source_commit",
+    "timestamp",
+    "body"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[A-Za-z0-9.-]+)?$",
+      "description": "SemVer schema version (e.g., '1.0.0-rc.1')."
+    },
+    "output_type": {
+      "type": "string",
+      "enum": ["review", "cross-review", "revision", "disputes", "synthesis", "arbitration"]
+    },
+    "agent_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "deliberation_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "deliberation_stage": {
+      "type": "string",
+      "enum": ["originating", "self-consistency", "blind"]
+    },
+    "engine_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_commit": {
+      "type": "string",
+      "minLength": 4
+    },
+    "phase_iteration": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Optional; omitted for single-iteration phases."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "target_files": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Optional; omitted for synthesis/arbitration where target is the deliberation as a whole."
+    },
+    "body": {
+      "type": "object"
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "output_type": { "const": "review" } } },
+      "then": { "properties": { "body": { "$ref": "review.schema.json" } } }
+    },
+    {
+      "if": { "properties": { "output_type": { "const": "cross-review" } } },
+      "then": { "properties": { "body": { "$ref": "cross-review.schema.json" } } }
+    },
+    {
+      "if": { "properties": { "output_type": { "const": "revision" } } },
+      "then": { "properties": { "body": { "$ref": "revision.schema.json" } } }
+    },
+    {
+      "if": { "properties": { "output_type": { "const": "disputes" } } },
+      "then": { "properties": { "body": { "$ref": "disputes.schema.json" } } }
+    },
+    {
+      "if": { "properties": { "output_type": { "const": "synthesis" } } },
+      "then": { "properties": { "body": { "$ref": "synthesis.schema.json" } } }
+    },
+    {
+      "if": { "properties": { "output_type": { "const": "arbitration" } } },
+      "then": { "properties": { "body": { "$ref": "arbitration.schema.json" } } }
+    }
+  ]
+}
