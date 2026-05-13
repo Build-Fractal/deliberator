@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://build-fractal.org/conversus/schema/v1/validator-error.schema.json",
+  "title": "Conversus Validator Error Object",
+  "description": "Structured error object emitted by SchemaValidator per v4.2.0 spec § 4.9 (C9). Stable interface across schema versions; consumer tooling can rely on the failure surface.",
+  "type": "object",
+  "required": [
+    "field_path",
+    "error_code",
+    "human_message",
+    "expected_type",
+    "actual_value"
+  ],
+  "properties": {
+    "field_path": {
+      "type": "string",
+      "description": "JSON pointer to the offending field, e.g., '/body/disputes/0/severity'."
+    },
+    "error_code": {
+      "type": "string",
+      "enum": [
+        "REQUIRED_FIELD_MISSING",
+        "TYPE_MISMATCH",
+        "ENUM_VIOLATION",
+        "PATTERN_VIOLATION",
+        "ADDITIONAL_PROPERTY_FORBIDDEN",
+        "SCHEMA_VERSION_UNSUPPORTED",
+        "ENVELOPE_BODY_TYPE_MISMATCH",
+        "ARRAY_MIN_ITEMS_VIOLATION"
+      ]
+    },
+    "human_message": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Human-friendly explanation of the failure."
+    },
+    "expected_type": {
+      "type": "string",
+      "description": "The schema-declared expected shape (type or pattern or enum)."
+    },
+    "actual_value": {
+      "description": "The actual value at field_path; may be any JSON type or null when field is missing."
+    },
+    "suggested_fix": {
+      "type": "string",
+      "description": "Optional best-effort fix suggestion."
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["error", "warning"],
+      "description": "Optional severity field emitted by the Pydantic ValidationWarning model (per spec § 5.1 F2). Not required by § 4.9 but emitted for consumer convenience; defaults to 'warning'."
+    }
+  }
+}
