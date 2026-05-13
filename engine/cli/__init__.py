@@ -774,3 +774,10 @@ def init(
 from conversus.registry.runtime import register_discovered_cli_commands
 
 register_discovered_cli_commands(cli)
+
+# Snap-gate subcommand — prototype for Claude Code PreToolUse hook integration.
+# Lives in its own module (engine/cli/snap.py) because it has a distinct
+# architectural shape (3 agents, single phase, sub-second wall-clock target).
+from engine.cli.snap import snap as _snap_command  # noqa: E402
+
+cli.add_command(_snap_command)
