@@ -32,7 +32,10 @@ jobs:
         uses: astral-sh/setup-uv@v3
 
       - name: Install dependencies
-        run: uv sync --frozen
+        # `uv.lock` is gitignored (see .gitignore), so `--frozen` always fails
+        # in CI. Resolve at workflow time instead — the lockfile is a local
+        # convenience, not a release artifact.
+        run: uv sync
 
       - name: Tier-coherence linter (Constitutional Inclusion Criterion 1)
         run: uv run python -m linter.tier_coherence

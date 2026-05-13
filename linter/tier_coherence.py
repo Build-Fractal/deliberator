@@ -29,14 +29,28 @@ COMPONENT = ROOT / "CONSTITUTION.md"
 
 
 def _find_build_fractal_root(start: Path) -> Path | None:
-    """Walk up looking for a directory named 'build-fractal/' containing CONSTITUTION.md.
+    """Walk up looking for the build-fractal monorepo root.
 
-    Supports any monorepo layout that places conversus-oss anywhere under the
-    monorepo root, including the post-Phase-C nested layout
-    (build-fractal/conversus/conversus-oss/) and the original flat layout
-    (conversus-oss/).
+    Two layouts supported, in priority order:
+    1. **build-fractal-mono layout (current, post-2026-05-13 migration):** an
+       ancestor directory contains a top-level CONSTITUTION.md (Tier 1) plus
+       a `conversus/CONSTITUTION.md` (Tier 2). The ancestor IS the build-fractal
+       root.
+    2. **Legacy nested layout (pre-migration payer-index-mono):** an ancestor
+       contains a `build-fractal/` subdir with the same structure. Returned
+       path is `<ancestor>/build-fractal`.
+
+    Returns the directory that holds Tier 1's CONSTITUTION.md, or None if
+    neither layout matches (standalone-OSS context).
     """
     for ancestor in [start, *start.parents]:
+        # Layout 1: build-fractal-mono — the ancestor IS the root
+        if (
+            (ancestor / "CONSTITUTION.md").is_file()
+            and (ancestor / "conversus" / "CONSTITUTION.md").is_file()
+        ):
+            return ancestor
+        # Layout 2: legacy nested under build-fractal/
         candidate = ancestor / "build-fractal" / "CONSTITUTION.md"
         if candidate.is_file():
             return ancestor / "build-fractal"
@@ -44,8 +58,8 @@ def _find_build_fractal_root(start: Path) -> Path | None:
 
 
 _BUILD_FRACTAL = _find_build_fractal_root(ROOT)
-TIER1 = (_BUILD_FRACTAL / "CONSTITUTION.md") if _BUILD_FRACTAL else ROOT.parent / "build-fractal" / "CONSTITUTION.md"
-TIER2 = (_BUILD_FRACTAL / "conversus" / "CONSTITUTION.md") if _BUILD_FRACTAL else ROOT.parent / "build-fractal" / "conversus" / "CONSTITUTION.md"
+TIER1 = (_BUILD_FRACTAL / "CONSTITUTION.md") if _BUILD_FRACTAL else ROOT.parent / "CONSTITUTION.md"
+TIER2 = (_BUILD_FRACTAL / "conversus" / "CONSTITUTION.md") if _BUILD_FRACTAL else ROOT.parent / "conversus" / "CONSTITUTION.md"
 
 TIER1_PRINCIPLES = {"I", "II", "III", "IV", "VII", "VIII", "IX", "XI", "XIV", "XXVIII"}
 TIER2_PRINCIPLES = {"V", "XII", "XIII", "XV", "XVI", "XXII", "XXIII", "XXIV", "XXV", "XXVII"}
@@ -208,10 +222,16 @@ def check_cross_references(text: str, name: str) -> list[str]:
             )
 
     # Validate URL form: must match monorepo prefix + resolve to existing file in monorepo.
-    # `_BUILD_FRACTAL` is the monorepo's build-fractal/ dir if found — its parent is the
-    # monorepo root, regardless of how deeply conversus-oss is nested. Falls back to
-    # `ROOT.parent` for the original flat layout.
-    monorepo_root = _BUILD_FRACTAL.parent if _BUILD_FRACTAL else ROOT.parent
+    # The monorepo root depends on which layout we found:
+    #   - build-fractal-mono layout: `_BUILD_FRACTAL` IS the monorepo root.
+    #   - Legacy nested layout: `_BUILD_FRACTAL` is `<root>/build-fractal/`, so root is parent.
+    # We disambiguate by whether `_BUILD_FRACTAL`'s basename is `build-fractal`.
+    if _BUILD_FRACTAL is None:
+        monorepo_root = ROOT.parent
+    elif _BUILD_FRACTAL.name == "build-fractal":
+        monorepo_root = _BUILD_FRACTAL.parent
+    else:
+        monorepo_root = _BUILD_FRACTAL
     seen_urls: set[str] = set()
     url_candidates = [
         *bare_url_re.findall(text),
@@ -239,34 +259,59 @@ def check_cross_references(text: str, name: str) -> list[str]:
     return failures
 
 
-def check_version_consistency() -> list[str]:
-    """Check (d) — Version: fields across the three constitutions must be mutually consistent.
+VERSION_RE = re.compile(r"^\*\*Version:\*\*\s*(\S+)", re.MULTILINE)
+SEMVER_RE = re.compile(r"^(\d+)\.(\d+)\.(\d+)(?:[+-].*)?$")
 
-    All three should declare v4.0.0 (or v1.0.0 for newly-established Tier 1/2).
-    The component-tier file at v4.0.0 references Tier 1 and Tier 2 at v1.0.0.
+
+def _parse_semver(version: str) -> tuple[int, int, int] | None:
+    m = SEMVER_RE.match(version)
+    if not m:
+        return None
+    return (int(m.group(1)), int(m.group(2)), int(m.group(3)))
+
+
+def check_version_consistency() -> list[str]:
+    """Check (d) — Version: fields must be present and parseable, and the
+    Component tier's MAJOR must not lag the latest ratified MAJOR.
+
+    Data-driven design: rather than hardcoding "expected" versions (which go
+    stale on every ratification — see v4.1.0/v4.2.0 drift incident), this
+    check reads the actual Version: field from each constitution and enforces
+    structural invariants:
+      1. Each file has a parseable **Version:** semver field.
+      2. Component MAJOR >= 4 (post-tier-extraction baseline).
+      3. Tier 1 and Tier 2 MAJOR >= 1.
     """
     failures: list[str] = []
-    version_re = re.compile(r"^\*\*Version:\*\*\s*(\S+)", re.MULTILINE)
+    parsed: dict[str, tuple[int, int, int]] = {}
 
-    expectations = [
-        (COMPONENT, "4.0.0", "component"),
-        (TIER1, "1.0.0", "tier1"),
-        (TIER2, "1.0.0", "tier2"),
-    ]
-    for path, expected, name in expectations:
+    for path, name in [(COMPONENT, "component"), (TIER1, "tier1"), (TIER2, "tier2")]:
         if not path.exists():
             failures.append(f"check(d) missing file: {path}")
             continue
         text = path.read_text()
-        m = version_re.search(text)
+        m = VERSION_RE.search(text)
         if not m:
             failures.append(f"check(d) no Version: field in {name} ({path})")
             continue
-        actual = m.group(1)
-        if actual != expected:
+        semver = _parse_semver(m.group(1))
+        if semver is None:
             failures.append(
-                f"check(d) version mismatch in {name}: expected {expected}, got {actual}"
+                f"check(d) unparseable Version: field in {name}: {m.group(1)!r}"
             )
+            continue
+        parsed[name] = semver
+
+    if "component" in parsed and parsed["component"][0] < 4:
+        failures.append(
+            f"check(d) component MAJOR must be >= 4 (post-tier-extraction); got "
+            f"{parsed['component'][0]}"
+        )
+    if "tier1" in parsed and parsed["tier1"][0] < 1:
+        failures.append(f"check(d) tier1 MAJOR must be >= 1; got {parsed['tier1'][0]}")
+    if "tier2" in parsed and parsed["tier2"][0] < 1:
+        failures.append(f"check(d) tier2 MAJOR must be >= 1; got {parsed['tier2'][0]}")
+
     return failures
 
 
@@ -297,9 +342,23 @@ def check_weakening_words(text: str, name: str) -> list[str]:
 
 
 def main() -> int:
-    if not all(p.exists() for p in [COMPONENT, TIER1, TIER2]):
-        missing = [p for p in [COMPONENT, TIER1, TIER2] if not p.exists()]
-        print(f"ERROR: missing constitution files: {missing}", file=sys.stderr)
+    # Tier coherence is a property of the FULL constitutional hierarchy
+    # (Tier 1 Universal + Tier 2 Suite + Component). When this linter runs
+    # in standalone-OSS CI (where conversus-oss is checked out alone, without
+    # its parent build-fractal-mono), the Tier 1/2 files are not present —
+    # there is nothing to cross-check. Skip gracefully rather than failing,
+    # so the equivalent check at the build-fractal-mono level remains the
+    # canonical enforcement point. The Component file alone is not a
+    # sufficient input for any of the four checks.
+    if _BUILD_FRACTAL is None or not (TIER1.exists() and TIER2.exists()):
+        print(
+            "tier_coherence: SKIP — Tier 1/2 constitutions not present "
+            "(standalone-OSS context; full check runs in build-fractal-mono CI)"
+        )
+        return 0
+
+    if not COMPONENT.exists():
+        print(f"ERROR: missing component constitution file: {COMPONENT}", file=sys.stderr)
         return 2
 
     component_text = COMPONENT.read_text()
