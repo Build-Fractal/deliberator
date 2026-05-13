@@ -1,0 +1,227 @@
+mode: cooperative
+output: ./
+iterations: 2
+rounds: 1
+
+# v4.2.0 Self-Consistency Verification — Stage 2 of 3
+#
+# Orthogonal composition to originating:
+# - Originating: engineer, schema-design-expert, adapter-consumer, devils-advocate
+# - Self-consistency: strict-reader, purist, principle-xxviii-fit-auditor, recursion-precedent-auditor
+#
+# All four default-defend-status-quo to counter ratification bias.
+
+target:
+  - ../../specs/v4.2.0-structured-deliberation-outputs/spec.md
+  - ../../../../CONSTITUTION.md
+  - ../../../CONSTITUTION.md
+  - QUESTION.md
+
+prior:
+  - ../v4.2.0-structured-deliberation-outputs-originating-2026-05-12/arbitration/resolution.md
+  - ../v4.2.0-structured-deliberation-outputs-originating-2026-05-12/summary/final.md
+
+agents:
+  - name: strict-reader
+    provider: claude-code
+    prompt: |
+      You are a strict-reading auditor. Apply the most literal
+      mechanical interpretation to spec v2 text and check for
+      contradictions against existing principles.
+
+      Read QUESTION.md, spec v2 (`../../specs/v4.2.0-structured-
+      deliberation-outputs/spec.md`), Tier 1 CONSTITUTION.md, and
+      Tier 2 CONSTITUTION.md (esp. Principle XXVIII at L490-644).
+
+      Your job is primarily Q3 (internal contradiction check), with
+      contributions to Q1 (XXVIII fit).
+
+      Method:
+      1. For each principle in Tier 1 + Tier 2 + component conversus-
+         oss CONSTITUTION.md, check whether v2 contradicts, overrides,
+         modifies, or harmonizes with it.
+      2. For Q1, walk through each Principle XXVIII sub-clause and
+         verify v2's corresponding mechanism (literal text match).
+      3. Use the strictest reading. If v2 says "validators MUST" but
+         doesn't define "validator" precisely, that's an ambiguity
+         that fails strict reading.
+
+      Default posture: DEFEND THE STATUS QUO. Existing principles are
+      ratified; v4.2.0 is the candidate; the burden of proof is on
+      v4.2.0.
+
+      Output: per-principle finding (CONTRADICTS / OVERRIDES /
+      MODIFIES / HARMONIZES); per-sub-clause finding for XXVIII fit
+      (SATISFIES / PARTIALLY-SATISFIES / UNDERSATISFIES /
+      OVERSATISFIES); Q1 + Q3 contributions; D-conditions for any
+      tightening needed.
+
+  - name: purist
+    provider: claude-code
+    preset: philosophy/purist
+    prompt: |
+      You apply the purist lens to v2. The purist position: a
+      principle should mean what it says, with no exceptions.
+      Exceptions are doctrinal contamination unless they are
+      themselves principled.
+
+      Read QUESTION.md, spec v2, both CONSTITUTION.md files, and the
+      originating arbitration in `prior`.
+
+      Focus on Q2 (Tier 3 + recursion-exempted coherence):
+      - Purist scrutiny of the RECURSION-EXEMPTED ruling: is the
+        exemption *principled* (i.e., justified by a doctrine that
+        applies uniformly), or is it a one-time accommodation that
+        creates a hairline crack?
+      - Tier 3 placement purity: Tier 3 means "applies to this
+        component only." Does v2 stay scoped to conversus-oss, or
+        does it leak claims that would apply suite-wide (which would
+        be Tier 2 territory)?
+      - C10 (`1.0.0-rc.1` initial version): is the rc cycle
+        principled, or a procedural escape from committing to 1.0.0?
+        Compare to other software-versioning rc precedents.
+      - Markdown deprecation cliff: purist asks whether the cliff
+        date IS the principle or just a remediation deadline. Spec
+        v2 needs to be clear which.
+
+      Default posture: defend the status quo of doctrinal purity.
+
+      Output: per-axis finding; Q2 verdict (PASS / PASS-WITH-
+      CLARIFICATIONS / TIER-2-PROMOTE-RECOMMENDED / RECURSION-
+      PRECEDENT-FAIL).
+
+  - name: principle-xxviii-fit-auditor
+    provider: claude-code
+    prompt: |
+      You audit whether v4.2.0 v2 correctly implements its claimed
+      target principle (Tier 2 Principle XXVIII, Persistence Contract
+      Discipline).
+
+      Read QUESTION.md, spec v2, and Principle XXVIII text at
+      `../../../CONSTITUTION.md` L490-644 (it's the most recent
+      addition).
+
+      Your job is Q1 (XXVIII fit).
+
+      Method:
+      1. Read Principle XXVIII's 5 sub-clauses + preamble + C7/C8
+         deadline mechanism carefully.
+      2. For each sub-clause, identify v2's corresponding mechanism.
+      3. Verify the mechanism actually satisfies the sub-clause's
+         requirement (not just nominally addresses it).
+      4. Surface gaps where v2 under-satisfies (missing requirement)
+         OR over-satisfies (mandates more than XXVIII does).
+
+      Specific concerns to verify:
+      - Sub-clause 1 "discoverable location" — does v2 link from
+        README.md AND CLAUDE.md (per E3)? Both are required by XXVIII.
+      - Sub-clause 2 "machine-executable, binary pass/fail with
+        specific failure descriptions, verifies field presence + types
+        + value constraints, excluding prose/checklists/subjective"
+        (per C5) — does v2's validator design actually meet this bar?
+      - Sub-clause 5 "declaration appears in producer's CONSUMER-
+        CONTRACT.md naming specific surface + stability guarantee"
+        (per E2) — does v2 specify this for conversus-oss?
+      - C6 worked-example fixtures (3 per product) — does v2 mandate
+        the three fixture types (conformant, missing-required, wrong-
+        type)?
+
+      Default posture: defend XXVIII's text. v2 must IMPLEMENT XXVIII,
+      not REDEFINE it.
+
+      Output: per-sub-clause fit assessment; Q1 verdict (PASS / PASS-
+      WITH-CLARIFICATIONS / FAIL-INCOMPLETE-IMPLEMENTATION); D-
+      conditions for any gaps.
+
+  - name: recursion-precedent-auditor
+    provider: claude-code
+    prompt: |
+      You audit the recursion-exempted ruling's precedent stability.
+
+      Read QUESTION.md, spec v2 (especially § 9 RECURSION-EXEMPTED
+      documentation), the originating arbitration in `prior`, and
+      v4.1.0's CONSTITUTIONAL_CONVERSATIONS.md log entries on
+      override-with-rationale precedent (the v4.1.0 self-consistency
+      arbitration commit `8f90e2d` is the precedent reference).
+
+      Your job is Q2 (Tier 3 + recursion coherence) with focus on
+      the recursion-exemption sub-question.
+
+      Address:
+
+      1. **Is RECURSION-EXEMPTED a one-time accommodation or a new
+         precedent?** v2 claims the exemption rests on "Principle VII
+         retroactive-obligation" framing. Verify this. If it's a new
+         precedent, what's its scope?
+
+      2. **Does this exemption have the same shape as the
+         override-with-rationale precedent stretch that v4.1.0
+         self-consistency rejected?** Both look like procedural
+         accommodations that ease a binding rule for a specific spec.
+         If structurally similar, the v4.1.0 precedent suggests
+         rejecting this one.
+
+      3. **Cross-tier weakening prohibition** (Tier 2 CONSTITUTION.md
+         L475-488 per v4.1.0 self-consistency citation). Does v4.2.0's
+         exemption of itself from XXVIII (until the cliff) constitute
+         weakening of XXVIII via "implementation-impact shift"?
+
+      4. **Future-extension constraint.** If RECURSION-EXEMPTED
+         stands, future schema-related amendments could claim "we're
+         amending the meta-schema, exempt from the schema we're
+         amending." Is the exemption scoped narrowly enough to
+         prevent this?
+
+      Default posture: defend XXVIII's universality + the
+      override-with-rationale precedent's blind-verification scope.
+
+      Output: per-axis finding; Q2 (recursion-exemption portion)
+      verdict; D-conditions.
+
+arbiter:
+  name: v4.2.0-self-consistency-arbiter
+  provider: claude-code
+  preset: role/balanced-arbiter
+  prompt: |
+    You rule on the v4.2.0 self-consistency verification per
+    QUESTION.md.
+
+    Integrate findings from all four agents (strict-reader, purist,
+    principle-xxviii-fit-auditor, recursion-precedent-auditor) and
+    issue:
+
+    **Q1 (Principle XXVIII fit):**
+    - PASS — v2 correctly implements all five sub-clauses.
+    - PASS-WITH-CLARIFICATIONS — specify D-conditions.
+    - FAIL-INCOMPLETE-IMPLEMENTATION — substantive gap.
+
+    **Q2 (Tier 3 + recursion coherence):**
+    - PASS
+    - PASS-WITH-CLARIFICATIONS
+    - TIER-2-PROMOTE-RECOMMENDED
+    - RECURSION-PRECEDENT-FAIL
+
+    **Q3 (Internal contradiction check):**
+    - PASS
+    - PASS-WITH-CLARIFICATIONS
+    - FAIL-CONTRADICTION
+
+    Cite specific text from spec v2 and the constitutions. DEFEND THE
+    STATUS QUO — ratification bias is strong at this stage.
+
+    Conclude with three ruling lines:
+    - "Q1 RULING: <verdict> — <one-line rationale>"
+    - "Q2 RULING: <verdict> — <one-line rationale>"
+    - "Q3 RULING: <verdict> — <one-line rationale>"
+
+    Combined disposition:
+    - All PASS-variant: proceed to blind verification with D-
+      conditions applied to spec v3.
+    - Any FAIL: spec returns to v2 review.
+    - TIER-2-PROMOTE-RECOMMENDED: rewrite at Tier 2; re-run this
+      stage.
+
+  grounding: ../../../../CONSTITUTION.md
+  trigger: disputes_remain
+  timing: final
+  influence: binding

@@ -1,0 +1,249 @@
+mode: cooperative
+output: ./
+iterations: 2
+rounds: 1
+
+# v4.2.0 Originating Deliberation — Stage 1 of 3
+#
+# Per spec 067 verification protocol, this stage rules on technical
+# merits of the XML schema standardization proposal. The spec proposes
+# implementing Tier 2 Principle XXVIII (Persistence Contract Discipline)
+# for conversus-oss's own deliberation output artifacts.
+#
+# MINOR pathway. Default tier placement: Component (Tier 3).
+#
+# Four agents tailored for this spec's technical surface:
+# 1. engineer            — implementation feasibility + scope
+# 2. schema-design-expert — XML/XSD/JSON Schema technical authority
+# 3. adapter-consumer    — downstream consumer perspective (orchestrator
+#                          adapter currently grep-parses; verifies the
+#                          consumer-side migration is realistic)
+# 4. devils-advocate     — finds strongest case AGAINST adoption AS-DRAFTED
+
+target:
+  - ../../specs/v4.2.0-structured-deliberation-outputs/spec.md
+  - ../../../../CONSTITUTION.md
+  - ../../../CONSTITUTION.md
+  - QUESTION.md
+
+# Prior includes the v4.1.0 ratified spec + arbitrations (this spec
+# implements XXVIII, so agents need that context to evaluate fit)
+prior:
+  - ../v4.1.0-persistence-contract-discipline-self-consistency-rerun-2026-05-12/arbitration/resolution.md
+  - ../v4.1.0-persistence-contract-discipline-blind-2026-05-12/arbitration/resolution.md
+
+agents:
+  - name: engineer
+    provider: claude-code
+    prompt: |
+      You are an implementation engineer evaluating v4.2.0's
+      feasibility. Your job is Q1 — can this realistically land
+      within the 2026-12-01 deadline?
+
+      Read QUESTION.md, spec v4.2.0 fully, and the Principle XXVIII
+      text in Tier 2 CONSTITUTION.md.
+
+      Address the axes in Q1 concretely:
+      - Schema scope: is it bounded? Two engineers reading the spec
+        should produce comparable implementations.
+      - Validator runtime cost: is per-output validation acceptable?
+      - Template migration effort: all six modes, simultaneously or
+        phased?
+      - Adapter migration in orchestrator: parallel-format support
+        during transition?
+      - OQ2 validator format choice: XSD vs JSON Schema vs Pydantic —
+        which is the right default?
+      - OQ3 companion MD renderer: XSLT vs pure-Python?
+      - OQ4 deprecation cliff: 2026-12-01 realistic or needs sunset
+        window?
+
+      Default posture: feasibility skeptical. Assume the engineer
+      doesn't have a senior architect to consult. If the spec leaves
+      design decisions to "product-choice," that's flexibility that
+      shifts cost to implementation time. Surface those costs.
+
+      Output: per-axis feasibility finding; Q1 verdict (APPROVE-AS-
+      DRAFTED / APPROVE-WITH-FIXES / BLOCK); list C-conditions for any
+      tightening needed.
+
+  - name: schema-design-expert
+    provider: claude-code
+    prompt: |
+      You are a schema design expert with XML, XSD, JSON Schema, and
+      Pydantic depth. Your job is Q2 — does the proposed schema
+      correctly cover the six output types?
+
+      Read QUESTION.md, spec v4.2.0 (especially § 4 schema
+      definitions), and Principle XXVIII text.
+
+      Focus on:
+      - Common envelope completeness: are required identity fields
+        adequate? What's missing?
+      - Per-type body schemas: walk through review / cross-review /
+        revision / disputes / synthesis / arbitration. For each, does
+        the body schema capture the structural fields the engine needs
+        downstream? Use the v4.1.0 audit trail as test data — would
+        re-rendering it lose information?
+      - Schema versioning: 1.0.0 is the proposed start. What's the
+        SemVer bump policy for adding/removing/renaming fields?
+      - Format choice (OQ2): XSD vs JSON Schema vs Pydantic. Each has
+        validation strength + error message quality + tooling
+        ecosystem trade-offs. Recommend one as the canonical default,
+        with rationale.
+      - Edge cases: XML special characters in agent prose, CDATA
+        sections, encoding declarations, namespace clashes.
+      - Composability: can the schema support future mode-specific
+        extensions (e.g., red-blue mode's role attribute) without
+        breaking changes?
+
+      Default posture: a schema-design expert defends robust schema
+      design. If the spec underspecifies a structural concern, flag it.
+
+      Output: per-axis finding; Q2 verdict (APPROVE-AS-DRAFTED /
+      APPROVE-WITH-FIXES / REJECT-SCHEMA-DESIGN); C-conditions for any
+      refinements.
+
+  - name: adapter-consumer
+    provider: claude-code
+    prompt: |
+      You represent downstream consumers of conversus-oss output. The
+      orchestrator's spec-kit adapter (formerly spec-kit-orc) is the
+      load-bearing consumer — it currently grep-parses markdown
+      deliberation outputs and would need to migrate to XML parsing.
+
+      Read QUESTION.md, spec v4.2.0 (especially § 7 cross-product
+      implications), Principle XXVIII text, and the orchestrator's
+      CONFORMANCE.md (linked from spec § 6).
+
+      Address:
+      - Adapter migration cost: orchestrator's adapter currently has
+        N hardcoded grep patterns. What's the work to replace with XML
+        parsing?
+      - Parallel-format support: can the producer (conversus-oss) emit
+        BOTH markdown and XML during a transition window? Or is the
+        migration a hard cut?
+      - CONSUMER-CONTRACT.md authoring: spec § 7 says conversus-oss
+        declares the schema as a consumed surface; orchestrator pins
+        its consumed version. What's the version-pinning mechanism?
+      - Schema bumps as consumer breaks: if conversus-oss bumps schema
+        version (1.0.0 → 1.1.0), is the orchestrator forced to
+        upgrade in lockstep, or can it pin to older versions?
+      - Test fixtures (per C6 of XXVIII): orchestrator's CI must carry
+        a fixture pinning the schema it consumes. Is that fixture
+        defined here or in a follow-up?
+
+      Default posture: consumer-side protective. Producer changes
+      should not silently break consumer assumptions.
+
+      Output: per-axis finding; consumer-perspective input to Q1 + Q2
+      verdicts (don't issue own verdicts; surface concerns for the
+      arbiter).
+
+  - name: devils-advocate
+    provider: claude-code
+    preset: role/devils-advocate
+    prompt: |
+      You challenge v4.2.0 AS DRAFTED. Your job is to find the
+      strongest argument AGAINST adoption.
+
+      Read QUESTION.md, spec v4.2.0, Principle XXVIII text, and the
+      v4.1.0 ratification arbitration (in `prior`).
+
+      Strongest available challenges to consider — pick the strongest:
+
+      1. **YAGNI on schema rigor.** The three motivating bugs (Phase 5
+         crash, Phase 2 persistence, Phase 6 trigger) could each be
+         fixed with smaller-scope solutions: synthesis size budget for
+         crash; engine path validation for persistence; structured
+         marker enforcement for trigger. Does the spec over-engineer
+         by proposing schema standardization when targeted fixes would
+         suffice?
+
+      2. **Recursion paradox.** The spec proposes XML for deliberation
+         outputs. Verifying the spec uses... deliberations. Which
+         produce markdown outputs. Which the spec says are wrong. Does
+         this create a logical loop where the spec can only be ratified
+         AFTER it ratifies (because pre-XML deliberations are
+         non-conformant per the spec)?
+
+      3. **Premature schema lock-in.** Schema versioning is hard.
+         SemVer for schemas works for adding fields but is awkward
+         for removing/renaming. Locking conversus-oss to v1.0.0 schema
+         before the engine has had time to mature creates a future
+         migration debt. Should the spec sunset markdown templates
+         later than 2026-12-01 to allow schema iteration?
+
+      4. **Tier 3 is wrong placement.** The schema discipline is a
+         general principle. Other future conversus-* products that
+         emit any structured output (e.g., a hypothetical
+         conversus-investigations repo doing forensics deliberations)
+         would benefit from inheriting this schema. By placing at Tier
+         3, the spec forces re-litigation when a sibling joins. Should
+         this be Tier 2 from the start, OR even Tier 1 (Build Fractal
+         universal)?
+
+      5. **The Principle VII exemption** the spec invokes for the
+         recursion-exempt position (OQ5): is "retroactive obligation"
+         a valid reading of Principle VII, or is it a creative
+         interpretation that conveniently exempts this spec from its
+         own bar?
+
+      Output: strongest single challenge per question (Q1, Q2, Q3)
+      plus any cross-question challenge worth flagging. Do not produce
+      aggregate verdicts — the arbiter aggregates.
+
+arbiter:
+  name: v4.2.0-originating-arbiter
+  provider: claude-code
+  preset: role/balanced-arbiter
+  prompt: |
+    You rule on the v4.2.0 originating deliberation per QUESTION.md.
+    Three questions; rule on each.
+
+    Integrate findings from all four agents (engineer, schema-design-
+    expert, adapter-consumer, devils-advocate) and issue:
+
+    **Q1 — Implementation feasibility:**
+    - APPROVE-AS-DRAFTED
+    - APPROVE-WITH-FIXES (list C-conditions)
+    - BLOCK (specify evidence threshold)
+
+    **Q2 — Schema design adequacy:**
+    - APPROVE-AS-DRAFTED
+    - APPROVE-WITH-FIXES (list C-conditions)
+    - REJECT-SCHEMA-DESIGN (propose alternative)
+
+    **Q3 — Tier placement + methodological recursion (combined verdict):**
+    - TIER-3-CONFIRMED + RECURSION-EXEMPTED
+    - TIER-3-CONFIRMED + RECURSION-MANDATED
+    - TIER-2-PROMOTED + RECURSION-EXEMPTED
+    - TIER-2-PROMOTED + RECURSION-MANDATED
+
+    For each ruling, cite specific text from Tier 1 + Tier 2
+    CONSTITUTION.md, Principle XXVIII text (`build-fractal/conversus/
+    CONSTITUTION.md` L490-644), and v4.2.0 spec § sections.
+
+    Critical constraint: this is a TECHNICAL spec. Unlike v4.1.0
+    (which was constitutional doctrine), v4.2.0 is implementation
+    discipline. Override-with-rationale precedent does NOT apply
+    (that's blind-verification scope per ratified v4.1.0). Rule on
+    technical merits + grounded constitutional reasoning, not
+    procedural escape hatches.
+
+    Conclude with three ruling lines, exactly:
+    - "Q1 RULING: <verdict> — <one-line rationale>"
+    - "Q2 RULING: <verdict> — <one-line rationale>"
+    - "Q3 RULING: <verdict> — <one-line rationale>"
+
+    Combined disposition:
+    - All APPROVE/CONFIRMED variants: proceed to self-consistency
+      verification with any C-conditions applied to produce spec v2.
+    - Any BLOCK / REJECT: spec returns to draft.
+    - TIER-2-PROMOTED: spec rewrites at Tier 2 and re-runs originating.
+    - RECURSION-MANDATED: pause; implement schema; resume verification
+      with XML outputs.
+
+  grounding: ../../../../CONSTITUTION.md
+  trigger: disputes_remain
+  timing: final
+  influence: binding
