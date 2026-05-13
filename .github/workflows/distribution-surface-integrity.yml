@@ -167,6 +167,15 @@ jobs:
           cp -r schema desktop-extension/server/schema
           cp -r templates desktop-extension/server/templates
 
+      - name: Install projector runtime deps into runner Python
+        # The vendor step above installs deps into `desktop-extension/server/lib/`
+        # (a bundle target dir, NOT the runner's site-packages). The Sync step
+        # below imports `conversus.registry.projector`, which now requires
+        # pydantic. Install it into the runner Python so the import resolves.
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "pydantic>=2.12.5"
+
       - name: Sync manifest version + tools from pyproject + registry
         run: |
           # If capabilities.py or conversus.registry.projector breaks, this
