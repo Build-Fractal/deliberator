@@ -117,13 +117,13 @@ Prior amendment SIRs preserved below for audit trail (per Fix #3 + Fix B2).
 
 # Conversus OSS Constitution (Component Tier)
 
-**Status:** RATIFIED — v4.0.0 (2026-05-07).
-**Version:** 4.0.0
+**Status:** RATIFIED — v4.2.0 (2026-05-13).
+**Version:** 4.2.0
 **Inherits from:**
 - `https://github.com/Build-Fractal/build-fractal-mono/blob/main/build-fractal/CONSTITUTION.md` (Tier 1 — Universal, v1.0.0)
 - `https://github.com/Build-Fractal/build-fractal-mono/blob/main/build-fractal/conversus/CONSTITUTION.md` (Tier 2 — Suite, v1.0.0)
 
-For Universal and Suite principles, see those documents. This document holds the **6 component-tier principles** specific to the conversus-oss repo, plus the canonical Governance section (which governs amendments at all tiers), plus retired-principle markers, plus the full audit trail of prior Sync Impact Reports.
+For Universal and Suite principles, see those documents. This document holds the **7 component-tier principles** specific to the conversus-oss repo, plus the canonical Governance section (which governs amendments at all tiers), plus retired-principle markers, plus the full audit trail of prior Sync Impact Reports.
 
 ---
 
@@ -150,7 +150,7 @@ future principle, regardless of gate criteria — see Governance
 
 ## Component Principles
 
-The 6 principles below are byte-for-byte identical to their text in `CONSTITUTION.md` v3.2.3. They remain at component tier because they describe constraints on the OSS engine specifically, not on the suite as a whole.
+The 7 principles below describe constraints on the OSS engine specifically, not on the suite as a whole. Principles XVII-XXI and XXVI are byte-for-byte identical to their text in `CONSTITUTION.md` v3.2.3. Principle XXIX was added 2026-05-13 via spec v4.2.0.
 
 ### XVII. Content Classification
 
@@ -332,6 +332,23 @@ message ("Expected 8 prompts, parametrize covers 7: …new prompt
 *Origin: PR #12 introduced the meta-test pattern for `@mcp.prompt()`
 definitions. The deliberation ruled this pattern should generalize
 to all parametrized capability sets.*
+
+### XXIX. Structured Deliberation Outputs
+
+Conversus-oss deliberation outputs (review, cross-review, revision, disputes, synthesis, arbitration) MUST be emitted as declared, schema-validated JSON envelopes per the canonical schemas in `engine/schema/v1/*.schema.json`. The Component-tier implementation of Tier 2 Principle XXVIII (Persistence Contract Discipline) for conversus-oss is specified by spec `v4.2.0-structured-deliberation-outputs` (RATIFIED 2026-05-13).
+
+- **Schema location MUST be discoverable** via `CONFORMANCE.md` (one canonical path) with cross-references from `README.md` AND `CLAUDE.md`. This implements XXVIII sub-clause 1.
+- **A non-blocking validator MUST emit conformance warnings** to an event stream and a sidecar `.validation-warnings.json` adjacent to each persisted output. The validator MUST NOT raise or abort — per Tier 2 Principle V, malformed output is better than no output. The persistence layer writes the output file UNCONDITIONALLY before any validator invocation. This implements XXVIII sub-clause 2 while preserving Principle V.
+- **A PR-required CI gate** (`validate-conformance` + `drift-detection-bidirectional` + `schema-version-bump-detection` + `fixture-and-renderer-tests` jobs) MUST block merge of non-conformant changes on `main`. Constitutional authority: Tier 1 Principle II (Stable Interfaces) + Tier 2 Principle XXVIII sub-clause 2.
+- **Four fixture types per output type** MUST be carried: conformant, missing-required, wrong-type, baseline. This implements XXVIII C6 with one additional type beyond the three-type minimum.
+- **Schema versioning** follows SemVer with the consumer-impact rule: a field rename or removal that breaks any declared consumer is MAJOR; a backward-compatible addition is MINOR; pure validator-error-format adjustment is PATCH. Initial schema version is `1.0.0-rc.1`; promotion to `1.0.0` requires 30 days of clean operation per the qualification criteria in spec § 4.8.
+- **A `CONSUMER-CONTRACT.md` at the repo root** MUST declare each consumed surface using the six-section template (Consumed Surface Declaration / Schema Version Pinning / Stability Guarantee / Consumer-Side Obligations / Producer-Side Enforcement / Change Coordination) per spec § 7.1. The conversus-oss CONSUMER-CONTRACT.md MUST declare deliberation-output schemas as a stable consumed surface for downstream consumers (orchestrator spec-kit adapter, conversus-enhanced).
+
+**Cliff date:** Markdown deliberation outputs are deprecated effective **2026-12-01** (Tier 2 Principle XXVIII universal deadline). All six mode templates MUST emit JSON envelopes by the cliff date; the orchestrator spec-kit adapter MUST migrate from grep-parsing to JSON parsing during the rollout window (T1-T4 per spec § 11).
+
+**Authority:** Spec `v4.2.0-structured-deliberation-outputs` v5 (commit `24538e7`) — see `CONSTITUTIONAL_CONVERSATIONS.md` 2026-05-13 entry for the SIR with full four-stage verification record.
+
+*Origin: spec v4.2.0 motivated by three concrete bugs from the v4.1.0 cycle (Phase 5 synthesis-prompt overflow crash; Phase 2 cross-review persistence failures; Phase 6 `disputes_remain` trigger grep-mismatch). All three are addressed by structured-output schema enforcement. Methodology meta-signal: the trigger-miss bug occurred in 4 of 5 v4.1.0+v4.2.0 deliberation stages — exactly the failure mode this principle ratifies the fix for.*
 
 ## Governance
 

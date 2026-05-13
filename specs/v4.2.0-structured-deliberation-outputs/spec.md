@@ -2,7 +2,7 @@
 
 **Feature ID:** `v4.2.0-structured-deliberation-outputs`
 **Created:** 2026-05-12
-**Status:** **v5 / post-blind-verification / pre-ratification** (2026-05-13)
+**Status:** **RATIFIED — v5 (2026-05-13)**
 **Depends On:** v4.1.0-persistence-contract-discipline (Tier 2 Principle XXVIII must be ratified; that ratification — commit `551f647` in `clariti-care/payer-index-mono`, `build-fractal/conversus/CONSTITUTION.md` L490-644 — is the doctrinal anchor this spec implements).
 **Governed by:** `https://github.com/clariti-care/payer-index-mono/blob/main/build-fractal/conversus/GOVERNANCE.md` § Pathway Taxonomy (**MINOR** pathway — additive component-tier discipline; no existing principle removed, renamed, or substantively re-scoped).
 **Pathway:** MINOR
@@ -1302,4 +1302,43 @@ Running this spec through the four-stage verification uses the methodology whose
 - [x] § 12 Open questions pointer to Appendix A § A.4 (F4 separation).
 - [x] Appendix A consolidates all archaeology (changelogs, applied-conditions ledger, open questions, methodology meta-signal, fix ledger, document status checklist).
 
-End of v5 spec. **PROCEED-TO-RATIFICATION.**
+End of v5 spec. **RATIFIED 2026-05-13** — see Component CONSTITUTION.md Principle XXIX and CONSTITUTIONAL_CONVERSATIONS.md 2026-05-13 entry.
+
+---
+
+## Appendix B: Statement of Inclusion Record (SIR)
+
+**Ratification date:** 2026-05-13
+**Tier:** 3 (Component — conversus-oss only)
+**Pathway:** MINOR (additive component-tier discipline)
+**Resulting principle:** Component Principle XXIX — Structured Deliberation Outputs
+
+### Verification record (four-stage protocol, all stages PASS-variant)
+
+| Stage | Date | Composition | Verdict | Conditions applied |
+|---|---|---|---|---|
+| Originating | 2026-05-12 | engineer, schema-design-expert, adapter-consumer, devils-advocate | APPROVE-WITH-FIXES (Q1+Q2+Q3) + TIER-3-CONFIRMED + RECURSION-EXEMPTED | C1-C10 → v2 |
+| Self-consistency | 2026-05-13 | strict-reader, purist, principle-xxviii-fit-auditor, recursion-precedent-auditor | Q1+Q2 PASS-WITH-CLARIFICATIONS; **Q3 FAIL-CONTRADICTION** (Principle V) | D1-D15 → v3 (D1 = load-bearing § 5.1 reversal) |
+| Self-consistency rerun | 2026-05-13 | strict-reader, purist, principle-xxviii-fit-auditor, recursion-precedent-auditor | Q1+Q2+Q3 PASS-WITH-CLARIFICATIONS | E1-E4 → v4 |
+| Blind verification | 2026-05-13 | naive-reader, implementation-engineer, risk-auditor, external-scholar | Q1 IMPLEMENTABLE-WITH-CLARIFICATIONS; Q2 MODERATE-RISK-MANAGEABLE; Q3 HOLDS-AS-DOCTRINE | F1-F4 → v5 |
+
+### Composition orthogonality
+
+Twelve distinct agents across four stages, with zero overlap between stages. Originating used engineering perspectives; self-consistency used doctrinal-purity perspectives; blind used external/fresh perspectives. The composition orthogonality requirement (spec 067) was satisfied at every stage.
+
+### Notable findings
+
+1. **Q3 FAIL-CONTRADICTION (self-consistency stage) was substantive, not procedural.** v2's § 5.1 blocking validation contradicted ratified Tier 2 Principle V ("Malformed output is better than no output"). The arbitration mandated D1 — full rewrite of § 5.1 to non-blocking warning-based validation with persistence-unconditional write semantics. This is the single highest-value catch in the v4.2.0 cycle.
+
+2. **New precedent established: temporal-constraint exemption for bootstrap-paradox cases.** § 9.1 documents a substrate-standup exemption (a spec ratifying a schema discipline can be temporarily exempt from that discipline until the substrate exists). Anti-precedent containment: D5 categorical prohibitions ("adjacent," "similar," "schema-touching" framings barred) + E2 technical precondition (no JSON Schema exists AND ratification stands the schema up) + E4 precedent-citation requirement for future invocations. This is the SECOND precedent established in the v4.X.0 cycle (after v4.1.0's override-with-rationale, blind-verification-only scope).
+
+3. **Phase 6 disputes_remain trigger grep-mismatch engine bug** was struck in 4 of 5 v4.1.0+v4.2.0 deliberation stages. Manual arbitration recovery was used in each case. Blind verification was the first clean Phase 6 firing — likely because the blind synthesis (claude-sonnet-4 not claude-opus-4-6) used canonical disputes terminology that matched the engine's grep trigger. The structured-output discipline this very spec ratifies (Principle XXIX) is the architectural fix for the trigger-miss bug.
+
+### References
+
+- Spec: `specs/v4.2.0-structured-deliberation-outputs/spec.md` (v5, commit `24538e7`)
+- Originating: `deliberations/v4.2.0-structured-deliberation-outputs-originating-2026-05-12/`
+- Self-consistency: `deliberations/v4.2.0-structured-deliberation-outputs-self-consistency-2026-05-13/`
+- Self-consistency rerun: `deliberations/v4.2.0-structured-deliberation-outputs-self-consistency-rerun-2026-05-13/`
+- Blind: `deliberations/v4.2.0-structured-deliberation-outputs-blind-2026-05-13/`
+- Tier 2 anchor: `../CONSTITUTION.md` L490-644 (Principle XXVIII)

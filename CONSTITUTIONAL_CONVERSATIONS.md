@@ -824,3 +824,45 @@ Spec 070's six closures (PR #99 → premature; spec 073 PR #117/#123 → §9 AC 
 The constitutional governance arc that began with v2.4.0's Constitutional Inclusion Criteria gate and ran through grandfathered-principle migration, supplemental verification, and post-verification follow-ups is now complete. v3.2.3 is the resting state of that arc; no further constitutional follow-ups are queued.
 
 **Pathway**: PATCH + dual-perspective deliberation single-PR. This is a fifth pathway type in the governance taxonomy — fits between "PATCH + verbatim contract" (v3.1.1, v3.1.3, v3.2.1) and "MAJOR + full dual-deliberation" (v3.0.0). The dual-perspective requirement is lighter than spec 067 §6.1+§6.2 dual-cycle (one deliberation, two agents covering distinct review classes) but heavier than verbatim contract (which requires no deliberation at all). The Governance § Constitutional Amendment Pathways subsection currently does not codify this fifth pathway; if future amendments use the same shape, the taxonomy may need a fifth row. For now, the v3.2.3 entry serves as the canonical example until a second use occurs.
+
+---
+
+## 2026-05-13 — v4.2.0-structured-deliberation-outputs-ratified
+
+**Subject**: Tier 3 (Component) amendment ratifying conversus-oss-specific implementation of Tier 2 Principle XXVIII (Persistence Contract Discipline). Adds Component Principle XXIX (Structured Deliberation Outputs).
+
+**Pathway**: MINOR + full four-stage verification (originating → self-consistency → self-consistency rerun → blind), all PASS-variant.
+
+**Outcome**: **Amendment landed** — Component `CONSTITUTION.md` v4.0.0 → v4.2.0, new Principle XXIX added.
+
+### Verification stages
+
+| Stage | Date | Composition | Verdict | Conditions applied |
+|---|---|---|---|---|
+| Originating | 2026-05-12 | engineer, schema-design-expert, adapter-consumer, devils-advocate | APPROVE-WITH-FIXES (Q1+Q2+Q3) + TIER-3-CONFIRMED + RECURSION-EXEMPTED | C1-C10 → v2 |
+| Self-consistency | 2026-05-13 | strict-reader, purist, principle-xxviii-fit-auditor, recursion-precedent-auditor | Q1+Q2 PASS-WITH-CLARIFICATIONS; **Q3 FAIL-CONTRADICTION** (Principle V) | D1-D15 → v3 (D1 = load-bearing § 5.1 reversal) |
+| Self-consistency rerun | 2026-05-13 | strict-reader, purist, principle-xxviii-fit-auditor, recursion-precedent-auditor | Q1+Q2+Q3 PASS-WITH-CLARIFICATIONS | E1-E4 → v4 |
+| Blind verification | 2026-05-13 | naive-reader, implementation-engineer, risk-auditor, external-scholar | Q1 IMPLEMENTABLE-WITH-CLARIFICATIONS; Q2 MODERATE-RISK-MANAGEABLE; Q3 HOLDS-AS-DOCTRINE | F1-F4 → v5 |
+
+Twelve distinct agents across four stages with zero composition overlap. Composition orthogonality (spec 067) satisfied at every stage.
+
+### Notable findings
+
+1. **Q3 FAIL-CONTRADICTION at self-consistency was substantive, not procedural.** v2's § 5.1 blocking validation contradicted Tier 2 Principle V ("Malformed output is better than no output"). Arbitration mandated D1 — full rewrite of § 5.1 to non-blocking warning-based validation with persistence-unconditional write semantics. Highest-value catch in the v4.2.0 cycle.
+
+2. **New precedent established: temporal-constraint exemption for bootstrap-paradox cases.** § 9.1 documents a substrate-standup exemption (a spec ratifying a schema discipline can be temporarily exempt from that discipline until the substrate exists). Anti-precedent containment: D5 categorical prohibitions ("adjacent," "similar," "schema-touching" framings barred) + E2 technical precondition (no JSON Schema exists AND ratification stands the schema up) + E4 precedent-citation requirement for future invocations. SECOND precedent established in the v4.X.0 cycle (after v4.1.0's override-with-rationale, blind-verification-only scope).
+
+3. **Phase 6 disputes_remain trigger grep-mismatch engine bug** struck in 4 of 5 v4.1.0+v4.2.0 deliberation stages. Manual arbitration recovery used in each case. Blind verification was the first clean Phase 6 firing — the structured-output discipline this very spec ratifies (Principle XXIX) is the architectural fix for the trigger-miss bug.
+
+### Files changed in ratification commit
+
+- `specs/v4.2.0-structured-deliberation-outputs/spec.md` — status flipped to RATIFIED; Appendix B SIR added
+- `CONSTITUTION.md` — version 4.0.0 → 4.2.0; new Component Principle XXIX
+- `CONSTITUTIONAL_CONVERSATIONS.md` — this entry
+- `CONFORMANCE.md` — XXVIII Provisional remediation status updated to "in-progress per spec v4.2.0 (ratified)"; cliff date 2026-12-01 retained
+
+### Cross-tier coordination
+
+This Tier 3 amendment implements Tier 2 Principle XXVIII. The Tier 2 governance log at `build-fractal/conversus/CONSTITUTIONAL_CONVERSATIONS.md` will receive a pointer entry referencing this Tier 3 ratification (handled in the parent-monorepo submodule-bump commit).
+
+**References**: Spec v5 (commit `24538e7`); blind arbitration `deliberations/v4.2.0-structured-deliberation-outputs-blind-2026-05-13/arbitration/resolution.md`.
