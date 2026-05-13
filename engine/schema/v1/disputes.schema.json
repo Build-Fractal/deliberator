@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://build-fractal.org/conversus/schema/v1/disputes.schema.json",
+  "title": "Conversus Disputes Body — Phase 4 remaining disagreements per agent",
+  "description": "Per v4.2.0 spec § 4.5. Wrapped by envelope.schema.json with output_type='disputes'.",
+  "type": "object",
+  "required": ["disputes"],
+  "properties": {
+    "disputes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "severity",
+          "topic",
+          "our_position",
+          "opposing_positions",
+          "proposed_resolution",
+          "fallback_if_unresolved"
+        ],
+        "properties": {
+          "id": { "type": "string", "pattern": "^D[0-9]+$" },
+          "severity": { "enum": ["blocking", "substantive"] },
+          "topic": { "type": "string" },
+          "our_position": { "type": "string" },
+          "opposing_positions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["agent", "stance"],
+              "properties": {
+                "agent": { "type": "string" },
+                "stance": { "type": "string" }
+              }
+            }
+          },
+          "proposed_resolution": { "type": "string" },
+          "fallback_if_unresolved": { "type": "string" }
+        }
+      }
+    }
+  }
+}

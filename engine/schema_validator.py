@@ -12,10 +12,11 @@ in-Python names per § 5.1 (`message`, `expected`, `actual`); JSON serialization
 uses the wire-contract names per § 4.9 (`human_message`, `expected_type`,
 `actual_value`). Bridge via Pydantic v2 field aliases.
 
-F2a scope (this file at first landing): Pydantic models + SchemaValidator class
-skeleton (envelope-only validation). Body-schema validation (review,
-cross-review, revision, disputes, synthesis, arbitration) lands in F2b when
-those schemas are added under engine/schema/v1/.
+F2a scope (initial substrate): Pydantic models + SchemaValidator skeleton.
+F2b scope (this file's current shape): full body-schema validation across all
+six output types (review, cross-review, revision, disputes, synthesis,
+arbitration). Per-type body schemas live under engine/schema/v1/ and are
+loaded + compiled at validator construction time.
 """
 
 from __future__ import annotations
@@ -37,6 +38,17 @@ _ERROR_CODES = Literal[
     "ENVELOPE_BODY_TYPE_MISMATCH",
     "ARRAY_MIN_ITEMS_VIOLATION",
 ]
+
+# Output types declared in envelope.schema.json. Each has a body schema at
+# engine/schema/v1/{output_type}.schema.json.
+_OUTPUT_TYPES: tuple[str, ...] = (
+    "review",
+    "cross-review",
+    "revision",
+    "disputes",
+    "synthesis",
+    "arbitration",
+)
 
 
 class ValidationWarning(BaseModel):
@@ -166,12 +178,34 @@ class SchemaValidator:
                 f"SchemaValidator: envelope.schema.json is malformed: {exc}"
             ) from exc
 
-        # F2a: envelope-only validator. We strip the `allOf` body-ref branches
-        # because the per-type body schemas don't exist yet (F2b adds them).
-        # Once F2b lands, we drop this stripping and validate full envelope+body.
+        # Envelope validator validates the top-level envelope fields. The
+        # `allOf` branches (body $ref dispatch) are stripped because we
+        # dispatch body validation explicitly in validate() based on the
+        # envelope's output_type — this gives us per-output-type error
+        # paths instead of jsonschema's anyOf/if/then opacity.
         envelope_no_body_refs = dict(envelope_schema)
         envelope_no_body_refs.pop("allOf", None)
         self._envelope_validator = Draft202012Validator(envelope_no_body_refs)
+
+        # Body validators: one per output_type. Each is a self-contained
+        # Draft202012Validator compiled against the body schema at
+        # engine/schema/v1/{output_type}.schema.json.
+        self._body_validators: dict[str, Draft202012Validator] = {}
+        for output_type in _OUTPUT_TYPES:
+            body_path = schema_dir / f"{output_type}.schema.json"
+            if not body_path.is_file():
+                raise RuntimeError(
+                    f"SchemaValidator: body schema missing for output_type={output_type!r} "
+                    f"at {body_path}"
+                )
+            try:
+                body_schema = json.loads(body_path.read_text(encoding="utf-8"))
+                Draft202012Validator.check_schema(body_schema)
+            except (json.JSONDecodeError, SchemaError) as exc:
+                raise RuntimeError(
+                    f"SchemaValidator: body schema {body_path.name} is malformed: {exc}"
+                ) from exc
+            self._body_validators[output_type] = Draft202012Validator(body_schema)
 
     def validate(self, content: bytes, schema_version: str) -> ValidationResult:
         """Validate `content` (raw bytes of a single deliberation output JSON file).
@@ -252,6 +286,22 @@ class SchemaValidator:
         for jsonschema_error in self._envelope_validator.iter_errors(envelope):
             warnings.append(_convert_jsonschema_error(jsonschema_error))
 
+        # Run body validation if the envelope's output_type is known and the
+        # body field is present + of the right shape. Per spec § 4.1:
+        # body MUST be an object; if it isn't, the envelope validator above
+        # already emits TYPE_MISMATCH for /body.
+        if (
+            isinstance(envelope, dict)
+            and output_type in self._body_validators
+            and isinstance(envelope.get("body"), dict)
+        ):
+            body_validator = self._body_validators[output_type]
+            for jsonschema_error in body_validator.iter_errors(envelope["body"]):
+                # Rebase the error's path under /body/ so the field_path in
+                # the resulting ValidationWarning points to the offending
+                # location in the full envelope, not the body-relative path.
+                warnings.append(_convert_jsonschema_error(jsonschema_error, path_prefix="/body"))
+
         duration_ms = (time.perf_counter_ns() - start_ns) / 1_000_000.0
         is_conformant = not any(w.severity == "error" for w in warnings)
 
@@ -287,12 +337,19 @@ class SchemaValidator:
         sidecar.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
 
 
-def _convert_jsonschema_error(err: Any) -> ValidationWarning:
+def _convert_jsonschema_error(err: Any, path_prefix: str = "") -> ValidationWarning:
     """Map a jsonschema.ValidationError into a ValidationWarning.
 
     Maps jsonschema's `validator` attribute (e.g., 'required', 'type', 'enum',
     'pattern', 'additionalProperties', 'minItems') to the v4.2.0 error_code
     enum per spec § 4.9.
+
+    Args:
+        err: A jsonschema.exceptions.ValidationError instance.
+        path_prefix: Prefix to prepend to the error's field_path. Used when the
+            error came from validating a sub-document (e.g., the envelope's
+            body) and we want the resulting ValidationWarning's field_path
+            to be relative to the full document (e.g., '/body/disputes/0/severity').
     """
     validator_to_code: dict[str, str] = {
         "required": "REQUIRED_FIELD_MISSING",
@@ -306,7 +363,17 @@ def _convert_jsonschema_error(err: Any) -> ValidationWarning:
 
     # Build JSON pointer from absolute_path (jsonschema uses deque of path parts).
     path_parts = list(err.absolute_path)
-    field_path = "/" + "/".join(str(p) for p in path_parts) if path_parts else "/"
+    body_relative = "/" + "/".join(str(p) for p in path_parts) if path_parts else "/"
+    if path_prefix:
+        # When path_prefix='/body' and body_relative='/disputes/0/severity',
+        # we want '/body/disputes/0/severity'. When body_relative='/' (root of
+        # the validated sub-document), we want just the prefix.
+        if body_relative == "/":
+            field_path = path_prefix
+        else:
+            field_path = path_prefix + body_relative
+    else:
+        field_path = body_relative
 
     return ValidationWarning(
         field_path=field_path,

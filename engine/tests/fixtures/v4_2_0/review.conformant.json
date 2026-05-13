@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0.0-rc.1",
+  "output_type": "review",
+  "agent_name": "pragmatist",
+  "deliberation_id": "fixture-conformant-review",
+  "deliberation_stage": "originating",
+  "engine_version": "0.7.3",
+  "source_commit": "abcd1234",
+  "timestamp": "2026-05-13T12:00:00Z",
+  "target_files": ["specs/example/spec.md"],
+  "body": {
+    "summary_assessment": "The proposal scopes well to a 4-week window with clear acceptance criteria.",
+    "strengths": [
+      { "id": "S1", "text": "Clear interface boundary at the persistence layer." },
+      { "id": "S2", "text": "Three worked-example fixtures per output type satisfy XXVIII C6." }
+    ],
+    "concerns": [
+      { "id": "C1", "severity": "substantive", "text": "Validator budget unmeasured against real synthesis outputs." },
+      { "id": "C2", "severity": "nit", "text": "Section numbering inconsistency in § 5.1." }
+    ],
+    "questions": [
+      { "id": "Q1", "text": "Does the markdown cliff overlap with the rc cycle?" }
+    ],
+    "recommendation": "APPROVE-WITH-FIXES"
+  }
+}

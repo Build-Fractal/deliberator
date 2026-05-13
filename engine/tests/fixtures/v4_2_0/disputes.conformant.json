@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0.0-rc.1",
+  "output_type": "disputes",
+  "agent_name": "pragmatist",
+  "deliberation_id": "fixture-conformant-disputes",
+  "deliberation_stage": "originating",
+  "engine_version": "0.7.3",
+  "source_commit": "abcd1234",
+  "timestamp": "2026-05-13T12:03:00Z",
+  "body": {
+    "disputes": [
+      {
+        "id": "D1",
+        "severity": "blocking",
+        "topic": "Validator budget measurement timing",
+        "our_position": "Budget measurement can defer to F2c.",
+        "opposing_positions": [
+          {
+            "agent": "devils-advocate",
+            "stance": "Budget MUST be measured before F2c locks in the validator architecture."
+          }
+        ],
+        "proposed_resolution": "Move budget measurement to F2c with a hard gate before merge.",
+        "fallback_if_unresolved": "Land F2c with budget measurement as a separate PR; flag dependency in commit message."
+      }
+    ]
+  }
+}

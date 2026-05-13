@@ -1,0 +1,37 @@
+{
+  "schema_version": "1.0.0-rc.1",
+  "output_type": "arbitration",
+  "agent_name": "balanced-arbiter",
+  "deliberation_id": "fixture-conformant-arbitration",
+  "deliberation_stage": "originating",
+  "engine_version": "0.7.3",
+  "source_commit": "abcd1234",
+  "timestamp": "2026-05-13T12:05:00Z",
+  "body": {
+    "process_note": "Single Phase 6 firing; trigger fired structurally on body.disputes[*].severity=='blocking'.",
+    "decision_framework": "spec 067 § 4 four-stage verification; Principle V mandates non-blocking writes; spec § 5.1.1 mandates pre-commit budget measurement.",
+    "per_question_rulings": [
+      {
+        "question": "Q1",
+        "verdict": "APPROVE-WITH-FIXES",
+        "rationale": "Devils-advocate position on D1 is correct: budget measurement must gate F2c.",
+        "conditions": [
+          {
+            "id": "C1",
+            "priority": "P1",
+            "description": "Move performance budget validation framework before F2c body commits.",
+            "applies_to_section": "§ 5.1.1"
+          }
+        ]
+      }
+    ],
+    "combined_disposition": "PROCEED-TO-NEXT-STAGE",
+    "ruling_lines": [
+      {
+        "question": "Q1",
+        "verdict": "APPROVE-WITH-FIXES",
+        "rationale": "Move performance budget validation framework gate ahead of F2c lock-in."
+      }
+    ]
+  }
+}

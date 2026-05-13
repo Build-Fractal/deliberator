@@ -120,7 +120,12 @@ def test_validator_constructs_against_real_envelope_schema():
 
 
 def _make_minimal_envelope(**overrides) -> dict:
-    """Build a minimal valid envelope; overrides patch specific fields."""
+    """Build a minimal valid envelope with a minimally-valid review body.
+
+    Per F2b: body validation is wired; an empty body would fail the review
+    body schema's required fields. Tests targeting envelope-level concerns
+    use this minimal valid body to isolate envelope-level errors.
+    """
     base = {
         "schema_version": "1.0.0-rc.1",
         "output_type": "review",
@@ -130,7 +135,13 @@ def _make_minimal_envelope(**overrides) -> dict:
         "engine_version": "0.7.3",
         "source_commit": "abcd1234",
         "timestamp": "2026-05-13T12:00:00Z",
-        "body": {},  # empty body OK in F2a (body schemas added in F2b)
+        "body": {
+            "summary_assessment": "minimal valid body for envelope tests",
+            "strengths": [],
+            "concerns": [],
+            "questions": [],
+            "recommendation": "ABSTAIN",
+        },
     }
     base.update(overrides)
     return base
