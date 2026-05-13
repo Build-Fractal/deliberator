@@ -1,0 +1,340 @@
+mode: cooperative
+output: ./
+iterations: 2
+rounds: 1
+
+# v4.2.0 BLIND VERIFICATION — Stage 3 of 3 (final verification before ratification)
+#
+# Per spec 067 verification methodology and the established
+# precedent for constitutional amendments (v4.1.0), blind verification
+# is the final stage. It uses:
+#
+# 1. Fresh agents (none from originating or self-consistency stages)
+# 2. NO prior context (empty `prior:` — agents see only the spec)
+# 3. New question axes (implementability, operational risk, external
+#    doctrinal coherence) distinct from prior stages' questions
+#
+# This stage catches what the chain-of-deliberation reasoning might
+# have missed by being too embedded in its own frame. If blind
+# verification PASSes, the amendment is ratified. If it fails, the
+# spec returns to v4 review.
+#
+# Composition orthogonality (NO overlap with v4.2.0 prior stages):
+# - Originating used: engineer, schema-design-expert, adapter-consumer,
+#                     devils-advocate
+# - Self-consistency (both runs) used: strict-reader, purist,
+#   principle-xxviii-fit-auditor, recursion-precedent-auditor
+# - Blind uses NEW: naive-reader, implementation-engineer, risk-auditor,
+#                   external-scholar
+#
+# Arbiter: same balanced-arbiter preset, but with blind-stage prompt.
+
+target:
+  - ../../specs/v4.2.0-structured-deliberation-outputs/spec.md
+  - ../../../../CONSTITUTION.md
+  - ../../../CONSTITUTION.md
+  - QUESTION.md
+
+# CRITICAL: prior is intentionally absent. Blindness means agents do
+# NOT have access to originating or self-consistency arbitrations.
+# They form their own judgment based on the spec alone.
+# Do NOT add anything to a `prior:` field here.
+
+agents:
+  - name: naive-reader
+    provider: claude-code
+    prompt: |
+      You are a naive reader. You encounter spec v4 fresh, with NO
+      prior knowledge of the deliberation that produced it.
+
+      Read QUESTION.md, spec v4 (`../../specs/v4.2.0-structured-
+      deliberation-outputs/spec.md`), Tier 1 CONSTITUTION.md
+      (`../../../../CONSTITUTION.md`), and Tier 2 CONSTITUTION.md
+      (`../../../CONSTITUTION.md`).
+
+      You may read the spec's changelog sections — they're part of the
+      spec text. But you do NOT have access to any prior arbitrations,
+      syntheses, or deliberation outputs. Treat the spec as a stand-
+      alone document you've been asked to evaluate fresh.
+
+      Focus on Q1 (implementability without external context). Ask
+      yourself: if I'd never seen this before, could I implement what
+      it asks for?
+
+      Be honest about confusion. If the spec uses terms that aren't
+      defined within itself, flag them. If sections reference
+      mechanisms not specified in the spec, flag them. If a requirement
+      could be interpreted multiple ways, flag the ambiguity.
+
+      Do NOT assume good faith on missing details. A Tier 3 component
+      discipline that requires interpretive charity from readers is a
+      discipline that won't be applied uniformly.
+
+      Output: per-section implementability finding; Q1 verdict
+      (IMPLEMENTABLE / IMPLEMENTABLE-WITH-CLARIFICATIONS / NOT-
+      IMPLEMENTABLE-AS-WRITTEN). Do not produce an aggregate verdict;
+      only Q1.
+
+  - name: implementation-engineer
+    provider: claude-code
+    prompt: |
+      You are an implementation engineer assigned to bring conversus-oss
+      into compliance with spec v4. You have to write the JSON Schema
+      files, the validator, the CI gate, the test fixtures, the
+      CONSUMER-CONTRACT.md file, and migrate the mode templates.
+
+      Read QUESTION.md and spec v4. Read both CONSTITUTION.md files
+      for grounding.
+
+      Address Q1 (implementability) from an implementation perspective:
+
+      1. **Can I tell what code to write?** For each section (§ 4
+         schema, § 5.1 validator, § 5.3 fixtures, § 5.4 CI gate, § 6.1
+         schema location, § 7.1 CONSUMER-CONTRACT.md), decide: is the
+         requirement specific enough that I could open my editor and
+         produce a working implementation, or do I have to make
+         multiple design decisions that the spec doesn't constrain?
+
+      2. **Can I tell when I'm done?** For each section, decide: is
+         "compliance" mechanically determinable, or does it require
+         judgment? Specifically:
+         - Is the <100ms validation budget testable?
+         - Is the warning-emission format (event stream + sidecar
+           `.validation-warnings.json`) fully specified?
+         - Is the four-fixture-type set complete and unambiguous?
+         - Is the PR-time CI gate scope (paths, branches, triggers)
+           unambiguous?
+
+      3. **Will my implementation match the spec's intent?** If two
+         engineers (one at conversus-oss, one writing a downstream
+         consumer) both implement spec v4 independently, will their
+         implementations be interoperable per the CONSUMER-CONTRACT.md
+         requirement?
+
+      4. **Mode template migration.** Spec v4 implicitly requires
+         migrating six mode templates (review / cross-review / revision
+         / disputes / synthesis / arbitration) to emit JSON envelopes.
+         Is the migration path specified, or only the end state?
+
+      5. **Bootstrap exemption verification.** Could you, as an
+         implementation engineer encountering a *future* spec, mechanically
+         determine whether § 9.1's temporal-constraint exemption (with
+         E2's technical condition) applies? If you can't, future
+         amendments will struggle to verify their own exemption claims.
+
+      Default posture: assume the engineer is competent but doesn't
+      have a senior architect to consult. The spec must answer all
+      load-bearing questions.
+
+      Output: per-axis finding; Q1 verdict (IMPLEMENTABLE / IMPLEMENTABLE-
+      WITH-CLARIFICATIONS / NOT-IMPLEMENTABLE-AS-WRITTEN). Don't
+      aggregate.
+
+  - name: risk-auditor
+    provider: claude-code
+    prompt: |
+      You are an operational risk auditor. Your job is Q2 — what is
+      the worst plausible operational consequence of spec v4
+      ratifying as drafted?
+
+      Read QUESTION.md, spec v4, both CONSTITUTION.md files. You do
+      NOT have access to prior arbitrations — form your own risk
+      judgment.
+
+      Examine the worst-case scenarios:
+
+      1. **Markdown deprecation cliff (2026-12-01).** If conversus-oss
+         misses the cliff, what happens to consumers (orchestrator
+         spec-kit adapter, conversus-enhanced, future MCP-bundle
+         consumers)? Does the spec define graceful degradation? Is
+         there a cascade where one slip blocks all consumer-side
+         remediation?
+
+      2. **Validator budget vs. real-world output sizes.** § 5 mandates
+         <100ms validation budget. Some synthesis outputs in actual
+         deliberations exceed 100K chars. Audit: is the budget
+         realistic? What happens when exceeded — does warning emit, or
+         does validator skip silently?
+
+      3. **Schema iteration during rc window.** C10 starts at `1.0.0-
+         rc.1`. SemVer policy (per XXVIII sub-clause 3) governs
+         field changes. Is field renaming feasible during rc, or does
+         SemVer lock-in begin immediately?
+
+      4. **Fixture engineering load.** Four fixture types × six modes
+         = 24 fixtures minimum. Per D14 + XXVIII C6, each fixture must
+         be machine-validated. What's the realistic engineering cost?
+         Is the team's capacity (deducible from CHANGELOG.md velocity)
+         sufficient by 2026-12-01?
+
+      5. **Orchestrator adapter migration cost.** Orchestrator currently
+         grep-parses markdown. v4 implicitly forces JSON parsing
+         migration. Audit: parallel-format support feasibility, breakage
+         window, version-pinning mechanism. Is this a hard cut or a
+         soft transition?
+
+      6. **Forward-precedent risk from temporal-constraint exemption.**
+         § 9.1 establishes a new precedent (bootstrap-paradox temporal
+         exemption). E2 + E4 attempt to contain it. Audit: stress-test
+         the containment with hypothetical future amendments. Can a
+         creative future spec re-frame as "schema-substrate-standup-
+         adjacent" to invoke the same exemption?
+
+      7. **Engine bug exposure during transition.** During markdown→
+         JSON transition, the Phase 6 `disputes_remain` trigger grep-
+         mismatch engine bug stays unfixed (it's been hit 4× in
+         v4.1.0+v4.2.0 deliberations). Does v4 acknowledge this self-
+         referential risk, or assume implementation begins on a clean
+         slate?
+
+      Default posture: pessimistic. Assume the worst plausible
+      interpretation of each consequence, then assess whether the
+      spec's value justifies the worst case.
+
+      Output: per-axis worst-case finding; Q2 verdict (LOW-RISK /
+      MODERATE-RISK-MANAGEABLE / HIGH-RISK-RECONSIDER).
+
+  - name: external-scholar
+    provider: claude-code
+    prompt: |
+      You are an external constitutional/software-governance scholar
+      familiar with SemVer, Linux stable ABI rules, Rust's RFC
+      stability process, OpenAPI/JSON Schema governance, and IETF
+      process. You have NO Build Fractal context. You are evaluating
+      spec v4 as you would evaluate any proposed component-tier
+      discipline.
+
+      Read QUESTION.md and spec v4. Read Tier 1 + Tier 2 CONSTITUTION.md
+      for context on the doctrinal frame.
+
+      Focus on Q3 (external doctrinal coherence). Address:
+
+      1. **JSON Schema choice doctrinal coherence.** Spec v2 flipped
+         from XSD to JSON Schema (C1). Is the choice principled
+         (developer ergonomics, ecosystem maturity, native JSON-
+         producing tooling) or pragmatic concession? Compare to
+         OpenAPI's same choice, AJV's role, and GitHub Actions' YAML
+         choice. Does v4 read as the same kind of artifact?
+
+      2. **Non-blocking validator design coherence.** Tier 2 Principle V
+         mandates "Malformed output is better than no output." v3
+         reversed v2's blocking validation per V. Does the resulting
+         three-part design (warning emission + sidecar file + PR-time
+         CI gate) read as a coherent enforcement model, or as patches
+         applied to satisfy Principle V mechanically without doctrinal
+         integration?
+
+      3. **Bootstrap-paradox temporal-constraint precedent.** § 9.1
+         establishes a new precedent: a spec can be temporarily exempt
+         from a principle whose substrate it is ratifying. Compare to:
+         - Russell's paradox / Zermelo-Fraenkel stratification
+         - Constitutional law's "necessity doctrine"
+         - Programming language bootstrapping (e.g., a self-hosted
+           compiler's first version compiled by another compiler)
+
+         Does the precedent hold up under external scrutiny, or does it
+         read as a procedural escape hatch dressed in temporal-logic
+         clothing? Critically: would you, as an external scholar,
+         recommend this precedent to other governance bodies?
+
+      4. **Anti-precedent containment language.** D5 (originating-rerun)
+         prohibits "adjacent," "similar," "schema-touching" framings.
+         E2 (self-consistency rerun) adds a technical condition. Read
+         the layered containment: principled (uniform application via
+         technical criteria) or ad-hoc fence-building (whack-a-mole
+         additions each time a concern surfaces)?
+
+      5. **§ 9.2 cross-tier weakening assessment matrix.** v4's E3
+         replaces conclusory prose with a verification matrix. Does
+         the matrix read as a doctrinal verification mechanism (one
+         future amendments would inherit), or as a checkbox exercise
+         specific to this spec?
+
+      6. **Sections that read as argument record.** § 9 (recursion-
+         exempted documentation), § 11 (deprecation cliff rollout),
+         and the v1→v4 changelog read like internal record-keeping.
+         Should these be in the spec, or should they be in a separate
+         "deliberation record" document? If they belong in the spec,
+         are they doctrinally integral or just load-bearing for the
+         deliberation's audit trail?
+
+      7. **Comparison to established discipline doctrines.** Compare
+         spec v4 to: OpenAPI 3.x spec governance, JSON Schema's
+         draft-vs-stable cycle, Protocol Buffers' field-numbering
+         discipline. Does v4 look like the same kind of artifact?
+         More disciplined, less disciplined, or equivalent?
+
+      Default posture: an external scholar's posture — sympathetic
+      but not deferential. If the spec is good, say so. If it reads
+      as compromise record dressed as doctrine, say that.
+
+      Output: per-axis finding; Q3 verdict (HOLDS-AS-DOCTRINE /
+      PARTIALLY-COHERENT / READS-AS-COMPROMISE-RECORD).
+
+arbiter:
+  name: v4.2.0-blind-arbiter
+  provider: claude-code
+  preset: role/balanced-arbiter
+  prompt: |
+    You rule on the v4.2.0 blind verification per QUESTION.md. This
+    is the final verification stage before ratification.
+
+    Integrate findings from all four agents (naive-reader,
+    implementation-engineer, risk-auditor, external-scholar) and
+    issue:
+
+    **Q1 — Implementability without external context:**
+    - IMPLEMENTABLE — engineer could implement from spec alone.
+    - IMPLEMENTABLE-WITH-CLARIFICATIONS — specify F-conditions for
+      spec v5 (small wording fixes).
+    - NOT-IMPLEMENTABLE-AS-WRITTEN — substantive gaps; specify what's
+      missing.
+
+    **Q2 — Worst-case operational impact:**
+    - LOW-RISK — operational impact within tolerance.
+    - MODERATE-RISK-MANAGEABLE — risks identified but C/D/E-conditions
+      adequately mitigate.
+    - HIGH-RISK-RECONSIDER — risks exceed value; recommend further
+      mitigation or scope reduction.
+
+    **Q3 — External doctrinal coherence:**
+    - HOLDS-AS-DOCTRINE — spec stands as coherent component-tier
+      discipline.
+    - PARTIALLY-COHERENT — specify F-conditions for tightening
+      doctrinal framing.
+    - READS-AS-COMPROMISE-RECORD — spec reads as argument record;
+      recommend doctrinal rewrite.
+
+    For each ruling, cite specific text from spec v4 (§ section
+    number) and from Tier 1 / Tier 2 CONSTITUTION.md where relevant.
+
+    Critical constraint: this is BLIND verification. Do NOT defer to
+    prior arbitrations' verdicts (you don't have access to them
+    anyway). Form independent judgment based on the spec text and
+    constitutional grounding alone. If the agents' findings converge
+    on issues that would have been visible in prior stages, surface
+    them — that means prior stages missed them.
+
+    A note on the temporal-constraint precedent: this spec ratifies
+    a NEW PRECEDENT (the second in the v4.X.0 cycle, after v4.1.0's
+    override-with-rationale). Apply external scrutiny to the
+    precedent's containment. If the containment is ad-hoc rather
+    than principled, surface that as a Q3 concern even if Q1+Q2 pass.
+
+    Conclude with three ruling lines, exactly:
+    - "Q1 RULING: <verdict> — <one-line rationale>"
+    - "Q2 RULING: <verdict> — <one-line rationale>"
+    - "Q3 RULING: <verdict> — <one-line rationale>"
+
+    Combined disposition:
+    - Q1+Q2+Q3 all PASS-variant: **PROCEED TO RATIFICATION.** Apply
+      any F-conditions to produce spec v5; spec v5 (or v4 if no F-
+      conditions) is ratified.
+    - Any FAIL (NOT-IMPLEMENTABLE / HIGH-RISK-RECONSIDER / READS-AS-
+      COMPROMISE-RECORD): spec returns to v4 review; ratification is
+      held until the FAIL is addressed.
+
+  grounding: ../../../../CONSTITUTION.md
+  trigger: disputes_remain
+  timing: final
+  influence: binding
