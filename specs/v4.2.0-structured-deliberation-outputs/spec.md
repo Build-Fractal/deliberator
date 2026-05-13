@@ -2,7 +2,7 @@
 
 **Feature ID:** `v4.2.0-structured-deliberation-outputs`
 **Created:** 2026-05-12
-**Status:** **v4 / post-self-consistency-rerun / pre-blind-verification** (2026-05-13)
+**Status:** **v5 / post-blind-verification / pre-ratification** (2026-05-13)
 **Depends On:** v4.1.0-persistence-contract-discipline (Tier 2 Principle XXVIII must be ratified; that ratification — commit `551f647` in `clariti-care/payer-index-mono`, `build-fractal/conversus/CONSTITUTION.md` L490-644 — is the doctrinal anchor this spec implements).
 **Governed by:** `https://github.com/clariti-care/payer-index-mono/blob/main/build-fractal/conversus/GOVERNANCE.md` § Pathway Taxonomy (**MINOR** pathway — additive component-tier discipline; no existing principle removed, renamed, or substantively re-scoped).
 **Pathway:** MINOR
@@ -10,72 +10,26 @@
 
 ---
 
-## Changelog: v3 → v4
+## Changelog: v4 → v5
 
-The **self-consistency rerun arbitration** (2026-05-13, `deliberations/v4.2.0-structured-deliberation-outputs-self-consistency-rerun-2026-05-13/arbitration/resolution.md`) returned **PASS-WITH-CLARIFICATIONS on Q1, Q2, and Q3**. Combined disposition: **PROCEED TO BLIND VERIFICATION with E-conditions applied to produce spec v4**. E-conditions are clarifications, not contradictions — they preserve v3's structural decisions (D1 non-blocking validation, D2 Principle II strike, D4-D5 temporal-constraint reframing, D9-D15 XXVIII discharge surfaces) and tighten the surrounding text.
+The **blind verification arbitration** (2026-05-13, `deliberations/v4.2.0-structured-deliberation-outputs-blind-2026-05-13/arbitration/resolution.md`) returned **IMPLEMENTABLE-WITH-CLARIFICATIONS on Q1**, **MODERATE-RISK-MANAGEABLE on Q2**, and **HOLDS-AS-DOCTRINE on Q3**. Combined disposition: **PROCEED TO RATIFICATION with F-conditions F1-F4 applied to produce spec v5**. The blind verification stage is the final verification gate; v5 is the ratification-ready spec.
 
-| E# | Summary | Lands in |
+| F# | Summary | Lands in |
 |---|---|---|
-| E1 | **§ 5.4 authority citation.** Add explicit constitutional authority grounding for the PR-blocking CI gate: cite Tier 1 Principle II (Stable Interfaces) + Tier 2 Principle XXVIII sub-clause 2 (mechanical CI enforcement, PR-required). Closes the implicit-authority gap the principle-xxviii-fit-auditor and strict-reader independently flagged. | § 5.4 |
-| E2 | **§ 9.1 D5 technical condition.** Layer a technical precondition on top of the existing categorical prohibitions: the accommodation applies only when (a) no JSON Schema yet exists for the artifact stream in question, AND (b) ratification of this spec is what stands up that schema. Mechanically excludes v2/ schema versions, new output types added to an existing schema, and validator amendments. | § 9.1 |
-| E3 | **§ 9.2 systematic verification matrix.** Replace v3's conclusory prose with citation-backed per-criterion analysis (criterion text → v4.2.0 specific behavior → verification → conclusion). For criterion (ii), the verification enumerates existing Principle V-compliant implementations in conversus-oss (`engine/persistence.py`, `engine/phase6_arbiter.py`, `engine/templates.py`) and demonstrates each remains compliant under v3/v4 architecture. | § 9.2 |
-| E4 | **§ 9.1 precedent-citation requirement.** Future temporal-constraint amendments MUST cite BOTH v4.2.0 (this spec) AND v4.1.0 self-consistency arbitration commit `8f90e2d` as boundary precedents. Citation triggers mandatory constitutional-coherence review at originating stage verifying the E2 technical precondition, the D5 categorical prohibitions, and non-extension beyond the boundary precedents. | § 9.1 |
+| F1 | **Sequencing and dependency gates.** § 11 implementation order specifies template slot syntax completion as a prerequisite gate before validator error specification development begins (unidirectional dependency, not parallel tracks). § 9.1 clarifies that technical specification gaps (template syntax, validator interface, CI implementation) are prerequisite to operational capacity validation; governance framework development may proceed in parallel. | § 11, § 9.1 |
+| F2 | **Concrete implementation specifications.** § 5.1 replaces v4 validator pseudocode with concrete Python 3.12 class signatures (Principle IX: explicit type annotations + Pydantic v2 models): `SchemaValidator`, `ValidationResult`, `ValidationWarning`. § 5.4 replaces the CI gate prose with a complete GitHub Actions workflow YAML example. § 5.1 adds a performance budget validation subsection requiring measurement against representative large outputs (>100K char synthesis) before architectural lock-in of the <100ms target. | § 5.1, § 5.4 |
+| F3 | **CONSUMER-CONTRACT.md six-section template.** § 7.1 converts from descriptive content specification to a fully-fleshed normative template — each of the six section headings written verbatim, required language under each heading, worked example for conversus-oss declaring deliberation-output schemas. Engineers writing CONSUMER-CONTRACT.md should be able to copy-paste-adapt the template. | § 7.1 |
+| F4 | **Doctrinal archaeology separation.** Accumulated changelog entries (v1→v2→v3→v4→v5), C/D/E/F-condition fix-ledger rows, and historical context narratives moved to a new **Appendix A: Deliberation Archaeology** at the end of the spec. §§ 9, 9.1, 9.2, 11 normative cores (temporal-constraint rule, E2 technical precondition, D5 categorical prohibitions, E4 precedent-citation requirement, § 9.2 cross-tier weakening verification matrix, § 11 implementation order + tiered rollout dates) are retained in-line. Goal: a reader who wants to implement v5 reads §§ 1-8 + § 9 + § 10 + § 11 (normative core); a reader who wants ratification audit trail reads Appendix A. | New Appendix A; §§ 9, 11 |
 
-E1-E4 are smaller-scope than D1-D15: most edits are 1-3 sentences, except E3 which is a matrix rewrite of § 9.2. No v3 structural decision is reopened by v4; in particular, the originating arbitration's TIER-3-CONFIRMED ruling on Q3 (Tier 3 placement) is preserved, the temporal-constraint accommodation is preserved (not eliminated), and the migration philosophy (tiered rollout) is preserved.
+F1-F4 are clarifications and structural separation; no v4 substantive decision is reopened. In particular: the D1 non-blocking validator architecture is preserved verbatim (F2's class signatures wrap the existing `path.write_bytes(content)`-before-warning architecture, they do not reverse it); the D5+E2+E4 layered containment on the temporal-constraint accommodation (§ 9.1) is preserved verbatim; the § 9.2 cross-tier weakening verification matrix is preserved verbatim. **v5 PROCEEDS TO RATIFICATION.**
 
----
-
-## Changelog: v2 → v3
-
-The **self-consistency arbitration** (2026-05-13, `deliberations/v4.2.0-structured-deliberation-outputs-self-consistency-2026-05-13/arbitration/resolution.md`) returned **PASS-WITH-CLARIFICATIONS** on Q1 and Q2 and **FAIL-CONTRADICTION on Q3**. The load-bearing finding was that v2 § 5.1's blocking-validation language ("the engine logs the error array to the deliberation event stream and aborts the phase (does not write the malformed file)") **directly contradicts ratified Tier 2 Principle V** (CONSTITUTION.md L76-78: "Output validation … emits warnings for malformed output but does NOT block file writes. Malformed output is better than no output"). All four self-consistency agents independently identified this. Per cross-tier weakening prohibition (CONSTITUTION.md L685), a component-tier amendment cannot grant relief from a Tier 2 principle.
-
-v3 applies fifteen D-conditions to resolve the contradiction and close the Q1+Q2 clarifications:
-
-| D# | Priority | Summary | Lands in |
-|---|---|---|---|
-| D1 | P1 (Q3-blocking) | **Rewrite § 5.1 as non-blocking, warning-based validation.** Engine writes the file unconditionally; on schema violation it logs the `ValidatorError` array and emits a prominent warning. CI gates block at PR-time; engine writes never block at write-time. | § 5.1, § 5.4 |
-| D2 | P1 (Q3-blocking) | Strike the Principle II citation in § 9.1; replace with temporal-constraint rationale. | § 9.1 |
-| D3 | P1 | New § 9.2 — explicit cross-tier weakening assessment against CONSTITUTION.md L649-664 criteria (i), (ii), (iii). | § 9.2 (new) |
-| D4 | P1 | Replace "RECURSION-EXEMPTED" language with **temporal-constraint framing** ("v4.2.0 verification outputs predate JSON schema availability by construction") throughout § 9.1, § 12 OQ5, § 13. Mirrors v4.1.0's temporal-vs-membership-universality precedent. | § 9.1, § 12, § 13 |
-| D5 | P1 | Add **anti-precedent language**: this temporal-constraint accommodation applies only to specs that ratify the schema infrastructure they would otherwise be required to use. Future schema-related amendments are NOT exempt from using existing validation infrastructure. | § 9.1, § 9.2 |
-| D6 | P2 | Post-cliff-date ratification handling: if ratification occurs after 2026-12-01, T4 is treated as in-effect at ratification with T1-T3 collapsed. | § 11 |
-| D7 | P2 | Schema-advancement-authority — who decides the `1.0.0-rc.1` → `1.0.0` bump after 30 days clean operation, and by what criteria. | § 4.8 |
-| D8 | P2 | Forward-promotion pathway — one paragraph for the case where a future conversus-* sibling produces deliberation-like artifacts, referencing GOVERNANCE.md pattern-promotion. | § 9.3 (new) |
-| D9 | P1 | Declare `engine/schema/v1/` location in `conversus-oss/CONFORMANCE.md` per XXVIII sub-clause 1 textual requirement (CONSTITUTION.md L505-510). | § 4.0 (new), § 6.1 |
-| D10 | P1 | Add README.md and CLAUDE.md links to CONSUMER-CONTRACT.md per XXVIII sub-clause 1 (CONSTITUTION.md L508-510 — "BOTH"). | § 6.1 |
-| D11 | P1 | Complete CONSUMER-CONTRACT.md content specification per XXVIII sub-clause 5 — explicitly name schema surfaces and state the stability guarantee. | § 7.1 (new) |
-| D12 | P1 | Bidirectional drift-detection CI per XXVIII sub-clause 2 — any change to `engine/schema/v1/*.schema.json` triggers re-validation of all existing producer code outputs under the new schema. Warning-only at write-time (D1 consistency); mechanically detected at CI-time. | § 5.4 |
-| D13 | P2 | Reframe § 5.1's <100ms language as **implementation discipline**, not constitutional mandate. | § 5.1 |
-| D14 | P2 | Document fixture validation scope coverage per XXVIII sub-clause 2 — fixtures cover field presence, types, value constraints, enum violations (three fixture types minimum). | § 5.3 |
-| D15 | P2 | Specify CI detection for schema-version-not-bumped-on-schema-edit per XXVIII sub-clause 3 ("silent format changes are a violation"). | § 5.4 |
-
-**D1 is the load-bearing reversal.** v2's framing — "aborts the phase, does not write the malformed file" — is **inverted** in v3: validation is advisory, runs at write-time, emits warnings into the deliberation event stream, but the file is **always written**. Mechanical enforcement bite is preserved at the PR-required CI gate (per XXVIII sub-clause 2), which DOES block merge on validation failure. The constitutional pillar Principle V protects ("malformed output is better than no output") is preserved at the engine's write path.
-
-**D4 + D5 are the load-bearing reframing.** v2's "RECURSION-EXEMPTED" verdict structurally resembled the v4.1.0 override-with-rationale stretch that v4.1.0 self-consistency rejected when applied uniformly. The self-consistency arbitration identified that this accommodation can be precedent-safe **only if reframed as temporal constraint** (mirroring v4.1.0's temporal-vs-membership distinction): v4.2.0 verification outputs cannot conform to a schema that does not yet exist (bootstrap paradox; the schemas are produced *by this very spec*). v3 reframes "exemption" → "temporal scope precedes existence," and the anti-precedent language (D5) explicitly contains the accommodation to this one-time bootstrap and bars future schema-related amendments from invoking the same shape.
-
----
-
-## Changelog: v1 → v2 (historical, retained for traceability)
-
-The originating arbitration (2026-05-13) returned APPROVE-WITH-FIXES on Q1 and Q2 with conditions C1-C10, and TIER-3-CONFIRMED + RECURSION-EXEMPTED on Q3. v2 applies all ten conditions verbatim. The single most consequential change is **C1**: the canonical schema language and file format switch from XML + XSD to **JSON + JSON Schema**. All four originating agents converged independently on this.
-
-| C# | Priority | Summary | Lands in |
-|---|---|---|---|
-| C1 | P1 | Canonical format flipped from XML+XSD → JSON + JSON Schema. Namespace becomes a JSON Schema `$id` URI. Validator architecture uses Python `jsonschema`. | § 4, § 5.1, § 7 |
-| C2 | P1 | Validator runtime budget: **<100ms per output**. If a validator implementation exceeds this, the validator is the bug, not the schema. | § 5.1 |
-| C3 | P1 | Dependency-ordered template migration with one-mode pilot (cooperative first). | § 11 |
-| C4 | P1 | Semantic equivalence testing as CI gate — re-render structured output back to markdown and diff against the markdown the original template would have produced. | § 11.1 |
-| C5 | P2 | Tiered/staged rollout: parallel-format support → advisory CI → blocking CI → markdown deprecation. | § 11, § 11.1 |
-| C6 | P1 | Envelope identity-field expansion: `deliberation_stage`, `engine_version`, `source_commit`. | § 4.1 |
-| C8 | P2 | SemVer bump qualification: MAJOR / MINOR / PATCH definitions with consumer-impact qualification. Adding REQUIRED fields is MAJOR. | § 4.8 |
-| C9 | P2 | Validator error-object schema (`field_path`, `error_code`, `human_message`, `expected_type`, `actual_value`, `suggested_fix`). | § 4.9 (new), § 5.1 |
-| C10 | P3 | Initial schema version is `1.0.0-rc.1`. Bump to `1.0.0` after one ratification cycle of clean operation. | § 4.8 |
-
-(C7 is subsumed by C1 in the arbitration's own consolidation; the Q2-axis restatement is folded into § 4.)
+**Prior-version changelogs (v1→v2 C1-C10, v2→v3 D1-D15, v3→v4 E1-E4) are moved to Appendix A: Deliberation Archaeology** as part of F4's separation of normative core from ratification audit trail. Readers implementing v5 do not need to read those changelogs; readers auditing the ratification trail will find them in Appendix A.
 
 ---
 
 ## 1. Motivation
+
+**Document status.** This spec (v5) has completed the full four-stage verification protocol per § 9: originating (PASSed with C1-C10 → v2), self-consistency (FAIL-CONTRADICTION on Q3 → D1-D15 applied → v3), self-consistency rerun (PASS-WITH-CLARIFICATIONS on Q1/Q2/Q3 → E1-E4 applied → v4), and blind verification (IMPLEMENTABLE-WITH-CLARIFICATIONS on Q1, MODERATE-RISK-MANAGEABLE on Q2, HOLDS-AS-DOCTRINE on Q3 → F1-F4 applied → this v5). All four stages PASSed under their respective verdict variants. Combined disposition: **PROCEED TO RATIFICATION.**
 
 Tier 2 Principle XXVIII ("Persistence Contract Discipline") was ratified 2026-05-12 (`build-fractal/conversus/CONSTITUTION.md` L490-644) with a universal 2026-12-01 remediation deadline for all conversus-suite products. The principle mandates: declared schemas with `schema_version` (SemVer), mechanical CI enforcement, versioning bump procedure, cross-product `CONSUMER-CONTRACT.md` files declaring stable surfaces, and explicit declaration scope. Schema declaration without mechanical enforcement is itself a violation.
 
@@ -594,33 +548,177 @@ The engine-side validation architecture for this spec MUST conform to that pilla
 
 - **`engine/schema/v1/*.schema.json`** — JSON Schema files, one per output type plus the envelope plus the validator-error schema, anchored at `$id` base `https://build-fractal.org/conversus/schema/v1/`. JSON Schema Draft 2020-12. The Python `jsonschema` library (>= 4.x) is the canonical validator; it satisfies Principle XXVIII C2's mechanical-enforceability bar (binary pass/fail, field-presence check, type check, value-constraint check) without the XSD strawman's CDATA-escaping defect.
 
-- **`engine/schema_validator.py`** — single entry point invoked on every agent output write. Signature: `validate_output(path: Path, content: bytes) -> ValidationResult` where `ValidationResult` is a structured object with `is_conformant: bool` + `errors: list[ValidatorError]` conformant to § 4.9. **The validator MUST NOT raise on non-conformance; it MUST return the `ValidationResult` and let the caller decide.** The caller (engine persistence layer, § below) ALWAYS proceeds to write the file regardless of `is_conformant`. The validator's job is to produce a structured warning record, not to refuse the write.
+- **`engine/schema_validator.py`** — single entry point invoked on every agent output write. **Concrete Python 3.12 + Pydantic v2 class signatures (F2, Principle IX explicit type annotations + Pydantic models):**
 
-- **`engine/persistence.py`** — the load-bearing inversion lives here. Pseudocode:
   ```python
-  def persist_output(path: Path, content: bytes) -> None:
-      result = validate_output(path, content)
-      # ALWAYS write the file, regardless of conformance (Principle V).
+  from pathlib import Path
+  from typing import Literal
+  from pydantic import BaseModel, ConfigDict, Field
+
+
+  class ValidationWarning(BaseModel):
+      """Single conformance defect raised by the validator.
+
+      Conforms to engine/schema/v1/validator-error.schema.json (§ 4.9).
+      """
+      model_config = ConfigDict(frozen=True, extra="forbid")
+
+      field_path: str = Field(
+          ...,
+          description="JSON pointer to the offending field, e.g., '/body/disputes/0/severity'.",
+      )
+      error_code: Literal[
+          "REQUIRED_FIELD_MISSING",
+          "TYPE_MISMATCH",
+          "ENUM_VIOLATION",
+          "PATTERN_VIOLATION",
+          "ADDITIONAL_PROPERTY_FORBIDDEN",
+          "SCHEMA_VERSION_UNSUPPORTED",
+          "ENVELOPE_BODY_TYPE_MISMATCH",
+          "ARRAY_MIN_ITEMS_VIOLATION",
+      ]
+      severity: Literal["error", "warning"] = "warning"
+      message: str = Field(..., min_length=1, description="Human-friendly explanation.")
+      expected: str = Field(..., description="Schema-declared expected shape (type/pattern/enum).")
+      actual: str = Field(..., description="Stringified actual value at field_path; '' when missing.")
+      suggested_fix: str | None = None
+
+      def to_dict(self) -> dict[str, str | None]:
+          """Serialize for sidecar JSON + event stream. Pydantic v2 model_dump."""
+          return self.model_dump(mode="json")
+
+
+  class ValidationResult(BaseModel):
+      """Aggregate result of a single validate() call.
+
+      `is_conformant` is True iff `warnings` contains no entry with severity='error'.
+      """
+      model_config = ConfigDict(frozen=True, extra="forbid")
+
+      is_conformant: bool
+      warnings: list[ValidationWarning] = Field(default_factory=list)
+      schema_version: str = Field(..., description="schema_version field read from envelope.")
+      output_type: str = Field(..., description="output_type field read from envelope.")
+      validation_duration_ms: float = Field(..., ge=0.0)
+
+
+  class SchemaValidator:
+      """Non-blocking JSON Schema validator for conversus deliberation outputs.
+
+      Conforms to Principle V (non-blocking writes; CONSTITUTION.md L76-78) by design:
+      `validate()` NEVER raises on conformance failure; it returns a structured
+      ValidationResult. Callers (engine/persistence.py) ALWAYS proceed to write
+      regardless of `is_conformant`. Mechanical enforcement bite lives at the
+      PR-required CI gate (§ 5.4), not at write-time.
+      """
+
+      def __init__(self, schema_dir: Path) -> None:
+          """Initialize validator with compiled schemas from schema_dir.
+
+          Compilation is cached in memory for the process lifetime (performance
+          discipline per § 5.1 performance budget validation framework).
+          """
+          ...
+
+      def validate(self, content: bytes, schema_version: str) -> ValidationResult:
+          """Validate `content` (raw bytes of a single deliberation output JSON file)
+          against the schema selected by `schema_version` + envelope.output_type.
+
+          MUST NOT raise on conformance failure. MUST raise only on infrastructure
+          failure (e.g., schema file missing from schema_dir at construction time).
+          Returns ValidationResult with is_conformant=False on any error-severity
+          warning; warnings-only outputs return is_conformant=True with a non-empty
+          `warnings` list.
+          """
+          ...
+
+      def emit_warning(self, result: ValidationResult, output_path: Path) -> None:
+          """Emit non-conformance to two channels: deliberation event stream
+          (event='schema_validation_failed') + sibling .validation-warnings.json
+          sidecar at `output_path.with_suffix(output_path.suffix + '.validation-warnings.json')`.
+
+          Idempotent: calling twice for the same output path overwrites the sidecar.
+          """
+          ...
+  ```
+
+  **Integration points.**
+  - **Called from:** `engine/persistence.py` (see below) on every output write. No other module instantiates `SchemaValidator` directly.
+  - **Validator import failure handling:** if `schema_dir` is missing or schemas are malformed at construction time, `SchemaValidator.__init__` raises `RuntimeError`. The engine's persistence layer catches this once at startup and falls back to write-only mode (no validation, prominent log warning); per Principle V, validator unavailability MUST NOT block writes.
+  - **Sidecar location:** `.validation-warnings.json` is written as a sibling to the output JSON, e.g., for `deliberations/{id}/phase-1/pragmatist/review.json` the sidecar is `deliberations/{id}/phase-1/pragmatist/review.json.validation-warnings.json`. CI § 5.4 detects sidecar presence and blocks merge.
+
+- **`engine/persistence.py`** — the load-bearing non-blocking inversion lives here. **Concrete signature (F2, Principle IX):**
+
+  ```python
+  from pathlib import Path
+
+  from engine.schema_validator import SchemaValidator
+
+  def persist_output(
+      path: Path,
+      content: bytes,
+      validator: SchemaValidator,
+      event_stream: "EventStream",  # opaque to this signature; engine-local type
+  ) -> None:
+      """Persist a deliberation output to disk with non-blocking validation.
+
+      Order of operations is load-bearing:
+      1. `path.write_bytes(content)` — UNCONDITIONAL. Per Principle V
+         (CONSTITUTION.md L76-78): "malformed output is better than no output".
+         This MUST be the first side effect.
+      2. validator.validate(content, schema_version) — produces ValidationResult.
+      3. If not result.is_conformant: emit warning + write sidecar.
+
+      There is no exception path that prevents step 1. SchemaValidator.validate()
+      is contractually non-raising on conformance failure.
+      """
+      # Step 1 — unconditional write (Principle V).
       path.write_bytes(content)
+
+      # Step 2 — validate after write. Validator unavailability is handled at
+      # engine startup; here we assume `validator` is constructed successfully.
+      schema_version = _read_schema_version(content)
+      result = validator.validate(content, schema_version)
+
+      # Step 3 — emit warning if non-conformant.
       if not result.is_conformant:
-          # Emit warning to event stream + structured side-channel.
           event_stream.warn(
               event="schema_validation_failed",
               path=str(path),
-              errors=[e.to_dict() for e in result.errors],
+              errors=[w.to_dict() for w in result.warnings],
           )
-          # Also write a sibling .validation-warnings.json file next to the
-          # offending output so PR-time CI (§ 5.4) can detect + block merge.
-          sidecar = path.with_suffix(path.suffix + ".validation-warnings.json")
-          sidecar.write_text(json.dumps([e.to_dict() for e in result.errors]))
+          validator.emit_warning(result, path)
   ```
-  Note: validation precedes the write only so that the warning can be recorded against the same atomic operation; **the write itself is unconditional.** Malformed output is preferred over no output, per Principle V. There is no `SchemaViolation` exception path in the persistence layer.
+
+  **The write at step 1 is unconditional.** Malformed output is preferred over no output, per Principle V. There is no `SchemaViolation` exception path in the persistence layer. F2's concrete signatures are added context for engineers implementing the engine; they do NOT reverse D1's non-blocking architecture, and the `path.write_bytes(content)` call MUST remain the first side effect of `persist_output`.
 
 - **`engine/templates.py` + `templates/{mode}/`** — mode templates updated so agent prompts emit prose in explicit slots (e.g., `<<<STRENGTHS_BEGIN>>> ... <<<STRENGTHS_END>>>`). The engine's output wrapper parses agent prose, extracts slot values, and assembles a JSON envelope. Agents do NOT emit JSON directly; the engine assembles.
 
 - **`engine/cli/run.py`** — adds `--validate-outputs` flag (default `true`). `--no-validate-outputs` disables the validation pass entirely (no warnings produced, no sidecar written). The flag's purpose is debugging / dev-loop speed, not bypassing enforcement: the file would be written either way; disabling validation only suppresses the warning record. The engine logs a prominent notice when the flag is set and records it in the deliberation event stream.
 
 **Implementation performance discipline (D13).** The validator SHOULD complete in <100ms per output as an **operational target**. The `jsonschema` library on representative production-sized outputs (~20-50KB JSON) routinely completes in single-digit milliseconds; the 100ms target provides ~10-20× headroom. **This is implementation discipline, not a constitutional bar.** If a validator implementation exceeds 100ms in practice, the validator is the bug — fix the validator (caching compiled schemas, profiling hot paths) before relaxing the operational target. The CI gate (§ 5.4) runs the validator over the worked-example fixture corpus and asserts P99 latency < 100ms; failing that assertion blocks the merge of validator-implementation changes (not deliberation content). The <100ms number is recorded here as implementation discipline because that is what it actually is — operational engineering practice on a Python library with known performance characteristics — not as a constitutional mandate that would require constitutional-amendment process to relax.
+
+#### 5.1.1 Performance budget validation framework (F2)
+
+Before architectural lock-in of the <100ms operational target, the validator implementation MUST be measured against representative large outputs from real production deliberations. This validation MUST complete and PASS before § 11's implementation order proceeds past step 2 (the schemas+validator+renderer PR). The framework is intentionally bounded — it is one measurement campaign on the worked-example corpus, not an ongoing benchmark suite.
+
+**Sample set.** The fixture corpus measured is:
+- The four worked-example fixtures from § 5.3 (conformant + missing-required + wrong-type + enum-violation).
+- The `synthesis.json` outputs from the v4.1.0 deliberation set (4 deliberations × 1 synthesis each = 4 outputs), specifically chosen because the v4.1.0 originating synthesis exceeded ~230K characters of free-form prose (cf. § 1.1 Bug A; memory `project_conversus_arbitration_crash_2026_05_06.md`). These represent the upper bound of realistic synthesis output size and exercise the validator's worst-case branch on body-schema dispatch + array-of-disputes traversal.
+- The `arbitration.json` outputs from the same v4.1.0 deliberation set (4 outputs), which exercise the per-question-rulings + conditions + ruling_lines redundant-projection cross-check.
+
+**Measurement methodology.**
+- **Warm-cache:** validator is constructed once; schemas are compiled and cached in memory; each fixture is validated 100 times in sequence; latencies recorded as p50/p95/p99.
+- **Cold-cache:** validator is reconstructed for each measurement (worst case for production startup); each fixture is validated 10 times in sequence; latencies recorded as p50/p95/p99.
+- Both modes run on the standard conversus-oss CI runner (Ubuntu 22.04, default GitHub Actions instance).
+- The measurement script lives at `engine/tests/test_validator_performance.py` and emits a `validator-performance-report.json` artifact uploaded by CI.
+
+**Failure mode.** If warm-cache p99 across the synthesis-corpus subset exceeds 100ms:
+- The validator is the bug per D13 — first remediation is to profile and fix.
+- If after remediation warm-cache p99 still exceeds 100ms on a sustained basis, the validator MUST degrade gracefully: emit a `validator_latency_budget_exceeded` warning to the deliberation event stream, skip per-output validation for outputs above a size threshold (`len(content) > 100_000` bytes), and rely on the PR-required CI gate (§ 5.4) for those outputs instead. Skipping at write-time NEVER blocks the write per Principle V.
+- The architectural lock-in of <100ms in § 4.8 + § 5.4 is contingent on this measurement passing. If it fails after remediation, § 4.8's "<100ms" reference is reclassified as "best-effort target with documented degradation behavior" and the spec is amended via a PATCH bump (per § 4.8 SemVer rules) to record the operational ceiling.
+
+The performance budget validation is itself a prerequisite gate in § 11 (see F1 sequencing); validator+schema work cannot proceed past the schemas+validator PR until this campaign has run and the report is green or the documented degradation has been applied.
 
 Advanced validations beyond write-time scope — cross-reference integrity (does `ruling_lines[i].question` match a real `per_question_rulings[j].question`?), full constraint validation across documents — run at the same write-time path, contributing additional `ValidatorError` entries to the result; they do not block the write either. C5's tiered staging defines when those advanced checks promote from advisory-only to PR-required-blocking at the CI gate.
 
@@ -648,13 +746,120 @@ D1 makes write-time validation non-blocking. The mechanical-enforcement teeth Pr
 
 **Constitutional authority (E1).** The PR-blocking CI gate specified in this sub-section derives its authority from two ratified principles: **Tier 1 Principle II (Stable Interfaces)** — `build-fractal/CONSTITUTION.md` — which requires that declared technical contracts (here, the JSON Schema as a stable wire format) be enforced against regression at the point of code change; and **Tier 2 Principle XXVIII sub-clause 2 (mechanical CI enforcement, PR-required)** — `build-fractal/conversus/CONSTITUTION.md` L490-644 — which mandates that schema declarations carry mechanical CI bite at PR-time and explicitly forbids schema declaration without mechanical enforcement as a XXVIII violation. The PR-blocking posture below is the operationalization of both citations; absent it, the spec would itself violate XXVIII sub-clause 2.
 
-- New GitHub Actions workflow `.github/workflows/schema-validate.yml`:
-  - **Triggers** on `pull_request` paths `deliberations/**`, `engine/schema/**`, `engine/schema_validator.py`, `engine/persistence.py`, `engine/render_md.py`, `engine/tests/fixtures/schema/**`.
-  - **Forward-validation job (artifacts → schema).** Runs `python -m engine.schema_validator --all deliberations/` — validates every JSON file under `deliberations/` against the current schema. Fails the build if any file is non-conformant OR if any `.validation-warnings.json` sidecar exists alongside an emitted JSON (sidecars are produced by the write-time validator on conformance failure per § 5.1; their presence in a PR indicates the producer code emitted a malformed file, which must be fixed before merge).
-  - **Bidirectional drift-detection job (D12, per XXVIII sub-clause 2 "Validation MUST be bidirectional").** When a PR modifies any file under `engine/schema/v1/`, the CI job re-runs forward-validation against **the entire pre-existing `deliberations/**` corpus** under the new schema. This detects the case where a schema edit silently breaks previously-conformant artifacts — XXVIII sub-clause 2 explicitly mandates this direction: "any change to the schema itself MUST trigger CI verification that the existing producer code still emits conformant artifacts under the new schema (drift detection on schema edits)." The drift-detection job is merge-blocking; producer-side warning-only (per D1 consistency at write-time) does not mean PR-side warning-only.
-  - **Schema-version-bump detection job (D15, per XXVIII sub-clause 3 "silent format changes are a violation").** When a PR modifies any file under `engine/schema/v1/`, the CI job asserts that **either** the touched schema file's `$id` version path (e.g., `/v1/`) is incremented to a new major version directory, **or** the envelope schema's `schema_version` `pattern`/`enum` has been updated to reflect a new minor/patch version, **or** the PR description contains the literal token `[schema:no-bump-justified]` plus a rationale referencing the specific clarification-only edit (PATCH-equivalent docstring fix). Any schema edit that fails all three branches blocks merge with the error message "schema edited without version bump — see § 4.8 SemVer rules and Principle XXVIII sub-clause 3."
-  - **Fixture + renderer test job.** Runs `pytest engine/tests/test_schema_validator.py` — the four worked-example fixtures (§ 5.3) + the renderer round-trip test (JSON → MD → JSON must be bit-identical for canonical-form JSON) + the D13 operational target assertion (P99 < 100ms over the fixture corpus).
-  - Pass/fail is binary; failure blocks merge. Required-check setting enforced on the `main` branch.
+**Complete GitHub Actions workflow YAML (F2 normative example).** The workflow below is the reference implementation of the PR-required CI gate. Engineers MAY adapt step names and Python versions, but the four jobs (forward-validation, drift-detection-bidirectional, schema-version-bump-detection, fixture+renderer tests), their merge-blocking posture, and their trigger paths are normative.
+
+```yaml
+# .github/workflows/schema-validate.yml
+name: schema-validate
+
+on:
+  pull_request:
+    paths:
+      - 'deliberations/**'
+      - 'engine/schema/**'
+      - 'engine/schema_validator.py'
+      - 'engine/persistence.py'
+      - 'engine/render_md.py'
+      - 'engine/tests/fixtures/schema/**'
+
+# Required-check posture: every job in this workflow is configured as a
+# required status check on the `main` branch protection rule. Failure of any
+# job blocks PR merge per Principle XXVIII sub-clause 2 (mechanical CI
+# enforcement, PR-required) + Tier 1 Principle II (Stable Interfaces).
+jobs:
+  validate-conformance:
+    # Forward-validation: every JSON file under deliberations/ must conform to
+    # the current schema. Sidecar .validation-warnings.json files indicate
+    # producer code emitted a malformed file at write-time and MUST be fixed
+    # before merge.
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install validator
+        run: pip install -e '.[test]'
+      - name: Run forward-validation over deliberations/
+        run: python -m engine.schema_validator --all deliberations/
+      - name: Assert no .validation-warnings.json sidecars present
+        run: |
+          if find deliberations -name '*.validation-warnings.json' | grep -q .; then
+            echo "::error::Validation sidecars found — producer code emitted malformed outputs."
+            find deliberations -name '*.validation-warnings.json'
+            exit 1
+          fi
+
+  drift-detection-bidirectional:
+    # D12 + Principle XXVIII sub-clause 2 ("Validation MUST be bidirectional").
+    # Whenever the schema itself changes, re-validate the entire pre-existing
+    # deliberations corpus under the new schema. Catches schema edits that
+    # silently break previously-conformant artifacts.
+    if: contains(github.event.pull_request.changed_files, 'engine/schema/v1/')
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install validator
+        run: pip install -e '.[test]'
+      - name: Re-validate full corpus under new schema
+        run: python -m engine.schema_validator --all deliberations/ --schema-dir engine/schema/v1/
+      - name: Diff against baseline conformance
+        run: python -m engine.tests.drift_detection --baseline-ref ${{ github.event.pull_request.base.sha }}
+
+  schema-version-bump-detection:
+    # D15 + Principle XXVIII sub-clause 3 ("silent format changes are a violation").
+    # Any edit to a schema file MUST be accompanied by either a $id version path
+    # bump, an envelope schema_version pattern/enum bump, or a [schema:no-bump-justified]
+    # token in the PR description with a rationale.
+    if: contains(github.event.pull_request.changed_files, 'engine/schema/v1/')
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Detect schema-version bump
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          python -m engine.tests.version_bump_check \
+            --base-ref ${{ github.event.pull_request.base.sha }} \
+            --head-ref ${{ github.sha }} \
+            --pr-body "$PR_BODY"
+
+  fixture-and-renderer-tests:
+    # Four worked-example fixtures (§ 5.3) + renderer round-trip
+    # (JSON → MD → JSON bit-identical for canonical-form) + D13 operational
+    # target assertion (P99 < 100ms over fixture corpus, per § 5.1.1
+    # performance budget validation framework).
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install validator + test deps
+        run: pip install -e '.[test]'
+      - name: Run validator unit tests
+        run: pytest engine/tests/test_schema_validator.py -v
+      - name: Run renderer round-trip tests
+        run: pytest engine/tests/test_render_md.py -v
+      - name: Run performance budget assertion
+        run: pytest engine/tests/test_validator_performance.py -v
+      - name: Upload performance report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: validator-performance-report
+          path: validator-performance-report.json
+```
+
+**Pass/fail is binary; failure of any job blocks merge.** Required-check setting enforced on the `main` branch protection rule. The four jobs together discharge: § 5.4 forward-validation (`validate-conformance`), § 5.4 D12 bidirectional drift detection (`drift-detection-bidirectional`), § 5.4 D15 schema-version-bump detection (`schema-version-bump-detection`), and § 5.3 + § 5.1.1 fixture + renderer + performance tests (`fixture-and-renderer-tests`).
 
 ---
 
@@ -700,32 +905,101 @@ After ratification:
 
 No other suite product currently consumes deliberation outputs structurally (conversus-enhanced consumes solver outputs, not deliberation outputs). If a future sibling adds a consumer, it inherits the same `CONSUMER-CONTRACT.md` pattern.
 
-### 7.1 CONSUMER-CONTRACT.md content specification (D11)
+### 7.1 CONSUMER-CONTRACT.md six-section template (D11 + F3)
 
-Per XXVIII sub-clause 5 (CONSTITUTION.md L572-577), the producer's `CONSUMER-CONTRACT.md` MUST explicitly name each declared stable surface AND state its stability guarantee. Bare existence of the document does not satisfy the sub-clause. v3 specifies the required content shape:
+Per XXVIII sub-clause 5 (CONSTITUTION.md L572-577), the producer's `CONSUMER-CONTRACT.md` MUST explicitly name each declared stable surface AND state its stability guarantee. Bare existence of the document does not satisfy the sub-clause.
 
-**Required sections** in `conversus-oss/CONSUMER-CONTRACT.md`:
+**F3 normative template.** The block below is the verbatim content engineers should copy into `conversus-oss/CONSUMER-CONTRACT.md`, filling in any product-specific placeholders (none for conversus-oss; the template is fully populated for this product). The six section headings (`## 1. Consumed Surface Declaration`, `## 2. Schema Version Pinning`, etc.) and the required language under each heading are normative — sub-clause 5 compliance is verified at PR-time by a CI grep check on section heading presence + required-language tokens.
 
-1. **Title + declaration of intent.** "This document declares the stable surfaces conversus-oss exports for cross-product consumption under Tier 2 Principle XXVIII sub-clause 4."
+````markdown
+# Consumer Contract — conversus-oss
 
-2. **Declared schema surfaces** (per XXVIII sub-clause 5). Each entry MUST include:
-   - **Surface identifier** — e.g., `engine/schema/v1/envelope.schema.json` `$id=https://build-fractal.org/conversus/schema/v1/envelope.schema.json`.
-   - **Stability guarantee** — explicit prose, not gesture. For each of the six body schemas + envelope + validator-error: "The set of REQUIRED fields, the `enum` values of constrained fields, the `pattern` regexes on string fields, and the field names of OPTIONAL fields are stable across PATCH and MINOR `schema_version` bumps. Removal of a REQUIRED field, removal of an enum value, narrowing of a `pattern`, or renaming of any field requires a MAJOR `schema_version` bump per § 4.8 and triggers cross-product consumer migration per XXVIII sub-clause 4."
-   - **Versioning support window** — the `current_supported_versions` allowlist value the validator enforces (initially `>=1.0.0-rc.1, <2.0.0`).
-   - **Deprecation policy** — when a MAJOR bump occurs, the previous MAJOR receives a 90-day support window during which both versions are accepted; after the window the previous MAJOR is removed from the allowlist.
+This document declares the stable surfaces conversus-oss exports for cross-product consumption under Tier 2 Principle XXVIII sub-clause 4. Cross-product consumers — including but not limited to the orchestrator adapter at `Build-Fractal/orchestrator/scripts/dispatch/adapters/tool/conversus.sh` — MUST consult this document before depending on any conversus-oss output surface. Surfaces NOT declared here are NOT stable and may change without notice.
 
-3. **Declared display-text surfaces** (per XXVIII sub-clause 5). v3 declares the following display-text surfaces stable, each with explicit guarantee:
-   - **Companion `.md` rendered file naming** — `{output-type}.md` siblings to `{output-type}.json` under `deliberations/{deliberation-id}/`. Stable across MINOR; renamed only on MAJOR.
-   - **`.validation-warnings.json` sidecar file naming** — `{output-path}.validation-warnings.json` siblings to non-conformant JSON outputs (per § 5.1 D1 architecture). Stable across MINOR; renamed only on MAJOR.
-   - **No other display-text surface is declared stable.** Heading text inside the rendered `.md` companions is **explicitly undeclared** — consumers parsing rendered-MD heading text for semantic content are violating XXVIII sub-clause 4. The JSON envelope + body schemas are the stable parse target.
+## 1. Consumed Surface Declaration
 
-4. **Consumer-side obligations.** Cross-product consumers (e.g., the orchestrator adapter) MUST: (a) consume the declared JSON schema, not display text in rendered MD; (b) pin a `schema_version` range; (c) ship consumer-side fixtures in their own CI per XXVIII sub-clause 4 ("Producer-side fixtures alone do not satisfy this sub-clause"); (d) coordinate migration on MAJOR `schema_version` bumps via the cross-repo sequencing pattern in `build-fractal/conversus/CLAUDE.md`.
+The producer (conversus-oss) declares the following surfaces are consumable by cross-product code. Each surface has an explicit stability guarantee in § 2 below.
 
-5. **Pointer to producer-side enforcement.** Link to `engine/tests/fixtures/schema/` and `.github/workflows/schema-validate.yml` so consumers can see how producer-side conformance is mechanically enforced.
+**Schema surfaces** (canonical, JSON Schema Draft 2020-12, anchored at `https://build-fractal.org/conversus/schema/v1/`):
 
-6. **Pointer to the schema directory.** Link to `engine/schema/v1/` and to each of the seven schema files individually.
+- `engine/schema/v1/envelope.schema.json` — `$id=https://build-fractal.org/conversus/schema/v1/envelope.schema.json` — the common envelope wrapping every deliberation output.
+- `engine/schema/v1/review.schema.json` — body schema for Phase 1 agent reviews.
+- `engine/schema/v1/cross-review.schema.json` — body schema for Phase 2 cross-reviews.
+- `engine/schema/v1/revision.schema.json` — body schema for Phase 3 agent position revisions.
+- `engine/schema/v1/disputes.schema.json` — body schema for Phase 4 consolidated disputes.
+- `engine/schema/v1/synthesis.schema.json` — body schema for Phase 5 synthesis.
+- `engine/schema/v1/arbitration.schema.json` — body schema for Phase 6 arbitration.
+- `engine/schema/v1/validator-error.schema.json` — body schema for validator error objects (used by both producer-side warning emission and consumer-side error parsing).
 
-This specification is normative for the `CONSUMER-CONTRACT.md` file produced by § 6.1; the file must contain all six sections above with the content shape described. Sub-clause 5 compliance is verified at PR-time by a CI check that grep-confirms each section heading exists in the file (lightweight structural check, not a semantic check).
+**File-naming surfaces** (display-text, declared stable per XXVIII sub-clause 5):
+
+- Companion `.md` rendered file naming: `{output-type}.md` as siblings to `{output-type}.json` under `deliberations/{deliberation-id}/{phase-dir}/{agent}/`.
+- `.validation-warnings.json` sidecar file naming: `{output-path}.validation-warnings.json` siblings to non-conformant JSON outputs (per § 5.1 D1 architecture in the v4.2.0 spec).
+
+**Explicitly undeclared surfaces.** Heading text inside rendered `.md` companions, prose ordering inside body fields, and any grep-match on rendered Markdown are **NOT** declared stable. Consumers parsing rendered-MD heading text for semantic content are violating XXVIII sub-clause 4. The JSON envelope + body schemas above are the stable parse target.
+
+## 2. Schema Version Pinning
+
+The producer commits to the following stability guarantee for every schema surface listed in § 1:
+
+> The set of REQUIRED fields, the `enum` values of constrained fields, the `pattern` regexes on string fields, and the field names of OPTIONAL fields are stable across PATCH and MINOR `schema_version` bumps. Removal of a REQUIRED field, removal of an enum value, narrowing of a `pattern`, or renaming of any field requires a MAJOR `schema_version` bump per the v4.2.0 spec § 4.8 SemVer rules and triggers cross-product consumer migration per XXVIII sub-clause 4.
+
+Consumers MUST pin a `schema_version` range:
+- **Initial pin (recommended):** `>=1.0.0-rc.1, <2.0.0` — accepts the release-candidate baseline and all future MINOR/PATCH refinements within MAJOR 1.
+- **Tighter pin (optional):** `>=1.0.0-rc.1, <1.1.0` — opts out of MINOR additions; useful for consumers that want explicit migration review on any additive change.
+
+The producer's `current_supported_versions` allowlist (enforced by `engine/schema_validator.py`) is, at this writing, `>=1.0.0-rc.1, <2.0.0`. Consumers SHOULD track this allowlist when pinning.
+
+## 3. Stability Guarantee
+
+The stability guarantee per surface category:
+
+**Schema surfaces.** Per § 2 above: stable across PATCH and MINOR; MAJOR bump required for any breaking change (removal, narrowing, rename, addition of REQUIRED field, removal of enum value).
+
+**File-naming surfaces.** Stable across PATCH and MINOR. File-naming convention renames (e.g., changing `.validation-warnings.json` sidecar suffix) require a MAJOR `schema_version` bump even though the file naming is technically out-of-band from the schema content; consumer impact is identical (broken consumer parsers).
+
+**Deprecation policy.** When a MAJOR bump occurs, the previous MAJOR receives a **90-day support window** during which both versions are accepted by the producer's `current_supported_versions` allowlist. After the window the previous MAJOR is removed from the allowlist; subsequent outputs MUST conform to the new MAJOR. The producer publishes the MAJOR-bump PR + window-end date at least 90 days before window end; consumers MUST migrate within the window.
+
+**Schema-advancement authority.** The `1.0.0-rc.1` → `1.0.0` promotion and all subsequent bumps are authorized by the conversus-oss maintainer set per the v4.2.0 spec § 4.8 (D7) criteria.
+
+## 4. Consumer-Side Obligations
+
+Cross-product consumers MUST:
+
+- **(a)** Consume the declared JSON schema, not display text in rendered MD. Grep-on-Markdown consumers are XXVIII sub-clause 4 violations and will silently break on MINOR producer changes.
+- **(b)** Pin a `schema_version` range explicitly in the consumer's own configuration (e.g., orchestrator adapter declares `>=1.0.0-rc.1, <2.0.0` in `scripts/dispatch/adapters/tool/conversus.adapter.md`).
+- **(c)** Ship consumer-side fixtures in the consumer's own CI per XXVIII sub-clause 4 ("Producer-side fixtures alone do not satisfy this sub-clause"). The consumer's CI MUST run its parser against a vendored copy of the producer's fixture set at `engine/tests/fixtures/schema/`.
+- **(d)** Coordinate migration on MAJOR `schema_version` bumps via the cross-repo sequencing pattern in `build-fractal/conversus/CLAUDE.md` ("Cross-repo work" section): producer MAJOR-bump PR lands first; consumer pins are updated in a follow-up PR within the 90-day deprecation window.
+- **(e)** Read validator error objects (`validator-error.schema.json`) when surfacing producer-side warnings to end users; do not parse the `human_message` field as semantic content (it is undeclared display-text within the schema).
+
+## 5. Producer-Side Enforcement
+
+The producer's enforcement of every guarantee in §§ 2-3 is mechanically verified at PR-time by:
+
+- **Fixture corpus:** `engine/tests/fixtures/schema/` — four worked examples (conformant + missing-required + wrong-type + enum-violation) per v4.2.0 spec § 5.3.
+- **CI workflow:** `.github/workflows/schema-validate.yml` — four jobs (forward-validation, drift-detection-bidirectional, schema-version-bump-detection, fixture+renderer tests) per v4.2.0 spec § 5.4. Required status checks on `main`.
+- **Performance budget validation:** one-time measurement campaign at `engine/tests/test_validator_performance.py` against representative large outputs from v4.1.0 deliberations per v4.2.0 spec § 5.1.1.
+
+Consumers can verify producer-side enforcement is live by checking the green CI history on PRs touching `engine/schema/v1/` or `deliberations/**`.
+
+## 6. Change Coordination
+
+Schema-affecting changes follow this coordination flow:
+
+- **PATCH / MINOR bumps.** Producer lands the change in a single PR. Consumers MAY ignore (their existing pin continues to satisfy the new version). Producer notifies consumers via PR description + `CONSUMER-CONTRACT.md` changelog entry.
+- **MAJOR bumps.** Producer lands the schema change in PR-1 with the MAJOR bump and the 90-day window-end date announced in `CONSUMER-CONTRACT.md`. Consumers receive a notification (issue filed in each declared consumer repo) on PR-1 merge. Consumers update pins + parsers in their own PRs within 90 days, landing each consumer-side PR after its corresponding cross-product testing confirms the new MAJOR is parsed correctly. The producer's `current_supported_versions` allowlist accepts both MAJOR versions during the window; after window end, only the new MAJOR is accepted.
+- **Schema retirement.** Same flow as MAJOR bump: 90-day window during which both versions are accepted.
+
+For governance amendments that materially change § 1's surface list, the change follows the v4.2.0 spec's § 4.8 schema-advancement-authority decision pathway (conversus-oss maintainer set; PR audit trail; quantitative + qualitative criteria documented in the bump PR).
+
+---
+
+Pointer to the schema directory: `engine/schema/v1/`. Individual schema files are listed in § 1 above.
+
+Pointer to the producer-side enforcement implementation: `engine/schema_validator.py`, `engine/persistence.py`, `.github/workflows/schema-validate.yml`.
+````
+
+The template above is normative for the `CONSUMER-CONTRACT.md` file produced by § 6.1. The file MUST contain all six numbered section headings (`## 1. Consumed Surface Declaration` through `## 6. Change Coordination`) with content matching the shape above. Sub-clause 5 compliance is verified at PR-time by a CI check that grep-confirms each section heading exists in the file (lightweight structural check); a second check grep-confirms the stability-guarantee paragraph in § 2 is present verbatim.
 
 ---
 
@@ -784,6 +1058,8 @@ The citation triggers a **mandatory constitutional-coherence review** at the ori
 
 **Practical consequence.** The verification trail for v4.2.0 itself stays markdown — a fixed point in the migration. The first spec ratified after v4.2.0 implementation completion is bound to use JSON for its verification outputs (per § 11 Tier T1 from the ratification of v4.2.0 onward, parallel-format support is in place; specs ratified after T3 — 2026-10-01 — MUST emit JSON).
 
+**Technical-operational sequencing (F1).** Operational capacity validation — staffing, CI runner budget, schema-maintainer workload, downstream consumer migration coordination — depends on the underlying technical specifications being clarified first. The dependency is unidirectional: clarified specs (template slot syntax, validator interface, CI implementation per F2's class signatures and workflow YAML) → operational capacity validation. The blind verification arbitration's planning-authority ruling (item 2, Q1) makes this explicit: technical specification gaps MUST be resolved before operational capacity validation can proceed. The hybrid approach permitted under that ruling applies ONLY to governance framework development (e.g., the schema-advancement-authority decision pathway in § 4.8, the consumer-coordination flow in § 7.1 step 6), which MAY proceed in parallel with technical specification work because the governance frameworks operate on a longer timescale than implementation. Core technical foundations — slot syntax, validator class signatures, CI workflow YAML, performance budget validation — are NOT eligible for parallel operational planning; they must be specified, implemented, and measured before capacity planning becomes meaningful.
+
 ### 9.2 Cross-tier weakening assessment (D3, E3)
 
 Per Tier 2 Constitution L649-664 (cross-tier weakening prohibition operational definition), any component-tier amendment MUST be assessed against the three weakening criteria. This sub-section discharges that obligation for v4.2.0 via a **systematic verification matrix** (E3) — citation-backed per-criterion analysis replacing v3's conclusory prose. Each criterion is structured as four rows: criterion text (constitutional citation) → v4.2.0 specific behavior → verification (cited evidence in the spec or in ratified principles) → conclusion.
@@ -831,30 +1107,22 @@ The originating arbitration ruled TIER-3-CONFIRMED on Q3 because the evidence ba
 
 ---
 
-## 10. Conditions (applied in v2)
+## 10. Conditions ledger
 
-The originating arbitration conditions C1-C10 are applied in this v2 spec. Quoting verbatim from `deliberations/v4.2.0-structured-deliberation-outputs-originating-2026-05-12/arbitration/resolution.md`:
-
-- **C1 (P1)** — § 4 + § 5.1 — switch canonical format from XML+XSD to **JSON Schema**. Update all six body-schema definitions and the common envelope to JSON Schema syntax. Update § 3 non-goals to remove the "XSD strawman" framing. *Applied in v2: §§ 4, 5.1, 7 fully rewritten; § 3 strawman language removed.*
-- **C2 (P1)** — § 5.1 — establish **<100ms per-output validation performance budget** for write-time validation with early performance testing to fix scope before commitment. *Applied in v2: § 5.1 "Performance budget (C2)" paragraph + § 5.4 CI gate enforces P99 < 100ms.*
-- **C3 (P1)** — § 11 — specify **dependency-ordered template migration**: review → cross-review → revision → disputes → synthesis → arbitration, with one-mode pilot. *Applied in v2: § 11 steps 3a-3b.*
-- **C4 (P1)** — § 11.1 — explicitly enumerate **semantic equivalence testing** as a CI gate during the migration window: structured-parsed verdicts must match grep-extracted verdicts on all historical arbitration outputs. *Applied in v2: § 11.1 "Semantic equivalence CI gate (C4)".*
-- **C5 (P2)** — § 11 — adopt **tiered/staged implementation**: v1.0.0 basic structural validation by 2026-12-01, advanced features (cross-reference integrity, full constraint validation) in v1.1.0 after performance validation. *Applied in v2: § 11 tiered rollout table + § 5.1 advanced-validation deferral language.*
-- **C6 (P1)** — § 4.1 envelope — add required fields `deliberation_stage`, `engine_version`, `source_commit`. *Applied in v2: § 4.1 envelope schema + example.*
-- **C8 (P2)** — § 4.8 — refine SemVer bump policy with explicit consumer-impact qualification (field rename = MAJOR even if technically additive when consumer parses by name). *Applied in v2: § 4.8 expanded.*
-- **C9 (P2)** — § 5.1 — specify validator error-object schema (`field_path`, `error_code`, `human_message`). *Applied in v2: § 4.9 (new sub-section) + § 5.1 reference.*
-- **C10 (P3)** — § 4.8 — adopt **1.0.0-rc.1 versioning** strategy with bounded iteration period ending by constitutional deadline. *Applied in v2: § 4.8 initial-version language + § 2 goal 2.*
-
-Self-consistency D-conditions and blind-verification E-conditions will be appended below by subsequent stages following the v4.1.0 pattern.
+The applied-conditions ledger for this spec (C1-C10 from originating, D1-D15 from self-consistency, E1-E4 from self-consistency rerun, F1-F4 from blind verification) is moved to **Appendix A: Deliberation Archaeology** § A.3 as part of F4's separation of normative core from ratification audit trail. v5 applies F1-F4 (this changelog header summarizes the application); all prior conditions remain applied with no reversals.
 
 ---
 
 ## 11. Implementation order
 
-Updated per C3 (dependency-ordered template migration with one-mode pilot) and C5 (tiered staging).
+Updated per C3 (dependency-ordered template migration with one-mode pilot), C5 (tiered staging), and F1 (sequencing + dependency gates).
+
+**F1 prerequisite gate.** The implementation order below is a **unidirectional dependency chain**, not a set of parallel tracks. In particular, **template slot syntax specification MUST be complete before validator error specification development begins.** The validator's core function is parsing agent prose with slot markers; it cannot specify error semantics for a slot syntax that does not yet exist. Concretely: the work in step 3a's pilot (cooperative-mode template migration with explicit slot delimiter conventions — `<<<STRENGTHS_BEGIN>>> ... <<<STRENGTHS_END>>>` form per § 5.1, plus escape rules for content containing the delimiter literally, plus parser semantics for malformed slot pairs) MUST land before step 2's validator error specification + § 4.9 error-code semantics are finalized. Parallel work on these two tracks risks divergent interpretations of the slot syntax contract and is prohibited.
+
+The performance budget validation framework (§ 5.1.1) is also a prerequisite gate: it MUST run and PASS (or apply documented graceful degradation) before step 2 lands as merged.
 
 1. **Verify spec** via the four-stage methodology (§ 9).
-2. **Add schemas + validator + renderer** to conversus-oss. Land as one PR with the three worked-example fixtures and CI gate.
+2. **Add schemas + validator + renderer** to conversus-oss. Land as one PR with the three worked-example fixtures and CI gate. **Prerequisite (F1):** template slot syntax specification (delimiters, escape rules, parser semantics for malformed slot pairs) MUST be complete before validator error specification is finalized in this PR. **Prerequisite (F2):** performance budget validation framework (§ 5.1.1) MUST have measured the validator against the v4.1.0 synthesis-corpus subset and the report MUST be green (or documented degradation MUST have been applied).
 3. **Migrate mode templates** to slot-marker form in **dependency order** (C3):
    - **3a. One-mode pilot.** Pick the most-used mode (**cooperative**) and migrate it first. Verify the migration on real production deliberations (re-emit at least one full six-phase deliberation in cooperative mode; validate every emitted JSON; regenerate MD companion; diff against the markdown the original template would have produced — see § 11.1 C4 gate). Block subsequent migrations until the pilot is green.
    - **3b. Remaining modes in dependency order.** The output types form a dependency chain: review → cross-review → revision → disputes → synthesis → arbitration. Within each mode, migrate output types in that order — review first (no upstream dependencies), arbitration last (depends on all five upstream types). One PR per (mode, output-type) pair. Each PR is independently testable.
@@ -897,28 +1165,115 @@ The CI gate is removed at T4 (2026-12-01) when markdown templates are deprecated
 
 ---
 
-## 12. Open questions for the originating arbitration
+## 12. Open questions
 
-**STATUS: RESOLVED by the originating arbitration (2026-05-13).** Listed here for traceability:
+All five originating-arbitration open questions (OQ1-OQ5) are RESOLVED. The resolution detail is moved to **Appendix A: Deliberation Archaeology** § A.4 as part of F4's separation of normative core from ratification audit trail. The OQ5 doctrinal core (verification trail for v4.2.0 itself stays markdown by temporal-constraint scope) is governed normatively by § 9.1.
+
+---
+
+## Appendix A: Deliberation Archaeology
+
+This appendix preserves the full ratification audit trail for v4.2.0 — accumulated changelogs, per-stage condition tables, applied-conditions ledger, originating open questions, methodology-recursion meta-signal narrative, document status checklist, and the per-version fix ledger. Readers implementing the spec (§§ 1-8 + § 9 normative core + § 10 + § 11 normative core) do NOT need to read this appendix. Readers auditing the four-stage verification methodology, tracing how each condition mapped to spec section landings, or evaluating future temporal-constraint precedent invocations (per § 9.1 E4) read this appendix.
+
+### A.1 Recursion-exempted retirement note
+
+The originating arbitration (2026-05-13) ruled **TIER-3-CONFIRMED + RECURSION-EXEMPTED on Q3**. The substantive accommodation (verification trail for v4.2.0 itself stays markdown because the JSON schemas come into existence only at ratification) was preserved across v2→v3→v4→v5. The verdict label "RECURSION-EXEMPTED" was retired in v3 (per D4) in favor of **temporal-constraint scope** language, mirroring v4.1.0's temporal-vs-membership-universality precedent. The doctrinal substance is unchanged; only the framing was sharpened to avoid implying a re-invocable exemption pattern. The current normative governance lives in § 9.1 (with D5 categorical prohibitions, E2 technical precondition, and E4 precedent-citation requirement jointly forming a three-layer containment).
+
+### A.2 Accumulated changelogs (v1 → v2 → v3 → v4)
+
+#### A.2.1 Changelog: v3 → v4
+
+The **self-consistency rerun arbitration** (2026-05-13, `deliberations/v4.2.0-structured-deliberation-outputs-self-consistency-rerun-2026-05-13/arbitration/resolution.md`) returned **PASS-WITH-CLARIFICATIONS on Q1, Q2, and Q3**. Combined disposition: **PROCEED TO BLIND VERIFICATION with E-conditions applied to produce spec v4**. E-conditions are clarifications, not contradictions — they preserve v3's structural decisions (D1 non-blocking validation, D2 Principle II strike, D4-D5 temporal-constraint reframing, D9-D15 XXVIII discharge surfaces) and tighten the surrounding text.
+
+| E# | Summary | Lands in |
+|---|---|---|
+| E1 | **§ 5.4 authority citation.** Add explicit constitutional authority grounding for the PR-blocking CI gate: cite Tier 1 Principle II (Stable Interfaces) + Tier 2 Principle XXVIII sub-clause 2 (mechanical CI enforcement, PR-required). Closes the implicit-authority gap the principle-xxviii-fit-auditor and strict-reader independently flagged. | § 5.4 |
+| E2 | **§ 9.1 D5 technical condition.** Layer a technical precondition on top of the existing categorical prohibitions: the accommodation applies only when (a) no JSON Schema yet exists for the artifact stream in question, AND (b) ratification of this spec is what stands up that schema. Mechanically excludes v2/ schema versions, new output types added to an existing schema, and validator amendments. | § 9.1 |
+| E3 | **§ 9.2 systematic verification matrix.** Replace v3's conclusory prose with citation-backed per-criterion analysis (criterion text → v4.2.0 specific behavior → verification → conclusion). For criterion (ii), the verification enumerates existing Principle V-compliant implementations in conversus-oss (`engine/persistence.py`, `engine/phase6_arbiter.py`, `engine/templates.py`) and demonstrates each remains compliant under v3/v4 architecture. | § 9.2 |
+| E4 | **§ 9.1 precedent-citation requirement.** Future temporal-constraint amendments MUST cite BOTH v4.2.0 (this spec) AND v4.1.0 self-consistency arbitration commit `8f90e2d` as boundary precedents. Citation triggers mandatory constitutional-coherence review at originating stage verifying the E2 technical precondition, the D5 categorical prohibitions, and non-extension beyond the boundary precedents. | § 9.1 |
+
+E1-E4 are smaller-scope than D1-D15: most edits are 1-3 sentences, except E3 which is a matrix rewrite of § 9.2. No v3 structural decision is reopened by v4; in particular, the originating arbitration's TIER-3-CONFIRMED ruling on Q3 (Tier 3 placement) is preserved, the temporal-constraint accommodation is preserved (not eliminated), and the migration philosophy (tiered rollout) is preserved.
+
+#### A.2.2 Changelog: v2 → v3
+
+The **self-consistency arbitration** (2026-05-13, `deliberations/v4.2.0-structured-deliberation-outputs-self-consistency-2026-05-13/arbitration/resolution.md`) returned **PASS-WITH-CLARIFICATIONS** on Q1 and Q2 and **FAIL-CONTRADICTION on Q3**. The load-bearing finding was that v2 § 5.1's blocking-validation language ("the engine logs the error array to the deliberation event stream and aborts the phase (does not write the malformed file)") **directly contradicts ratified Tier 2 Principle V** (CONSTITUTION.md L76-78: "Output validation … emits warnings for malformed output but does NOT block file writes. Malformed output is better than no output"). All four self-consistency agents independently identified this. Per cross-tier weakening prohibition (CONSTITUTION.md L685), a component-tier amendment cannot grant relief from a Tier 2 principle.
+
+v3 applies fifteen D-conditions to resolve the contradiction and close the Q1+Q2 clarifications:
+
+| D# | Priority | Summary | Lands in |
+|---|---|---|---|
+| D1 | P1 (Q3-blocking) | **Rewrite § 5.1 as non-blocking, warning-based validation.** Engine writes the file unconditionally; on schema violation it logs the `ValidatorError` array and emits a prominent warning. CI gates block at PR-time; engine writes never block at write-time. | § 5.1, § 5.4 |
+| D2 | P1 (Q3-blocking) | Strike the Principle II citation in § 9.1; replace with temporal-constraint rationale. | § 9.1 |
+| D3 | P1 | New § 9.2 — explicit cross-tier weakening assessment against CONSTITUTION.md L649-664 criteria (i), (ii), (iii). | § 9.2 (new) |
+| D4 | P1 | Replace "RECURSION-EXEMPTED" language with **temporal-constraint framing** ("v4.2.0 verification outputs predate JSON schema availability by construction") throughout § 9.1, § 12 OQ5, § 13. Mirrors v4.1.0's temporal-vs-membership-universality precedent. | § 9.1, § 12, § 13 |
+| D5 | P1 | Add **anti-precedent language**: this temporal-constraint accommodation applies only to specs that ratify the schema infrastructure they would otherwise be required to use. Future schema-related amendments are NOT exempt from using existing validation infrastructure. | § 9.1, § 9.2 |
+| D6 | P2 | Post-cliff-date ratification handling: if ratification occurs after 2026-12-01, T4 is treated as in-effect at ratification with T1-T3 collapsed. | § 11 |
+| D7 | P2 | Schema-advancement-authority — who decides the `1.0.0-rc.1` → `1.0.0` bump after 30 days clean operation, and by what criteria. | § 4.8 |
+| D8 | P2 | Forward-promotion pathway — one paragraph for the case where a future conversus-* sibling produces deliberation-like artifacts, referencing GOVERNANCE.md pattern-promotion. | § 9.3 (new) |
+| D9 | P1 | Declare `engine/schema/v1/` location in `conversus-oss/CONFORMANCE.md` per XXVIII sub-clause 1 textual requirement (CONSTITUTION.md L505-510). | § 4.0 (new), § 6.1 |
+| D10 | P1 | Add README.md and CLAUDE.md links to CONSUMER-CONTRACT.md per XXVIII sub-clause 1 (CONSTITUTION.md L508-510 — "BOTH"). | § 6.1 |
+| D11 | P1 | Complete CONSUMER-CONTRACT.md content specification per XXVIII sub-clause 5 — explicitly name schema surfaces and state the stability guarantee. | § 7.1 (new) |
+| D12 | P1 | Bidirectional drift-detection CI per XXVIII sub-clause 2 — any change to `engine/schema/v1/*.schema.json` triggers re-validation of all existing producer code outputs under the new schema. Warning-only at write-time (D1 consistency); mechanically detected at CI-time. | § 5.4 |
+| D13 | P2 | Reframe § 5.1's <100ms language as **implementation discipline**, not constitutional mandate. | § 5.1 |
+| D14 | P2 | Document fixture validation scope coverage per XXVIII sub-clause 2 — fixtures cover field presence, types, value constraints, enum violations (three fixture types minimum). | § 5.3 |
+| D15 | P2 | Specify CI detection for schema-version-not-bumped-on-schema-edit per XXVIII sub-clause 3 ("silent format changes are a violation"). | § 5.4 |
+
+**D1 is the load-bearing reversal.** v2's framing — "aborts the phase, does not write the malformed file" — is **inverted** in v3: validation is advisory, runs at write-time, emits warnings into the deliberation event stream, but the file is **always written**. Mechanical enforcement bite is preserved at the PR-required CI gate (per XXVIII sub-clause 2), which DOES block merge on validation failure. The constitutional pillar Principle V protects ("malformed output is better than no output") is preserved at the engine's write path.
+
+**D4 + D5 are the load-bearing reframing.** v2's "RECURSION-EXEMPTED" verdict structurally resembled the v4.1.0 override-with-rationale stretch that v4.1.0 self-consistency rejected when applied uniformly. The self-consistency arbitration identified that this accommodation can be precedent-safe **only if reframed as temporal constraint** (mirroring v4.1.0's temporal-vs-membership distinction): v4.2.0 verification outputs cannot conform to a schema that does not yet exist (bootstrap paradox; the schemas are produced *by this very spec*). v3 reframes "exemption" → "temporal scope precedes existence," and the anti-precedent language (D5) explicitly contains the accommodation to this one-time bootstrap and bars future schema-related amendments from invoking the same shape.
+
+#### A.2.3 Changelog: v1 → v2
+
+The originating arbitration (2026-05-13) returned APPROVE-WITH-FIXES on Q1 and Q2 with conditions C1-C10, and TIER-3-CONFIRMED + RECURSION-EXEMPTED on Q3. v2 applies all ten conditions verbatim. The single most consequential change is **C1**: the canonical schema language and file format switch from XML + XSD to **JSON + JSON Schema**. All four originating agents converged independently on this.
+
+| C# | Priority | Summary | Lands in |
+|---|---|---|---|
+| C1 | P1 | Canonical format flipped from XML+XSD → JSON + JSON Schema. Namespace becomes a JSON Schema `$id` URI. Validator architecture uses Python `jsonschema`. | § 4, § 5.1, § 7 |
+| C2 | P1 | Validator runtime budget: **<100ms per output**. If a validator implementation exceeds this, the validator is the bug, not the schema. | § 5.1 |
+| C3 | P1 | Dependency-ordered template migration with one-mode pilot (cooperative first). | § 11 |
+| C4 | P1 | Semantic equivalence testing as CI gate — re-render structured output back to markdown and diff against the markdown the original template would have produced. | § 11.1 |
+| C5 | P2 | Tiered/staged rollout: parallel-format support → advisory CI → blocking CI → markdown deprecation. | § 11, § 11.1 |
+| C6 | P1 | Envelope identity-field expansion: `deliberation_stage`, `engine_version`, `source_commit`. | § 4.1 |
+| C8 | P2 | SemVer bump qualification: MAJOR / MINOR / PATCH definitions with consumer-impact qualification. Adding REQUIRED fields is MAJOR. | § 4.8 |
+| C9 | P2 | Validator error-object schema (`field_path`, `error_code`, `human_message`, `expected_type`, `actual_value`, `suggested_fix`). | § 4.9 (new), § 5.1 |
+| C10 | P3 | Initial schema version is `1.0.0-rc.1`. Bump to `1.0.0` after one ratification cycle of clean operation. | § 4.8 |
+
+(C7 is subsumed by C1 in the arbitration's own consolidation; the Q2-axis restatement is folded into § 4.)
+
+### A.3 Applied-conditions ledger (originating C1-C10)
+
+Quoting verbatim from `deliberations/v4.2.0-structured-deliberation-outputs-originating-2026-05-12/arbitration/resolution.md`:
+
+- **C1 (P1)** — § 4 + § 5.1 — switch canonical format from XML+XSD to **JSON Schema**. Update all six body-schema definitions and the common envelope to JSON Schema syntax. Update § 3 non-goals to remove the "XSD strawman" framing. *Applied in v2: §§ 4, 5.1, 7 fully rewritten; § 3 strawman language removed.*
+- **C2 (P1)** — § 5.1 — establish **<100ms per-output validation performance budget** for write-time validation with early performance testing to fix scope before commitment. *Applied in v2: § 5.1 "Performance budget (C2)" paragraph + § 5.4 CI gate enforces P99 < 100ms.*
+- **C3 (P1)** — § 11 — specify **dependency-ordered template migration**: review → cross-review → revision → disputes → synthesis → arbitration, with one-mode pilot. *Applied in v2: § 11 steps 3a-3b.*
+- **C4 (P1)** — § 11.1 — explicitly enumerate **semantic equivalence testing** as a CI gate during the migration window: structured-parsed verdicts must match grep-extracted verdicts on all historical arbitration outputs. *Applied in v2: § 11.1 "Semantic equivalence CI gate (C4)".*
+- **C5 (P2)** — § 11 — adopt **tiered/staged implementation**: v1.0.0 basic structural validation by 2026-12-01, advanced features (cross-reference integrity, full constraint validation) in v1.1.0 after performance validation. *Applied in v2: § 11 tiered rollout table + § 5.1 advanced-validation deferral language.*
+- **C6 (P1)** — § 4.1 envelope — add required fields `deliberation_stage`, `engine_version`, `source_commit`. *Applied in v2: § 4.1 envelope schema + example.*
+- **C8 (P2)** — § 4.8 — refine SemVer bump policy with explicit consumer-impact qualification (field rename = MAJOR even if technically additive when consumer parses by name). *Applied in v2: § 4.8 expanded.*
+- **C9 (P2)** — § 5.1 — specify validator error-object schema (`field_path`, `error_code`, `human_message`). *Applied in v2: § 4.9 (new sub-section) + § 5.1 reference.*
+- **C10 (P3)** — § 4.8 — adopt **1.0.0-rc.1 versioning** strategy with bounded iteration period ending by constitutional deadline. *Applied in v2: § 4.8 initial-version language + § 2 goal 2.*
+
+(C7 was consolidated into C1 by the arbitration; it does not appear as a separate ledger entry.)
+
+### A.4 Resolved originating open questions
 
 - **OQ1 — Tier placement.** **RESOLVED: TIER-3-CONFIRMED.** Re-evaluate at the first conversus-suite sibling that produces deliberation-like artifacts. *(Q3 ruling.)*
 - **OQ2 — XSD vs JSON Schema vs Pydantic-XML for the validator.** **RESOLVED: JSON Schema.** Unanimous P1 convergence across all four agents. *(C1 + C7 in arbitration, applied in v2 § 4 + § 5.1.)*
 - **OQ3 — Companion MD generation: XSLT vs Python renderer.** **RESOLVED: Python renderer.** No agent challenged the strawman. *(Q1 Per-axis finding 6.)*
 - **OQ4 — Deprecation cliff date.** **RESOLVED: 2026-12-01.** Constitutional deadline non-negotiability unanimous. *(Q1 Per-axis finding 7.)*
-- **OQ5 — Methodological recursion.** **RESOLVED: TEMPORAL-CONSTRAINT SCOPE** (v3, per self-consistency D4). Markdown verification trail stays for v4.2.0 itself because v4.2.0's verification outputs are produced before the JSON schemas it ratifies come into existence (bootstrap paradox); JSON mandatory for subsequent specs. Anti-precedent language (§ 9.1 D5) contains the accommodation to this one-time bootstrap and bars future re-invocation. The originating-stage "RECURSION-EXEMPTED" verdict label is retired; the substance (markdown stays for v4.2.0) is preserved under a doctrinally-correct framing.
+- **OQ5 — Methodological recursion.** **RESOLVED: TEMPORAL-CONSTRAINT SCOPE** (v3, per self-consistency D4; sharpened with E2 technical precondition + E4 precedent-citation requirement in v4). Markdown verification trail stays for v4.2.0 itself because v4.2.0's verification outputs are produced before the JSON schemas it ratifies come into existence (bootstrap paradox); JSON mandatory for subsequent specs. Anti-precedent language (§ 9.1 D5) contains the accommodation to this one-time bootstrap and bars future re-invocation. The originating-stage "RECURSION-EXEMPTED" verdict label is retired; the substance (markdown stays for v4.2.0) is preserved under a doctrinally-correct framing. Normative governance: § 9.1.
 
----
-
-## 13. Footnote: methodology recursion + meta-signal
+### A.5 Methodology recursion + meta-signal footnote
 
 Running this spec through the four-stage verification uses the methodology whose outputs it schematizes. Two meta-signals to watch for:
 
 - **If the methodology can't sustain its own self-improvement at this stage** — e.g., if the originating deliberation hits Bug A (prompt overflow) or Bug C (trigger miss) while reviewing the very spec that fixes them — that is a strong signal the migration is overdue and should be sequenced ahead of further v4.x amendments. **Status:** Bug C *did* manifest in the originating arbitration (the Phase 5 synthesizer wrote "Remaining Disputes" rather than the engine's expected marker pair; the arbiter dispatch silently missed; manual arbitration was produced — see `deliberations/v4.2.0-structured-deliberation-outputs-originating-2026-05-12/arbitration/resolution.md` "Process Note"). This is real-time confirmation that the spec's structural-detection thesis is correct.
 - **If the blind verification surfaces "should this spec require JSON for ITS OWN verification outputs?"** as a load-bearing question, the answer is **temporal-constraint scope** per § 9.1 (D4): v4.2.0 verification outputs predate JSON schema availability by construction, so they cannot logically conform to a schema that does not yet exist. The verification trail for v4.2.0 itself stays markdown — a fixed point in the migration. Anti-precedent language (§ 9.1 D5) bars future re-invocation under "adjacent" framings. JSON is mandatory for specs ratified after v4.2.0 implementation completion.
 
----
+**Status update at v5 (post-blind-verification).** The blind verification did surface implementation-clarification concerns (Q1 IMPLEMENTABLE-WITH-CLARIFICATIONS via F1-F3) and noted the doctrinal-archaeology accumulation as a presentation problem (Q3 HOLDS-AS-DOCTRINE via F4 separation). It did NOT reopen the temporal-constraint scope ruling; the OQ5-substance fixed point holds.
 
-## 17. Fix ledger
+### A.6 Fix ledger
 
 | Version | Date | Change | Source |
 |---|---|---|---|
@@ -926,27 +1281,25 @@ Running this spec through the four-stage verification uses the methodology whose
 | v2 | 2026-05-13 | Applied C1-C10 from originating arbitration. C1: format flipped XML+XSD → JSON + JSON Schema (all six body schemas + envelope rewritten in §§ 4.1-4.7; § 5.1 validator architecture rewritten around Python `jsonschema`; § 7 adapter parsing migrated grep/`xmllint` → `jq`/Python `json.load`). C2: <100ms validation budget (§ 5.1) with P99 CI assertion (§ 5.4). C3: dependency-ordered template migration with cooperative-mode pilot (§ 11 step 3). C4: semantic equivalence CI gate during migration window (§ 11.1). C5: four-tier rollout (§ 11). C6: three additional required envelope fields (§ 4.1). C8: SemVer bump qualification with consumer-impact rule (§ 4.8). C9: validator error-object schema (§ 4.9 new). C10: initial schema version `1.0.0-rc.1` (§ 4.8, § 2 goal 2). | `deliberations/v4.2.0-structured-deliberation-outputs-originating-2026-05-12/arbitration/resolution.md` |
 | v3 | 2026-05-13 | Applied D1-D15 from self-consistency arbitration. **D1 (load-bearing reversal):** § 5.1 rewritten as non-blocking warning-based validation; engine writes the file unconditionally; PR-required CI gate (§ 5.4) carries the enforcement bite. Resolves Q3 FAIL-CONTRADICTION against Tier 2 Principle V ("does NOT block file writes"). **D2:** struck Principle II misattribution in § 9.1. **D3:** new § 9.2 cross-tier weakening assessment against CONSTITUTION.md L649-664 criteria (i)/(ii)/(iii); conclusion: scope clarification, not relief. **D4 + D5 (load-bearing reframing):** replaced "RECURSION-EXEMPTED" with temporal-constraint scope language throughout § 9.1, § 12 OQ5, § 13; mirrors v4.1.0's temporal-vs-membership-universality precedent; added anti-precedent containment language barring future re-invocation. **D6:** post-cliff-date ratification handling in § 11 (T1-T3 collapsed, T4 in-effect at ratification). **D7:** schema-advancement authority in § 4.8 (maintainer set + quantitative/qualitative criteria for 1.0.0-rc.1 → 1.0.0 promotion). **D8:** new § 9.3 forward-promotion pathway for Tier-3 → Tier-2 when a second sibling produces deliberation outputs. **D9:** schema-location declaration in CONFORMANCE.md (§ 4.0 new, § 6.1). **D10:** README + CLAUDE.md links to CONSUMER-CONTRACT.md (§ 6.1). **D11:** complete CONSUMER-CONTRACT.md content specification in § 7.1 (new) with six required sections. **D12:** bidirectional drift-detection CI job (§ 5.4). **D13:** <100ms reframed as implementation discipline, not constitutional mandate (§ 5.1). **D14:** fixture scope expanded to four types covering field presence, type checking, value constraints, baseline (§ 5.3). **D15:** schema-version-bump CI detection job (§ 5.4). | `deliberations/v4.2.0-structured-deliberation-outputs-self-consistency-2026-05-13/arbitration/resolution.md` |
 | v4 | 2026-05-13 | Applied E1-E4 from self-consistency rerun arbitration (PASS-WITH-CLARIFICATIONS on Q1+Q2+Q3; combined disposition PROCEED-TO-BLIND-VERIFICATION). **E1:** § 5.4 gains explicit constitutional authority citation for the PR-blocking CI gate, grounding it in Tier 1 Principle II (Stable Interfaces) + Tier 2 Principle XXVIII sub-clause 2 (mechanical CI enforcement, PR-required). Closes the implicit-authority gap flagged by the principle-xxviii-fit-auditor and strict-reader. **E2:** § 9.1 D5 paragraph gains a technical precondition layered on top of the existing categorical prohibitions: the accommodation applies only when (a) no JSON Schema yet exists for the artifact stream in question AND (b) the spec's own ratification stands up that schema. Mechanically excludes v2/ (or later) schema versions, new output types added to an existing schema, and validator amendments. **E3:** § 9.2 rewritten as a systematic verification matrix (citation-backed per-criterion analysis: criterion text → v4.2.0 specific behavior → verification → conclusion). Criterion (ii)'s verification enumerates existing Principle V-compliant implementations (`engine/persistence.py`, `engine/phase6_arbiter.py`, `engine/templates.py`) and demonstrates each remains compliant under v3/v4 architecture. Replaces v3's conclusory prose with citation-backed evidence per the agents' unanimous P1 request. **E4:** § 9.1 gains a precedent-citation requirement — future temporal-constraint amendments MUST cite BOTH v4.2.0 (this spec) AND v4.1.0 self-consistency arbitration commit `8f90e2d` as boundary precedents; citation triggers mandatory constitutional-coherence review at originating stage. Makes precedent-stretching visible at the earliest stage. | `deliberations/v4.2.0-structured-deliberation-outputs-self-consistency-rerun-2026-05-13/arbitration/resolution.md` |
+| v5 | 2026-05-13 | Applied F1-F4 from blind verification arbitration (Q1 IMPLEMENTABLE-WITH-CLARIFICATIONS; Q2 MODERATE-RISK-MANAGEABLE; Q3 HOLDS-AS-DOCTRINE; combined disposition PROCEED-TO-RATIFICATION). **F1 (sequencing + dependency gates):** § 11 implementation order now specifies template slot syntax completion as a prerequisite gate before validator error specification development begins (unidirectional dependency, not parallel tracks). § 9.1 gains a technical-operational sequencing paragraph: technical specification gaps must be resolved before operational capacity validation can proceed; hybrid only permitted for governance framework development. **F2 (concrete implementation specifications):** § 5.1 validator pseudocode replaced with concrete Python 3.12 + Pydantic v2 class signatures (`SchemaValidator`, `ValidationResult`, `ValidationWarning`) per Principle IX (explicit type annotations + Pydantic models). § 5.4 prose CI gate replaced with a complete GitHub Actions workflow YAML example (four normative jobs: validate-conformance, drift-detection-bidirectional, schema-version-bump-detection, fixture-and-renderer-tests). New § 5.1.1 performance budget validation framework requires warm-cache + cold-cache measurement against the v4.1.0 synthesis-corpus subset (representative outputs >100K char) before architectural lock-in of the <100ms target; graceful-degradation behavior documented for the failure mode. **F3 (CONSUMER-CONTRACT.md six-section template):** § 7.1 converted from descriptive content specification to a fully-fleshed normative template with each of the six section headings written verbatim (Consumed Surface Declaration / Schema Version Pinning / Stability Guarantee / Consumer-Side Obligations / Producer-Side Enforcement / Change Coordination), required language under each heading, and a worked example for conversus-oss declaring deliberation-output schemas. Engineers can copy-paste-adapt. **F4 (doctrinal archaeology separation):** new Appendix A: Deliberation Archaeology consolidates accumulated v1→v2, v2→v3, v3→v4 changelogs (§§ A.2.1-A.2.3), applied-conditions ledger (§ A.3), resolved originating open questions (§ A.4), methodology recursion meta-signal footnote (§ A.5), and fix ledger (§ A.6). §§ 9 + 11 normative cores (temporal-constraint rule + E2 technical precondition + D5 categorical prohibitions + E4 precedent-citation requirement; § 9.2 cross-tier weakening verification matrix; § 11 implementation order + tiered rollout dates) are retained in-line. | `deliberations/v4.2.0-structured-deliberation-outputs-blind-2026-05-13/arbitration/resolution.md` |
 
----
+### A.7 Document status checklist
 
-## Document status checklist
-
-- [x] § 1 Motivation grounded in three concrete bugs with citations + real-time Bug C reproduction confirmation.
+- [x] § 1 Motivation grounded in three concrete bugs with citations + real-time Bug C reproduction confirmation + four-stage methodology completion note.
 - [x] § 2 Goals enumerated (6 goals, each tied to Principle XXVIII sub-clause).
 - [x] § 3 Non-goals enumerated.
 - [x] § 4 Schema specified with JSON Schema definitions for all six output types + envelope + validator-error object.
-- [x] § 5 Implementation specified with engine file paths + CI gate + <100ms performance budget.
+- [x] § 5 Implementation specified with engine file paths + CI workflow YAML (F2) + Python class signatures (F2) + performance budget validation framework (F2 § 5.1.1).
 - [x] § 6 File edits per repo enumerated (conversus-oss + orchestrator + payer-index-mono).
-- [x] § 7 Cross-product implications mapped (orchestrator adapter migration).
+- [x] § 7 Cross-product implications mapped (orchestrator adapter migration); § 7.1 six-section CONSUMER-CONTRACT.md template (F3) normative.
 - [x] § 8 Inclusion criteria checked against Principle XXVIII three-prong test.
-- [x] § 9 Verification methodology specified; originating stage COMPLETE; self-consistency stage COMPLETE (FAIL-CONTRADICTION on Q3 → v3 produced); self-consistency rerun COMPLETE (PASS-WITH-CLARIFICATIONS Q1/Q2/Q3 → v4 produced via E1-E4); blind verification pending.
-- [x] § 9.1 Methodological recursion reframed as temporal-constraint scope (D2, D4, D5); E2 technical precondition + E4 precedent-citation requirement layered on D5.
+- [x] § 9 Verification methodology specified; all four stages COMPLETE (originating PASS via C1-C10 → v2; self-consistency FAIL-CONTRADICTION on Q3 → D1-D15 → v3; self-consistency rerun PASS-WITH-CLARIFICATIONS → E1-E4 → v4; blind verification IMPLEMENTABLE-WITH-CLARIFICATIONS + MODERATE-RISK-MANAGEABLE + HOLDS-AS-DOCTRINE → F1-F4 → v5).
+- [x] § 9.1 Methodological recursion reframed as temporal-constraint scope (D2, D4, D5); E2 technical precondition + E4 precedent-citation requirement layered on D5; F1 technical-operational sequencing paragraph added.
 - [x] § 9.2 Cross-tier weakening assessment (D3, E3) — systematic verification matrix; criteria (i)/(ii)/(iii) all NOT triggered with citation-backed evidence.
 - [x] § 9.3 Forward-promotion pathway documented (D8).
-- [x] § 10 Conditions C1-C10 populated and marked Applied in v2; D1-D15 marked Applied in v3; E1-E4 marked Applied in v4 (this changelog + § 17 fix ledger).
-- [x] § 11 Implementation order with dependency-ordered migration + tiered rollout + post-cliff handling (D6).
-- [x] § 12 Open questions resolved; OQ5 reframed under temporal-constraint scope.
-- [x] § 13 Methodological recursion meta-signal documented under temporal-constraint framing.
-- [x] § 17 Fix ledger entries for v1 → v2, v2 → v3, and v3 → v4.
+- [x] § 10 Conditions ledger pointer to Appendix A § A.3 (F4 separation).
+- [x] § 11 Implementation order with F1 prerequisite gate (template slot syntax before validator error specification) + dependency-ordered migration + tiered rollout + post-cliff handling (D6).
+- [x] § 12 Open questions pointer to Appendix A § A.4 (F4 separation).
+- [x] Appendix A consolidates all archaeology (changelogs, applied-conditions ledger, open questions, methodology meta-signal, fix ledger, document status checklist).
 
-End of v3 draft. PROCEED-TO-SELF-CONSISTENCY-RERUN.
+End of v5 spec. **PROCEED-TO-RATIFICATION.**
