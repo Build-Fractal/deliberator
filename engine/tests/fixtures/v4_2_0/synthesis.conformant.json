@@ -1,0 +1,32 @@
+{
+  "schema_version": "1.0.0-rc.1",
+  "output_type": "synthesis",
+  "agent_name": "synthesizer",
+  "deliberation_id": "fixture-conformant-synthesis",
+  "deliberation_stage": "originating",
+  "engine_version": "0.7.3",
+  "source_commit": "abcd1234",
+  "timestamp": "2026-05-13T12:04:00Z",
+  "body": {
+    "agreement_areas": [
+      "Persistence layer boundary is well-defined.",
+      "Three worked-example fixtures per output type satisfies XXVIII C6."
+    ],
+    "disputes": [
+      {
+        "id": "D1",
+        "severity": "blocking",
+        "topic": "Validator budget measurement timing",
+        "positions": [
+          { "agent": "pragmatist", "stance": "Budget measurement can defer to F2c." },
+          { "agent": "devils-advocate", "stance": "Budget MUST be measured before F2c lock-in." }
+        ],
+        "synthesizer_assessment": "Devils-advocate position is structurally correct; budget gate must precede architectural commitment per spec § 5.1.1."
+      }
+    ],
+    "emergent_patterns": [
+      "F2 split sequencing surfaces dependency violations earlier than monolithic PR review would."
+    ],
+    "recommendation_to_arbiter": "Adopt devils-advocate position on D1: move budget measurement gate to before F2c commits."
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://build-fractal.org/conversus/schema/v1/synthesis.schema.json",
+  "title": "Conversus Synthesis Body — Phase 5 single agent integrates all prior outputs",
+  "description": "Per v4.2.0 spec § 4.6. Wrapped by envelope.schema.json with output_type='synthesis'. The body.disputes[].severity field is the structural source-of-truth for Phase 6's disputes_remain trigger (fixes Bug C — grep-mismatch trigger miss).",
+  "type": "object",
+  "required": ["agreement_areas", "disputes", "emergent_patterns", "recommendation_to_arbiter"],
+  "properties": {
+    "agreement_areas": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "disputes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "severity", "topic", "positions", "synthesizer_assessment"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^D[0-9]+$" },
+          "severity": { "enum": ["blocking", "substantive"] },
+          "topic": { "type": "string" },
+          "positions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["agent", "stance"],
+              "properties": {
+                "agent": { "type": "string" },
+                "stance": { "type": "string" }
+              }
+            }
+          },
+          "synthesizer_assessment": { "type": "string" }
+        }
+      }
+    },
+    "emergent_patterns": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "recommendation_to_arbiter": { "type": "string" }
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://build-fractal.org/conversus/schema/v1/arbitration.schema.json",
+  "title": "Conversus Arbitration Body — Phase 6 arbiter's binding verdict",
+  "description": "Per v4.2.0 spec § 4.7. Wrapped by envelope.schema.json with output_type='arbitration'.",
+  "type": "object",
+  "required": [
+    "process_note",
+    "decision_framework",
+    "per_question_rulings",
+    "combined_disposition",
+    "ruling_lines"
+  ],
+  "properties": {
+    "process_note": { "type": "string" },
+    "decision_framework": { "type": "string" },
+    "per_question_rulings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["question", "verdict", "rationale", "conditions"],
+        "properties": {
+          "question": { "type": "string", "pattern": "^Q[0-9]+$" },
+          "verdict": {
+            "enum": [
+              "APPROVE-AS-DRAFTED",
+              "APPROVE-WITH-FIXES",
+              "BLOCK",
+              "PASS-WITH-CLARIFICATIONS",
+              "FAIL-OVERSTRETCH",
+              "TIER-3-CONFIRMED",
+              "RECURSION-EXEMPTED"
+            ]
+          },
+          "rationale": { "type": "string" },
+          "conditions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["id", "priority", "description", "applies_to_section"],
+              "properties": {
+                "id": { "type": "string", "pattern": "^C[0-9]+$" },
+                "priority": { "enum": ["P1", "P2", "P3"] },
+                "description": { "type": "string" },
+                "applies_to_section": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "combined_disposition": {
+      "enum": [
+        "PROCEED-TO-RATIFICATION",
+        "PROCEED-TO-NEXT-STAGE",
+        "PROCEED-TO-SELF-CONSISTENCY",
+        "RETURN-TO-REVIEW",
+        "BLOCK"
+      ]
+    },
+    "ruling_lines": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["question", "verdict", "rationale"],
+        "properties": {
+          "question": { "type": "string", "pattern": "^Q[0-9]+$" },
+          "verdict": { "type": "string" },
+          "rationale": { "type": "string" }
+        }
+      }
+    }
+  }
+}

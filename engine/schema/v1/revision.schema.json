@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://build-fractal.org/conversus/schema/v1/revision.schema.json",
+  "title": "Conversus Revision Body — Phase 3 agent updates own position",
+  "description": "Per v4.2.0 spec § 4.4. Wrapped by envelope.schema.json with output_type='revision'. `iteration` matches `phase_iteration` on the envelope; multiple revision iterations supported (e.g., revision.json + revision_2.json).",
+  "type": "object",
+  "required": ["iteration", "position_changes", "updated_recommendation"],
+  "properties": {
+    "iteration": { "type": "integer", "minimum": 1 },
+    "position_changes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["ref", "delta", "prior", "revised", "triggered_by"],
+        "properties": {
+          "ref": { "type": "string" },
+          "delta": { "enum": ["strengthened", "softened", "withdrawn", "unchanged"] },
+          "prior": { "type": "string" },
+          "revised": { "type": "string" },
+          "triggered_by": { "type": "string" }
+        }
+      }
+    },
+    "updated_recommendation": {
+      "enum": ["APPROVE-AS-DRAFTED", "APPROVE-WITH-FIXES", "BLOCK", "ABSTAIN"]
+    }
+  }
+}

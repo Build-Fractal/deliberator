@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://build-fractal.org/conversus/schema/v1/cross-review.schema.json",
+  "title": "Conversus Cross-Review Body — Phase 2 agent X reviews agent Y",
+  "description": "Per v4.2.0 spec § 4.3. Wrapped by envelope.schema.json with output_type='cross-review'. The envelope agent_name is the cross-reviewer; reviewing_agent below is the reviewed agent.",
+  "type": "object",
+  "required": ["reviewing_agent", "agreement_points", "disagreement_points", "new_concerns_raised"],
+  "properties": {
+    "reviewing_agent": { "type": "string", "minLength": 1 },
+    "agreement_points": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["ref", "text"],
+        "properties": {
+          "ref": { "type": "string" },
+          "text": { "type": "string" }
+        }
+      }
+    },
+    "disagreement_points": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["ref", "stance", "our_position", "their_position"],
+        "properties": {
+          "ref": { "type": "string" },
+          "stance": { "enum": ["disagree", "partial-disagree"] },
+          "our_position": { "type": "string" },
+          "their_position": { "type": "string" }
+        }
+      }
+    },
+    "new_concerns_raised": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "severity", "text"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^CR[0-9]+$" },
+          "severity": { "enum": ["blocking", "substantive", "nit"] },
+          "text": { "type": "string" }
+        }
+      }
+    }
+  }
+}
