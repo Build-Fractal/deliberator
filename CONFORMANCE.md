@@ -2,8 +2,8 @@
 
 **Suite:** conversus
 **Inherits from:**
-- `https://github.com/Build-Fractal/build-fractal-mono/blob/main/build-fractal/CONSTITUTION.md` (Tier 1 — Universal, v1.0.0 ratified 2026-05-07 with v4.0.0)
-- `https://github.com/Build-Fractal/build-fractal-mono/blob/main/build-fractal/conversus/CONSTITUTION.md` (Tier 2 — Suite, v1.0.0 ratified 2026-05-07 with v4.0.0)
+- `https://github.com/Build-Fractal/build-fractal-mono/blob/main/CONSTITUTION.md` (Tier 1 — Universal, v1.0.0 ratified 2026-05-07 with v4.0.0)
+- `https://github.com/Build-Fractal/build-fractal-mono/blob/main/conversus/CONSTITUTION.md` (Tier 2 — Suite, v1.0.0 ratified 2026-05-07 with v4.0.0)
 
 **Component constitution:** `CONSTITUTION.md` (this repo) — currently v3.2.3, the canonical source for all three tiers until v4.0.0 ratifies the split.
 
@@ -102,4 +102,4 @@ Until v4.0.0 ratifies, this file is **advisory** — it documents the intended c
 - Status will flip from `Implicit-Provisional` to `Compliant` (or `Provisional` if remediation deadlines extend past ratification).
 - The first formal re-audit cycle begins.
 
-See `https://github.com/Build-Fractal/build-fractal-mono/blob/main/build-fractal/conversus/COMPLIANCE.md` for the contract definition this declaration conforms to.
+See `https://github.com/Build-Fractal/build-fractal-mono/blob/main/conversus/COMPLIANCE.md` for the contract definition this declaration conforms to.

@@ -66,7 +66,7 @@ This file is an index, not a transcript.
 ## 2026-05-08 — v4.0.0 erratum C1 — URL-reference cross-tier resolution
 
 **Type**: Erratum (PATCH-equivalent; substantive content unchanged).
-**Source**: `https://github.com/Build-Fractal/build-fractal-mono/blob/main/build-fractal/conversus/CONSTITUTIONAL_CONVERSATIONS.md` 2026-05-08 v4.0.0-erratum-c1-url-references entry (suite-tier).
+**Source**: `https://github.com/Build-Fractal/build-fractal-mono/blob/main/conversus/CONSTITUTIONAL_CONVERSATIONS.md` 2026-05-08 v4.0.0-erratum-c1-url-references entry (suite-tier).
 **Effect on this repo**: cross-tier references in `CONSTITUTION.md` and `CONFORMANCE.md` converted from filesystem-relative paths (`../build-fractal/...`) to canonical GitHub URLs. Repo's standalone usability restored — readers cloning conversus-oss alone or browsing on github.com see clickable URL references to the monorepo's canonical Tier 1 / Tier 2 sources. Tooling: `linter/tier_coherence.py` Check (c) extended to validate URL form against canonical monorepo prefix.
 **No principle text changed**.
 
