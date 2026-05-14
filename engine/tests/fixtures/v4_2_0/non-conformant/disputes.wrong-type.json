@@ -1,0 +1,13 @@
+{
+  "agent_name": "pragmatist",
+  "body": {
+    "disputes": "should be array"
+  },
+  "deliberation_id": "fixture-conformant-disputes",
+  "deliberation_stage": "originating",
+  "engine_version": "0.7.3",
+  "output_type": "disputes",
+  "schema_version": "1.0.0-rc.1",
+  "source_commit": "abcd1234",
+  "timestamp": "2026-05-13T12:03:00Z"
+}

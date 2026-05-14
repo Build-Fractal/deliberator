@@ -1,0 +1,30 @@
+{
+  "agent_name": "pragmatist",
+  "body": {
+    "position_changes": [
+      {
+        "delta": "softened",
+        "prior": "Validator budget MUST be measured before F2 lands.",
+        "ref": "C1",
+        "revised": "Validator budget SHOULD be measured before F2c lands.",
+        "triggered_by": "devils-advocate cross-review disagreement on C1"
+      },
+      {
+        "delta": "unchanged",
+        "prior": "Persistence layer boundary is well-defined.",
+        "ref": "S1",
+        "revised": "Persistence layer boundary is well-defined.",
+        "triggered_by": "no cross-review pressure on S1"
+      }
+    ],
+    "updated_recommendation": "APPROVE-WITH-FIXES"
+  },
+  "deliberation_id": "fixture-conformant-revision",
+  "deliberation_stage": "originating",
+  "engine_version": "0.7.3",
+  "output_type": "revision",
+  "phase_iteration": 1,
+  "schema_version": "1.0.0-rc.1",
+  "source_commit": "abcd1234",
+  "timestamp": "2026-05-13T12:02:00Z"
+}

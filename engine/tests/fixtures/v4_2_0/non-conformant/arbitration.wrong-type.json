@@ -1,0 +1,23 @@
+{
+  "agent_name": "balanced-arbiter",
+  "body": {
+    "combined_disposition": "PROCEED-TO-NEXT-STAGE",
+    "decision_framework": "spec 067 \u00a7 4 four-stage verification; Principle V mandates non-blocking writes; spec \u00a7 5.1.1 mandates pre-commit budget measurement.",
+    "per_question_rulings": "should be array",
+    "process_note": "Single Phase 6 firing; trigger fired structurally on body.disputes[*].severity=='blocking'.",
+    "ruling_lines": [
+      {
+        "question": "Q1",
+        "rationale": "Move performance budget validation framework gate ahead of F2c lock-in.",
+        "verdict": "APPROVE-WITH-FIXES"
+      }
+    ]
+  },
+  "deliberation_id": "fixture-conformant-arbitration",
+  "deliberation_stage": "originating",
+  "engine_version": "0.7.3",
+  "output_type": "arbitration",
+  "schema_version": "1.0.0-rc.1",
+  "source_commit": "abcd1234",
+  "timestamp": "2026-05-13T12:05:00Z"
+}

@@ -1,0 +1,151 @@
+# Reference implementation of the schema-validate CI gate.
+#
+# Per v4.2.0 spec § 5.4 (build-fractal-mono/blob/main/conversus/conversus-oss/specs/
+# v4.2.0-structured-deliberation-outputs/spec.md), this workflow operationalizes
+# Tier 2 Principle XXVIII sub-clause 2 (mechanical CI enforcement, PR-required)
+# + Tier 1 Principle II (Stable Interfaces). The four jobs together discharge:
+#   - validate-conformance      → § 5.4 forward-validation
+#   - drift-detection-bidirectional → § 5.4 D12 bidirectional drift
+#   - schema-version-bump-detection → § 5.4 D15 silent-format-change check
+#   - fixture-and-renderer-tests → § 5.3 + § 5.1.1 fixture + perf assertions
+#
+# All four jobs are intended as REQUIRED status checks on the `main` branch
+# protection rule. Failure of any blocks merge. There is no `--admin` bypass:
+# fix the producer, then merge.
+name: schema-validate
+
+on:
+  pull_request:
+    paths:
+      - 'deliberations/**'
+      - 'engine/schema/**'
+      - 'engine/schema_validator.py'
+      - 'engine/persistence.py'
+      - 'engine/render_md.py'
+      - 'engine/tests/fixtures/v4_2_0/**'
+      - 'engine/tests/test_schema_validator*.py'
+      - 'engine/tests/test_non_conformant_fixtures.py'
+      - 'engine/tests/test_persist_output.py'
+      - 'engine/tests/test_validator_performance.py'
+      - 'engine/tests/test_render_md.py'
+      - 'engine/tests/drift_detection.py'
+      - 'engine/tests/version_bump_check.py'
+  push:
+    branches: [main]
+
+jobs:
+  validate-conformance:
+    # Forward-validation: every JSON file under deliberations/ must conform to
+    # the current schema. Sidecar .validation-warnings.json files indicate
+    # producer code emitted a malformed file at write-time and MUST be fixed
+    # before merge (per § 5.4).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+      - name: Install dependencies
+        run: uv sync
+      - name: Run forward-validation over deliberations/
+        run: uv run python -m engine.schema_validator --all deliberations
+      - name: Assert no .validation-warnings.json sidecars present
+        run: |
+          if [ -d deliberations ] && find deliberations -name '*.validation-warnings.json' | grep -q .; then
+            echo "::error::Validation sidecars found — producer code emitted malformed outputs."
+            find deliberations -name '*.validation-warnings.json'
+            exit 1
+          fi
+
+  drift-detection-bidirectional:
+    # D12 + Principle XXVIII sub-clause 2 ("Validation MUST be bidirectional").
+    # When the schema itself changes, re-validate the pre-existing deliberations
+    # corpus under the new schema. Catches schema edits that silently break
+    # previously-conformant artifacts.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+      - name: Install dependencies
+        run: uv sync
+      - name: Detect schema changes and run bidirectional drift if relevant
+        run: |
+          BASE_SHA=${{ github.event.pull_request.base.sha }}
+          if git diff --name-only "$BASE_SHA"..HEAD -- engine/schema/v1/ | grep -q .; then
+            echo "Schema files changed; running bidirectional drift detection."
+            uv run python -m engine.tests.drift_detection --baseline-ref "$BASE_SHA"
+          else
+            echo "No schema files changed; drift detection not applicable."
+          fi
+
+  schema-version-bump-detection:
+    # D15 + Principle XXVIII sub-clause 3 ("silent format changes are a
+    # violation"). Schema edits MUST be accompanied by either an envelope
+    # schema_version pattern/enum/const bump, a $id version path bump, or a
+    # [schema:no-bump-justified] token in the PR description with rationale.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+      - name: Install dependencies
+        run: uv sync
+      - name: Run version-bump check
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          uv run python -m engine.tests.version_bump_check \
+            --base-ref ${{ github.event.pull_request.base.sha }} \
+            --head-ref ${{ github.sha }} \
+            --pr-body "$PR_BODY"
+
+  fixture-and-renderer-tests:
+    # § 5.3 worked-example fixtures + § 5.1 unit tests + § 5.1.1 performance
+    # budget assertion + (when § 5.2 renderer lands) renderer round-trip tests.
+    # The renderer step is gated on engine/render_md.py existing — it's
+    # scheduled for a separate PR after F2c lands.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+      - name: Install dependencies
+        run: uv sync
+      - name: Run validator unit tests
+        run: uv run pytest engine/tests/test_schema_validator.py engine/tests/test_schema_validator_bodies.py -v
+      - name: Run non-conformant fixture tests
+        run: uv run pytest engine/tests/test_non_conformant_fixtures.py -v
+      - name: Run persist_output tests
+        run: uv run pytest engine/tests/test_persist_output.py -v
+      - name: Run performance budget assertion
+        run: uv run pytest engine/tests/test_validator_performance.py -v
+      - name: Run renderer round-trip tests (if renderer present)
+        run: |
+          if [ -f engine/render_md.py ] && [ -f engine/tests/test_render_md.py ]; then
+            uv run pytest engine/tests/test_render_md.py -v
+          else
+            echo "engine/render_md.py not present yet — skipping renderer tests (§ 5.2 follow-up)."
+          fi
+      - name: Upload performance report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: validator-performance-report
+          path: validator-performance-report.json
+          if-no-files-found: ignore

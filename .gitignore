@@ -31,3 +31,7 @@ conversus*.mcpb
 site/
 uv.lock
 .aider*
+
+# Performance budget report — emitted by engine/tests/test_validator_performance.py
+# and uploaded as a CI artifact, not committed.
+validator-performance-report.json
