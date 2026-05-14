@@ -1,31 +1,51 @@
-"""Deliberation persistence utility for spec 056.
+"""Deliberation persistence utility.
 
 Provides functions for persisting, listing, and reading deliberation
-output.  Called by handlers in ``engine/handlers.py`` after pipeline
-completion.
+output. Called by handlers in ``engine/handlers.py`` after pipeline
+completion (spec 056) and by phase writers on every output emission
+(v4.2.0 spec § 5.1 D1).
 
 Constitution compliance
 -----------------------
+- Principle V (non-blocking writes): ``persist_output`` writes the file
+  UNCONDITIONALLY before any validation. Malformed output is preferred
+  over no output. See § 5.1 D1.
 - Principle IX: no mutable module-level state, explicit typing on every
   function signature, ``StrEnum`` for closed choice sets.
 - Principle XI: single source of truth — all persistence logic lives
   here; callers import rather than reimplementing.
 
-See ``specs/056-deliberation-persistence.md``.
+See ``specs/056-deliberation-persistence.md`` (post-run copy) and
+``specs/v4.2.0-structured-deliberation-outputs/spec.md`` § 5.1 (per-output
+unconditional-write + post-validate).
 """
 
 from __future__ import annotations
 
+import json
 import logging
 import re
 import shutil
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Protocol
 
 import yaml
 
+from engine.schema_validator import SchemaValidator
+
 logger = logging.getLogger("conversus.persistence")
+
+
+class EventStream(Protocol):
+    """Minimal interface persist_output needs from the engine event stream.
+
+    The full event-stream API lives in the engine's orchestration layer; we
+    declare only the surface persist_output touches so this module stays
+    decoupled from orchestration internals.
+    """
+
+    def warn(self, *, event: str, **fields: Any) -> None: ...
 
 _CONVERSUS_DIR = Path(".conversus")
 _DELIBERATIONS_REL = _CONVERSUS_DIR / "deliberations"
@@ -136,7 +156,83 @@ def _parse_dir_timestamp(name: str) -> datetime | None:
 
 
 # ---------------------------------------------------------------------------
-# Public API
+# Public API — per-output write (v4.2.0 spec § 5.1 D1)
+# ---------------------------------------------------------------------------
+
+
+_DEFAULT_SCHEMA_VERSION = "1.0.0-rc.1"
+
+
+def _read_schema_version(content: bytes) -> str:
+    """Extract ``schema_version`` from envelope JSON bytes.
+
+    Returns the validator's default (``1.0.0-rc.1``) when the bytes are not
+    valid JSON, are not an object, or do not declare ``schema_version``. Per
+    Principle V this MUST NOT raise — the unconditional write in
+    ``persist_output`` has already happened by the time we read this, and any
+    parse failure here surfaces downstream as a validation warning instead.
+    """
+    try:
+        envelope = json.loads(content)
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return _DEFAULT_SCHEMA_VERSION
+    if isinstance(envelope, dict):
+        version = envelope.get("schema_version")
+        if isinstance(version, str) and version:
+            return version
+    return _DEFAULT_SCHEMA_VERSION
+
+
+def persist_output(
+    path: Path,
+    content: bytes,
+    validator: SchemaValidator,
+    event_stream: EventStream,
+) -> None:
+    """Persist a single deliberation output to disk with non-blocking validation.
+
+    Per v4.2.0 spec § 5.1 D1. The order of operations is load-bearing:
+
+    1. ``path.write_bytes(content)`` — UNCONDITIONAL. Per Principle V
+       (build-fractal/CONSTITUTION.md L76-78): "malformed output is better
+       than no output". This MUST be the first side effect.
+    2. ``validator.validate(content, schema_version)`` — produces
+       ``ValidationResult``. Contractually non-raising on conformance failure.
+    3. If ``not result.is_conformant``: emit a ``schema_validation_failed``
+       warning to the event stream + write the ``.validation-warnings.json``
+       sidecar via ``validator.emit_warning``.
+
+    There is NO exception path that prevents step 1. If anything between steps
+    1 and 3 raises an unexpected error (e.g., validator infra fault that
+    bypassed startup detection), the exception propagates AFTER the bytes are
+    on disk — Principle V is preserved.
+
+    The schema version is read from the envelope itself; callers do not pass
+    it. This keeps the call site minimal and avoids drift between what the
+    envelope declares and what the validator was told to expect.
+    """
+    # Step 1 — unconditional write (Principle V). Must be the first side effect.
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(content)
+
+    # Step 2 — post-write validation. validate() is non-raising.
+    schema_version = _read_schema_version(content)
+    result = validator.validate(content, schema_version)
+
+    # Step 3 — non-blocking warning + sidecar on non-conformance.
+    if not result.is_conformant:
+        event_stream.warn(
+            event="schema_validation_failed",
+            path=str(path),
+            output_type=result.output_type,
+            schema_version=result.schema_version,
+            warnings=[w.to_dict() for w in result.warnings],
+        )
+        validator.emit_warning(result, path)
+
+
+# ---------------------------------------------------------------------------
+# Public API — post-run deliberation copy (spec 056)
 # ---------------------------------------------------------------------------
 
 

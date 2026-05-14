@@ -1,0 +1,28 @@
+{
+  "agent_name": "pragmatist",
+  "body": {
+    "disputes": [
+      {
+        "fallback_if_unresolved": "Land F2c with budget measurement as a separate PR; flag dependency in commit message.",
+        "id": "D1",
+        "opposing_positions": [
+          {
+            "agent": "devils-advocate",
+            "stance": "Budget MUST be measured before F2c locks in the validator architecture."
+          }
+        ],
+        "our_position": "Budget measurement can defer to F2c.",
+        "proposed_resolution": "Move budget measurement to F2c with a hard gate before merge.",
+        "severity": "nit",
+        "topic": "Validator budget measurement timing"
+      }
+    ]
+  },
+  "deliberation_id": "fixture-conformant-disputes",
+  "deliberation_stage": "originating",
+  "engine_version": "0.7.3",
+  "output_type": "disputes",
+  "schema_version": "1.0.0-rc.1",
+  "source_commit": "abcd1234",
+  "timestamp": "2026-05-13T12:03:00Z"
+}

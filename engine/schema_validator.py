@@ -395,3 +395,116 @@ def _stringify(value: Any) -> str:
     if isinstance(value, str):
         return value
     return json.dumps(value, sort_keys=True)
+
+
+# ────────────────────────────────────────────────────────────────────────────
+# CLI entrypoint (F2c) — called by the schema-validate CI gate.
+#
+# Per spec § 5.4 the `validate-conformance` job runs:
+#   python -m engine.schema_validator --all <dir>
+# This walks a directory for JSON files, validates each, and exits non-zero on
+# any conformance failure or leftover .validation-warnings.json sidecar.
+# ────────────────────────────────────────────────────────────────────────────
+
+
+def _find_json_files(root: Path) -> list[Path]:
+    """Every .json file under `root`, excluding `.validation-warnings.json` sidecars."""
+    return [
+        p for p in root.rglob("*.json")
+        if not p.name.endswith(".validation-warnings.json")
+    ]
+
+
+def _cli_read_schema_version(path: Path) -> str:
+    """Best-effort envelope schema_version read; defaults on parse failure."""
+    try:
+        envelope = json.loads(path.read_bytes())
+    except (json.JSONDecodeError, UnicodeDecodeError, OSError):
+        return "1.0.0-rc.1"
+    if isinstance(envelope, dict):
+        v = envelope.get("schema_version")
+        if isinstance(v, str) and v:
+            return v
+    return "1.0.0-rc.1"
+
+
+def _cli_main(argv: list[str] | None = None) -> int:
+    """CLI entry. Returns process exit code."""
+    import argparse
+    import sys
+
+    parser = argparse.ArgumentParser(
+        prog="python -m engine.schema_validator",
+        description=(
+            "Validate JSON deliberation outputs against the current schema set. "
+            "Exit non-zero on any conformance failure or leftover sidecar."
+        ),
+    )
+    parser.add_argument(
+        "--all",
+        type=Path,
+        metavar="DIR",
+        help="Recursively validate every .json file under DIR.",
+    )
+    parser.add_argument(
+        "--schema-dir",
+        type=Path,
+        default=Path(__file__).resolve().parent / "schema" / "v1",
+        help="Path to the schema directory (default: engine/schema/v1).",
+    )
+    args = parser.parse_args(argv)
+
+    if args.all is None:
+        parser.error("--all <dir> is required")
+
+    target_root: Path = args.all
+    if not target_root.is_dir():
+        # No directory means no outputs to validate; treat as a clean run.
+        print(f"schema-validate: nothing to validate at {target_root} (skip)")
+        return 0
+
+    try:
+        validator = SchemaValidator(args.schema_dir)
+    except RuntimeError as exc:
+        print(f"schema-validate: validator construction failed: {exc}", file=sys.stderr)
+        return 2
+
+    files = _find_json_files(target_root)
+    print(f"schema-validate: scanning {len(files)} JSON file(s) under {target_root}")
+
+    failures: list[tuple[Path, list[str]]] = []
+    for path in files:
+        content = path.read_bytes()
+        schema_version = _cli_read_schema_version(path)
+        result = validator.validate(content, schema_version)
+        if not result.is_conformant:
+            failures.append(
+                (path, [f"{w.error_code} at {w.field_path}: {w.message}" for w in result.warnings])
+            )
+
+    sidecars = list(target_root.rglob("*.validation-warnings.json"))
+
+    if failures or sidecars:
+        if failures:
+            print(f"\nschema-validate: {len(failures)} non-conformant file(s):", file=sys.stderr)
+            for path, msgs in failures:
+                print(f"  {path}", file=sys.stderr)
+                for m in msgs:
+                    print(f"    - {m}", file=sys.stderr)
+        if sidecars:
+            print(
+                f"\nschema-validate: {len(sidecars)} leftover sidecar(s) — "
+                "producer code emitted malformed outputs:",
+                file=sys.stderr,
+            )
+            for s in sidecars:
+                print(f"  {s}", file=sys.stderr)
+        return 1
+
+    print("schema-validate: all files conformant; no sidecars present.")
+    return 0
+
+
+if __name__ == "__main__":
+    import sys
+    sys.exit(_cli_main())

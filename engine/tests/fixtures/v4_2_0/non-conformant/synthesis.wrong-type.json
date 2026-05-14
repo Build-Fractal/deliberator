@@ -1,0 +1,21 @@
+{
+  "agent_name": "synthesizer",
+  "body": {
+    "agreement_areas": [
+      "Persistence layer boundary is well-defined.",
+      "Three worked-example fixtures per output type satisfies XXVIII C6."
+    ],
+    "disputes": "should be array",
+    "emergent_patterns": [
+      "F2 split sequencing surfaces dependency violations earlier than monolithic PR review would."
+    ],
+    "recommendation_to_arbiter": "Adopt devils-advocate position on D1: move budget measurement gate to before F2c commits."
+  },
+  "deliberation_id": "fixture-conformant-synthesis",
+  "deliberation_stage": "originating",
+  "engine_version": "0.7.3",
+  "output_type": "synthesis",
+  "schema_version": "1.0.0-rc.1",
+  "source_commit": "abcd1234",
+  "timestamp": "2026-05-13T12:04:00Z"
+}

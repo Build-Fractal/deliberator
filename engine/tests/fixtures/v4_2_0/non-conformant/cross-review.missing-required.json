@@ -1,0 +1,33 @@
+{
+  "agent_name": "devils-advocate",
+  "body": {
+    "agreement_points": [
+      {
+        "ref": "S1",
+        "text": "Persistence layer boundary is well-defined."
+      }
+    ],
+    "disagreement_points": [
+      {
+        "our_position": "Validator budget can be deferred to F2c.",
+        "ref": "C1",
+        "stance": "disagree",
+        "their_position": "Validator budget MUST be measured before F2 lands."
+      }
+    ],
+    "new_concerns_raised": [
+      {
+        "id": "CR1",
+        "severity": "substantive",
+        "text": "Recommendation does not specify rollout cadence."
+      }
+    ]
+  },
+  "deliberation_id": "fixture-conformant-cross-review",
+  "deliberation_stage": "originating",
+  "engine_version": "0.7.3",
+  "output_type": "cross-review",
+  "schema_version": "1.0.0-rc.1",
+  "source_commit": "abcd1234",
+  "timestamp": "2026-05-13T12:01:00Z"
+}
