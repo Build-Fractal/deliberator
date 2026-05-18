@@ -232,13 +232,33 @@ async def run_snap(
 ) -> SnapResult:
     """Run a snap-verdict deliberation. Provider can be injected for tests."""
     if provider is None:
-        # Lazy construct an Anthropic provider with the user's stored OAuth.
-        from engine.auth import get_credentials
+        # Lazy construct an Anthropic provider. Resolution order matches the
+        # documented contract in the `conversus:status` skill:
+        #   1. ANTHROPIC_API_KEY env var (the Anthropic SDK reads this
+        #      automatically when constructed with auth_token=None)
+        #   2. Stored OAuth credential (per-provider file or legacy auth.json)
+        #   3. SDK raises 401 at first call → each agent reports
+        #      ProviderError → aggregator returns ASK (never silent ALLOW)
+        #
+        # Why env-var-first: subscription OAuth tokens can stop working
+        # (expired, scope-restricted, account changes) while an
+        # ANTHROPIC_API_KEY in env is the explicit override the user reaches
+        # for to fix the breakage. Putting OAuth first means the explicit
+        # override is silently ignored.
+        import os
+
         from engine.providers.anthropic import AnthropicProvider
 
-        creds = get_credentials("anthropic")
-        token = creds.get("access_token") if creds else None
-        provider = AnthropicProvider(auth_token=token)
+        if os.environ.get("ANTHROPIC_API_KEY"):
+            # Let the Anthropic SDK pick up the env var. auth_token=None is
+            # the documented opt-in path for env-var auth.
+            provider = AnthropicProvider(auth_token=None)
+        else:
+            from engine.auth import get_credentials
+
+            creds = get_credentials("anthropic")
+            token = creds.get("access_token") if creds else None
+            provider = AnthropicProvider(auth_token=token)
 
     start_ns = time.perf_counter_ns()
     tasks = [

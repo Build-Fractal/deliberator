@@ -297,6 +297,109 @@ def test_run_snap_agent_errors_become_ASK_verdicts():
     assert all("simulated LLM failure" in v.rationale for v in result.agent_verdicts)
 
 
+# ────────────────────────────────────────────────────────────────────────────
+# Auth-resolution order — env-var first, OAuth second
+#
+# Matches the documented contract in the `conversus:status` skill: when the
+# user has set ANTHROPIC_API_KEY, that's their explicit override and stored
+# OAuth (which may be expired or scope-restricted) must not silently shadow
+# it. Before this fix, snap.py reached into get_credentials() unconditionally
+# and passed the OAuth token to AnthropicProvider — which then ignored
+# ANTHROPIC_API_KEY because auth_token=<oauth> was explicit.
+# ────────────────────────────────────────────────────────────────────────────
+
+
+class _CapturingProvider:
+    """Provider stand-in that records the auth_token it was constructed with.
+
+    Used as a drop-in for AnthropicProvider so the lazy-construction branch
+    runs end-to-end without touching the network. Its async complete() is a
+    no-op stub — run_snap's actual deliberation is exercised by the
+    _MockProvider / _FailingProvider tests above; this test focuses on
+    *construction-time* auth resolution.
+    """
+
+    instances: list["_CapturingProvider"] = []
+
+    def __init__(self, auth_token=None):
+        self.auth_token = auth_token
+        _CapturingProvider.instances.append(self)
+
+    async def complete(self, prompt: str, model: str, max_tokens: int) -> str:
+        # Each agent gets the same canned response so aggregation produces
+        # a deterministic final verdict and the test asserts on the
+        # construction-time invariant, not deliberation behavior.
+        return "VERDICT: ALLOW\nRATIONALE: stub for auth-resolution test"
+
+
+def test_env_var_takes_precedence_over_stored_oauth(monkeypatch):
+    """With ANTHROPIC_API_KEY set, run_snap constructs the provider with
+    auth_token=None so the Anthropic SDK reads the env var. get_credentials
+    must NOT be called.
+
+    This is the load-bearing invariant the bug fix enforces: user's explicit
+    env-var override never gets shadowed by stored OAuth.
+    """
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-api-test-env-var-not-real")
+
+    # Sentinel: get_credentials() must not be called when env var is set.
+    from engine import auth as _auth_module
+
+    def _explode_get_credentials(*_args, **_kwargs):
+        raise AssertionError(
+            "get_credentials() was called even though ANTHROPIC_API_KEY is set — "
+            "env-var path must take precedence over stored OAuth."
+        )
+
+    monkeypatch.setattr(_auth_module, "get_credentials", _explode_get_credentials)
+
+    # Substitute the capturing provider into snap.py's module namespace so
+    # the lazy `from engine.providers.anthropic import AnthropicProvider`
+    # inside run_snap resolves to our stub instead of the real client.
+    from engine.providers import anthropic as _anthropic_module
+
+    _CapturingProvider.instances.clear()
+    monkeypatch.setattr(_anthropic_module, "AnthropicProvider", _CapturingProvider)
+
+    # provider=None forces lazy construction — the branch we're testing.
+    result = asyncio.run(run_snap(command="ls", provider=None))
+
+    # Construction happened exactly once, with auth_token=None (SDK env-var path).
+    assert len(_CapturingProvider.instances) == 1
+    assert _CapturingProvider.instances[0].auth_token is None
+    # Deliberation succeeded with the stub responses → unanimous ALLOW.
+    assert result.final_verdict == "ALLOW"
+
+
+def test_oauth_used_when_env_var_absent(monkeypatch):
+    """With ANTHROPIC_API_KEY unset, run_snap falls back to stored OAuth.
+
+    Symmetric guard against an over-zealous fix that drops OAuth support
+    entirely. Returning a stub credential dict from get_credentials proves
+    the OAuth code path still runs when the env var is absent.
+    """
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+
+    from engine import auth as _auth_module
+
+    monkeypatch.setattr(
+        _auth_module,
+        "get_credentials",
+        lambda _provider: {"access_token": "stub-oauth-token"},
+    )
+
+    from engine.providers import anthropic as _anthropic_module
+
+    _CapturingProvider.instances.clear()
+    monkeypatch.setattr(_anthropic_module, "AnthropicProvider", _CapturingProvider)
+
+    asyncio.run(run_snap(command="ls", provider=None))
+
+    # Provider constructed with the OAuth token, not None.
+    assert len(_CapturingProvider.instances) == 1
+    assert _CapturingProvider.instances[0].auth_token == "stub-oauth-token"
+
+
 def test_full_workflow_emits_valid_hook_json():
     """The full pipeline → JSON dump produces valid Claude Code hook payload."""
     provider = _MockProvider(
