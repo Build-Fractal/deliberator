@@ -1,0 +1,112 @@
+# PyPI release workflow — Trusted Publishing via OIDC (no API tokens stored).
+#
+# Trigger: push of a tag matching `v*` (e.g., `v0.4.0`, `v0.4.1`, `v1.0.0-rc1`).
+# Before this workflow can publish, the PyPI project must be configured for
+# Trusted Publishing pointing at this repo + this workflow file. Steps for the
+# maintainer doing the one-time setup:
+#
+#   1. Create the `conversus` project on PyPI (or claim it via a v0.0.1
+#      placeholder release published manually).
+#   2. On https://pypi.org/manage/project/conversus/settings/publishing/ add
+#      a new Trusted Publisher:
+#        - Publisher: GitHub
+#        - Owner: Build-Fractal
+#        - Repository: conversus  (or conversus-oss pre-rename)
+#        - Workflow filename: release-pypi.yml
+#        - Environment: pypi-publish  (matches the `environment:` block below)
+#   3. (Optional but recommended) Repeat for TestPyPI so the test-publish step
+#      works the same way.
+#   4. Tag a release: `git tag v0.4.0 && git push origin v0.4.0`. The workflow
+#      runs end-to-end with no secrets stored in this repo.
+#
+# Versioning rule: the tag's version (without leading `v`) MUST match
+# `pyproject.toml`'s `version` field. The build step asserts this — a
+# mismatch fails the job before any artifact is built or uploaded.
+name: release-pypi
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+# Permissions required by the OIDC trusted-publishing flow. Keep narrow.
+permissions:
+  contents: read       # Read the repo to build the package
+  id-token: write      # Mint the OIDC token PyPI verifies
+
+jobs:
+  build:
+    name: Build distribution
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install build tooling
+        run: python -m pip install --upgrade build
+
+      - name: Assert pyproject version matches git tag
+        # Refuses to build if pyproject says 0.4.0 but you tagged v0.4.1
+        # (or vice versa). Prevents the version-drift class of bug at the
+        # last possible moment.
+        run: |
+          TAG="${GITHUB_REF#refs/tags/v}"
+          PYPROJECT_VER=$(python -c "import tomllib,sys; print(tomllib.loads(open('pyproject.toml','rb').read().decode())['project']['version'])")
+          if [ "$TAG" != "$PYPROJECT_VER" ]; then
+            echo "::error::Tag version v$TAG does not match pyproject.toml version $PYPROJECT_VER"
+            exit 1
+          fi
+          echo "Tag v$TAG matches pyproject.toml. Proceeding with build."
+
+      - name: Build sdist + wheel
+        run: python -m build
+
+      - name: Upload build artifacts for downstream jobs
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish-testpypi:
+    name: Publish to TestPyPI (smoke test)
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: testpypi-publish
+      url: https://test.pypi.org/p/conversus
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish to TestPyPI
+        # Continues on error so a TestPyPI hiccup doesn't block production
+        # release. Production publish below is the load-bearing step.
+        continue-on-error: true
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          skip-existing: true
+
+  publish-pypi:
+    name: Publish to PyPI (production)
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi-publish
+      url: https://pypi.org/p/conversus
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        # No `with:` — Trusted Publishing infers everything from OIDC + the
+        # PyPI project's configured publisher allowlist. No API token stored.
