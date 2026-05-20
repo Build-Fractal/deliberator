@@ -1,0 +1,38 @@
+# release-please — Google's release-automation action.
+#
+# Watches commits on `main` following Conventional Commits and maintains
+# an open "Release PR" that bumps version + writes CHANGELOG entries. When
+# you merge the Release PR, release-please tags + creates a GitHub Release.
+# The tag push then triggers `release-pypi.yml` which publishes to PyPI.
+#
+# Composition:
+#   commits on main
+#     ↓ (release-please.yml)
+#   Release PR opens/updates
+#     ↓ (you merge it)
+#   tag vX.Y.Z + GitHub Release created
+#     ↓ (release-pypi.yml fires on tag)
+#   Trusted Publishing → PyPI
+#
+# Configuration: see `release-please-config.json` (which files to bump) +
+# `.release-please-manifest.json` (current version state — release-please
+# updates this file as part of the Release PR).
+name: release-please
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write       # Create the Release PR + push tags
+  pull-requests: write  # Open/update the Release PR
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: googleapis/release-please-action@v4
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json

@@ -1,0 +1,45 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "release-type": "python",
+  "include-component-in-tag": false,
+  "include-v-in-tag": true,
+  "bump-minor-pre-major": true,
+  "bump-patch-for-minor-pre-major": false,
+  "changelog-path": "CHANGELOG.md",
+  "changelog-sections": [
+    {"type": "feat", "section": "Added", "hidden": false},
+    {"type": "fix", "section": "Fixed", "hidden": false},
+    {"type": "perf", "section": "Changed", "hidden": false},
+    {"type": "refactor", "section": "Changed", "hidden": false},
+    {"type": "revert", "section": "Removed", "hidden": false},
+    {"type": "docs", "section": "Changed", "hidden": false},
+    {"type": "chore", "section": "Changed", "hidden": true},
+    {"type": "build", "section": "Changed", "hidden": true},
+    {"type": "ci", "section": "Changed", "hidden": true},
+    {"type": "test", "section": "Changed", "hidden": true},
+    {"type": "style", "section": "Changed", "hidden": true}
+  ],
+  "packages": {
+    ".": {
+      "package-name": "conversus",
+      "extra-files": [
+        "engine/__init__.py",
+        {
+          "type": "json",
+          "path": ".claude-plugin/marketplace.json",
+          "jsonpath": "$.plugins[0].version"
+        },
+        {
+          "type": "json",
+          "path": "claude-code-plugin/.claude-plugin/plugin.json",
+          "jsonpath": "$.version"
+        },
+        {
+          "type": "json",
+          "path": "desktop-extension/manifest.json",
+          "jsonpath": "$.version"
+        }
+      ]
+    }
+  }
+}
