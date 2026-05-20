@@ -5,6 +5,6 @@ cross-review, revision, disputes, synthesis) using configurable game-theory
 competition modes.
 """
 
-__version__ = "0.1.0"
+__version__ = "0.4.0"
 
 from engine.sdk import Deliberation, Result, classify, validate
