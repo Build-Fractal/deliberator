@@ -9,7 +9,7 @@ conversus decide "Should we use Postgres or MongoDB?" --provider ollama
 
 ## What is this?
 
-Conversus orchestrates multiple AI agents in structured debates. Each agent reviews a target document from a different perspective, cross-reviews each other's work, revises under pressure, disputes remaining disagreements, and produces a synthesized verdict. The engine supports 4 game theory modes (cooperative, winner-take-all, prisoner's dilemma, red-blue) and 12 execution providers spanning cloud APIs, local models, and CLI coding agents.
+Conversus orchestrates multiple AI agents in structured debates. Each agent reviews a target document from a different perspective, cross-reviews each other's work, revises under pressure, disputes remaining disagreements, and produces a synthesized verdict. The engine supports 4 game theory modes (cooperative, winner-take-all, prisoner's dilemma, red-blue) and 13 execution providers spanning cloud APIs, local models, and CLI coding agents.
 
 ## Quickstart
 
@@ -30,13 +30,14 @@ conversus run my-review.yml --provider claude-code
 
 ## Providers
 
-Conversus wraps any CLI agent or API as a deliberation participant. 12 providers ship built-in across 3 tiers:
+Conversus wraps any CLI agent or API as a deliberation participant. 13 providers ship built-in across 4 tiers (`demo` is a friendly alias for `mock`):
 
 | Provider | Type | Tool Use | Cost | Install |
 |---|---|---|---|---|
-| `mock` | Direct SDK | No | Free | Built-in |
+| `mock` (alias: `demo`) | Direct SDK | No | Free | Built-in |
 | `anthropic` | Direct SDK | No | Paid | `ANTHROPIC_API_KEY` |
 | `claude-code` | Subprocess | Yes | Paid | `npm i -g @anthropic-ai/claude-code` |
+| `claude-desktop` | MCP sampling | Yes | Paid | Claude Desktop with conversus MCP server |
 | `aider` | Subprocess | Yes | Paid | `pip install aider-chat` |
 | `opencode` | Subprocess | Yes | Paid | [opencode.ai](https://opencode.ai/) |
 | `codex` | Subprocess | Yes | Paid | `npm i -g @openai/codex` |

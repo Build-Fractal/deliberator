@@ -1,5 +1,5 @@
 <write_to_file>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/builder/cross-reviews/strategist.md</path>
+<path>specs/041-plan-of-attack/conversus/builder/cross-reviews/strategist.md</path>
 <content># Blue Team Cross-Review: Strategist (Red Team) Revised Position
 
 **Reviewer**: builder (Blue Team)  

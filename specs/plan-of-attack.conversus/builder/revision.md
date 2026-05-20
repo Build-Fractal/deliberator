@@ -1,7 +1,7 @@
 I need to analyze the cross-reviews attacking my position and provide a targeted revision. Let me read through all the challenges systematically.
 
 <write_to_file>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/builder/revision.md</path>
+<path>specs/041-plan-of-attack/conversus/builder/revision.md</path>
 <content># Revised Defense: Plan of Attack Layer-by-Layer Build Order (Revision 1)
 
 **Role**: Blue Team (Builder/Defender)  

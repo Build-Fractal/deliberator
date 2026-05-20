@@ -112,8 +112,8 @@ However, the specification suffers from significant implementability gaps that w
 
 # Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/CONSTITUTION.md` — sections cited: L84-112 (Principle II Stable Interfaces), L176-181 (Principle VIII Templating), L213-236 (Principle IX Explicit Typing)
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/CONSTITUTION.md` — sections cited: L76-78 (Principle V Observable Deliberation), L490-585 (Principle XXVIII Persistence Contract Discipline sub-clauses 1-5)
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/conversus-oss/specs/v4.2.0-structured-deliberation-outputs/spec.md` — sections cited: L133-183 (§ 4 Schema), L585-657 (§ 5 Implementation), L662-728 (§ 6-7 File edits and contracts), L754-783 (§ 9.1 temporal-constraint exemption)
+- `build-fractal-mono/build-fractal/CONSTITUTION.md` — sections cited: L84-112 (Principle II Stable Interfaces), L176-181 (Principle VIII Templating), L213-236 (Principle IX Explicit Typing)
+- `build-fractal-mono/build-fractal/conversus/CONSTITUTION.md` — sections cited: L76-78 (Principle V Observable Deliberation), L490-585 (Principle XXVIII Persistence Contract Discipline sub-clauses 1-5)
+- `specs/v4.2.0-structured-deliberation-outputs/spec.md` — sections cited: L133-183 (§ 4 Schema), L585-657 (§ 5 Implementation), L662-728 (§ 6-7 File edits and contracts), L754-783 (§ 9.1 temporal-constraint exemption)
 
 **Q1 RULING: IMPLEMENTABLE-WITH-CLARIFICATIONS — core architecture is implementable but critical gaps in validator error specification, fixture definitions, and CI triggers require F-conditions**

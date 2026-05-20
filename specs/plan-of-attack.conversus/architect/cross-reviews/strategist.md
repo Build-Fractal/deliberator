@@ -1,7 +1,7 @@
 Looking at the strategist's revised red team attack position, I need to cross-examine their technical feasibility claims from my own red team technical perspective. This is a same-team review (Red-Red), so I'll reinforce valid points while identifying gaps and disagreements.
 
 <write_to_file>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/architect/cross-reviews/strategist.md</path>
+<path>specs/041-plan-of-attack/conversus/architect/cross-reviews/strategist.md</path>
 <content># Red Team Cross-Review: Strategist's Revised Attack Position
 
 **Reviewer**: architect (red team)  

@@ -35,3 +35,9 @@ uv.lock
 # Performance budget report — emitted by engine/tests/test_validator_performance.py
 # and uploaded as a CI artifact, not committed.
 validator-performance-report.json
+
+# Working-session scratch files. The `.tmp-` prefix is reserved for audit
+# transcripts, inventory drafts, and other artifacts that should never be
+# committed. A single `.tmp-` rule prevents a careless `git add .` from
+# leaking session work.
+.tmp-*

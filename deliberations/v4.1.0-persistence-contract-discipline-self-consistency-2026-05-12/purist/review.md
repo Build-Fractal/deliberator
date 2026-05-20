@@ -84,6 +84,6 @@ My most important recommendation: **demote this amendment to Tier 2 until univer
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/conversus-oss/specs/v4.1.0-persistence-contract-discipline/spec.md` — sections/lines cited: L15 (Q2 override), L25-31, L34-37 (evidence base), L50-55 (non-goals), L83-104 (mechanical verification), L145-150 (verbatim preservation), L154-160 (tier targeting), L219-228 (inclusion criteria), L278-279 (differentiated deadlines)
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/conversus-oss/deliberations/v4.1.0-persistence-contract-discipline-self-consistency-2026-05-12/QUESTION.md` — sections/lines cited: Q2 (L30-45), Q3 (L49-63)
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/conversus-oss/CONSTITUTIONAL_CONVERSATIONS.md` — sections/lines cited: L386-398 (override precedent)
+- `specs/v4.1.0-persistence-contract-discipline/spec.md` — sections/lines cited: L15 (Q2 override), L25-31, L34-37 (evidence base), L50-55 (non-goals), L83-104 (mechanical verification), L145-150 (verbatim preservation), L154-160 (tier targeting), L219-228 (inclusion criteria), L278-279 (differentiated deadlines)
+- `deliberations/v4.1.0-persistence-contract-discipline-self-consistency-2026-05-12/QUESTION.md` — sections/lines cited: Q2 (L30-45), Q3 (L49-63)
+- `CONSTITUTIONAL_CONVERSATIONS.md` — sections/lines cited: L386-398 (override precedent)

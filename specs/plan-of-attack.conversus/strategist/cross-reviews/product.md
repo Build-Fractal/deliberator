@@ -1,7 +1,7 @@
 I'll carefully read all the files and produce a cross-review of Product (Blue Team) from the Red Team perspective.
 
 <write_to_file>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/strategist/cross-reviews/product.md</path>
+<path>specs/041-plan-of-attack/conversus/strategist/cross-reviews/product.md</path>
 <content># Red Team Cross-Review of Product (Blue Team)
 
 **Agent**: strategist (Red Team)  

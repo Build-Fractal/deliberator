@@ -46,7 +46,7 @@ conversus run path/to/conversus.yml --provider anthropic --rounds 3
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `--provider` | `mock` | `mock`, `anthropic`, or `openai` |
+| `--provider` | `mock` | One of: `mock` (alias `demo`), `anthropic`, `claude-code`, `claude-desktop`, `aider`, `opencode`, `codex`, `gemini`, `copilot`, `pi`, `ollama`, `llama-cpp`, `vllm`. See the [Providers](https://github.com/Build-Fractal/conversus-oss#providers) table for install + auth per provider. |
 | `--model` | provider default | Override LLM model identifier |
 | `--rounds` | config value | Override deliberation rounds |
 | `--phase` | `all` | Phase to run (`all` or `review`) |
@@ -77,7 +77,7 @@ conversus decide "Redis vs Memcached?" --provider anthropic --output ./cache-dec
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `--provider` | `mock` | `mock`, `anthropic`, or `openai` |
+| `--provider` | `mock` | One of: `mock` (alias `demo`), `anthropic`, `claude-code`, `claude-desktop`, `aider`, `opencode`, `codex`, `gemini`, `copilot`, `pi`, `ollama`, `llama-cpp`, `vllm`. See the [Providers](https://github.com/Build-Fractal/conversus-oss#providers) table for install + auth per provider. |
 | `--mode` | `cooperative` | `cooperative`, `winner-take-all`, `prisoners-dilemma`, `red-blue` |
 | `--output` | temp dir | Output directory (cleaned up if not specified) |
 | `--format` | `rich` | `rich` (terminal) or `json` |

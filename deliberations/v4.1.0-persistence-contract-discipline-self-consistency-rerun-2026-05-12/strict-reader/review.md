@@ -62,7 +62,7 @@ v3's new Tier 2 Principle XXVIII does not contradict, override, or implicitly mo
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/CONSTITUTION.md` — Principles II (L121-143), VII (L188-198), XI (L222-235)
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/CONSTITUTION.md` — Principles XV (L341-358), XXII (L461-486), XXIV (L531-557)
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/conversus-oss/specs/v4.1.0-persistence-contract-discipline/spec.md` — § 4 (L102-148), § 5 (L150), Summary-of-Changes (L15-24)
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/conversus-oss/deliberations/v4.1.0-persistence-contract-discipline-self-consistency-rerun-2026-05-12/QUESTION.md` — Seven required changes (L15-24)
+- `build-fractal-mono/build-fractal/CONSTITUTION.md` — Principles II (L121-143), VII (L188-198), XI (L222-235)
+- `build-fractal-mono/build-fractal/conversus/CONSTITUTION.md` — Principles XV (L341-358), XXII (L461-486), XXIV (L531-557)
+- `specs/v4.1.0-persistence-contract-discipline/spec.md` — § 4 (L102-148), § 5 (L150), Summary-of-Changes (L15-24)
+- `deliberations/v4.1.0-persistence-contract-discipline-self-consistency-rerun-2026-05-12/QUESTION.md` — Seven required changes (L15-24)

@@ -80,8 +80,8 @@
 
 ### Referenced Documentation
 
-- `/Users/brettkellgren/Sites/conversus/specs/011-adoption-harness/conversus/architect/review.md` -- sections cited: Executive Summary, Alignment (items 1-5), Missed Opportunities (items 1-7), Off-Base Assumptions (items 1-3), Actionable Recommendations (items 1-9)
-- `/Users/brettkellgren/Sites/conversus/specs/011-adoption-harness/conversus/adoption-strategist/review.md` -- sections cited: Executive Summary, Alignment (items 1-5), Missed Opportunities (items 1-8), Off-Base Assumptions (items 1-3), Actionable Recommendations (items 1-10)
-- `/Users/brettkellgren/Sites/conversus/specs/011-adoption-harness/proposal.md` -- sections/lines cited: L41, L74, L89-99, L111, L116, L118-128, L120
-- `/Users/brettkellgren/Sites/conversus/README.md` -- sections/lines cited: L1-5, L3-5
-- `/Users/brettkellgren/Sites/conversus/specs/999-decision-framework/spec.md` -- sections/lines cited: L12-17, L26-75, L277-293, L309-343, L449-458, L521, L547-559
+- `specs/011-adoption-harness/conversus/architect/review.md` -- sections cited: Executive Summary, Alignment (items 1-5), Missed Opportunities (items 1-7), Off-Base Assumptions (items 1-3), Actionable Recommendations (items 1-9)
+- `specs/011-adoption-harness/conversus/adoption-strategist/review.md` -- sections cited: Executive Summary, Alignment (items 1-5), Missed Opportunities (items 1-8), Off-Base Assumptions (items 1-3), Actionable Recommendations (items 1-10)
+- `specs/011-adoption-harness/proposal.md` -- sections/lines cited: L41, L74, L89-99, L111, L116, L118-128, L120
+- `README.md` -- sections/lines cited: L1-5, L3-5
+- `specs/999-decision-framework/spec.md` -- sections/lines cited: L12-17, L26-75, L277-293, L309-343, L449-458, L521, L547-559

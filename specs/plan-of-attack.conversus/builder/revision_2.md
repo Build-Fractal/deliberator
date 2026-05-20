@@ -1,5 +1,5 @@
 <write_to_file>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/builder/revision_2.md</path>
+<path>specs/041-plan-of-attack/conversus/builder/revision_2.md</path>
 <content># Blue Team Builder: Revised Defense (Phase 3)
 
 **Agent**: builder (Blue Team Lead Engineer)  

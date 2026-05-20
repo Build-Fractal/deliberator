@@ -83,8 +83,8 @@ Spec v4.2.0 establishes JSON Schema-based persistence contracts for conversus de
 ## Referenced Documentation
 
 - `QUESTION.md` — sections/lines cited: Q3 framework, doctrinal coherence criteria
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/conversus-oss/specs/v4.2.0-structured-deliberation-outputs/spec.md` — sections/lines cited: §4.8, §5.1-5.4, §6.2, §9.1-9.2, §11-13, §17
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/CONSTITUTION.md` — sections/lines cited: Principle II
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/CONSTITUTION.md` — sections/lines cited: Principle V, Principle XXVIII
+- `specs/v4.2.0-structured-deliberation-outputs/spec.md` — sections/lines cited: §4.8, §5.1-5.4, §6.2, §9.1-9.2, §11-13, §17
+- `build-fractal-mono/build-fractal/CONSTITUTION.md` — sections/lines cited: Principle II
+- `build-fractal-mono/build-fractal/conversus/CONSTITUTION.md` — sections/lines cited: Principle V, Principle XXVIII
 
 **Q3 RULING: PARTIALLY-COHERENT** — Core technical discipline is sound and follows established governance patterns, but extensive deliberation archaeology obscures prescriptive requirements and precedent framing overstates novelty of standard bootstrap patterns.

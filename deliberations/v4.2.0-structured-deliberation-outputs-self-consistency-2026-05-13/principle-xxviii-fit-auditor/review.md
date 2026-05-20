@@ -80,4 +80,4 @@ Spec v2 attempts to implement Principle XXVIII's persistent state schema discipl
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/CONSTITUTION.md` — sections cited: L490-644 (full Principle XXVIII text), L503-508 (discoverable location), L527-531 (mechanical enforcement), L535-537 (bidirectional validation), L547-553 (versioning), L563-568 (consumer enforcement), L572-577 (declaration scope)
+- `build-fractal-mono/build-fractal/conversus/CONSTITUTION.md` — sections cited: L490-644 (full Principle XXVIII text), L503-508 (discoverable location), L527-531 (mechanical enforcement), L535-537 (bidirectional validation), L547-553 (versioning), L563-568 (consumer enforcement), L572-577 (declaration scope)

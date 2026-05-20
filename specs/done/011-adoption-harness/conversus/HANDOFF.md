@@ -130,9 +130,9 @@ ready.
 
 ## Absolute Paths
 
-- **Target**: `/Users/brettkellgren/Sites/conversus/specs/011-adoption-harness/proposal.md`
-- **Output base**: `/Users/brettkellgren/Sites/conversus/specs/011-adoption-harness/conversus`
-- **Templates**: `/Users/brettkellgren/Sites/conversus/templates/cooperative/`
+- **Target**: `specs/011-adoption-harness/proposal.md`
+- **Output base**: `specs/011-adoption-harness/conversus`
+- **Templates**: `templates/cooperative/`
 
 ## Phase 1 Status: COMPLETE
 
@@ -176,7 +176,7 @@ Each agent reviews every other agent's review. 5 agents × 4 others = 20 cross-r
 | 19 | devils-advocate | architect | `conversus/architect/review.md` | `conversus/devils-advocate/review.md` | `conversus/devils-advocate/cross-reviews/architect.md` |
 | 20 | devils-advocate | adoption-strategist | `conversus/adoption-strategist/review.md` | `conversus/devils-advocate/review.md` | `conversus/devils-advocate/cross-reviews/adoption-strategist.md` |
 
-All relative paths above are relative to `specs/011-adoption-harness/`. Prepend `/Users/brettkellgren/Sites/conversus/` for absolute paths.
+All relative paths above are relative to `specs/011-adoption-harness/`. Prepend `` for absolute paths.
 
 ### Template Variables for Phase 2
 
@@ -190,7 +190,7 @@ For each cross-review agent (A reviewing B):
 | `{AGENT_DOCS}` | A's doc paths (see Resolved Agents table) |
 | `{REVIEWED_REVIEW_PATH}` | Absolute path to B's `review.md` |
 | `{REVIEWER_REVIEW_PATH}` | Absolute path to A's `review.md` |
-| `{TARGET_FILES}` | `/Users/brettkellgren/Sites/conversus/specs/011-adoption-harness/proposal.md` |
+| `{TARGET_FILES}` | `specs/011-adoption-harness/proposal.md` |
 | `{OUTPUT_PATH}` | Absolute path to `A/cross-reviews/B.md` |
 | `{MODE}` | `cooperative` |
 | `{ROUND}` | `1` |
@@ -218,7 +218,7 @@ For each agent:
 | `{MY_REVIEW_PATH}` | `{output_base}/{agent}/review.md` |
 | `{CROSS_REVIEWS_OF_ME}` | All `{other}/cross-reviews/{agent}.md` paths (4 files per agent) |
 | `{MY_CROSS_REVIEWS}` | All `{agent}/cross-reviews/{other}.md` paths (4 files per agent) |
-| `{TARGET_FILES}` | `/Users/brettkellgren/Sites/conversus/specs/011-adoption-harness/proposal.md` |
+| `{TARGET_FILES}` | `specs/011-adoption-harness/proposal.md` |
 | `{OUTPUT_PATH}` | `{output_base}/{agent}/revision.md` |
 | `{ITERATION}` | `1` |
 | `{MODE}` | `cooperative` |
@@ -276,11 +276,11 @@ Template: `templates/cooperative/disputes.md`
 ### All revision paths (for ALL_REVISION_PATHS variable)
 
 ```
-/Users/brettkellgren/Sites/conversus/specs/011-adoption-harness/conversus/consumer-advocate/revision.md
-/Users/brettkellgren/Sites/conversus/specs/011-adoption-harness/conversus/devex-advocate/revision.md
-/Users/brettkellgren/Sites/conversus/specs/011-adoption-harness/conversus/architect/revision.md
-/Users/brettkellgren/Sites/conversus/specs/011-adoption-harness/conversus/adoption-strategist/revision.md
-/Users/brettkellgren/Sites/conversus/specs/011-adoption-harness/conversus/devils-advocate/revision.md
+specs/011-adoption-harness/conversus/consumer-advocate/revision.md
+specs/011-adoption-harness/conversus/devex-advocate/revision.md
+specs/011-adoption-harness/conversus/architect/revision.md
+specs/011-adoption-harness/conversus/adoption-strategist/revision.md
+specs/011-adoption-harness/conversus/devils-advocate/revision.md
 ```
 
 ---
@@ -294,14 +294,14 @@ Template: `templates/cooperative/synthesis.md`
 | Variable | Value |
 |---|---|
 | `{MODE}` | `cooperative` |
-| `{TARGET_PATH}` | `/Users/brettkellgren/Sites/conversus/specs/011-adoption-harness/proposal.md` |
+| `{TARGET_PATH}` | `specs/011-adoption-harness/proposal.md` |
 | `{TARGET_FILES}` | same as TARGET_PATH |
 | `{AGENT_NAMES}` | `consumer-advocate, devex-advocate, architect, adoption-strategist, devils-advocate` |
 | `{ALL_REVIEWS}` | All 5 `{agent}/review.md` absolute paths |
 | `{ALL_CROSS_REVIEWS}` | All 20 `{agent}/cross-reviews/{other}.md` absolute paths |
 | `{ALL_REVISIONS}` | All 5 `{agent}/revision.md` absolute paths |
 | `{ALL_DISPUTES}` | All 5 `{agent}/disputes.md` absolute paths |
-| `{OUTPUT_PATH}` | `/Users/brettkellgren/Sites/conversus/specs/011-adoption-harness/conversus/summary/final.md` |
+| `{OUTPUT_PATH}` | `specs/011-adoption-harness/conversus/summary/final.md` |
 
 ---
 

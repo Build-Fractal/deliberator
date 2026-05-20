@@ -1,7 +1,7 @@
 I'll analyze the builder's revised defense against my technical attack surface analysis, focusing on architectural feasibility and hidden coupling risks.
 
 <write_to_file>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/architect/cross-reviews/builder.md</path>
+<path>specs/041-plan-of-attack/conversus/architect/cross-reviews/builder.md</path>
 <content># Red Team Cross-Review: Builder Defense Analysis
 
 **Reviewer**: architect (Red Team)  

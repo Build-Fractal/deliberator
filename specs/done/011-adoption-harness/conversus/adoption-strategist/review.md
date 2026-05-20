@@ -122,6 +122,6 @@ My most important recommendation: ship "Just Ask" mode as a Claude Code skill wi
 
 ### Referenced Documentation
 
-- `/Users/brettkellgren/Sites/conversus/specs/011-adoption-harness/proposal.md` — sections/lines cited: L25-31, L33-45, L41, L74-86, L89-99, L94, L97, L116, L118-128, L120, L122-124, L123-124, L127, L133, L134, L135
-- `/Users/brettkellgren/Sites/conversus/README.md` — sections/lines cited: L1-5, L3-5
-- `/Users/brettkellgren/Sites/conversus/specs/999-decision-framework/spec.md` — sections/lines cited: L12-17, L26-75, L244-256, L259-300, L277-293, L309-343, L322-343, L449-458, L479-511, L521, L547-559, L547-566
+- `specs/011-adoption-harness/proposal.md` — sections/lines cited: L25-31, L33-45, L41, L74-86, L89-99, L94, L97, L116, L118-128, L120, L122-124, L123-124, L127, L133, L134, L135
+- `README.md` — sections/lines cited: L1-5, L3-5
+- `specs/999-decision-framework/spec.md` — sections/lines cited: L12-17, L26-75, L244-256, L259-300, L277-293, L309-343, L322-343, L449-458, L479-511, L521, L547-559, L547-566

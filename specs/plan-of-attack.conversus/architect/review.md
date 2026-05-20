@@ -1,6 +1,6 @@
 I'll conduct a thorough technical risk analysis of this plan as the red team architect. Let me read through all the target documents and documentation first.
 
-<antArtifact identifier="red-team-architect-review" type="text/markdown" title="Red Team Technical Risk Analysis" path="/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/architect/review.md">
+<antArtifact identifier="red-team-architect-review" type="text/markdown" title="Red Team Technical Risk Analysis" path="specs/041-plan-of-attack/conversus/architect/review.md">
 # Red Team Technical Risk Analysis - Phase 1
 
 ## Executive Summary

@@ -96,5 +96,5 @@ Most concerning is that a junior engineer reading only this spec would need to m
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/conversus-oss/specs/v4.1.0-persistence-contract-discipline/spec.md` — sections cited: § 4 (L145-212), § 2 goals 3-5, § 3 non-goals
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/conversus-oss/deliberations/v4.1.0-persistence-contract-discipline-blind-2026-05-12/QUESTION.md` — Q1 methodology and assessment criteria
+- `specs/v4.1.0-persistence-contract-discipline/spec.md` — sections cited: § 4 (L145-212), § 2 goals 3-5, § 3 non-goals
+- `deliberations/v4.1.0-persistence-contract-discipline-blind-2026-05-12/QUESTION.md` — Q1 methodology and assessment criteria

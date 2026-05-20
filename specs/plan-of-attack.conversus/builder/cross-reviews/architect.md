@@ -1,5 +1,5 @@
 <write_to_file>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/builder/cross-reviews/architect.md</path>
+<path>specs/041-plan-of-attack/conversus/builder/cross-reviews/architect.md</path>
 <content># Blue Team Cross-Review: Architect's Revised Attack List
 
 **Role**: Blue Team (Builder/Defender)  

@@ -1,7 +1,7 @@
 I'll produce my Final Unmitigated Risks document as the Red Team architect, reflecting the full adversarial process and where we stand after three rounds of challenge and response.
 
 <write_to_file>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/architect/disputes.md</path>
+<path>specs/041-plan-of-attack/conversus/architect/disputes.md</path>
 <content># Red Team Architect — Final Unmitigated Risks
 
 **Agent**: architect (Red Team)  

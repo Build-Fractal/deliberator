@@ -3,8 +3,8 @@
 **Feature ID:** `v4.2.0-structured-deliberation-outputs`
 **Created:** 2026-05-12
 **Status:** **RATIFIED — v5 (2026-05-13)**
-**Depends On:** v4.1.0-persistence-contract-discipline (Tier 2 Principle XXVIII must be ratified; that ratification — commit `551f647` in `clariti-care/payer-index-mono`, `build-fractal/conversus/CONSTITUTION.md` L490-644 — is the doctrinal anchor this spec implements).
-**Governed by:** `https://github.com/clariti-care/payer-index-mono/blob/main/build-fractal/conversus/GOVERNANCE.md` § Pathway Taxonomy (**MINOR** pathway — additive component-tier discipline; no existing principle removed, renamed, or substantively re-scoped).
+**Depends On:** v4.1.0-persistence-contract-discipline (Tier 2 Principle XXVIII must be ratified; that ratification — commit `551f647` in `Build-Fractal/build-fractal-mono`, `build-fractal/conversus/CONSTITUTION.md` L490-644 — is the doctrinal anchor this spec implements).
+**Governed by:** `https://github.com/Build-Fractal/build-fractal-mono/blob/main/conversus/GOVERNANCE.md` § Pathway Taxonomy (**MINOR** pathway — additive component-tier discipline; no existing principle removed, renamed, or substantively re-scoped).
 **Pathway:** MINOR
 **Tier target:** **Component (Tier 3)** — conversus-oss-specific implementation of Tier 2 Principle XXVIII. Tier placement was **TIER-3-CONFIRMED** by the originating arbitration (`deliberations/v4.2.0-structured-deliberation-outputs-originating-2026-05-12/arbitration/resolution.md` Q3).
 
@@ -887,7 +887,7 @@ jobs:
 - `scripts/dispatch/adapters/tool/conversus.adapter.md` (new or modified) — declares the adapter's dependency on the conversus-oss JSON Schema, names the version range it supports, and references conversus-oss's `CONSUMER-CONTRACT.md`. Mirrors Principle XXVIII C3 (consumer-side declaration).
 - Adapter CI: orchestrator CI gains a "conversus-json-fixture" job that runs the adapter against a vendored copy of conversus-oss's fixture set; failure blocks merge in orchestrator.
 
-### 6.3 `clariti-care/payer-index-mono/build-fractal/conversus/CONFORMANCE.md`
+### 6.3 `Build-Fractal/build-fractal-mono/build-fractal/conversus/CONFORMANCE.md`
 
 - Update the conversus-oss row to reflect that this spec is the active satisfaction track for Principle XXVIII. Status moves from "Remediation-Blocked" (current, per v4.1.0) to "Remediation-In-Progress" on spec ratification, and to "Compliant" on completion of § 11 step 6.
 

@@ -101,6 +101,6 @@ The v4.2.0 spec attempts to establish JSON Schema discipline for deliberation ou
 ## Referenced Documentation
 
 - `QUESTION.md` — Q2 requirements and purist lens definition
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/conversus-oss/specs/v4.2.0-structured-deliberation-outputs/spec.md` — target specification, sections referenced throughout analysis
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/CONSTITUTION.md` — Tier 1 constitutional principles
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/CONSTITUTION.md` — Tier 2 constitutional principles including Principle V and XXVIII
+- `specs/v4.2.0-structured-deliberation-outputs/spec.md` — target specification, sections referenced throughout analysis
+- `build-fractal-mono/build-fractal/CONSTITUTION.md` — Tier 1 constitutional principles
+- `build-fractal-mono/build-fractal/conversus/CONSTITUTION.md` — Tier 2 constitutional principles including Principle V and XXVIII

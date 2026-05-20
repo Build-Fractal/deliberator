@@ -90,6 +90,6 @@ This spec proposes XML schema standardization for conversus deliberation outputs
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/conversus-oss/specs/v4.2.0-structured-deliberation-outputs/spec.md` — sections cited: L71-88, L242, L243, L245, L250, L252, L254-260, L262-268, L348-356, L358-365, L374, L375-376
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/CONSTITUTION.md` — sections cited: L490-644 (Principle XXVIII text), L547-553 (versioning requirements)
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/conversus-oss/deliberations/v4.2.0-structured-deliberation-outputs-originating-2026-05-12/QUESTION.md` — sections cited: L16-28 (Q1 feasibility criteria)
+- `specs/v4.2.0-structured-deliberation-outputs/spec.md` — sections cited: L71-88, L242, L243, L245, L250, L252, L254-260, L262-268, L348-356, L358-365, L374, L375-376
+- `build-fractal-mono/build-fractal/conversus/CONSTITUTION.md` — sections cited: L490-644 (Principle XXVIII text), L547-553 (versioning requirements)
+- `deliberations/v4.2.0-structured-deliberation-outputs-originating-2026-05-12/QUESTION.md` — sections cited: L16-28 (Q1 feasibility criteria)

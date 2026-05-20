@@ -112,5 +112,5 @@ However, the proposal's build order (L119-127) buries the consumer-facing produc
 
 ### Referenced Documentation
 
-- `/Users/brettkellgren/Sites/conversus/specs/011-adoption-harness/proposal.md` -- sections/lines cited: L18-20, L25-31, L35-42, L37, L40, L41, L53, L74, L89-98, L93, L94, L95, L97, L99, L119-127, L123-124, L127, L137
-- `/Users/brettkellgren/Sites/conversus/specs/999-decision-framework/spec.md` -- sections/lines cited: L36, L40-44, L44, L54-55, L185, L283-293, L310-319, L322-343, L443-446, L481-483, L486-487, L509-511, L518-519, L521, L579-609
+- `specs/011-adoption-harness/proposal.md` -- sections/lines cited: L18-20, L25-31, L35-42, L37, L40, L41, L53, L74, L89-98, L93, L94, L95, L97, L99, L119-127, L123-124, L127, L137
+- `specs/999-decision-framework/spec.md` -- sections/lines cited: L36, L40-44, L44, L54-55, L185, L283-293, L310-319, L322-343, L443-446, L481-483, L486-487, L509-511, L518-519, L521, L579-609

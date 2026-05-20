@@ -1,57 +1,57 @@
 I'll read all the documents and produce a revised defense based on the cross-review evidence.
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/product/review.md</path>
+<path>specs/041-plan-of-attack/conversus/product/review.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/strategist/cross-reviews/product.md</path>
+<path>specs/041-plan-of-attack/conversus/strategist/cross-reviews/product.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/architect/cross-reviews/product.md</path>
+<path>specs/041-plan-of-attack/conversus/architect/cross-reviews/product.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/builder/cross-reviews/product.md</path>
+<path>specs/041-plan-of-attack/conversus/builder/cross-reviews/product.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/product/cross-reviews/strategist.md</path>
+<path>specs/041-plan-of-attack/conversus/product/cross-reviews/strategist.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/product/cross-reviews/architect.md</path>
+<path>specs/041-plan-of-attack/conversus/product/cross-reviews/architect.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/product/cross-reviews/builder.md</path>
+<path>specs/041-plan-of-attack/conversus/product/cross-reviews/builder.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/plan-of-attack.md</path>
+<path>specs/041-plan-of-attack/plan-of-attack.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/040-command-center/spec.md</path>
+<path>specs/040-command-center/spec.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/032-package-splitting/spec.md</path>
+<path>specs/032-package-splitting/spec.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/033-monetization-partitioning/spec.md</path>
+<path>specs/033-monetization-partitioning/spec.md</path>
 </read_files>
 
 <write_to_file>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/product/revision_2.md</path>
+<path>specs/041-plan-of-attack/conversus/product/revision_2.md</path>
 <content># Product Defense Revision 2: Post Cross-Review Position
 
 **Agent**: Product (Blue Team)  
 **Date**: 2026-04-02  
 **Context**: Revised position after adversarial cross-examination  
-**Original Review**: `/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/product/review.md`
+**Original Review**: `specs/041-plan-of-attack/conversus/product/review.md`
 
 ## Executive Summary
 

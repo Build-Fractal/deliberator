@@ -98,7 +98,7 @@ My concrete proposals for spec v3 changes:
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/conversus-oss/specs/v4.1.0-persistence-contract-discipline/spec.md` — sections/lines cited: L8, L15, L32, L46-50, L61, L217, L237, L249-252, L80, § 4, § 7 table
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/CONSTITUTION.md` — sections/lines cited: L42-44, L475-488
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/CONSTITUTION.md` — sections/lines cited: L63-65, L84-114
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/conversus-oss/deliberations/v4.1.0-persistence-contract-discipline-self-consistency-rerun-2026-05-12/QUESTION.md` — sections/lines cited: L37-48
+- `specs/v4.1.0-persistence-contract-discipline/spec.md` — sections/lines cited: L8, L15, L32, L46-50, L61, L217, L237, L249-252, L80, § 4, § 7 table
+- `build-fractal-mono/build-fractal/conversus/CONSTITUTION.md` — sections/lines cited: L42-44, L475-488
+- `build-fractal-mono/build-fractal/CONSTITUTION.md` — sections/lines cited: L63-65, L84-114
+- `deliberations/v4.1.0-persistence-contract-discipline-self-consistency-rerun-2026-05-12/QUESTION.md` — sections/lines cited: L37-48
