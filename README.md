@@ -1,15 +1,36 @@
 # conversus
 
-Multi-agent deliberation engine. Pit AI agents against each other in structured adversarial review using game theory modes.
+**Stop trusting single-LLM answers that sound confident even when wrong.** Conversus pits AI agents against each other in structured adversarial review so weak arguments get exposed *before* you ship the decision.
 
 ```bash
 pip install git+https://github.com/Build-Fractal/conversus-oss.git
-conversus decide "Should we use Postgres or MongoDB?" --provider ollama
+conversus decide "Should we use Postgres or MongoDB?" --provider mock
 ```
+
+The `--provider mock` flag runs the full 5-phase pipeline with synthetic responses — no API key, nothing to install, no cost. You see exactly what conversus does in ~10 seconds. Swap to a real provider once you're sold.
 
 ## What is this?
 
-Conversus orchestrates multiple AI agents in structured debates. Each agent reviews a target document from a different perspective, cross-reviews each other's work, revises under pressure, disputes remaining disagreements, and produces a synthesized verdict. The engine supports 4 game theory modes (cooperative, winner-take-all, prisoner's dilemma, red-blue) and 13 execution providers spanning cloud APIs, local models, and CLI coding agents.
+Conversus orchestrates multiple AI agents in structured debates. Each agent reviews a target document from a different perspective, cross-reviews each other's work, revises under pressure, disputes remaining disagreements, and produces a synthesized verdict. The engine supports 8 game theory modes (cooperative, winner-take-all, prisoner's dilemma, red-blue, negotiation, resource-allocation, fair-division, mechanism-design) and 13 execution providers spanning cloud APIs, local models, and CLI coding agents.
+
+## Why conversus?
+
+| If you've used... | Conversus differs by... |
+|---|---|
+| **CrewAI / AutoGen** | Adversarial-by-default. Agents critique each other through a *structured* cross-review phase, not just a chat loop. Disagreements get surfaced as explicit disputes rather than averaged away. |
+| **LangGraph** | No graph to design. The 5-phase pipeline is fixed; you configure agents and mode. Game-theory mode (red-blue, prisoner's dilemma, etc.) selects the competitive dynamic. |
+| **AutoGPT / single-agent loops** | Multiple agents with *different* providers (e.g. Claude defends, local Llama attacks, GPT scores) in one deliberation. Heterogeneous deliberation is the marquee feature. |
+| **Just asking Claude / GPT once** | Conversus produces a record. Every position, cross-review, revision, and dispute is written to disk. You can read *why* the verdict landed where it did and audit the deliberation post-hoc. |
+
+## Showcase: deliberations that earned their keep
+
+These are real deliberations from the project's own development — kept because they caught things single-stage review missed.
+
+- **[v4.1.0 persistence-contract self-consistency](deliberations/v4.1.0-persistence-contract-discipline-self-consistency-2026-05-12/)** — four agents unanimously caught a tier-evidence mismatch that a single review pass had approved. The amendment was reworked before ratification.
+- **[v2.3.0 blind-verification](deliberations/v2.3.0-blind-verification-2026-04-25/)** — surfaced an internal constitutional contradiction with line-precise citations. Used to seed the "blind verification" pathway now baked into the constitution.
+- **[061 engine-eval-suite](deliberations/061-engine-eval-suite-2026-04-16/)** — spec-review deliberation accidentally surfaced **four real engine code bugs** that pytest hadn't covered.
+
+For the project's own discovery that it was systematically biased toward ratifying its own proposals — and how it amended the protocol to correct that — see [CONSTITUTIONAL_CONVERSATIONS.md](CONSTITUTIONAL_CONVERSATIONS.md).
 
 ## Quickstart
 
@@ -17,9 +38,12 @@ Conversus orchestrates multiple AI agents in structured debates. Each agent revi
 # Install from GitHub
 pip install git+https://github.com/Build-Fractal/conversus-oss.git
 
-# Zero-cost local deliberation (requires ollama)
-ollama pull qwen3:0.6b
-conversus decide "Microservices vs monolith for a 3-person team?" --provider ollama
+# Zero-cost mock deliberation — no API keys, runs in seconds
+conversus decide "Microservices vs monolith for a 3-person team?" --provider mock
+
+# Real LLM via your Anthropic API key
+export ANTHROPIC_API_KEY=sk-ant-...
+conversus decide "Microservices vs monolith?" --provider anthropic
 
 # Using your Claude subscription (if claude CLI is installed)
 conversus decide "Microservices vs monolith?" --provider claude-code --model opus
@@ -116,9 +140,10 @@ Every deliberation runs through 5 phases (6 with arbitration):
 conversus init
 
 # This creates:
-#   .conversus/settings.json    — project defaults
-#   .conversus/output/          — deliberation output
-#   .claude/settings.json       — permissions for claude-code agents
+#   .conversus/settings.yml       — project defaults (provider, model, mode)
+#   .conversus/deliberations/     — output directory for `decide` and `run`
+#   .claude/settings.json         — permissions for claude-code agents
+#   ~/.conversus/settings.yml     — global defaults
 ```
 
 ## CLI Reference
@@ -153,6 +178,10 @@ class MyPlugin(Plugin):
 ## License
 
 Apache-2.0. See [LICENSE](LICENSE) for details.
+
+## What's new
+
+See [CHANGELOG.md](CHANGELOG.md) for release notes.
 
 ## Contributing
 
