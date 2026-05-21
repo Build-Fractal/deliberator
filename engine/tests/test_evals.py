@@ -91,6 +91,8 @@ from typing import Mapping
 
 import pytest
 
+pytest.importorskip("deepeval")
+
 from deepeval.metrics import GEval
 from deepeval.models.llms.anthropic_model import AnthropicModel
 from deepeval.test_case import LLMTestCase, LLMTestCaseParams

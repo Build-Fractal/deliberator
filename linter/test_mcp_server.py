@@ -21,6 +21,8 @@ from pathlib import Path
 
 import pytest
 
+pytest.importorskip("mcp")
+
 # Import from project root mcp_server.py — add project root to path
 # so pytest can find it regardless of invocation directory.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))

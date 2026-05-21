@@ -15,6 +15,8 @@ from pathlib import Path
 
 import pytest
 
+pytest.importorskip("mcp")
+
 # ---------------------------------------------------------------------------
 # Import linter modules (same pattern as test_quality.py)
 # ---------------------------------------------------------------------------
