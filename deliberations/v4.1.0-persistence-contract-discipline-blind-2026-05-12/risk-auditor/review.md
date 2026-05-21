@@ -88,7 +88,7 @@ The universal 2026-12-01 deadline creates a brittle coordination dependency acro
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/conversus-oss/specs/v4.1.0-persistence-contract-discipline/spec.md` — sections cited: L16, L45-46, L70, L72, L119-123, L200-204, L246, L248, L323, L327-335, L356-360, L362-375, L406
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/conversus-oss/deliberations/v4.1.0-persistence-contract-discipline-blind-2026-05-12/QUESTION.md` — sections cited: L44-48
+- `specs/v4.1.0-persistence-contract-discipline/spec.md` — sections cited: L16, L45-46, L70, L72, L119-123, L200-204, L246, L248, L323, L327-335, L356-360, L362-375, L406
+- `deliberations/v4.1.0-persistence-contract-discipline-blind-2026-05-12/QUESTION.md` — sections cited: L44-48
 
 **Q2 RULING: HIGH-RISK-RECONSIDER — Universal deadline creates brittle cascade dependencies that exceed team capacity and lack operational safeguards.**

@@ -1,35 +1,35 @@
 I'll read all required documents first, then write a comprehensive red-team cross-review of the product team's defense.
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/product/revision.md</path>
+<path>specs/041-plan-of-attack/conversus/product/revision.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/architect/revision.md</path>
+<path>specs/041-plan-of-attack/conversus/architect/revision.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/plan-of-attack.md</path>
+<path>specs/041-plan-of-attack/plan-of-attack.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/040-command-center/spec.md</path>
+<path>specs/040-command-center/spec.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/032-package-splitting/spec.md</path>
+<path>specs/032-package-splitting/spec.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/033-monetization-partitioning/spec.md</path>
+<path>specs/033-monetization-partitioning/spec.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/SKILL.md</path>
+<path>SKILL.md</path>
 </read_files>
 
 <write_to_file>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/architect/cross-reviews/product.md</path>
+<path>specs/041-plan-of-attack/conversus/architect/cross-reviews/product.md</path>
 <content># Red Team Architect Cross-Review: Product Defense Fails Technical Scrutiny
 
 **Cross-Review Target**: Product Team's Revised Defense  

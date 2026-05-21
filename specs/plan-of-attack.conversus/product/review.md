@@ -3,7 +3,7 @@ I'll start by thoroughly reading all the provided documents to understand the pr
 After reading through the plan-of-attack.md, command-center spec, package-splitting spec, and monetization-partitioning spec, I'll now write my defense brief as the blue team product agent.
 
 <write_to_file>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/product/review.md</path>
+<path>specs/041-plan-of-attack/conversus/product/review.md</path>
 <content># Blue Team Defense Brief: Plan of Attack Strategy
 
 **Agent**: Product (Blue Team)  

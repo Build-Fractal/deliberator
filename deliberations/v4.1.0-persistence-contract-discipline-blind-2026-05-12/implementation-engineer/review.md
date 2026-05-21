@@ -88,7 +88,7 @@ The spec v4.1.0 establishes a comprehensive persistence contract discipline requ
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/conversus-oss/specs/v4.1.0-persistence-contract-discipline/spec.md` — sections cited: L71-74, L89-106, L118, L128-129, L142-143, L162
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/conversus-oss/deliberations/v4.1.0-persistence-contract-discipline-blind-2026-05-12/QUESTION.md` — sections cited: Q1 implementability criteria
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/CONSTITUTION.md` — referenced for constitutional principle context
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/CONSTITUTION.md` — referenced for Tier 2 principle integration
+- `specs/v4.1.0-persistence-contract-discipline/spec.md` — sections cited: L71-74, L89-106, L118, L128-129, L142-143, L162
+- `deliberations/v4.1.0-persistence-contract-discipline-blind-2026-05-12/QUESTION.md` — sections cited: Q1 implementability criteria
+- `build-fractal-mono/build-fractal/CONSTITUTION.md` — referenced for constitutional principle context
+- `build-fractal-mono/build-fractal/conversus/CONSTITUTION.md` — referenced for Tier 2 principle integration

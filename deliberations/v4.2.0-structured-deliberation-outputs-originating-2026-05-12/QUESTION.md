@@ -1,6 +1,6 @@
 # v4.2.0 Originating Deliberation — Three Questions
 
-This is **stage 1 of 3** in the v4.2.0 verification protocol per spec 067. The spec proposes **XML schema standardization** for the six conversus deliberation output types as the first concrete implementation of Tier 2 Principle XXVIII (Persistence Contract Discipline) — itself ratified 2026-05-12 (commit `551f647` in `clariti-care/payer-index-mono`).
+This is **stage 1 of 3** in the v4.2.0 verification protocol per spec 067. The spec proposes **XML schema standardization** for the six conversus deliberation output types as the first concrete implementation of Tier 2 Principle XXVIII (Persistence Contract Discipline) — itself ratified 2026-05-12 (commit `551f647` in `Build-Fractal/build-fractal-mono`).
 
 **Motivation grounded in three production bugs (cite from spec § 1):**
 1. Phase 5 prompt-overflow crash (recurring)

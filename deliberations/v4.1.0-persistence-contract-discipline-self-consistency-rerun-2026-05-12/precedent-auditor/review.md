@@ -80,6 +80,6 @@ The v4.1.0 amendment seeks to establish Tier 2 persistence contract discipline w
 
 ## Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/conversus-oss/specs/v4.1.0-persistence-contract-discipline/spec.md` — sections cited: L570-588 (§ 11), L595-620 (§ 12), L316-322 (Change 7), L582-583 (enforcement language)
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/conversus-oss/deliberations/v4.1.0-persistence-contract-discipline-self-consistency-rerun-2026-05-12/QUESTION.md` — sections cited: Q3 requirements (scope clarity, future-extension constraint, rationale rewrite verification)
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/conversus-oss/CONSTITUTIONAL_CONVERSATIONS.md` — sections cited: governance log structure for precedent documentation
+- `specs/v4.1.0-persistence-contract-discipline/spec.md` — sections cited: L570-588 (§ 11), L595-620 (§ 12), L316-322 (Change 7), L582-583 (enforcement language)
+- `deliberations/v4.1.0-persistence-contract-discipline-self-consistency-rerun-2026-05-12/QUESTION.md` — sections cited: Q3 requirements (scope clarity, future-extension constraint, rationale rewrite verification)
+- `CONSTITUTIONAL_CONVERSATIONS.md` — sections cited: governance log structure for precedent documentation

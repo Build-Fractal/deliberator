@@ -1,0 +1,106 @@
+name: Bug report
+description: Something in conversus is not working as expected.
+title: "[bug] "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug report. Please fill out the sections below so we can reproduce and fix the issue quickly.
+
+        Before filing, please check whether your issue is already reported in [open issues](https://github.com/Build-Fractal/conversus/issues?q=is%3Aissue+is%3Aopen).
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of what you observed vs. what you expected.
+      placeholder: "When I ran `conversus run my-config.yml`, the synthesis phase exited with..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      description: |
+        Exact commands and config to reproduce. If your `conversus.yml` is large, please reduce it to the smallest config that still exhibits the bug.
+      placeholder: |
+        1. `conversus init demo-repro && cd demo-repro`
+        2. Replace `conversus.yml` with:
+           ```yaml
+           mode: cooperative
+           # ...
+           ```
+        3. Run `conversus run conversus.yml --provider mock`
+        4. Observe error in phase 5
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Output / stack trace
+      description: Paste relevant terminal output. Use `--verbose` if the default output isn't informative.
+      render: shell
+    validations:
+      required: false
+
+  - type: input
+    id: version
+    attributes:
+      label: conversus version
+      description: Run `conversus --version` (or `pip show conversus`).
+      placeholder: "0.4.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: provider
+    attributes:
+      label: Provider used
+      description: Which execution provider was active when the bug occurred?
+      options:
+        - mock (or demo)
+        - anthropic
+        - claude-code
+        - claude-desktop
+        - aider
+        - opencode
+        - codex
+        - gemini
+        - copilot
+        - pi
+        - ollama
+        - llama-cpp
+        - vllm
+        - multiple (heterogeneous deliberation)
+        - not applicable
+    validations:
+      required: true
+
+  - type: input
+    id: python-version
+    attributes:
+      label: Python version
+      description: Run `python --version`.
+      placeholder: "3.12.5"
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: "macOS 14.5 / Ubuntu 22.04 / Windows 11"
+    validations:
+      required: true
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional context
+      description: Anything else that might help — related issues, recent upgrades, custom plugins loaded, etc.
+    validations:
+      required: false

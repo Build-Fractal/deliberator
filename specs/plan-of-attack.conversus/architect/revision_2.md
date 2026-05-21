@@ -1,53 +1,53 @@
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/architect/review.md</path>
+<path>specs/041-plan-of-attack/conversus/architect/review.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/strategist/cross-reviews/architect.md</path>
+<path>specs/041-plan-of-attack/conversus/strategist/cross-reviews/architect.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/builder/cross-reviews/architect.md</path>
+<path>specs/041-plan-of-attack/conversus/builder/cross-reviews/architect.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/product/cross-reviews/architect.md</path>
+<path>specs/041-plan-of-attack/conversus/product/cross-reviews/architect.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/architect/cross-reviews/strategist.md</path>
+<path>specs/041-plan-of-attack/conversus/architect/cross-reviews/strategist.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/architect/cross-reviews/builder.md</path>
+<path>specs/041-plan-of-attack/conversus/architect/cross-reviews/builder.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/architect/cross-reviews/product.md</path>
+<path>specs/041-plan-of-attack/conversus/architect/cross-reviews/product.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/plan-of-attack.md</path>
+<path>specs/041-plan-of-attack/plan-of-attack.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/040-command-center/spec.md</path>
+<path>specs/040-command-center/spec.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/032-package-splitting/spec.md</path>
+<path>specs/032-package-splitting/spec.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/033-monetization-partitioning/spec.md</path>
+<path>specs/033-monetization-partitioning/spec.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/SKILL.md</path>
+<path>SKILL.md</path>
 </read_files>
 
 <write_to_file>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/architect/revision_2.md</path>
+<path>specs/041-plan-of-attack/conversus/architect/revision_2.md</path>
 <content># Red Team Architect — Revised Attack List (Revision 2)
 
 **Role**: Red Team (Systems Architect)  

@@ -1,7 +1,7 @@
 I'll analyze all the cross-reviews of my position and revise accordingly. Let me read through each file carefully.
 
 <write_to_file>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/architect/revision.md</path>
+<path>specs/041-plan-of-attack/conversus/architect/revision.md</path>
 <content># Red Team Architect - Revised Attack List
 
 **Role**: Red Team Architect  

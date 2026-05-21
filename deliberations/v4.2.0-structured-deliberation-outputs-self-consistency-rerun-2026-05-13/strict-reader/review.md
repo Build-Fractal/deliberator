@@ -88,7 +88,7 @@ The v4.2.0 structured deliberation outputs specification v3 attempts to implemen
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/conversus-oss/specs/v4.2.0-structured-deliberation-outputs/spec.md` — sections cited: L15-40 (D-conditions), L122-128 (schema location), L574-578 (D1 reversal), L619-626 (fixtures), L632-641 (CI gate), L637-638 (bidirectional validation), L690-711 (consumer contract), L741-743 (temporal constraint), L745 (anti-precedent), L755-765 (weakening assessment)
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/CONSTITUTION.md` — sections cited: L84-114 (Principle II), L265-284 (Principle XI), L312-334 (Principle XIV)
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/CONSTITUTION.md` — sections cited: L76-78 (Principle V), L508-510 (XXVIII sub-clause 1), L535-537 (bidirectional validation), L538-545 (fixtures), L572-577 (consumer contracts), L649-664 (weakening prohibition)
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/conversus-oss/deliberations/v4.2.0-structured-deliberation-outputs-self-consistency-rerun-2026-05-13/QUESTION.md` — sections cited: L13-33 (Q1 fit check), L49-53 (temporal logic), L71-75 (contradiction check)
+- `specs/v4.2.0-structured-deliberation-outputs/spec.md` — sections cited: L15-40 (D-conditions), L122-128 (schema location), L574-578 (D1 reversal), L619-626 (fixtures), L632-641 (CI gate), L637-638 (bidirectional validation), L690-711 (consumer contract), L741-743 (temporal constraint), L745 (anti-precedent), L755-765 (weakening assessment)
+- `build-fractal-mono/build-fractal/CONSTITUTION.md` — sections cited: L84-114 (Principle II), L265-284 (Principle XI), L312-334 (Principle XIV)
+- `build-fractal-mono/build-fractal/conversus/CONSTITUTION.md` — sections cited: L76-78 (Principle V), L508-510 (XXVIII sub-clause 1), L535-537 (bidirectional validation), L538-545 (fixtures), L572-577 (consumer contracts), L649-664 (weakening prohibition)
+- `deliberations/v4.2.0-structured-deliberation-outputs-self-consistency-rerun-2026-05-13/QUESTION.md` — sections cited: L13-33 (Q1 fit check), L49-53 (temporal logic), L71-75 (contradiction check)

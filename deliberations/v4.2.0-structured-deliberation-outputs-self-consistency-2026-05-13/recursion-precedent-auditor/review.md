@@ -86,7 +86,7 @@ Spec v4.2.0 implements Tier 2 Principle XXVIII (Persistence Contract Discipline)
 
 ## Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/conversus-oss/specs/v4.2.0-structured-deliberation-outputs/spec.md` — sections cited: L623-626 (§ 9.1), L705-711 (§ 13)
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/CONSTITUTION.md` — sections cited: L490-644 (Principle XXVIII), L651-664 (cross-tier weakening prohibition)
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/CONSTITUTION.md` — sections cited: L84-114 (Principle II)
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/conversus-oss/deliberations/v4.2.0-structured-deliberation-outputs-self-consistency-2026-05-13/QUESTION.md` — sections cited: L47-48 (override-with-rationale precedent reference)
+- `specs/v4.2.0-structured-deliberation-outputs/spec.md` — sections cited: L623-626 (§ 9.1), L705-711 (§ 13)
+- `build-fractal-mono/build-fractal/conversus/CONSTITUTION.md` — sections cited: L490-644 (Principle XXVIII), L651-664 (cross-tier weakening prohibition)
+- `build-fractal-mono/build-fractal/CONSTITUTION.md` — sections cited: L84-114 (Principle II)
+- `deliberations/v4.2.0-structured-deliberation-outputs-self-consistency-2026-05-13/QUESTION.md` — sections cited: L47-48 (override-with-rationale precedent reference)

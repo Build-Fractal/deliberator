@@ -1,107 +1,107 @@
 I'll read through all the deliberation documents and synthesize the complete risk register.
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/plan-of-attack.md</path>
+<path>specs/041-plan-of-attack/plan-of-attack.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/strategist/review.md</path>
+<path>specs/041-plan-of-attack/conversus/strategist/review.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/architect/review.md</path>
+<path>specs/041-plan-of-attack/conversus/architect/review.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/builder/review.md</path>
+<path>specs/041-plan-of-attack/conversus/builder/review.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/product/review.md</path>
+<path>specs/041-plan-of-attack/conversus/product/review.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/strategist/cross-reviews/architect.md</path>
+<path>specs/041-plan-of-attack/conversus/strategist/cross-reviews/architect.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/strategist/cross-reviews/builder.md</path>
+<path>specs/041-plan-of-attack/conversus/strategist/cross-reviews/builder.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/strategist/cross-reviews/product.md</path>
+<path>specs/041-plan-of-attack/conversus/strategist/cross-reviews/product.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/architect/cross-reviews/strategist.md</path>
+<path>specs/041-plan-of-attack/conversus/architect/cross-reviews/strategist.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/architect/cross-reviews/builder.md</path>
+<path>specs/041-plan-of-attack/conversus/architect/cross-reviews/builder.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/architect/cross-reviews/product.md</path>
+<path>specs/041-plan-of-attack/conversus/architect/cross-reviews/product.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/builder/cross-reviews/strategist.md</path>
+<path>specs/041-plan-of-attack/conversus/builder/cross-reviews/strategist.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/builder/cross-reviews/architect.md</path>
+<path>specs/041-plan-of-attack/conversus/builder/cross-reviews/architect.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/builder/cross-reviews/product.md</path>
+<path>specs/041-plan-of-attack/conversus/builder/cross-reviews/product.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/product/cross-reviews/strategist.md</path>
+<path>specs/041-plan-of-attack/conversus/product/cross-reviews/strategist.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/product/cross-reviews/architect.md</path>
+<path>specs/041-plan-of-attack/conversus/product/cross-reviews/architect.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/product/cross-reviews/builder.md</path>
+<path>specs/041-plan-of-attack/conversus/product/cross-reviews/builder.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/strategist/revision_2.md</path>
+<path>specs/041-plan-of-attack/conversus/strategist/revision_2.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/architect/revision_2.md</path>
+<path>specs/041-plan-of-attack/conversus/architect/revision_2.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/builder/revision_2.md</path>
+<path>specs/041-plan-of-attack/conversus/builder/revision_2.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/product/revision_2.md</path>
+<path>specs/041-plan-of-attack/conversus/product/revision_2.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/strategist/disputes.md</path>
+<path>specs/041-plan-of-attack/conversus/strategist/disputes.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/architect/disputes.md</path>
+<path>specs/041-plan-of-attack/conversus/architect/disputes.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/builder/disputes.md</path>
+<path>specs/041-plan-of-attack/conversus/builder/disputes.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/product/disputes.md</path>
+<path>specs/041-plan-of-attack/conversus/product/disputes.md</path>
 </read_files>
 
 <write_to_file>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/summary/final.md</path>
+<path>specs/041-plan-of-attack/conversus/summary/final.md</path>
 <content># Red-Blue Synthesis: Plan of Attack Final Risk Register
 
 **Target**: Plan of Attack Layer-by-Layer Build Order  

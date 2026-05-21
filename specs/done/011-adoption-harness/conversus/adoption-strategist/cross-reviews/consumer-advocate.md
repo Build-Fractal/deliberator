@@ -75,7 +75,7 @@
 
 ### Referenced Documentation
 
-- `/Users/brettkellgren/Sites/conversus/specs/011-adoption-harness/conversus/consumer-advocate/review.md` -- sections cited: Executive Summary, Alignment, Missed Opportunities (items 1-8), Off-Base Assumptions (items 1-2), Actionable Recommendations (items 1-10)
-- `/Users/brettkellgren/Sites/conversus/specs/011-adoption-harness/conversus/adoption-strategist/review.md` -- sections cited: Executive Summary, Alignment (items 1-5), Missed Opportunities (items 1-8), Off-Base Assumptions (items 1-3), Actionable Recommendations (items 1-10)
-- `/Users/brettkellgren/Sites/conversus/specs/011-adoption-harness/proposal.md` -- sections/lines cited: L25-31, L33-45, L41, L74, L89-99, L97, L119-127
-- `/Users/brettkellgren/Sites/conversus/specs/999-decision-framework/spec.md` -- sections/lines cited: L26-75, L40-44, L277-293, L309-343, L481-483
+- `specs/011-adoption-harness/conversus/consumer-advocate/review.md` -- sections cited: Executive Summary, Alignment, Missed Opportunities (items 1-8), Off-Base Assumptions (items 1-2), Actionable Recommendations (items 1-10)
+- `specs/011-adoption-harness/conversus/adoption-strategist/review.md` -- sections cited: Executive Summary, Alignment (items 1-5), Missed Opportunities (items 1-8), Off-Base Assumptions (items 1-3), Actionable Recommendations (items 1-10)
+- `specs/011-adoption-harness/proposal.md` -- sections/lines cited: L25-31, L33-45, L41, L74, L89-99, L97, L119-127
+- `specs/999-decision-framework/spec.md` -- sections/lines cited: L26-75, L40-44, L277-293, L309-343, L481-483

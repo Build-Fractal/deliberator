@@ -82,6 +82,6 @@ Most critically, the spec must tighten its containment language to prevent futur
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/conversus-oss/specs/v4.2.0-structured-deliberation-outputs/spec.md` — sections cited: L825-831, L832-845, L847-856, L857-867, L885-920, L908-920, L915-920, L863-867, L858-859, L858-867
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/CONSTITUTION.md` — sections cited: L649-664, L685
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/conversus-oss/deliberations/v4.2.0-structured-deliberation-outputs-self-consistency-rerun-2026-05-13/QUESTION.md` — sections cited: Q2 question framework, precedent analysis requirements
+- `specs/v4.2.0-structured-deliberation-outputs/spec.md` — sections cited: L825-831, L832-845, L847-856, L857-867, L885-920, L908-920, L915-920, L863-867, L858-859, L858-867
+- `build-fractal-mono/build-fractal/conversus/CONSTITUTION.md` — sections cited: L649-664, L685
+- `deliberations/v4.2.0-structured-deliberation-outputs-self-consistency-rerun-2026-05-13/QUESTION.md` — sections cited: Q2 question framework, precedent analysis requirements

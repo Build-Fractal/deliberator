@@ -1,0 +1,79 @@
+name: Feature request
+description: Propose a new capability or change to existing behavior.
+title: "[feature] "
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for proposing an improvement to conversus.
+
+        **Before filing:**
+        - For broad direction questions or unclear scope, consider opening a [discussion](https://github.com/Build-Fractal/conversus/discussions) first.
+        - For changes that would touch a constitutional principle, the proposal should go through the four-stage verification protocol — see `CONTRIBUTING.md` for the contribution-type decision tree.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: |
+        Describe the user-facing problem or limitation. Start with the user's situation, not the proposed solution.
+      placeholder: "When I run a deliberation with 10+ agents, the cost-estimation output doesn't break down per-agent so I can't tell which agents are driving the budget..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: |
+        What should conversus do differently? Include API/CLI shape if relevant.
+      placeholder: |
+        Add a `--per-agent` flag to `conversus validate` that emits a per-agent cost breakdown table. Default behavior unchanged.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: |
+        What other approaches did you consider? Why is the proposed shape better? Saying "I haven't considered alternatives" is fine — but try to think of one.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Where does this change live?
+      description: |
+        Best-guess classification. Maintainers will reclassify if needed.
+      options:
+        - CLI / UX surface (new flag, output format)
+        - Engine internals (deliberation pipeline, scheduling)
+        - New game-theory mode
+        - New execution provider
+        - Plugin / extension point
+        - Constitutional change (touches a Principle)
+        - Docs / onboarding
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Concrete use case
+      description: |
+        A real workflow this would unlock. The more specific the better.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Would you be willing to contribute this?
+      options:
+        - label: I would like to implement this myself with maintainer guidance.
+        - label: I can help with design / review but cannot implement.
+        - label: I am proposing this for the maintainers to consider — I cannot contribute the work.

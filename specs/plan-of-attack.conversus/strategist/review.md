@@ -1,7 +1,7 @@
 I'll now read through all the required files to conduct my red team analysis of the plan of attack.
 
 <review_file>
-/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/strategist/review.md
+specs/041-plan-of-attack/conversus/strategist/review.md
 </review_file>
 
 # Red Team Attack Surface Analysis

@@ -1,7 +1,7 @@
 Looking at all the cross-reviews, I need to revise my position based on the adversarial exchange. Let me read through the challenges to my original position and update accordingly.
 
 <write_to_file>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/strategist/revision.md</path>
+<path>specs/041-plan-of-attack/conversus/strategist/revision.md</path>
 <content># Red Team Revised Attack Position
 
 **Agent**: strategist  

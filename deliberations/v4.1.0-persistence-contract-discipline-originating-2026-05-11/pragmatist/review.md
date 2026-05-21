@@ -82,10 +82,10 @@ The v4.1.0 Persistence Contract Discipline amendment addresses a real and pressi
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/conversus-oss/specs/v4.1.0-persistence-contract-discipline/spec.md` — sections/lines cited: L16-22, L24-26, L32-47, L53-90, L181-183, L220-222
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/CONSTITUTION.md` — sections/lines cited: L84-114 (Principle II current text)
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/spec-kit-orc/specs/001-orchestrator/contracts/state-files.md` — sections/lines cited: L1-27 (positive example of declared contract)
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/conversus-oss/deliberations/v4.1.0-persistence-contract-discipline-originating-2026-05-11/QUESTION.md` — sections/lines cited: L14-51 (three bundled questions)
+- `specs/v4.1.0-persistence-contract-discipline/spec.md` — sections/lines cited: L16-22, L24-26, L32-47, L53-90, L181-183, L220-222
+- `build-fractal-mono/build-fractal/CONSTITUTION.md` — sections/lines cited: L84-114 (Principle II current text)
+- `build-fractal-mono/build-fractal/spec-kit-orc/specs/001-orchestrator/contracts/state-files.md` — sections/lines cited: L1-27 (positive example of declared contract)
+- `deliberations/v4.1.0-persistence-contract-discipline-originating-2026-05-11/QUESTION.md` — sections/lines cited: L14-51 (three bundled questions)
 
 **Question verdicts from pragmatist perspective:**
 - **Question 1:** APPROVE-AS-DRAFTED (meets all three Constitutional Inclusion Criteria with strong evidence)

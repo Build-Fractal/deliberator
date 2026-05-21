@@ -1,39 +1,39 @@
 I'll analyze the full deliberation arc and produce the Red Team's final position on the unmitigated risks.
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/strategist/revision_2.md</path>
+<path>specs/041-plan-of-attack/conversus/strategist/revision_2.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/architect/revision_2.md</path>
+<path>specs/041-plan-of-attack/conversus/architect/revision_2.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/builder/revision_2.md</path>
+<path>specs/041-plan-of-attack/conversus/builder/revision_2.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/product/revision_2.md</path>
+<path>specs/041-plan-of-attack/conversus/product/revision_2.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/plan-of-attack.md</path>
+<path>specs/041-plan-of-attack/plan-of-attack.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/040-command-center/spec.md</path>
+<path>specs/040-command-center/spec.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/032-package-splitting/spec.md</path>
+<path>specs/032-package-splitting/spec.md</path>
 </read_files>
 
 <read_files>
-<path>/Users/brettkellgren/Sites/conversus/specs/033-monetization-partitioning/spec.md</path>
+<path>specs/033-monetization-partitioning/spec.md</path>
 </read_files>
 
 <write_to_file>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/strategist/disputes.md</path>
+<path>specs/041-plan-of-attack/conversus/strategist/disputes.md</path>
 <content># Red Team Final Position: Unmitigated Risks
 
 **Agent**: strategist (Red Team)  

@@ -80,6 +80,6 @@ Spec v3 proposes adding a new Tier 2 Principle XXVIII "Persistence Contract Disc
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/conversus-oss/specs/v4.1.0-persistence-contract-discipline/spec.md` — sections cited: L78-82, L190-194, L456-475, L440-445, L568-570, L571-577, L1130-1145
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/CONSTITUTION.md` — sections cited: L62-65, L200-220
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/CONSTITUTION.md` — sections cited: Principle II, Principle XI
+- `specs/v4.1.0-persistence-contract-discipline/spec.md` — sections cited: L78-82, L190-194, L456-475, L440-445, L568-570, L571-577, L1130-1145
+- `build-fractal-mono/build-fractal/conversus/CONSTITUTION.md` — sections cited: L62-65, L200-220
+- `build-fractal-mono/build-fractal/CONSTITUTION.md` — sections cited: Principle II, Principle XI

@@ -82,10 +82,10 @@ This specification proposes implementing structured deliberation outputs for con
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/conversus-oss/specs/v4.2.0-structured-deliberation-outputs/spec.md` — sections/lines cited: L168-581 (schema definitions), L90-105 (bug motivation), L78-108 (constitutional grounding), L619 (slot markers), L597 (validator interface), L651-657 (CI gate), L623 (performance target), L707-728 (consumer contract), L654 (drift detection), L634-641 (fixtures), L655 (version bumps)
+- `specs/v4.2.0-structured-deliberation-outputs/spec.md` — sections/lines cited: L168-581 (schema definitions), L90-105 (bug motivation), L78-108 (constitutional grounding), L619 (slot markers), L597 (validator interface), L651-657 (CI gate), L623 (performance target), L707-728 (consumer contract), L654 (drift detection), L634-641 (fixtures), L655 (version bumps)
 
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/CONSTITUTION.md` — sections/lines cited: L84-113 (Principle II Stable Interfaces)
+- `build-fractal-mono/build-fractal/CONSTITUTION.md` — sections/lines cited: L84-113 (Principle II Stable Interfaces)
 
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/CONSTITUTION.md` — sections/lines cited: L490-585 (Principle XXVIII Persistence Contract Discipline), L70-80 (Principle V Observable Deliberation)
+- `build-fractal-mono/build-fractal/conversus/CONSTITUTION.md` — sections/lines cited: L490-585 (Principle XXVIII Persistence Contract Discipline), L70-80 (Principle V Observable Deliberation)
 
 **Q1 VERDICT: IMPLEMENTABLE-WITH-CLARIFICATIONS** — Core schema design is implementable but critical integration details and enforcement mechanisms require specification.

@@ -82,5 +82,5 @@ The amendment demonstrates otherwise strong constitutional grounding with proper
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/conversus-oss/CONSTITUTIONAL_CONVERSATIONS.md` — lines cited: L398 (precedent establishment), L386-413 (spec 071 override methodology)
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/conversus-oss/deliberations/v4.1.0-persistence-contract-discipline-self-consistency-2026-05-12/QUESTION.md` — sections cited: Q3 precedent analysis questions, stage applicability test, uniform application risk assessment
+- `CONSTITUTIONAL_CONVERSATIONS.md` — lines cited: L398 (precedent establishment), L386-413 (spec 071 override methodology)
+- `deliberations/v4.1.0-persistence-contract-discipline-self-consistency-2026-05-12/QUESTION.md` — sections cited: Q3 precedent analysis questions, stage applicability test, uniform application risk assessment

@@ -10,7 +10,7 @@ The synthesis identified four substantive disputes spanning technical implementa
 
 ## Decision Framework
 
-The following Tier 1 Universal constitutional principles from `/Users/business-daddy/code/payer-index-mono/build-fractal/CONSTITUTION.md` are directly relevant to these disputes:
+The following Tier 1 Universal constitutional principles from `build-fractal-mono/build-fractal/CONSTITUTION.md` are directly relevant to these disputes:
 
 - **Principle I (Spec-Driven Development)**: "Every behavioral change MUST start with a specification. Specs define WHAT and WHY. Implementation plans define HOW. The speckit pipeline (`specify → clarify → plan → tasks → implement`) is the standard workflow." (L71-82)
 

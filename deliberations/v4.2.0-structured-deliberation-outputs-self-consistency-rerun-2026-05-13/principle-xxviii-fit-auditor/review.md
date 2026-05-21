@@ -78,6 +78,6 @@ v4.2.0 v3 implements JSON Schema-based structured deliberation outputs as the fi
 
 ## Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/CONSTITUTION.md` — sections/lines cited: L490-494 (preamble), L505-510 (sub-clause 1), L538-545 (sub-clause 2), L555-560 (sub-clause 3), L572-577 (sub-clauses 4-5), L594-602, L594-616 (deadline enforcement)
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/conversus-oss/specs/v4.2.0-structured-deliberation-outputs/spec.md` — sections cited: § 1, § 3, § 4.0, § 4.8, § 4.9, § 5.1, § 5.3, § 5.4, § 6.1, § 7.1, § 9.3
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/conversus-oss/deliberations/v4.2.0-structured-deliberation-outputs-self-consistency-rerun-2026-05-13/QUESTION.md` — D-conditions D9-D15 verification requirements
+- `build-fractal-mono/build-fractal/conversus/CONSTITUTION.md` — sections/lines cited: L490-494 (preamble), L505-510 (sub-clause 1), L538-545 (sub-clause 2), L555-560 (sub-clause 3), L572-577 (sub-clauses 4-5), L594-602, L594-616 (deadline enforcement)
+- `specs/v4.2.0-structured-deliberation-outputs/spec.md` — sections cited: § 1, § 3, § 4.0, § 4.8, § 4.9, § 5.1, § 5.3, § 5.4, § 6.1, § 7.1, § 9.3
+- `deliberations/v4.2.0-structured-deliberation-outputs-self-consistency-rerun-2026-05-13/QUESTION.md` — D-conditions D9-D15 verification requirements

@@ -1,7 +1,7 @@
 I'll carefully read all the files and produce a revised defense based on the adversarial exchanges.
 
 <write_to_file>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/product/revision.md</path>
+<path>specs/041-plan-of-attack/conversus/product/revision.md</path>
 <content># Blue Team Revised Defense: Plan of Attack Strategy
 
 **Agent**: Product (Blue Team)  

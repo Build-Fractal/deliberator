@@ -1,11 +1,11 @@
 <write_to_file>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/strategist/cross-reviews/builder.md</path>
+<path>specs/041-plan-of-attack/conversus/strategist/cross-reviews/builder.md</path>
 <content># Red Team Cross-Review of Blue Team Builder Defense
 
 **Agent**: strategist  
 **Role**: Red Team (Attacker)  
 **Target**: Blue Team builder revision  
-**Document**: `/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/builder/revision.md`  
+**Document**: `specs/041-plan-of-attack/conversus/builder/revision.md`  
 **Date**: 2026-04-02  
 
 ## Insufficient Mitigations

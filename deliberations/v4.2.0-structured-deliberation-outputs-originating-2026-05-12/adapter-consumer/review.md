@@ -98,6 +98,6 @@ The spec proposes migrating conversus deliberation outputs from grep-parsed mark
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/conversus-oss/specs/v4.2.0-structured-deliberation-outputs/spec.md` — sections cited: L225-226, L284, L291, L306-309, L364, L75, L243, L291, L293, L364
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/conversus-oss/CONFORMANCE.md` — sections cited: L49 (XXVIII Provisional status)
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/conversus-oss/deliberations/v4.1.0-persistence-contract-discipline-originating-2026-05-11/arbitration/resolution.md` — sections cited: L175-177 (current ruling line format)
+- `specs/v4.2.0-structured-deliberation-outputs/spec.md` — sections cited: L225-226, L284, L291, L306-309, L364, L75, L243, L291, L293, L364
+- `CONFORMANCE.md` — sections cited: L49 (XXVIII Provisional status)
+- `deliberations/v4.1.0-persistence-contract-discipline-originating-2026-05-11/arbitration/resolution.md` — sections cited: L175-177 (current ruling line format)

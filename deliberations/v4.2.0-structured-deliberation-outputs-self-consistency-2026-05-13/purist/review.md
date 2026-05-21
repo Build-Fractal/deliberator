@@ -86,6 +86,6 @@ The spec's Tier 3 placement is appropriately scoped, but its execution reveals a
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/conversus-oss/specs/v4.2.0-structured-deliberation-outputs/spec.md` — sections cited: L9, L42, L461, L463-469, L532, L623-626, L669
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/CONSTITUTION.md` — sections cited: L490-644 (Principle XXVIII complete text)
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/conversus-oss/deliberations/v4.2.0-structured-deliberation-outputs-self-consistency-2026-05-13/QUESTION.md` — sections cited: L17-31, L24-29, L42-47, L47-49
+- `specs/v4.2.0-structured-deliberation-outputs/spec.md` — sections cited: L9, L42, L461, L463-469, L532, L623-626, L669
+- `build-fractal-mono/build-fractal/conversus/CONSTITUTION.md` — sections cited: L490-644 (Principle XXVIII complete text)
+- `deliberations/v4.2.0-structured-deliberation-outputs-self-consistency-2026-05-13/QUESTION.md` — sections cited: L17-31, L24-29, L42-47, L47-49

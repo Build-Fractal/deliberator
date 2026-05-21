@@ -1,7 +1,7 @@
 I'll analyze all the cross-review exchanges and produce a revised Red Team position that responds to the challenges made against my original attack.
 
 <write_to_file>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/strategist/revision_2.md</path>
+<path>specs/041-plan-of-attack/conversus/strategist/revision_2.md</path>
 <content># Red Team Revised Position: Plan of Attack Strategic Assessment
 
 **Agent**: strategist (Red Team)  

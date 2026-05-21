@@ -88,6 +88,6 @@ The implementation timeline targeting 2026-12-01 is aggressive for the scope pro
 
 # Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/conversus-oss/specs/v4.2.0-structured-deliberation-outputs/spec.md` — sections cited: L34-66, L78-88, L90-98, L90-204, L196-204, L218-237, L266-277, L298-309, L400-428, L502-520
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/CONSTITUTION.md` — Principle I (Spec-Driven Development), Principle VII (Reproducibility Over Inconsistency)
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/CONSTITUTION.md` — Principle XXVIII (Persistence Contract Discipline)
+- `specs/v4.2.0-structured-deliberation-outputs/spec.md` — sections cited: L34-66, L78-88, L90-98, L90-204, L196-204, L218-237, L266-277, L298-309, L400-428, L502-520
+- `build-fractal-mono/build-fractal/CONSTITUTION.md` — Principle I (Spec-Driven Development), Principle VII (Reproducibility Over Inconsistency)
+- `build-fractal-mono/build-fractal/conversus/CONSTITUTION.md` — Principle XXVIII (Persistence Contract Discipline)

@@ -1,5 +1,5 @@
 <write_to_file>
-<path>/Users/brettkellgren/Sites/conversus/specs/041-plan-of-attack/conversus/product/cross-reviews/builder.md</path>
+<path>specs/041-plan-of-attack/conversus/product/cross-reviews/builder.md</path>
 <content># Product Cross-Review: Builder Defense
 
 **Agent**: Product (Blue Team)  

@@ -122,6 +122,6 @@ The most important recommendation: invert the build order so that spec 007's plu
 
 ### Referenced Documentation
 
-- `/Users/brettkellgren/Sites/conversus/specs/011-adoption-harness/proposal.md` -- sections/lines cited: L25-31, L34-45, L54, L59-72, L79-86, L89-99, L111-116, L118-128, L120, L127, L128, L131, L136, L141
-- `/Users/brettkellgren/Sites/conversus/SKILL.md` -- sections/lines cited: L13, L19, L28-78, L28-196, L51-56, L87-91, L210-241, L243-271, L260-271, L273-327, L286-298, L290-291, L296-297, L358-598, L397, L488-495, L670-697, L688, L704-719, L716, L1-734
-- `/Users/brettkellgren/Sites/conversus/specs/007-game-engine/spec.md` -- sections/lines cited: L47, L62-70, L96-112, L131-157, L138-146, L166-177, L206-211, L392-406, L509-597, L566-587
+- `specs/011-adoption-harness/proposal.md` -- sections/lines cited: L25-31, L34-45, L54, L59-72, L79-86, L89-99, L111-116, L118-128, L120, L127, L128, L131, L136, L141
+- `SKILL.md` -- sections/lines cited: L13, L19, L28-78, L28-196, L51-56, L87-91, L210-241, L243-271, L260-271, L273-327, L286-298, L290-291, L296-297, L358-598, L397, L488-495, L670-697, L688, L704-719, L716, L1-734
+- `specs/007-game-engine/spec.md` -- sections/lines cited: L47, L62-70, L96-112, L131-157, L138-146, L166-177, L206-211, L392-406, L509-597, L566-587

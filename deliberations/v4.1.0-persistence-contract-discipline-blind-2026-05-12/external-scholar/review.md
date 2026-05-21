@@ -104,7 +104,7 @@ However, the spec is significantly diluted by extensive process archaeology that
 
 ### Referenced Documentation
 
-- `/Users/business-daddy/code/payer-index-mono/build-fractal/conversus/conversus-oss/specs/v4.1.0-persistence-contract-discipline/spec.md` — sections cited: L11-43 (changelogs), L55-59 (scope rationale), L70-72 (universal deadline), L91-172 (core principle), L344-397 (process archaeology)
+- `specs/v4.1.0-persistence-contract-discipline/spec.md` — sections cited: L11-43 (changelogs), L55-59 (scope rationale), L70-72 (universal deadline), L91-172 (core principle), L344-397 (process archaeology)
 
 ---
 
