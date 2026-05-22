@@ -77,7 +77,10 @@ validate_templates: true
 # Set false to skip template schema validation. Default: true.
 
 provider: anthropic
-# Default provider for the config. 'anthropic' or 'openai'.
+# Default provider for the config. Accepts any registered provider
+# (mock, demo, anthropic, openai, claude-code, claude-desktop, aider,
+# opencode, codex, copilot, gemini, pi, ollama, llama-cpp, vllm).
+# See README.md providers table for install + auth per provider.
 # CLI --provider flag overrides this.
 
 # --- Arbiter (optional Phase 6) ---

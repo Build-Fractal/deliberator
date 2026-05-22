@@ -111,8 +111,9 @@ Examples:
     "--provider",
     default="mock",
     type=click.Choice(
-        ["mock", "anthropic", "openai", "claude-code", "aider", "opencode",
-         "ollama", "llama-cpp", "vllm", "codex", "copilot", "gemini", "pi"],
+        ["mock", "demo", "anthropic", "openai", "claude-code", "claude-desktop",
+         "aider", "opencode", "ollama", "llama-cpp", "vllm", "codex",
+         "copilot", "gemini", "pi"],
         case_sensitive=False,
     ),
     help="Execution provider (default: mock).",
@@ -247,8 +248,9 @@ Examples:
     "--provider",
     default="mock",
     type=click.Choice(
-        ["mock", "anthropic", "openai", "claude-code", "aider", "opencode",
-         "ollama", "llama-cpp", "vllm", "codex", "copilot", "gemini", "pi"],
+        ["mock", "demo", "anthropic", "openai", "claude-code", "claude-desktop",
+         "aider", "opencode", "ollama", "llama-cpp", "vllm", "codex",
+         "copilot", "gemini", "pi"],
         case_sensitive=False,
     ),
     help="Execution provider (default: mock).",
