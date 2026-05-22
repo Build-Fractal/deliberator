@@ -2,7 +2,7 @@
 
 `conversus decide` is great for quick ad-hoc questions, but the real power of the tool comes from **custom configs** — your own agents, your own target documents, your own modes. This page walks you through building a `conversus.yml` from scratch.
 
-!!! tip "Using Claude Code or Cowork?"
+!!! tip "Using Claude Code?"
     Install the conversus plugin and run `/conversus:design`. It walks you through this entire flow interactively and writes the config for you.
 
     ```shell

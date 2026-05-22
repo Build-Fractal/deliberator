@@ -1,6 +1,21 @@
 # CLI Reference
 
-The `conversus` CLI has 9 commands. Entry point: `pyproject.toml` wires `conversus = "engine.cli:cli"`.
+The `conversus` CLI has 12 commands. Entry point: `pyproject.toml` wires `conversus = "engine.cli:cli"`.
+
+| Command | One-line purpose |
+|---|---|
+| `run` | Run a full deliberation from a YAML config |
+| `decide` | Ad-hoc deliberation on a natural-language question (no config needed) |
+| `validate` | Dry-run a config: parse, validate, print cost estimate |
+| `init` | Initialize `.conversus/` settings + runtime permissions in the current project |
+| `mcp` | Start the conversus MCP server (stdio transport) |
+| `login` | OAuth login to a model provider (`anthropic` / `openai`) |
+| `logout` | Remove stored credentials for a provider |
+| `status` | Show auth status for all providers + effective settings cascade |
+| `context` | Print detected invocation context (runtime / provider / model) |
+| `skills` | List all conversus skills with summaries |
+| `skill` | Print the SKILL.md guided workflow for a named capability |
+| `snap` | Snap-verdict deliberation for Claude Code PreToolUse hooks |
 
 !!! note "Running commands"
     If you installed via `uv sync` (recommended), prefix commands with `uv run`: e.g., `uv run conversus run config.yml`. If you installed via `pip install -e .`, use `conversus` directly.
