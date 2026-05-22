@@ -18,6 +18,61 @@ from engine.cli import cli
 
 
 # ---------------------------------------------------------------------------
+# Drift guard: CLI --provider choices must include every registered provider
+# ---------------------------------------------------------------------------
+
+
+class TestProviderChoiceParity:
+    """Click ``--provider`` accepts every name in ``PROVIDER_REGISTRY``.
+
+    Prevents the silent regression where a provider gets registered in
+    ``engine/execution/providers/`` (so YAML config + SDK accept it) but
+    is missing from the CLI's hardcoded Click choice list (so
+    ``conversus run --provider <name>`` fails Click validation before
+    even reaching the engine). Surfaced empirically: ``claude-desktop``
+    and ``demo`` were both registered + documented but rejected by the
+    CLI prior to this guard.
+
+    The OAuth-only ``openai`` provider is allowed in CLI choices even
+    though it is not in ``PROVIDER_REGISTRY`` — it resolves through
+    ``engine.auth.resolve_provider`` instead. We assert subset, not
+    equality.
+    """
+
+    def _click_choices_for(self, command_name: str) -> set[str]:
+        cmd = cli.get_command(None, command_name)
+        assert cmd is not None, f"CLI has no '{command_name}' command"
+        for param in cmd.params:
+            if param.name == "provider":
+                return set(param.type.choices)
+        raise AssertionError(f"'{command_name}' has no --provider option")
+
+    def _registered_providers(self) -> set[str]:
+        from engine.execution.providers import PROVIDER_REGISTRY
+        return set(PROVIDER_REGISTRY)
+
+    def test_run_command_accepts_all_registered_providers(self) -> None:
+        choices = self._click_choices_for("run")
+        registered = self._registered_providers()
+        missing = registered - choices
+        assert not missing, (
+            f"`conversus run --provider` Click choices missing registered "
+            f"providers: {sorted(missing)}. Either add them to the choice "
+            f"list in engine/cli/__init__.py or de-register the provider."
+        )
+
+    def test_decide_command_accepts_all_registered_providers(self) -> None:
+        choices = self._click_choices_for("decide")
+        registered = self._registered_providers()
+        missing = registered - choices
+        assert not missing, (
+            f"`conversus decide --provider` Click choices missing registered "
+            f"providers: {sorted(missing)}. Either add them to the choice "
+            f"list in engine/cli/__init__.py or de-register the provider."
+        )
+
+
+# ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
