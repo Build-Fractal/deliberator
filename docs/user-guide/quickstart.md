@@ -20,10 +20,13 @@ pip install -e .          # editable install
 # or: uv sync            # if using uv
 ```
 
+!!! note "Running commands"
+    Examples below use the bare `conversus` command (matches the `pip install` path). If you installed via `uv sync`, prefix every command with `uv run`: e.g., `uv run conversus decide ...`.
+
 ## First deliberation
 
 ```bash
-uv run conversus decide "Should we use Redis or Postgres for caching?" --provider mock
+conversus decide "Should we use Redis or Postgres for caching?" --provider mock
 ```
 
 The `--provider mock` flag uses a built-in mock provider that returns synthetic responses -- no API key needed. This lets you explore the full pipeline without spending anything.
@@ -48,7 +51,7 @@ You will see five phase headers -- Review, Cross-review, Revision, Disputes, Syn
 Run with `--format json` to verify the phase structure programmatically:
 
 ```bash
-uv run conversus decide "Should we use Redis or Postgres for caching?" --provider mock --format json
+conversus decide "Should we use Redis or Postgres for caching?" --provider mock --format json
 ```
 
 ## Try with a real provider
@@ -58,16 +61,16 @@ uv run conversus decide "Should we use Redis or Postgres for caching?" --provide
 export ANTHROPIC_API_KEY=sk-ant-...
 
 # Or log in via OAuth
-uv run conversus login anthropic
+conversus login anthropic
 
 # Run with real LLM agents
-uv run conversus decide "Should we use Redis or Postgres for caching?" --provider anthropic
+conversus decide "Should we use Redis or Postgres for caching?" --provider anthropic
 ```
 
 Verify your provider credentials at any time:
 
 ```bash
-uv run conversus status
+conversus status
 ```
 
 ## Try the Guided Workflow (in Your AI Editor)
@@ -102,7 +105,7 @@ agents:
 ```
 
 ```bash
-uv run conversus run conversus.yml --provider anthropic
+conversus run conversus.yml --provider anthropic
 ```
 
 See [Config Reference](config-reference.md) for the full schema.
