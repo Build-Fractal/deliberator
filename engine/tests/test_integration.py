@@ -752,6 +752,9 @@ class TestCLIProviderChoices:
 class TestMCPProviderResolution:
     """MCP _run_in_process supports non-mock providers via resolve_provider."""
 
+    def setup_method(self) -> None:
+        pytest.importorskip("mcp")
+
     def test_mcp_in_process_with_mock(self) -> None:
         """In-process execution with mock provider still works."""
         from mcp_server import _run_in_process, CostEstimate

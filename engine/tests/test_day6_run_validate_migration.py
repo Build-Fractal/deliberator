@@ -25,6 +25,8 @@ from __future__ import annotations
 
 import pytest
 
+pytest.importorskip("mcp")
+
 pytestmark = pytest.mark.integration
 
 import inspect

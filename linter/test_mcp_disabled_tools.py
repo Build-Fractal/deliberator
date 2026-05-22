@@ -23,6 +23,9 @@ import sys
 from pathlib import Path
 
 import pytest
+
+pytest.importorskip("mcp")
+
 from mcp.server.fastmcp import FastMCP
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
