@@ -110,6 +110,21 @@ conversus run conversus.yml --provider anthropic
 
 See [Config Reference](config-reference.md) for the full schema.
 
+## When it goes wrong
+
+The most common first-run failure modes:
+
+| If you see... | Fix |
+|---|---|
+| `ProviderError: No credentials available for 'anthropic'` | Set `ANTHROPIC_API_KEY` or run `conversus login anthropic` |
+| `Invalid value for '--provider'` | Check `conversus decide --help` for accepted names |
+| `target file not found` and the file is right there | Run from project root — `target:` resolves relative to cwd |
+| Output ends up at `examples/examples/output/…` (doubled path) | `output:` resolves relative to the config file's dir, not cwd |
+| `ollama` provider hangs / refuses connection | Make sure `ollama serve` is running and the model is pulled |
+| Claude Desktop says "no tools after install" | Restart Claude Desktop — `.mcpb` extensions load at startup |
+
+Full recipes in [Troubleshooting & FAQ](troubleshooting.md).
+
 ## Next steps
 
 - **Explore:** Read [Deliberation Modes](modes.md) to understand the 8 competition modes and when to use each one.
