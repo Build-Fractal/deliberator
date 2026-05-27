@@ -1,0 +1,50 @@
+# Red-blue architecture review
+#
+# Adversarial mode: one agent attacks the design, one defends. Surfaces
+# weak arguments by forcing each side to commit to a position before
+# cross-review.
+#
+# This is the marquee pattern for security threat modeling, design
+# critique, and any decision where you want to stress-test a proposal
+# *before* committing to it.
+#
+# Run:
+#   conversus run examples/architecture-red-blue.yml --provider mock
+#   conversus run examples/architecture-red-blue.yml --provider anthropic
+#
+# Cost (mock): ~9 LLM launches.
+
+subject: "Contributing-guide attack/defense"
+question: |
+  Should the conversus project keep the current persona-led
+  CONTRIBUTING.md, or revert to a constitutional-theory-first framing?
+  The red team will attack the current framing; the blue team defends.
+
+mode: red-blue
+iterations: 1
+
+target: CONTRIBUTING.md
+
+output: output/architecture-red-blue/
+
+agents:
+  - name: attacker
+    role: red
+    prompt: |
+      You are the red team. Attack the current CONTRIBUTING.md. Argue
+      that the persona-led framing dumbs down the project's actual
+      governance discipline and will attract drive-by contributors who
+      bypass the constitutional pathway. Surface every weakness in the
+      "Quick fix" section. Cite specifics — line numbers, missing
+      safeguards, inviting language that may compromise the principle
+      that constitutional changes require multi-stage verification.
+
+  - name: defender
+    role: blue
+    prompt: |
+      You are the blue team. Defend the current CONTRIBUTING.md. Argue
+      that lowering the barrier to drive-by contributions is correct
+      because the audit found the previous theory-first framing scored
+      3/10 on first-contribution friction. Show how the persona decision
+      tree routes governance work back to the strict pathway. Counter
+      every red-team attack with a specific design rationale.

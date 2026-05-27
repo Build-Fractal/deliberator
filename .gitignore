@@ -13,6 +13,7 @@ venv/
 .env.local
 
 .conversus/output/
+examples/output/
 *.log
 
 .pytest_cache/

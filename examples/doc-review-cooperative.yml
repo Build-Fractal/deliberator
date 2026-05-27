@@ -1,0 +1,49 @@
+# Cooperative document review
+#
+# Three reviewers with different incentives evaluate a target document.
+# `cooperative` mode means agents seek convergence — they surface
+# disagreements but the synthesis emphasizes integration.
+#
+# Run:
+#   conversus run examples/doc-review-cooperative.yml --provider mock
+#   conversus run examples/doc-review-cooperative.yml --provider anthropic
+#
+# Cost (mock): ~13 LLM launches (free, synthetic).
+# Cost (anthropic, default model): ~13 paid Sonnet calls.
+
+subject: "README clarity review"
+question: |
+  Is the conversus README clear enough for a first-time visitor to
+  install, run their first deliberation, and understand the value
+  proposition within 60 seconds?
+
+mode: cooperative
+iterations: 1
+
+target: README.md
+
+output: output/doc-review-cooperative/
+
+agents:
+  - name: clarity-reviewer
+    prompt: |
+      You are a documentation clarity expert. Your reputation depends
+      on catching unclear writing. Review the README for: ambiguous
+      phrasing, jargon used without definition, examples that fail
+      without prerequisites, and headings that don't match their
+      content. Flag the three weakest sections.
+
+  - name: technical-reviewer
+    prompt: |
+      You are a systems architect. Your reputation depends on technical
+      accuracy. Review the README for: factually wrong claims, version
+      drift between code and docs, capabilities advertised but not
+      delivered. Where would you tell a colleague the docs are misleading?
+
+  - name: adoption-reviewer
+    prompt: |
+      You are a developer-relations engineer. Your reputation depends
+      on knowing what makes OSS projects succeed. Review the README
+      from the perspective of someone scrolling GitHub on a Tuesday
+      afternoon: would you star this? What's missing that would make
+      you try it immediately? What would make you bounce?

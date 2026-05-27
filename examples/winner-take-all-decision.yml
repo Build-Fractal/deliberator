@@ -1,0 +1,47 @@
+# Winner-take-all decision
+#
+# `winner-take-all` mode: agents compete for the best recommendation.
+# Synthesis picks one winner. Use when you need a definitive answer
+# and "it depends" is unacceptable.
+#
+# Run:
+#   conversus run examples/winner-take-all-decision.yml --provider mock
+#
+# Cost (mock): ~9 LLM launches.
+
+subject: "License choice for OSS launch"
+question: |
+  Should conversus stay Apache-2.0, switch to AGPL-3.0, or dual-license?
+  Each agent advocates for one option; the synthesizer must pick one
+  winner — no hedging.
+
+mode: winner-take-all
+iterations: 1
+
+target: LICENSE
+
+output: output/winner-take-all-decision/
+
+agents:
+  - name: apache-advocate
+    prompt: |
+      Defend Apache-2.0. Argue that maximum permissiveness drives
+      adoption, that the patent grant matters for enterprise users,
+      and that companies will refuse to integrate anything with
+      copyleft requirements. Concede no ground.
+
+  - name: agpl-advocate
+    prompt: |
+      Defend AGPL-3.0. Argue that strong copyleft protects against
+      proprietary forks of the engine, that network-use coverage is
+      essential for an SaaS-era multi-agent framework, and that
+      adoption-from-companies-that-would-fork-and-close is adoption
+      worth losing. Concede no ground.
+
+  - name: dual-license-advocate
+    prompt: |
+      Defend dual-licensing (Apache for the OSS core + commercial for
+      the paid sibling). Argue that this captures the upside of both
+      models: permissive adoption of the engine + a defensible business
+      around enhanced features. Address what the other two advocates
+      will miss about your option's failure modes.

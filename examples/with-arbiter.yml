@@ -1,0 +1,55 @@
+# Cooperative review with arbiter (Phase 6)
+#
+# Adds an optional 6th phase: an arbiter agent that produces a binding
+# verdict when disputes remain after the 5-phase pipeline. The arbiter
+# uses `grounding` (a document the verdict must cite) and only triggers
+# when the disputes phase leaves unresolved disagreements.
+#
+# Use this pattern when you want a final binding resolution rather
+# than surfacing the disagreement as an unresolved tension.
+#
+# Run:
+#   conversus run examples/with-arbiter.yml --provider mock
+#
+# Cost (mock): ~10 LLM launches (9 base + 1 arbitration when triggered).
+
+subject: "CHANGELOG completeness audit (with arbiter)"
+question: |
+  Does the CHANGELOG correctly track the project's recent surface
+  changes? Two agents review with different priors; an arbiter
+  rules if they don't converge.
+
+mode: cooperative
+iterations: 1
+
+target: CHANGELOG.md
+
+output: output/with-arbiter/
+
+agents:
+  - name: completeness-reviewer
+    prompt: |
+      You are a release manager. Your reputation depends on never
+      missing a breaking change in the CHANGELOG. Audit the file for:
+      missing entries, undocumented behavior changes, version-bumps
+      with empty release notes, and entries that aren't actually
+      user-visible. Flag the most-likely-missed change.
+
+  - name: minimalist-reviewer
+    prompt: |
+      You are a CHANGELOG minimalist. Your reputation depends on
+      keeping release notes scannable. Audit the file for: bloat,
+      entries that should have been internal-only, duplication
+      between Added/Changed/Fixed, and unnecessary detail. Flag the
+      entries you'd cut.
+
+arbiter:
+  name: release-architect
+  prompt: |
+    You are the release architect. When the completeness reviewer and
+    the minimalist disagree on whether an entry belongs in the
+    CHANGELOG, you rule. Cite the Keep-a-Changelog spec embedded in
+    the grounding document. Your decision is final.
+  grounding: ../CHANGELOG.md
+  trigger: disputes_remain
+  influence: binding
