@@ -17,7 +17,7 @@ Competitive multi-agent deliberation framework. Multiple AI agents with differen
 
 | Component | Description |
 |-----------|-------------|
-| **CLI** | 9 commands: `run`, `decide`, `validate`, `mcp`, `init`, `login`, `logout`, `status`, `context` |
+| **CLI** | 12 commands: `run`, `decide`, `validate`, `mcp`, `init`, `login`, `logout`, `status`, `context`, `skills`, `skill`, `snap` |
 | **8 Modes** | cooperative, winner-take-all, prisoner's dilemma, red-blue, negotiation, resource-allocation, fair-division, mechanism-design |
 | **25 Presets** | Ready-to-use agent configurations for common review patterns |
 | **MCP Server** | Connect to Claude Code, Cursor, Windsurf, and other MCP-compatible editors |
@@ -47,7 +47,7 @@ pip install -e .          # editable install
     pip install "conversus[mcp] @ git+https://github.com/Build-Fractal/conversus-oss.git"
     ```
 
-!!! tip "Claude Code / Cowork plugin"
+!!! tip "Claude Code plugin"
     Install the conversus plugin to get the `/conversus:design` guided config wizard and the full CLI as slash commands:
     ```
     /plugin marketplace add Build-Fractal/conversus-oss
@@ -71,7 +71,7 @@ See the [Quickstart](user-guide/quickstart.md) for prerequisites and first-run i
 
 -   :material-console: **[CLI Reference](user-guide/cli.md)**
 
-    All 9 commands, config files, presets, auth, JSON output.
+    All 12 commands, config files, presets, auth, JSON output.
 
 -   :material-language-python: **[Python SDK](user-guide/sdk.md)**
 

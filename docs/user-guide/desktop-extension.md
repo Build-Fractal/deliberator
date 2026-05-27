@@ -162,7 +162,7 @@ The Desktop Extension is one of four conversus distribution channels:
 | Channel | Install | Best for |
 |---|---|---|
 | **Desktop Extension** (this page) | Double-click `.mcpb` | Claude Desktop users who want zero-setup install |
-| **Claude Code / Cowork plugin** | `/plugin marketplace add` | Slash command UX (`/conversus:design`, `/conversus:decide`) |
+| **Claude Code plugin** | `/plugin marketplace add` | Slash command UX (`/conversus:design`, `/conversus:decide`) |
 | **MCP server** via `pip install` | `pip install git+...` + `claude mcp add` | Cursor, Windsurf, Zed, Continue, and any MCP client besides Claude Desktop |
 | **Python CLI** | `pip install git+...` | Scripting, CI/CD, terminal power users |
 

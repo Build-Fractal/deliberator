@@ -12,7 +12,7 @@ All active and completed specs live in [`specs/`](https://github.com/Build-Fract
 
 | Spec | What it covers |
 |------|----------------|
-| [distribution-strategy](https://github.com/Build-Fractal/conversus-oss/blob/main/specs/distribution-strategy.md) | Three-layer OSS distribution: PyPI, MCP server, Claude Code plugin. Covers Cowork, Claude Desktop, and claude.ai Skills compatibility. |
+| [distribution-strategy](https://github.com/Build-Fractal/conversus-oss/blob/main/specs/distribution-strategy.md) | Three-layer OSS distribution: PyPI, MCP server, Claude Code plugin. Covers Claude Desktop and claude.ai Skills compatibility. |
 | [007-game-engine](https://github.com/Build-Fractal/conversus-oss/tree/main/specs/007-game-engine) | The deliberation engine — phases, agents, game theory modes |
 | [008-executable-conversus](https://github.com/Build-Fractal/conversus-oss/tree/main/specs/008-executable-conversus) | CLI + SDK interface for running deliberations |
 | [042-execution-providers](https://github.com/Build-Fractal/conversus-oss/tree/main/specs/042-execution-providers) | Provider abstraction: anthropic, openai, claude-code, ollama, etc. |

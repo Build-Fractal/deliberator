@@ -83,6 +83,18 @@ provider: anthropic
 # See README.md providers table for install + auth per provider.
 # CLI --provider flag overrides this.
 
+# --- Metadata fields (accepted but ignored by the engine) ---
+#
+# subject: "Short title for this deliberation"
+# question: |
+#   The decision or analysis you want agents to focus on.
+#
+# These two keys are tolerated by the parser but not consumed at
+# runtime — they exist so config files are self-documenting for
+# human readers. Agents see the targets and prompts, not these
+# fields. If you need a question to drive the deliberation, embed
+# it in agent prompts or the target document.
+
 # --- Arbiter (optional Phase 6) ---
 
 arbiter:
