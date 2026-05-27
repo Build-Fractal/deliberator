@@ -149,13 +149,32 @@ conversus init
 ## CLI Reference
 
 ```bash
-conversus decide "question"          # Quick ad-hoc deliberation
-conversus run config.yml             # Full pipeline from config
-conversus validate config.yml        # Validate config + cost estimate
-conversus init                       # Initialize project
-conversus status                     # Check provider auth status
-conversus context                    # Debug invocation context
+# Running deliberations
+conversus decide "question"                       # Quick ad-hoc deliberation
+conversus run config.yml                          # Full pipeline from config
+conversus run config.yml --phase review           # Stop after Phase 1 (initial reviews)
+conversus validate config.yml                     # Validate config + cost estimate
+                                                  # Add `arbiter:` block to config for Phase 6
+
+# Project setup
+conversus init                                    # Initialize .conversus/ in project
+conversus status                                  # Check provider auth + settings cascade
+conversus context                                 # Debug invocation context (runtime/provider)
+
+# Auth
+conversus login anthropic                         # OAuth login (also: openai)
+conversus logout anthropic                        # Remove stored credentials
+
+# Integration
+conversus mcp                                     # Start MCP server (stdio transport)
+conversus snap                                    # Snap-verdict for Claude Code PreToolUse hooks
+
+# Skill discovery
+conversus skills                                  # List all skills
+conversus skill <name>                            # Print a SKILL.md guided workflow
 ```
+
+12 commands total. Full reference with options + defaults: [docs/user-guide/cli.md](docs/user-guide/cli.md). Things going wrong? See [Troubleshooting & FAQ](docs/user-guide/troubleshooting.md).
 
 ## Writing Plugins
 

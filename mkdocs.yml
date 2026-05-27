@@ -87,6 +87,7 @@ nav:
     - MCP Setup: user-guide/mcp-setup.md
     - Desktop Extension: user-guide/desktop-extension.md
     - Python SDK: user-guide/sdk.md
+    - Troubleshooting & FAQ: user-guide/troubleshooting.md
   - Developer Guide:
     - Architecture: developer-guide/architecture.md
     - Building Plugins: developer-guide/building-plugins.md
