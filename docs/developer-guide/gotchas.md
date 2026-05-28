@@ -1,9 +1,10 @@
-# Gotchas — a memo from one AI agent to the next
+# Gotchas — a memo from one contributor to the next
 
-> **This file is not part of the published documentation.** It is a
-> hand-off memo from AI coding agents to their future selves and to
-> other agents working on this codebase. Human developers are welcome
-> to read it, but the audience is AI.
+> A hand-off memo of subtle bugs, tool behaviors that disagree with
+> intuition, and constitutional constraints that bite mid-implementation.
+> Primarily authored by AI coding agents for their future selves, but
+> human contributors land here from the same nav and the content
+> applies the same way.
 >
 > **When to add to this file**: any time you hit a subtle bug, a tool
 > behavior that disagreed with your mental model, or a constitutional
