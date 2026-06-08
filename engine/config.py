@@ -518,18 +518,23 @@ def _resolve_arbiter(
                     )
                 docs.append(p)
 
-    # Grounding is always required inline
+    # Grounding is always required inline.
+    # Resolution order mirrors target/prior (two-pass fallback): try
+    # config-dir-relative first, then CWD-relative. Grounding is an input
+    # file like target — the same convenience applies.
     grounding_raw = raw.get("grounding")
     if not grounding_raw:
         raise ConfigError(
             "arbiter.grounding is required — the arbiter must declare "
             "its decision framework."
         )
-    grounding = (base_path / grounding_raw).resolve()
+    grounding_base = (base_path / grounding_raw).resolve()
+    grounding_cwd = (Path.cwd() / grounding_raw).resolve()
+    grounding = grounding_base if grounding_base.exists() else grounding_cwd
     if not grounding.exists():
         raise ConfigError(
             f"arbiter.grounding path does not exist: {grounding_raw} "
-            f"(resolved to {grounding})"
+            f"(tried {grounding_base} and {grounding_cwd})"
         )
 
     # Trigger is always required inline
@@ -615,6 +620,13 @@ def parse_config(config_path: Path) -> EngineConfig:
         )
 
     # --- Output path ---
+    # Output is a WRITE target — fallback semantics don't apply because the
+    # directory doesn't have to exist yet. We always resolve relative to the
+    # config file's parent directory; the user can use an absolute path to
+    # override. A common confusion: putting the config-dir prefix in the
+    # output value itself produces a doubled path (e.g. config at
+    # `examples/foo.yml` with `output: examples/out/` produces
+    # `examples/examples/out/`). Document this in config-reference.md.
     output_raw = raw.get("output")
     if not output_raw:
         raise ConfigError("output: is required.")
