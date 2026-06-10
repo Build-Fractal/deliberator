@@ -65,26 +65,27 @@ Set `OLLAMA_BASE_URL` if your server runs on a non-default host/port.
 
 ### `target file not found` but the file is right there
 
-Path resolution for `target:` happens relative to your **current working directory**, not the config file's directory. If your config is at `examples/foo.yml` and `target: README.md`, the engine looks for `<cwd>/README.md`, not `<cwd>/examples/README.md`.
+`target:` uses a two-pass resolution: it tries the path relative to the **config file's directory** first, then falls back to your **current working directory**. So `target: README.md` from a config in `examples/` works two ways: it finds `examples/README.md` if that exists, otherwise it falls back to `<cwd>/README.md`.
 
-Workaround: run from the project root, or use an absolute path.
-
-### Output landed at `examples/examples/output/foo/` instead of `examples/output/foo/`
-
-`output:` paths resolve relative to the **config file's directory**. If your config is at `examples/foo.yml` and you set `output: examples/output/foo/`, the engine produces `examples/examples/output/foo/`.
-
-Fix: use a path relative to the config file's parent dir:
-
-```yaml
-# In examples/foo.yml
-output: output/foo/   # → examples/output/foo/
-```
-
-This inconsistency (target = cwd-relative, output = config-dir-relative) is a known engine quirk and tracked for a future uniform fix.
+If neither pass finds it, the error names both paths tried — pick the one that matches your intent and put the file there (or use an absolute path).
 
 ### `arbiter.grounding path does not exist`
 
-Same root cause as the output-path issue — `arbiter.grounding:` resolves relative to the config file's directory. If your grounding doc lives at the project root, use `../<file>` from a config in a subdirectory.
+Same two-pass rule as `target:` — tries config-dir-relative first, falls back to cwd-relative. The error message names both paths. If your grounding doc lives at the project root and your config is in a subdirectory, run from project root and the cwd-fallback will find it.
+
+### Output landed at `examples/examples/output/foo/` instead of `examples/output/foo/`
+
+`output:` is different from `target:` and `grounding:` — it's a **write target** with no fallback, because the directory doesn't have to exist yet. The engine always anchors it relative to the config file's directory. If your config is at `examples/foo.yml` and you set `output: examples/output/foo/`, the engine produces `examples/examples/output/foo/` (the config-dir prefix is added on top of your value).
+
+Fix: use a path relative to the config file's parent dir, or use an absolute path:
+
+```yaml
+# In examples/foo.yml
+output: output/foo/         # → examples/output/foo/
+output: /tmp/out/foo/       # → /tmp/out/foo/ (absolute, no prefix added)
+```
+
+The resolution rules are summarized in [Config Reference → Path resolution](config-reference.md#path-resolution).
 
 ### `Unknown provider 'X'` from MCP
 

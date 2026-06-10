@@ -626,3 +626,154 @@ class TestAgentOverrides:
         assert cloud.provider == "claude-code"
         assert cloud.agent_model == "opus"
         assert cloud.timeout == 1200
+
+
+# ===================================================================
+# Path resolution rules — uniform behavior across target / output /
+# arbiter.grounding. Documented in docs/user-guide/config-reference.md.
+# ===================================================================
+
+
+class TestPathResolution:
+    """Pin down the resolution rules for target / output / arbiter.grounding.
+
+    Resolution semantics by field:
+
+    - **target** (input, read): two-pass — try config-dir-relative first,
+      fall back to CWD-relative. Convenience for `target: README.md`
+      from a config in a subdirectory, run from project root.
+    - **arbiter.grounding** (input, read): same two-pass as target.
+      Grounding is a read target like target, so users get the same
+      "works from any cwd if file exists somewhere" UX.
+    - **output** (write target): config-dir-relative only. No fallback
+      because the directory does not have to exist yet — we cannot
+      probe "where would this end up." Users who want CWD-relative
+      output must use an absolute path.
+
+    These tests lock in the contract so the rule cannot drift silently.
+    """
+
+    def _grounding_config(
+        self, tmp_path: Path, grounding_value: str, grounding_file_at: Path,
+    ) -> Path:
+        """Write a config in `<tmp_path>/configs/` with an arbiter that
+        sets `grounding:` to *grounding_value*. Creates the actual
+        grounding file at *grounding_file_at*.
+        """
+        grounding_file_at.parent.mkdir(parents=True, exist_ok=True)
+        grounding_file_at.write_text("# Grounding doc\n", encoding="utf-8")
+
+        target = tmp_path / "spec.md"
+        target.write_text("# Target\n", encoding="utf-8")
+
+        config_dir = tmp_path / "configs"
+        config_dir.mkdir(exist_ok=True)
+
+        cfg = config_dir / "conversus.yml"
+        cfg.write_text(yaml.dump({
+            "mode": "cooperative",
+            # Target uses absolute path so the test isolates grounding behavior.
+            "target": str(target),
+            "output": "out/",
+            "agents": [
+                {"name": "a", "prompt": "P1"},
+                {"name": "b", "prompt": "P2"},
+            ],
+            "arbiter": {
+                "name": "the-subject",
+                "prompt": "You decide.",
+                "grounding": grounding_value,
+                "trigger": "disputes_remain",
+            },
+        }, sort_keys=False), encoding="utf-8")
+        return cfg
+
+    def test_grounding_resolves_config_dir_relative(self, tmp_path: Path) -> None:
+        """`grounding: file.md` finds `<config-dir>/file.md` (pass 1)."""
+        cfg = self._grounding_config(
+            tmp_path,
+            grounding_value="constitution.md",
+            grounding_file_at=tmp_path / "configs" / "constitution.md",
+        )
+        config = parse_config(cfg)
+        assert config.arbiter is not None
+        assert config.arbiter.grounding.name == "constitution.md"
+        assert "configs" in str(config.arbiter.grounding)
+
+    def test_grounding_falls_back_to_cwd_relative(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """When the config-dir lookup misses, falls back to CWD.
+
+        Mirrors target's documented two-pass behavior. Without the
+        fallback, `grounding: CHANGELOG.md` would fail when invoked
+        from the project root with a config in a subdirectory — which
+        is the exact failure mode PR #164 hit while building the
+        examples/with-arbiter.yml.
+        """
+        # Grounding file lives at tmp_path, not under tmp_path/configs/.
+        cfg = self._grounding_config(
+            tmp_path,
+            grounding_value="from-cwd.md",
+            grounding_file_at=tmp_path / "from-cwd.md",
+        )
+        # Invoke from tmp_path so cwd-relative lookup finds the file.
+        monkeypatch.chdir(tmp_path)
+        config = parse_config(cfg)
+        assert config.arbiter is not None
+        assert config.arbiter.grounding.name == "from-cwd.md"
+
+    def test_grounding_error_message_lists_both_attempts(
+        self, tmp_path: Path,
+    ) -> None:
+        """When neither pass finds the file, the error names both paths."""
+        cfg = self._grounding_config(
+            tmp_path,
+            grounding_value="missing.md",
+            # Write a fake grounding file somewhere else so the create-step
+            # in _grounding_config does its job but the resolver still misses.
+            grounding_file_at=tmp_path / "elsewhere" / "missing.md",
+        )
+        # Delete the file so both passes fail.
+        (tmp_path / "elsewhere" / "missing.md").unlink()
+        with pytest.raises(ConfigError) as excinfo:
+            parse_config(cfg)
+        msg = str(excinfo.value)
+        assert "missing.md" in msg
+        assert "tried" in msg  # error names both attempted paths
+
+    def test_output_is_config_dir_relative_only(self, tmp_path: Path) -> None:
+        """`output: out/` resolves to `<config-dir>/out/`, not `<cwd>/out/`.
+
+        Output is a WRITE target — no fallback semantics apply because
+        the directory doesn't have to exist yet. Users who want a
+        different anchor must use an absolute path.
+        """
+        target = tmp_path / "spec.md"
+        target.write_text("# Target\n")
+        config_dir = tmp_path / "nested" / "configs"
+        config_dir.mkdir(parents=True)
+        cfg = config_dir / "conversus.yml"
+        cfg.write_text(yaml.dump({
+            "mode": "cooperative",
+            "target": str(target),
+            "output": "deliberation-output/",
+            "agents": [
+                {"name": "a", "prompt": "P"},
+                {"name": "b", "prompt": "P"},
+            ],
+        }, sort_keys=False), encoding="utf-8")
+        config = parse_config(cfg)
+        # Output must be anchored at the config file's directory.
+        assert config.output.parent == config_dir.resolve()
+        assert config.output.name == "deliberation-output"
+
+    def test_output_absolute_path_preserved(self, tmp_path: Path) -> None:
+        """An absolute `output:` path is used as-is (escape hatch)."""
+        absolute_out = tmp_path / "abs-output"
+        cfg_path = _minimal_config(
+            tmp_path,
+            extra={"output": str(absolute_out)},
+        )
+        config = parse_config(cfg_path)
+        assert config.output == absolute_out.resolve()

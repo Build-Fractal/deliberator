@@ -212,7 +212,32 @@ agents:
 | `target: [a.md, b.md]` | File list |
 | `target: specs/` | All `.md` files in directory (non-recursive) |
 
-All paths are relative to the config file's directory.
+Path resolution rules are defined in the next section.
+
+## Path resolution
+
+Three fields take filesystem paths: `target`, `output`, and `arbiter.grounding`. Two-pass fallback applies to **read targets** (`target`, `grounding`); strict config-dir-relative applies to the **write target** (`output`).
+
+| Field | Kind | Resolution rule |
+|---|---|---|
+| `target` | Input (read) | Try `<config-dir>/<value>` first; if not found, try `<cwd>/<value>`. Error names both attempted paths. |
+| `arbiter.grounding` | Input (read) | Same two-pass as `target`. |
+| `output` | Write | `<config-dir>/<value>` only. No fallback — the directory doesn't have to exist yet, so we can't probe alternatives. |
+
+Absolute paths are always honored as-is for all three fields. Use them as the escape hatch when neither pass would land where you want.
+
+**Worked example.** Config at `examples/foo.yml`, run as `conversus run examples/foo.yml` from project root:
+
+```yaml
+target: README.md             # → <root>/README.md (fallback to cwd; not found in examples/)
+target: ./local-spec.md       # → <root>/examples/local-spec.md (relative to config dir)
+output: out/                  # → <root>/examples/out/  (config-dir-relative, always)
+output: /tmp/out/             # → /tmp/out/  (absolute, no prefix added)
+arbiter:
+  grounding: CHANGELOG.md     # → <root>/CHANGELOG.md (fallback; not in examples/)
+```
+
+**Common gotcha:** `output: examples/out/` from a config at `examples/foo.yml` produces `examples/examples/out/` because the engine adds the config-dir prefix on top of your value. Drop the leading `examples/` from your `output:` value, or use an absolute path.
 
 ## Cost formula
 
