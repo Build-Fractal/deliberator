@@ -1,6 +1,6 @@
 {
   "name": "conversus",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Competitive multi-agent deliberation engine — run structured adversarial reviews, red-teaming, and convergence pipelines using game theory modes (cooperative, winner-take-all, prisoner's dilemma, red-blue, and 4 more).",
   "author": {
     "name": "Build Fractal",
