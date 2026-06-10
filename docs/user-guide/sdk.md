@@ -10,13 +10,20 @@ pip install conversus              # recommended
 uv sync
 ```
 
-!!! warning "Import path"
-    The Python package is installed as `conversus` but the import namespace is currently `engine`:
+!!! info "Two namespaces: `engine` and `conversus`"
+    The wheel installs three top-level packages: `engine`, `linter`, and `conversus`. They serve different layers:
+
+    - **`engine`** — the deliberation runtime. The SDK (`Deliberation`, `Result`, `validate`, `classify`) lives here because it depends on the full pipeline (auth, config, dispatch, phases, providers).
+    - **`conversus`** — the foundation layer: schemas, plugins, registry, paths, presets. Anything that *doesn't* depend on the engine runtime.
+    - **`linter`** — output-contract parsing and the question classifier (consumed by the engine, not user-facing).
+
     ```python
-    from engine import Deliberation, Result, validate  # correct
-    # from conversus import ...                        # not yet — see roadmap
+    from engine import Deliberation, Result, validate   # SDK — runtime-dependent
+    from conversus.schemas.construction import construct_objective  # primitives — runtime-free
+    from conversus.plugins.base import Plugin                       # primitives — runtime-free
     ```
-    The `engine` namespace will be renamed to `conversus` in a future release.
+
+    The split is enforced by a coupling rule: `conversus/` MUST NOT import from `engine/`, but `engine/` MAY import from `conversus/`. That's what makes `conversus/` reusable as a primitive layer.
 
 ## Quick start
 
@@ -167,7 +174,7 @@ else:
 ## Question classification
 
 ```python
-from engine.sdk import classify
+from engine import classify
 
 cr = classify("Should we use Redis?")
 print(cr.sufficient)  # True/False
