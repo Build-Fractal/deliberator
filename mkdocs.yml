@@ -78,14 +78,14 @@ nav:
   - Home: index.md
   - User Guide:
     - Quickstart: user-guide/quickstart.md
+    - Desktop Extension (one-click): user-guide/desktop-extension.md
     - Your First Deliberation: user-guide/first-deliberation.md
     - Building a Config: user-guide/building-a-config.md
-    - CLI Reference: user-guide/cli.md
     - Guided Workflow: user-guide/guided-workflow.md
-    - Modes: user-guide/modes.md
+    - CLI Reference: user-guide/cli.md
     - Config Reference: user-guide/config-reference.md
+    - Modes: user-guide/modes.md
     - MCP Setup: user-guide/mcp-setup.md
-    - Desktop Extension: user-guide/desktop-extension.md
     - Python SDK: user-guide/sdk.md
     - Troubleshooting & FAQ: user-guide/troubleshooting.md
   - Developer Guide:
