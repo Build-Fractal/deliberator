@@ -13,7 +13,7 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
-from conversus.registry import (
+from deliberator.registry import (
     Capability,
     CLIAdapter,
     DefaultCLIAdapter,
@@ -48,13 +48,13 @@ def test_capability_construction_exposes_all_fields():
             ),
             Param(name="max_launches", type=int, default=20, help="Safety cap."),
         ],
-        handler="conversus.engine.adhoc:run_decide",
+        handler="deliberator.engine.adhoc:run_decide",
     )
 
     assert cap.name == "decide"
     assert cap.summary == "Run an ad-hoc deliberation"
     assert cap.long_description.startswith("Quick deliberation")
-    assert cap.handler == "conversus.engine.adhoc:run_decide"
+    assert cap.handler == "deliberator.engine.adhoc:run_decide"
     assert set(cap.surfaces) == {
         Surface.CLI,
         Surface.MCP,
@@ -82,7 +82,7 @@ def test_skip_a_surface_is_supported():
         summary="OAuth login",
         surfaces=[Surface.CLI, Surface.PLUGIN],  # not MCP, not MCPB
         params=[Param(name="provider", type=str, required=True)],
-        handler="conversus.engine.auth:oauth_login",
+        handler="deliberator.engine.auth:oauth_login",
     )
 
     assert Surface.CLI in cap.surfaces

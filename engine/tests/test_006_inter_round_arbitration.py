@@ -47,7 +47,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 
 def _config_path() -> Path:
     """Return the path to the example config for template discovery."""
-    return PROJECT_ROOT / "conversus.example.yml"
+    return PROJECT_ROOT / "deliberator.example.yml"
 
 
 def _collect_events() -> tuple[CallbackEmitter, list[EngineEvent]]:
@@ -87,7 +87,7 @@ def _minimal_config(
     if extra:
         data.update(extra)
 
-    return _write_yaml(tmp_path / "conversus.yml", data)
+    return _write_yaml(tmp_path / "deliberator.yml", data)
 
 
 def _make_arbiter_config(
@@ -172,12 +172,12 @@ class _DisputeProvider:
         if count == 0:
             return "# Synthesis\n\nAll agents agree. No disputes."
         markers: list[str] = []
-        markers.append("<!-- CONVERSUS:DISPUTES_BEGIN -->")
+        markers.append("<!-- DELIBERATOR:DISPUTES_BEGIN -->")
         for i in range(1, count + 1):
             markers.append(
                 f"**Dispute:** Dispute {i} between agents on topic {i}."
             )
-        markers.append("<!-- CONVERSUS:DISPUTES_END -->")
+        markers.append("<!-- DELIBERATOR:DISPUTES_END -->")
         return "# Synthesis\n\n" + "\n".join(markers)
 
     async def complete(self, prompt: str, model: str, max_tokens: int) -> str:
@@ -872,10 +872,10 @@ class _ArbiterDisputeProvider:
     def _build_synthesis(labels: list[str]) -> str:
         if not labels:
             return "# Synthesis\n\nNo disputes."
-        parts = ["# Synthesis", "<!-- CONVERSUS:DISPUTES_BEGIN -->"]
+        parts = ["# Synthesis", "<!-- DELIBERATOR:DISPUTES_BEGIN -->"]
         for label in labels:
             parts.append(f"**Dispute:** {label}")
-        parts.append("<!-- CONVERSUS:DISPUTES_END -->")
+        parts.append("<!-- DELIBERATOR:DISPUTES_END -->")
         return "\n".join(parts)
 
     @staticmethod

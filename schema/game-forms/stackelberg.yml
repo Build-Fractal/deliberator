@@ -7,7 +7,7 @@
 # when choosing.
 #
 # Use case: arbiter-as-leader scenarios where the arbiter sets binding
-# rulings and agents respond. Also models the conversus operator (human)
+# rulings and agents respond. Also models the deliberator operator (human)
 # as leader choosing config, agents as followers.
 # ==============================================================================
 

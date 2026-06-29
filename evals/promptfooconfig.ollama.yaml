@@ -1,4 +1,4 @@
-# Conversus Engine Eval — Ollama local model (quality layer)
+# Deliberator Engine Eval — Ollama local model (quality layer)
 #
 # Runs the same test cases as the mock smoke suite but against a real
 # local LLM via Ollama. Tests that the pipeline produces meaningful
@@ -9,7 +9,7 @@
 # Run: npx promptfoo eval -c evals/promptfooconfig.ollama.yaml
 # CI:  Ollama is installed in the workflow and model is pulled before eval.
 
-description: "Conversus engine eval — Ollama local model"
+description: "Deliberator engine eval — Ollama local model"
 
 prompts:
   - "{{prompt}}"

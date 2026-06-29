@@ -7,14 +7,14 @@ returns canned responses, records every call for later assertion, and
 does not touch the filesystem, the network, or subprocesses.
 
 Per the spec 042 arbitration ruling, ``mock`` is one of the four v1
-providers and ships with core conversus (not an optional package).  It
+providers and ships with core deliberator (not an optional package).  It
 serves two jobs:
 
 1. **Default provider during Phase 2 bring-up.**  Until ``anthropic``
    lands in Phase 2.3 and ``claude-code`` lands in Phase 3, every
    non-explicit-config caller resolves to ``mock`` via
    :func:`~engine.cli.context.detect_context`.  This forces users to
-   opt into real providers via ``conversus.yml`` rather than silently
+   opt into real providers via ``deliberator.yml`` rather than silently
    picking a real LLM.
 
 2. **Test substrate for the entire engine test suite.**  The

@@ -1,4 +1,4 @@
-"""Output directory management for the conversus engine.
+"""Output directory management for the deliberator engine.
 
 Provides ``OutputManager`` which creates the flat output directory structure
 for deliberation runs and writes agent response files to the correct paths.

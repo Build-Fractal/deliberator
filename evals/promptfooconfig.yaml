@@ -1,12 +1,12 @@
-# Conversus Engine Eval Suite — Functional Layer (promptfoo)
+# Deliberator Engine Eval Suite — Functional Layer (promptfoo)
 #
 # Tests the CLI surface from outside using a Python custom provider
-# that calls `uv run conversus decide` via subprocess.
+# that calls `uv run deliberator decide` via subprocess.
 #
 # Run: npx promptfoo eval -c evals/promptfooconfig.yaml
 # View: npx promptfoo view
 
-description: "Conversus engine eval — smoke tests (mock provider)"
+description: "Deliberator engine eval — smoke tests (mock provider)"
 
 prompts:
   - "{{prompt}}"

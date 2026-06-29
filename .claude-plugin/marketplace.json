@@ -1,5 +1,5 @@
 {
-  "name": "conversus",
+  "name": "deliberator",
   "owner": {
     "name": "Build Fractal",
     "email": "hello@buildfractal.com",
@@ -8,15 +8,15 @@
   "description": "Competitive multi-agent deliberation engine — structured adversarial review, red-teaming, and convergence pipelines using game theory modes.",
   "plugins": [
     {
-      "name": "conversus",
+      "name": "deliberator",
       "source": "./claude-code-plugin",
-      "description": "Run competitive multi-agent deliberations from Claude Code or Cowork. Includes the /conversus:design guided config wizard and wraps the full conversus CLI (run, decide, validate, init, mcp, status, login).",
+      "description": "Run competitive multi-agent deliberations from Claude Code or Cowork. Includes the /deliberator:design guided config wizard and wraps the full deliberator CLI (run, decide, validate, init, mcp, status, login).",
       "version": "0.4.0",
       "author": {
         "name": "Build Fractal",
         "url": "https://buildfractal.com"
       },
-      "homepage": "https://github.com/Build-Fractal/conversus-oss",
+      "homepage": "https://github.com/Build-Fractal/deliberator",
       "license": "Apache-2.0",
       "keywords": [
         "deliberation",

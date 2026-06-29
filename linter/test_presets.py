@@ -1,5 +1,5 @@
 """
-Data-driven test suite for conversus preset YAML validation.
+Data-driven test suite for deliberator preset YAML validation.
 
 Validates every preset in presets/**/*.yml against the SKILL.md-defined
 structural rules: name-filename match, category-directory match, required

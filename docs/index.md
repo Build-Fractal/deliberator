@@ -3,12 +3,12 @@ hide:
   - navigation
 ---
 
-# Conversus
+# Deliberator
 
 Competitive multi-agent deliberation framework. Multiple AI agents with different perspectives compete under game-theory-informed rules to surface the strongest arguments, expose hidden contradictions, and produce battle-tested decisions.
 
-[![Tests](https://img.shields.io/badge/tests-1%2C302%20passed-brightgreen)](https://github.com/Build-Fractal/conversus-oss)
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue)](https://github.com/Build-Fractal/conversus-oss/blob/main/LICENSE)
+[![Tests](https://img.shields.io/badge/tests-1%2C302%20passed-brightgreen)](https://github.com/Build-Fractal/deliberator)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue)](https://github.com/Build-Fractal/deliberator/blob/main/LICENSE)
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue)](https://www.python.org)
 
 ---
@@ -30,28 +30,28 @@ Competitive multi-agent deliberation framework. Multiple AI agents with differen
 
 ```bash
 # Install directly from GitHub (Python 3.12+)
-pip install git+https://github.com/Build-Fractal/conversus-oss.git
+pip install git+https://github.com/Build-Fractal/deliberator.git
 ```
 
 Or for local development:
 
 ```bash
-git clone https://github.com/Build-Fractal/conversus-oss.git && cd conversus
+git clone https://github.com/Build-Fractal/deliberator.git && cd deliberator
 pip install -e .          # editable install
 # or: uv sync            # if using uv
 ```
 
 !!! tip "MCP extras"
-    To use conversus as an MCP server with Claude Code, Cursor, etc.:
+    To use deliberator as an MCP server with Claude Code, Cursor, etc.:
     ```bash
-    pip install "conversus[mcp] @ git+https://github.com/Build-Fractal/conversus-oss.git"
+    pip install "deliberator[mcp] @ git+https://github.com/Build-Fractal/deliberator.git"
     ```
 
 !!! tip "Claude Code plugin"
-    Install the conversus plugin to get the `/conversus:design` guided config wizard and the full CLI as slash commands:
+    Install the deliberator plugin to get the `/deliberator:design` guided config wizard and the full CLI as slash commands:
     ```
-    /plugin marketplace add Build-Fractal/conversus-oss
-    /plugin install conversus@conversus
+    /plugin marketplace add Build-Fractal/deliberator
+    /plugin install deliberator@deliberator
     ```
 
 See the [Quickstart](user-guide/quickstart.md) for prerequisites and first-run instructions.
@@ -87,6 +87,6 @@ See the [Quickstart](user-guide/quickstart.md) for prerequisites and first-run i
 
 -   :material-connection: **[MCP Setup](user-guide/mcp-setup.md)**
 
-    Connect conversus to Claude Code, Cursor, and other MCP-compatible editors.
+    Connect deliberator to Claude Code, Cursor, and other MCP-compatible editors.
 
 </div>

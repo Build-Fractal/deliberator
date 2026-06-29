@@ -1,5 +1,5 @@
 """
-Data-driven test suite for the conversus template linter.
+Data-driven test suite for the deliberator template linter.
 
 Uses pytest.mark.parametrize to test all templates across all modes
 with both positive (valid) and negative (injected defect) cases.
@@ -162,9 +162,9 @@ class TestStructuralMarkers:
     """Tests for structural marker detection."""
 
     @pytest.mark.parametrize("content,marker,expected", [
-        ("<!-- CONVERSUS:DISPUTES_BEGIN -->", DISPUTES_BEGIN, True),
+        ("<!-- DELIBERATOR:DISPUTES_BEGIN -->", DISPUTES_BEGIN, True),
         ("some text", DISPUTES_BEGIN, False),
-        ("line\n<!-- CONVERSUS:DISPUTES_END -->\nline", DISPUTES_END, True),
+        ("line\n<!-- DELIBERATOR:DISPUTES_END -->\nline", DISPUTES_END, True),
     ])
     def test_marker(self, content: str, marker: str, expected: bool) -> None:
         assert has_structural_marker(content, marker) == expected

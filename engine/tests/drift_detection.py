@@ -88,7 +88,7 @@ def main(argv: list[str] | None = None) -> int:
         "--repo-root",
         type=Path,
         default=Path.cwd(),
-        help="Path to the conversus-oss working tree (default: CWD).",
+        help="Path to the deliberator working tree (default: CWD).",
     )
     args = parser.parse_args(argv)
 

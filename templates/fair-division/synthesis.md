@@ -84,7 +84,7 @@ If inter-round arbitration fired in prior rounds, list valuations or allocations
 
 If no prior-round arbitration exists, omit this section entirely.
 
-<!-- CONVERSUS:DISPUTES_BEGIN -->
+<!-- DELIBERATOR:DISPUTES_BEGIN -->
 ### Disputed Valuations
 
 Valuations that survived the full process without agreement:
@@ -94,7 +94,7 @@ Valuations that survived the full process without agreement:
   - **Impact on allocation**: How this disagreement affects the division.
   - **Divider assessment**: Which valuation is better supported by evidence.
   - **Recommended resolution**: Use Party A's valuation / Use Party B's valuation / Use average / Use external benchmark.
-<!-- CONVERSUS:DISPUTES_END -->
+<!-- DELIBERATOR:DISPUTES_END -->
 
 ### Final Allocation
 

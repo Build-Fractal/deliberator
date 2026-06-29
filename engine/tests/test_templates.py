@@ -571,10 +571,10 @@ class TestExtractRemainingDisputes:
         text = (
             "# Synthesis\n\n"
             "Some content.\n\n"
-            "<!-- CONVERSUS:DISPUTES_BEGIN -->\n"
+            "<!-- DELIBERATOR:DISPUTES_BEGIN -->\n"
             "**Dispute: API contract mismatch**\n"
             "**Dispute: Auth flow incomplete**\n"
-            "<!-- CONVERSUS:DISPUTES_END -->\n"
+            "<!-- DELIBERATOR:DISPUTES_END -->\n"
             "More content."
         )
         result = _extract_remaining_disputes(text, "cooperative")
@@ -584,7 +584,7 @@ class TestExtractRemainingDisputes:
     def test_marker_without_end(self) -> None:
         text = (
             "# Synthesis\n\n"
-            "<!-- CONVERSUS:DISPUTES_BEGIN -->\n"
+            "<!-- DELIBERATOR:DISPUTES_BEGIN -->\n"
             "**Dispute: Orphaned dispute**\n"
         )
         result = _extract_remaining_disputes(text, "cooperative")
@@ -645,9 +645,9 @@ class TestExtractRemainingDisputes:
         """When both markers and headings are present, markers win."""
         text = (
             "# Synthesis\n\n"
-            "<!-- CONVERSUS:DISPUTES_BEGIN -->\n"
+            "<!-- DELIBERATOR:DISPUTES_BEGIN -->\n"
             "**Dispute: Marker dispute**\n"
-            "<!-- CONVERSUS:DISPUTES_END -->\n\n"
+            "<!-- DELIBERATOR:DISPUTES_END -->\n\n"
             "### Remaining Disputes\n\n"
             "**Dispute: Heading dispute**\n"
         )
@@ -701,9 +701,9 @@ class TestBuildArbitrationContext:
         config = _make_config_with_arbiter(tmp_path)
         synthesis_text = (
             "# Synthesis\n\n"
-            "<!-- CONVERSUS:DISPUTES_BEGIN -->\n"
+            "<!-- DELIBERATOR:DISPUTES_BEGIN -->\n"
             "**Dispute: Auth flow**\n"
-            "<!-- CONVERSUS:DISPUTES_END -->\n"
+            "<!-- DELIBERATOR:DISPUTES_END -->\n"
         )
         ctx = build_arbitration_context(config, config.output, synthesis_text, round_num=1)
 

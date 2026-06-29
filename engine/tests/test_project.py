@@ -1,6 +1,6 @@
-"""Tests for engine.project — .conversus/ directory management.
+"""Tests for engine.project — .deliberator/ directory management.
 
-Covers init_project, read_settings, find_conversus_dir, and all runtime
+Covers init_project, read_settings, find_deliberator_dir, and all runtime
 config generators with real assertions on file content and structure.
 """
 
@@ -14,7 +14,7 @@ import yaml
 
 from engine.project import (
     AVAILABLE_RUNTIMES,
-    CONVERSUS_DIR,
+    DELIBERATOR_DIR,
     DEFAULT_SETTINGS,
     GITIGNORE_CONTENT,
     LEGACY_SETTINGS_FILE,
@@ -27,7 +27,7 @@ from engine.project import (
     _gemini_config,
     _merge_claude_settings,
     _opencode_config,
-    find_conversus_dir,
+    find_deliberator_dir,
     init_project,
     read_settings,
 )
@@ -117,9 +117,9 @@ class TestOpenCodeConfig:
         _, _, content = _opencode_config()
         assert "max_turns = 50" in content
 
-    def test_mentions_conversus_init(self) -> None:
+    def test_mentions_deliberator_init(self) -> None:
         _, _, content = _opencode_config()
-        assert "conversus init" in content
+        assert "deliberator init" in content
 
 
 class TestCopilotConfig:
@@ -138,7 +138,7 @@ class TestCopilotConfig:
     def test_copilot_agent_mode_enabled(self) -> None:
         _, _, content = _copilot_config()
         data = json.loads(content)
-        assert data["copilot"]["conversus_agent_mode"] is True
+        assert data["copilot"]["deliberator_agent_mode"] is True
 
     def test_auto_approve_enabled(self) -> None:
         _, _, content = _copilot_config()
@@ -173,10 +173,10 @@ class TestGeminiConfig:
         data = json.loads(content)
         assert data["auto_approve"] is True
 
-    def test_conversus_agent_flag(self) -> None:
+    def test_deliberator_agent_flag(self) -> None:
         _, _, content = _gemini_config()
         data = json.loads(content)
-        assert data["conversus_agent"] is True
+        assert data["deliberator_agent"] is True
 
 
 class TestCodexConfig:
@@ -202,10 +202,10 @@ class TestCodexConfig:
         data = json.loads(content)
         assert data["quiet"] is True
 
-    def test_conversus_agent_flag(self) -> None:
+    def test_deliberator_agent_flag(self) -> None:
         _, _, content = _codex_config()
         data = json.loads(content)
-        assert data["conversus_agent"] is True
+        assert data["deliberator_agent"] is True
 
 
 class TestAiderConfig:
@@ -235,9 +235,9 @@ class TestAiderConfig:
         _, _, content = _aider_config()
         assert "stream: false" in content
 
-    def test_mentions_conversus(self) -> None:
+    def test_mentions_deliberator(self) -> None:
         _, _, content = _aider_config()
-        assert "conversus" in content
+        assert "deliberator" in content
 
 
 class TestRuntimeConfigsRegistry:
@@ -280,24 +280,24 @@ class TestRuntimeConfigsRegistry:
 class TestInitProjectCreatesStructure:
     """init_project creates the right directories and files."""
 
-    def test_creates_conversus_dir(self, tmp_path: Path) -> None:
+    def test_creates_deliberator_dir(self, tmp_path: Path) -> None:
         init_project(tmp_path)
-        assert (tmp_path / CONVERSUS_DIR).is_dir()
+        assert (tmp_path / DELIBERATOR_DIR).is_dir()
 
     def test_creates_output_dir(self, tmp_path: Path) -> None:
         init_project(tmp_path)
-        assert (tmp_path / CONVERSUS_DIR / "output").is_dir()
+        assert (tmp_path / DELIBERATOR_DIR / "output").is_dir()
 
     def test_creates_settings_yml(self, tmp_path: Path) -> None:
         init_project(tmp_path)
-        settings_path = tmp_path / CONVERSUS_DIR / SETTINGS_FILE
+        settings_path = tmp_path / DELIBERATOR_DIR / SETTINGS_FILE
         assert settings_path.is_file()
         # Filename must match what engine.settings.load_settings reads.
         assert settings_path.name == "settings.yml"
 
     def test_settings_yml_is_valid(self, tmp_path: Path) -> None:
         init_project(tmp_path)
-        settings_path = tmp_path / CONVERSUS_DIR / SETTINGS_FILE
+        settings_path = tmp_path / DELIBERATOR_DIR / SETTINGS_FILE
         data = yaml.safe_load(settings_path.read_text(encoding="utf-8"))
         assert data["default_provider"] == "claude-code"
         assert data["default_model"] == "sonnet"
@@ -306,7 +306,7 @@ class TestInitProjectCreatesStructure:
 
     def test_creates_gitignore(self, tmp_path: Path) -> None:
         init_project(tmp_path)
-        gitignore_path = tmp_path / CONVERSUS_DIR / ".gitignore"
+        gitignore_path = tmp_path / DELIBERATOR_DIR / ".gitignore"
         assert gitignore_path.is_file()
         assert gitignore_path.read_text(encoding="utf-8") == GITIGNORE_CONTENT
 
@@ -335,14 +335,14 @@ class TestInitProjectCustomSettings:
     def test_custom_provider(self, tmp_path: Path) -> None:
         init_project(tmp_path, default_provider="opencode")
         data = yaml.safe_load(
-            (tmp_path / CONVERSUS_DIR / SETTINGS_FILE).read_text(encoding="utf-8")
+            (tmp_path / DELIBERATOR_DIR / SETTINGS_FILE).read_text(encoding="utf-8")
         )
         assert data["default_provider"] == "opencode"
 
     def test_custom_model(self, tmp_path: Path) -> None:
         init_project(tmp_path, default_model="opus")
         data = yaml.safe_load(
-            (tmp_path / CONVERSUS_DIR / SETTINGS_FILE).read_text(encoding="utf-8")
+            (tmp_path / DELIBERATOR_DIR / SETTINGS_FILE).read_text(encoding="utf-8")
         )
         assert data["default_model"] == "opus"
 
@@ -362,7 +362,7 @@ class TestInitProjectCustomSettings:
         runtimes = ["claude-code", "copilot"]
         init_project(tmp_path, runtimes=runtimes)
         data = yaml.safe_load(
-            (tmp_path / CONVERSUS_DIR / SETTINGS_FILE).read_text(encoding="utf-8")
+            (tmp_path / DELIBERATOR_DIR / SETTINGS_FILE).read_text(encoding="utf-8")
         )
         assert data["runtimes"] == runtimes
 
@@ -378,7 +378,7 @@ class TestInitProjectCustomSettings:
         # Should not have a runtime key for the unknown runtime
         assert "runtime:nonexistent-runtime" not in created
         # Should still create the base structure
-        assert (tmp_path / CONVERSUS_DIR).is_dir()
+        assert (tmp_path / DELIBERATOR_DIR).is_dir()
 
     def test_all_runtimes(self, tmp_path: Path) -> None:
         """Every known runtime generates its config file."""
@@ -394,7 +394,7 @@ class TestInitProjectIdempotent:
     def test_settings_not_overwritten(self, tmp_path: Path) -> None:
         init_project(tmp_path, default_model="sonnet")
         # Manually alter the settings file
-        settings_path = tmp_path / CONVERSUS_DIR / SETTINGS_FILE
+        settings_path = tmp_path / DELIBERATOR_DIR / SETTINGS_FILE
         sentinel = "custom: true\n"
         settings_path.write_text(sentinel, encoding="utf-8")
 
@@ -407,7 +407,7 @@ class TestInitProjectIdempotent:
 
     def test_gitignore_not_overwritten(self, tmp_path: Path) -> None:
         init_project(tmp_path)
-        gitignore_path = tmp_path / CONVERSUS_DIR / ".gitignore"
+        gitignore_path = tmp_path / DELIBERATOR_DIR / ".gitignore"
         gitignore_path.write_text("custom content\n", encoding="utf-8")
 
         created = init_project(tmp_path)
@@ -423,7 +423,7 @@ class TestInitProjectIdempotent:
 
     def test_output_dir_preserved(self, tmp_path: Path) -> None:
         init_project(tmp_path)
-        output_dir = tmp_path / CONVERSUS_DIR / "output"
+        output_dir = tmp_path / DELIBERATOR_DIR / "output"
         marker = output_dir / "existing_file.txt"
         marker.write_text("keep me", encoding="utf-8")
 
@@ -438,7 +438,7 @@ class TestInitProjectForce:
 
     def test_settings_overwritten_with_force(self, tmp_path: Path) -> None:
         init_project(tmp_path, default_model="sonnet")
-        settings_path = tmp_path / CONVERSUS_DIR / SETTINGS_FILE
+        settings_path = tmp_path / DELIBERATOR_DIR / SETTINGS_FILE
         settings_path.write_text("custom: true\n", encoding="utf-8")
 
         created = init_project(tmp_path, default_model="opus", force=True)
@@ -448,7 +448,7 @@ class TestInitProjectForce:
 
     def test_gitignore_overwritten_with_force(self, tmp_path: Path) -> None:
         init_project(tmp_path)
-        gitignore_path = tmp_path / CONVERSUS_DIR / ".gitignore"
+        gitignore_path = tmp_path / DELIBERATOR_DIR / ".gitignore"
         gitignore_path.write_text("custom content\n", encoding="utf-8")
 
         created = init_project(tmp_path, force=True)
@@ -481,7 +481,7 @@ class TestInitProjectSettingsYAML:
 
     def test_init_writes_settings_yml_not_json(self, tmp_path: Path) -> None:
         init_project(tmp_path)
-        yml_path = tmp_path / CONVERSUS_DIR / "settings.yml"
+        yml_path = tmp_path / DELIBERATOR_DIR / "settings.yml"
         assert yml_path.is_file(), "settings.yml must exist after init"
 
         # Content parses as YAML AND contains the expected keys.
@@ -495,7 +495,7 @@ class TestInitProjectSettingsYAML:
     def test_init_does_not_write_settings_json(self, tmp_path: Path) -> None:
         """No legacy settings.json should be created by a fresh init."""
         init_project(tmp_path)
-        json_path = tmp_path / CONVERSUS_DIR / "settings.json"
+        json_path = tmp_path / DELIBERATOR_DIR / "settings.json"
         assert not json_path.exists(), (
             "init must not create settings.json (the cascade reads YAML; "
             "legacy JSON would be orphan data)"
@@ -505,9 +505,9 @@ class TestInitProjectSettingsYAML:
         self, tmp_path: Path
     ) -> None:
         """A pre-existing legacy settings.json is read, merged, and preserved."""
-        conversus_dir = tmp_path / CONVERSUS_DIR
-        conversus_dir.mkdir()
-        legacy_path = conversus_dir / "settings.json"
+        deliberator_dir = tmp_path / DELIBERATOR_DIR
+        deliberator_dir.mkdir()
+        legacy_path = deliberator_dir / "settings.json"
         legacy_payload = {
             "default_provider": "stale-value-should-lose",
             "default_model": "stale-model-should-lose",
@@ -527,7 +527,7 @@ class TestInitProjectSettingsYAML:
         )
 
         # (a) settings.yml exists with content merged from legacy
-        yml_path = conversus_dir / "settings.yml"
+        yml_path = deliberator_dir / "settings.yml"
         assert yml_path.is_file()
         data = yaml.safe_load(yml_path.read_text(encoding="utf-8"))
         # Fresh init args win for overlapping keys
@@ -551,16 +551,16 @@ class TestInitProjectSettingsYAML:
         self, tmp_path: Path, caplog: pytest.LogCaptureFixture
     ) -> None:
         """A malformed legacy file must not raise — log warning, write defaults."""
-        conversus_dir = tmp_path / CONVERSUS_DIR
-        conversus_dir.mkdir()
-        legacy_path = conversus_dir / "settings.json"
+        deliberator_dir = tmp_path / DELIBERATOR_DIR
+        deliberator_dir.mkdir()
+        legacy_path = deliberator_dir / "settings.json"
         legacy_path.write_text("{ this is not valid json !!!", encoding="utf-8")
 
-        with caplog.at_level("WARNING", logger="conversus.project"):
+        with caplog.at_level("WARNING", logger="deliberator.project"):
             created = init_project(tmp_path)
 
         # init did NOT raise and produced a fresh YAML with defaults
-        yml_path = conversus_dir / "settings.yml"
+        yml_path = deliberator_dir / "settings.yml"
         assert yml_path.is_file()
         data = yaml.safe_load(yml_path.read_text(encoding="utf-8"))
         assert data["default_provider"] == "claude-code"
@@ -579,7 +579,7 @@ class TestInitProjectSettingsYAML:
     def test_init_force_overwrites_settings_yml(self, tmp_path: Path) -> None:
         """force=True replaces an existing settings.yml."""
         init_project(tmp_path, default_model="sonnet")
-        yml_path = tmp_path / CONVERSUS_DIR / SETTINGS_FILE
+        yml_path = tmp_path / DELIBERATOR_DIR / SETTINGS_FILE
         # User mutation on disk
         yml_path.write_text("default_model: hand-edited\n", encoding="utf-8")
 
@@ -595,7 +595,7 @@ class TestInitProjectSettingsYAML:
 
 
 class TestReadSettings:
-    """read_settings reads .conversus/settings.yml correctly."""
+    """read_settings reads .deliberator/settings.yml correctly."""
 
     def test_returns_defaults_when_file_missing(self, tmp_path: Path) -> None:
         result = read_settings(tmp_path)
@@ -615,7 +615,7 @@ class TestReadSettings:
         assert result["default_model"] == "opus"
 
     def test_handles_malformed_yaml(self, tmp_path: Path) -> None:
-        settings_dir = tmp_path / CONVERSUS_DIR
+        settings_dir = tmp_path / DELIBERATOR_DIR
         settings_dir.mkdir()
         settings_path = settings_dir / SETTINGS_FILE
         # Tab-indent in a block mapping is a YAML scanner error.
@@ -625,7 +625,7 @@ class TestReadSettings:
         assert result == DEFAULT_SETTINGS
 
     def test_handles_empty_file(self, tmp_path: Path) -> None:
-        settings_dir = tmp_path / CONVERSUS_DIR
+        settings_dir = tmp_path / DELIBERATOR_DIR
         settings_dir.mkdir()
         settings_path = settings_dir / SETTINGS_FILE
         settings_path.write_text("", encoding="utf-8")
@@ -634,7 +634,7 @@ class TestReadSettings:
         assert result == DEFAULT_SETTINGS
 
     def test_returns_custom_keys_from_file(self, tmp_path: Path) -> None:
-        settings_dir = tmp_path / CONVERSUS_DIR
+        settings_dir = tmp_path / DELIBERATOR_DIR
         settings_dir.mkdir()
         settings_path = settings_dir / SETTINGS_FILE
         custom = {"custom_key": "custom_value", "number": 42}
@@ -646,70 +646,70 @@ class TestReadSettings:
 
 
 # ===================================================================
-# find_conversus_dir
+# find_deliberator_dir
 # ===================================================================
 
 
-class TestFindConversusDir:
-    """find_conversus_dir walks up the directory tree correctly."""
+class TestFindDeliberatorDir:
+    """find_deliberator_dir walks up the directory tree correctly."""
 
     def test_finds_in_current_dir(self, tmp_path: Path) -> None:
-        (tmp_path / CONVERSUS_DIR).mkdir()
-        result = find_conversus_dir(tmp_path)
+        (tmp_path / DELIBERATOR_DIR).mkdir()
+        result = find_deliberator_dir(tmp_path)
         assert result is not None
-        assert result == (tmp_path / CONVERSUS_DIR).resolve()
+        assert result == (tmp_path / DELIBERATOR_DIR).resolve()
 
     def test_finds_in_parent_dir(self, tmp_path: Path) -> None:
-        (tmp_path / CONVERSUS_DIR).mkdir()
+        (tmp_path / DELIBERATOR_DIR).mkdir()
         child = tmp_path / "subdir" / "deep"
         child.mkdir(parents=True)
 
-        result = find_conversus_dir(child)
+        result = find_deliberator_dir(child)
         assert result is not None
-        assert result == (tmp_path / CONVERSUS_DIR).resolve()
+        assert result == (tmp_path / DELIBERATOR_DIR).resolve()
 
     def test_finds_in_grandparent_dir(self, tmp_path: Path) -> None:
-        (tmp_path / CONVERSUS_DIR).mkdir()
+        (tmp_path / DELIBERATOR_DIR).mkdir()
         deep = tmp_path / "a" / "b" / "c"
         deep.mkdir(parents=True)
 
-        result = find_conversus_dir(deep)
+        result = find_deliberator_dir(deep)
         assert result is not None
-        assert result == (tmp_path / CONVERSUS_DIR).resolve()
+        assert result == (tmp_path / DELIBERATOR_DIR).resolve()
 
     def test_returns_none_when_not_found(self, tmp_path: Path) -> None:
-        # No .conversus/ anywhere — tmp_path is isolated so walk will hit root
-        result = find_conversus_dir(tmp_path)
+        # No .deliberator/ anywhere — tmp_path is isolated so walk will hit root
+        result = find_deliberator_dir(tmp_path)
         assert result is None
 
-    def test_returns_nearest_conversus_dir(self, tmp_path: Path) -> None:
-        """When multiple .conversus/ dirs exist, returns the nearest ancestor."""
+    def test_returns_nearest_deliberator_dir(self, tmp_path: Path) -> None:
+        """When multiple .deliberator/ dirs exist, returns the nearest ancestor."""
         # Outer
-        (tmp_path / CONVERSUS_DIR).mkdir()
+        (tmp_path / DELIBERATOR_DIR).mkdir()
         # Inner
         inner = tmp_path / "project"
         inner.mkdir()
-        (inner / CONVERSUS_DIR).mkdir()
+        (inner / DELIBERATOR_DIR).mkdir()
 
-        result = find_conversus_dir(inner)
+        result = find_deliberator_dir(inner)
         assert result is not None
-        assert result == (inner / CONVERSUS_DIR).resolve()
+        assert result == (inner / DELIBERATOR_DIR).resolve()
 
-    def test_ignores_conversus_file(self, tmp_path: Path) -> None:
-        """A file named .conversus (not a dir) should not match."""
-        (tmp_path / CONVERSUS_DIR).write_text("not a directory", encoding="utf-8")
-        result = find_conversus_dir(tmp_path)
+    def test_ignores_deliberator_file(self, tmp_path: Path) -> None:
+        """A file named .deliberator (not a dir) should not match."""
+        (tmp_path / DELIBERATOR_DIR).write_text("not a directory", encoding="utf-8")
+        result = find_deliberator_dir(tmp_path)
         assert result is None
 
     def test_resolves_symlinks(self, tmp_path: Path) -> None:
         """start path with symlinks still resolves correctly."""
         real_dir = tmp_path / "real"
         real_dir.mkdir()
-        (real_dir / CONVERSUS_DIR).mkdir()
+        (real_dir / DELIBERATOR_DIR).mkdir()
 
         link_dir = tmp_path / "link"
         link_dir.symlink_to(real_dir)
 
-        result = find_conversus_dir(link_dir)
+        result = find_deliberator_dir(link_dir)
         assert result is not None
-        assert result == (real_dir / CONVERSUS_DIR).resolve()
+        assert result == (real_dir / DELIBERATOR_DIR).resolve()

@@ -115,7 +115,7 @@ Track how each dispute from the deliberation was resolved. For each dispute that
 
 This section provides the audit trail for dispute resolution attribution across the full multi-round process. Use the per-round arbitration files ({ARBITRATION_PATHS}) and compiled rulings ({ARBITRATION_RULINGS}) to trace arbiter influence on dispute outcomes.
 
-<!-- CONVERSUS:DISPUTES_BEGIN -->
+<!-- DELIBERATOR:DISPUTES_BEGIN -->
 ## Disputed Boundaries
 
 Boundary disputes that survived the full multi-round process. For each:
@@ -127,7 +127,7 @@ Boundary disputes that survived the full multi-round process. For each:
   - **Stagnation diagnosis**: Did this dispute stagnate? Stagnation means the same disputed boundaries persisted with the same arguments across consecutive rounds — no new evidence, no position shifts, no concessions. Identify the round where movement stopped.
   - **Synthesizer assessment**: Which position the cumulative evidence better supports. Consider trust scores, evidence quality across rounds, and whether one agent's cooperation pattern lends more credibility to their claims.
   - **Recommended resolution**: Assign to Agent A / Assign to Agent B / Split (state the boundary precisely) / Defer to external arbiter / Accept as genuine architectural trade-off requiring prototyping.
-<!-- CONVERSUS:DISPUTES_END -->
+<!-- DELIBERATOR:DISPUTES_END -->
 
 ### Termination Assessment
 

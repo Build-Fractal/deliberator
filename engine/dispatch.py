@@ -67,9 +67,9 @@ DEFAULT_MAX_TOKENS = 16384
 # attempts in a single ~10s window. Terminal phases need a longer,
 # outer-loop retry that survives multi-minute rate-limit windows.
 #
-# See ``project_conversus_arbitration_crash_2026_05_06.md`` in user
+# See ``project_deliberator_arbitration_crash_2026_05_06.md`` in user
 # memory and the 2026-05-12 deliberation log at
-# ``/tmp/conversus-v4.1.0-deliberation-20260512-010921.log`` for the
+# ``/tmp/deliberator-v4.1.0-deliberation-20260512-010921.log`` for the
 # observed failures motivating this policy.
 #
 # Scope-A architecture: the eventual subprocess-isolation fix (Scope B
@@ -124,9 +124,9 @@ TERMINAL_PHASE_RETRYABLE_PATTERNS: tuple[str, ...] = (
 # attempts in a single ~10s window. Terminal phases need a longer,
 # outer-loop retry that survives multi-minute rate-limit windows.
 #
-# See ``project_conversus_arbitration_crash_2026_05_06.md`` in user
+# See ``project_deliberator_arbitration_crash_2026_05_06.md`` in user
 # memory and the 2026-05-12 deliberation log at
-# ``/tmp/conversus-v4.1.0-deliberation-20260512-010921.log`` for the
+# ``/tmp/deliberator-v4.1.0-deliberation-20260512-010921.log`` for the
 # observed failures motivating this policy.
 #
 # Scope-A architecture: the eventual subprocess-isolation fix (Scope B

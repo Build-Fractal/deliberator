@@ -140,12 +140,12 @@ class TestPromptParameterEmbedding:
 
 
 # ---------------------------------------------------------------------------
-# Mode hints — each prompt nudges toward the right conversus mode
+# Mode hints — each prompt nudges toward the right deliberator mode
 # ---------------------------------------------------------------------------
 
 
 class TestPromptModeHints:
-    """Prompts surface the conversus mode they're designed to drive."""
+    """Prompts surface the deliberator mode they're designed to drive."""
 
     def test_deliberate_mentions_modes(self) -> None:
         messages = deliberate(question="x")
@@ -191,39 +191,39 @@ class TestRoleSplitPrompts:
 
 
 # ---------------------------------------------------------------------------
-# Tool-call hints — prompts steer toward the correct conversus_* tool.
+# Tool-call hints — prompts steer toward the correct deliberator_* tool.
 # This guards against silent drift if a prompt forgets to reference its
 # tool (which would render the prompt useless for end-to-end completion).
 # ---------------------------------------------------------------------------
 
 
 class TestPromptToolReferences:
-    """Each prompt references the conversus tool it expects to drive."""
+    """Each prompt references the deliberator tool it expects to drive."""
 
     def test_deliberate_references_decide(self) -> None:
         messages = deliberate(question="x")
         joined = " ".join(m["content"] for m in messages)
-        assert "conversus_decide" in joined
+        assert "deliberator_decide" in joined
 
     def test_challenge_references_decide(self) -> None:
         messages = challenge(question="x")
         joined = " ".join(m["content"] for m in messages)
-        assert "conversus_decide" in joined
+        assert "deliberator_decide" in joined
 
     def test_force_decision_references_decide(self) -> None:
         messages = force_decision(question="x")
         joined = " ".join(m["content"] for m in messages)
-        assert "conversus_decide" in joined
+        assert "deliberator_decide" in joined
 
     def test_review_config_references_run(self) -> None:
         messages = review_config(config_yaml="mode: cooperative")
         joined = " ".join(m["content"] for m in messages)
-        assert "conversus_run" in joined
+        assert "deliberator_run" in joined
 
     def test_check_cost_references_validate(self) -> None:
         messages = check_cost(config_yaml="mode: cooperative")
         joined = " ".join(m["content"] for m in messages)
-        assert "conversus_validate" in joined
+        assert "deliberator_validate" in joined
 
 
 # ---------------------------------------------------------------------------

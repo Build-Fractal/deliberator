@@ -1,4 +1,4 @@
-"""Shared cost estimation for conversus deliberations.
+"""Shared cost estimation for deliberator deliberations.
 
 Provides the canonical D007 formula for estimating LLM launches per phase.
 Used by CLI, SDK, MCP server, and web API — extracted here to avoid

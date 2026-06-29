@@ -1,5 +1,5 @@
 {
-  "name": "conversus",
+  "name": "deliberator",
   "version": "0.4.0",
   "description": "Competitive multi-agent deliberation engine — run structured adversarial reviews, red-teaming, and convergence pipelines using game theory modes (cooperative, winner-take-all, prisoner's dilemma, red-blue, and 4 more).",
   "author": {
@@ -7,8 +7,8 @@
     "email": "hello@buildfractal.com",
     "url": "https://buildfractal.com"
   },
-  "homepage": "https://github.com/Build-Fractal/conversus-oss",
-  "repository": "https://github.com/Build-Fractal/conversus-oss",
+  "homepage": "https://github.com/Build-Fractal/deliberator",
+  "repository": "https://github.com/Build-Fractal/deliberator",
   "license": "Apache-2.0",
   "keywords": [
     "deliberation",

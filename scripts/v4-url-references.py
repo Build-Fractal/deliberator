@@ -13,7 +13,7 @@ extracts to its own repo at github.com/Build-Fractal/governance), update
 URL_PREFIX and re-run this script.
 
 Run from monorepo root:
-    cd payer-index-mono && python conversus-oss/scripts/v4-url-references.py
+    cd payer-index-mono && python deliberator/scripts/v4-url-references.py
 """
 
 from __future__ import annotations
@@ -27,17 +27,17 @@ URL_PREFIX = "https://github.com/Build-Fractal/build-fractal-mono/blob/main"
 # Files to convert (relative to monorepo root). Each file's references to
 # the monorepo's build-fractal/ + sibling-submodule paths get converted.
 FILES = [
-    "conversus-oss/CONSTITUTION.md",
-    "conversus-oss/CONFORMANCE.md",
-    "conversus/CONFORMANCE.md",
+    "deliberator/CONSTITUTION.md",
+    "deliberator/CONFORMANCE.md",
+    "deliberator/CONFORMANCE.md",
     "build-fractal/CONSTITUTION.md",
-    "build-fractal/conversus/CONSTITUTION.md",
-    "build-fractal/conversus/CONSTITUTIONAL_CONVERSATIONS.md",
-    "build-fractal/conversus/GOVERNANCE.md",
-    "build-fractal/conversus/COMPLIANCE.md",
-    "build-fractal/conversus/CLAUDE.md",
-    "build-fractal/conversus/AGENTS.md",
-    "build-fractal/conversus/README.md",
+    "build-fractal/deliberator/CONSTITUTION.md",
+    "build-fractal/deliberator/CONSTITUTIONAL_CONVERSATIONS.md",
+    "build-fractal/deliberator/GOVERNANCE.md",
+    "build-fractal/deliberator/COMPLIANCE.md",
+    "build-fractal/deliberator/CLAUDE.md",
+    "build-fractal/deliberator/AGENTS.md",
+    "build-fractal/deliberator/README.md",
 ]
 
 # Replacement table. Each tuple: (relative-path-pattern, monorepo-absolute-path).
@@ -46,31 +46,31 @@ FILES = [
 #
 # Order matters: more-specific patterns first to avoid shadowing.
 REPLACEMENTS = [
-    # From build-fractal/conversus/* (depth 2)
-    ("../../conversus-oss/CONSTITUTIONAL_CONVERSATIONS.md", "conversus-oss/CONSTITUTIONAL_CONVERSATIONS.md"),
-    ("../../conversus-oss/CONFORMANCE.md", "conversus-oss/CONFORMANCE.md"),
-    ("../../conversus-oss/CONSTITUTION.md", "conversus-oss/CONSTITUTION.md"),
-    ("../../conversus-oss/deliberations", "conversus-oss/deliberations"),
-    ("../../conversus-oss/specs", "conversus-oss/specs"),
-    ("../../conversus-oss/scripts", "conversus-oss/scripts"),
-    ("../../conversus-oss/linter", "conversus-oss/linter"),
-    ("../../conversus-oss/", "conversus-oss/"),
-    ("../../conversus/CONFORMANCE.md", "conversus/CONFORMANCE.md"),
-    ("../../conversus/", "conversus/"),
+    # From build-fractal/deliberator/* (depth 2)
+    ("../../deliberator/CONSTITUTIONAL_CONVERSATIONS.md", "deliberator/CONSTITUTIONAL_CONVERSATIONS.md"),
+    ("../../deliberator/CONFORMANCE.md", "deliberator/CONFORMANCE.md"),
+    ("../../deliberator/CONSTITUTION.md", "deliberator/CONSTITUTION.md"),
+    ("../../deliberator/deliberations", "deliberator/deliberations"),
+    ("../../deliberator/specs", "deliberator/specs"),
+    ("../../deliberator/scripts", "deliberator/scripts"),
+    ("../../deliberator/linter", "deliberator/linter"),
+    ("../../deliberator/", "deliberator/"),
+    ("../../deliberator/CONFORMANCE.md", "deliberator/CONFORMANCE.md"),
+    ("../../deliberator/", "deliberator/"),
     # From build-fractal/* (depth 1)
-    ("../conversus-oss/CONSTITUTIONAL_CONVERSATIONS.md", "conversus-oss/CONSTITUTIONAL_CONVERSATIONS.md"),
-    ("../conversus-oss/CONFORMANCE.md", "conversus-oss/CONFORMANCE.md"),
-    ("../conversus-oss/CONSTITUTION.md", "conversus-oss/CONSTITUTION.md"),
-    ("../conversus-oss/", "conversus-oss/"),
-    ("../conversus/CONFORMANCE.md", "conversus/CONFORMANCE.md"),
-    ("../conversus/", "conversus/"),
-    # From conversus-oss/* and conversus/*
+    ("../deliberator/CONSTITUTIONAL_CONVERSATIONS.md", "deliberator/CONSTITUTIONAL_CONVERSATIONS.md"),
+    ("../deliberator/CONFORMANCE.md", "deliberator/CONFORMANCE.md"),
+    ("../deliberator/CONSTITUTION.md", "deliberator/CONSTITUTION.md"),
+    ("../deliberator/", "deliberator/"),
+    ("../deliberator/CONFORMANCE.md", "deliberator/CONFORMANCE.md"),
+    ("../deliberator/", "deliberator/"),
+    # From deliberator/* and deliberator/*
     ("../build-fractal/CONSTITUTION.md", "build-fractal/CONSTITUTION.md"),
-    ("../build-fractal/conversus/CONSTITUTIONAL_CONVERSATIONS.md", "build-fractal/conversus/CONSTITUTIONAL_CONVERSATIONS.md"),
-    ("../build-fractal/conversus/COMPLIANCE.md", "build-fractal/conversus/COMPLIANCE.md"),
-    ("../build-fractal/conversus/GOVERNANCE.md", "build-fractal/conversus/GOVERNANCE.md"),
-    ("../build-fractal/conversus/CONSTITUTION.md", "build-fractal/conversus/CONSTITUTION.md"),
-    ("../build-fractal/conversus/", "build-fractal/conversus/"),
+    ("../build-fractal/deliberator/CONSTITUTIONAL_CONVERSATIONS.md", "build-fractal/deliberator/CONSTITUTIONAL_CONVERSATIONS.md"),
+    ("../build-fractal/deliberator/COMPLIANCE.md", "build-fractal/deliberator/COMPLIANCE.md"),
+    ("../build-fractal/deliberator/GOVERNANCE.md", "build-fractal/deliberator/GOVERNANCE.md"),
+    ("../build-fractal/deliberator/CONSTITUTION.md", "build-fractal/deliberator/CONSTITUTION.md"),
+    ("../build-fractal/deliberator/", "build-fractal/deliberator/"),
     ("../build-fractal/", "build-fractal/"),
 ]
 

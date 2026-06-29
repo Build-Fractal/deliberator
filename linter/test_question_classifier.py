@@ -1,6 +1,6 @@
 """
 Tests for linter.question_classifier — heuristic question classifier
-for conversus deliberation input sufficiency.
+for deliberator deliberation input sufficiency.
 
 Covers:
 - Empty/trivially short inputs
@@ -21,7 +21,7 @@ import sys
 import pytest
 from pydantic import ValidationError
 
-from conversus.schemas.duration import Duration, TemporalMatch
+from deliberator.schemas.duration import Duration, TemporalMatch
 from linter.question_classifier import (
     ClassificationResult,
     classify_question,

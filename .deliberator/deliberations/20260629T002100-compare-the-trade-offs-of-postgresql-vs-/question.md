@@ -1,0 +1,1 @@
+Compare the trade-offs of PostgreSQL vs MongoDB for a multi-tenant healthcare SaaS platform handling 10M+ records per tenant with complex hierarchical queries and strict HIPAA compliance requirements.

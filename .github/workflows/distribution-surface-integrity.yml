@@ -22,7 +22,7 @@ name: distribution-surface-integrity
 #
 # What fails CI here:
 #   - Wheel cannot be built or force-includes drop a module.
-#   - Smoke import of conversus / mcp_server / capabilities fails post-install.
+#   - Smoke import of deliberator / mcp_server / capabilities fails post-install.
 #   - .mcpb manifest cannot be synced (capabilities registry import broken,
 #     pyproject version unreadable) or required bundle files are missing.
 #   - Plugin manifests are malformed JSON, or marketplace.json and plugin.json
@@ -75,7 +75,7 @@ jobs:
           import zipfile
           from pathlib import Path
 
-          (wheel,) = list(Path("dist").glob("conversus-*.whl"))
+          (wheel,) = list(Path("dist").glob("deliberator-*.whl"))
           required = {"mcp_server.py", "capabilities.py"}
           with zipfile.ZipFile(wheel) as zf:
               names = set(zf.namelist())
@@ -90,13 +90,13 @@ jobs:
       - name: Install wheel into a clean venv
         run: |
           # Install with [mcp] — mcp_server.py is force-included to support
-          # the `conversus mcp` CLI subcommand, which requires the `mcp`
+          # the `deliberator mcp` CLI subcommand, which requires the `mcp`
           # extra. Smoke must mirror the documented install path:
-          #   pip install 'conversus[mcp]'
+          #   pip install 'deliberator[mcp]'
           python -m venv /tmp/smoke-venv
           /tmp/smoke-venv/bin/python -m pip install --upgrade pip
-          WHEEL=$(ls dist/conversus-*.whl)
-          /tmp/smoke-venv/bin/python -m pip install "conversus[mcp] @ file://$(pwd)/${WHEEL}"
+          WHEEL=$(ls dist/deliberator-*.whl)
+          /tmp/smoke-venv/bin/python -m pip install "deliberator[mcp] @ file://$(pwd)/${WHEEL}"
 
       - name: Smoke-import wheel from clean venv
         run: |
@@ -110,11 +110,11 @@ jobs:
 
           # Distribution metadata must resolve — proves the wheel installed
           # as a real package, not just unpacked into site-packages.
-          dist_version = version("conversus")
-          print(f"installed conversus dist version: {dist_version}")
+          dist_version = version("deliberator")
+          print(f"installed deliberator dist version: {dist_version}")
 
           # The package itself must import.
-          import conversus  # noqa: F401
+          import deliberator  # noqa: F401
           import engine  # noqa: F401
           import linter  # noqa: F401
           print(f"engine.__version__ = {engine.__version__}")
@@ -125,16 +125,16 @@ jobs:
           # wheel is broken even though the package nominally installed.
           import mcp_server  # noqa: F401
           import capabilities  # noqa: F401
-          print("smoke OK: conversus, engine, linter, mcp_server, capabilities all import")
+          print("smoke OK: deliberator, engine, linter, mcp_server, capabilities all import")
           PY
 
       - name: Console scripts resolve
         run: |
-          # The conversus + conversus-lint entry points are part of the
+          # The deliberator + deliberator-lint entry points are part of the
           # public distribution contract. If pyproject [project.scripts]
           # drops one, this catches it.
-          /tmp/smoke-venv/bin/conversus --help > /dev/null
-          /tmp/smoke-venv/bin/conversus-lint --help > /dev/null
+          /tmp/smoke-venv/bin/deliberator --help > /dev/null
+          /tmp/smoke-venv/bin/deliberator-lint --help > /dev/null
           echo "OK: console scripts present"
 
   mcpb-bundle:
@@ -148,7 +148,7 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Vendor conversus + deps into bundle (mirror release-mcpb)
+      - name: Vendor deliberator + deps into bundle (mirror release-mcpb)
         run: |
           # This is the same vendoring step release-mcpb.yml runs. If it
           # breaks here on a PR, the release workflow would break at tag
@@ -170,7 +170,7 @@ jobs:
       - name: Install projector runtime deps into runner Python
         # The vendor step above installs deps into `desktop-extension/server/lib/`
         # (a bundle target dir, NOT the runner's site-packages). The Sync step
-        # below imports `conversus.registry.projector`, which now requires
+        # below imports `deliberator.registry.projector`, which now requires
         # pydantic. Install it into the runner Python so the import resolves.
         run: |
           python -m pip install --upgrade pip
@@ -178,7 +178,7 @@ jobs:
 
       - name: Sync manifest version + tools from pyproject + registry
         run: |
-          # If capabilities.py or conversus.registry.projector breaks, this
+          # If capabilities.py or deliberator.registry.projector breaks, this
           # step fails and the bundle is unshippable. Catch that here, not
           # at release-tag time.
           python - <<'PY'
@@ -190,7 +190,7 @@ jobs:
           sys.path.insert(0, str(Path(".").resolve()))
 
           from capabilities import CAPABILITIES
-          from conversus.registry.projector import project_to_mcpb_manifest_tools
+          from deliberator.registry.projector import project_to_mcpb_manifest_tools
 
           pyproject = tomllib.loads(Path("pyproject.toml").read_text())
           version = pyproject["project"]["version"]
@@ -213,15 +213,15 @@ jobs:
           cd desktop-extension
           python - <<'PY'
           import shutil
-          shutil.make_archive("../conversus-ci-smoke", "zip", ".")
+          shutil.make_archive("../deliberator-ci-smoke", "zip", ".")
           PY
-          mv ../conversus-ci-smoke.zip ../conversus-ci-smoke.mcpb
-          ls -lh ../conversus-ci-smoke.mcpb
+          mv ../deliberator-ci-smoke.zip ../deliberator-ci-smoke.mcpb
+          ls -lh ../deliberator-ci-smoke.mcpb
 
       - name: Smoke-load bundle and assert vendored layout
         run: |
           # The bundle has to contain: manifest.json at root, the entry-point
-          # module, the engine code, the conversus package, the runtime data
+          # module, the engine code, the deliberator package, the runtime data
           # dirs, and (because .mcpb runs against Claude Desktop's bundled
           # Python) bundled wheels — pydantic_core in particular.
           python - <<'PY'
@@ -230,11 +230,11 @@ jobs:
           import zipfile
           from pathlib import Path
 
-          bundle = Path("conversus-ci-smoke.mcpb")
+          bundle = Path("deliberator-ci-smoke.mcpb")
           required_paths = [
               "manifest.json",
               "server/mcp_server.py",
-              "server/lib/conversus/__init__.py",
+              "server/lib/deliberator/__init__.py",
               "server/lib/engine/__init__.py",
               "server/presets",
               "server/schema",

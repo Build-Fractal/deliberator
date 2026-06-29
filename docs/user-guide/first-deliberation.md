@@ -1,49 +1,49 @@
 # Your First Deliberation
 
-A 5-minute walkthrough that installs conversus, runs a real deliberation, and explains what you just saw.
+A 5-minute walkthrough that installs deliberator, runs a real deliberation, and explains what you just saw.
 
 ## Step 1: Install
 
 ```bash
-pip install git+https://github.com/Build-Fractal/conversus-oss.git
+pip install git+https://github.com/Build-Fractal/deliberator.git
 ```
 
-**What this does**: installs the `conversus` Python package and its dependencies directly from GitHub. No PyPI account needed, no separate sdist download. Pip fetches the current `main` branch, builds a wheel, and installs it into your active Python environment.
+**What this does**: installs the `deliberator` Python package and its dependencies directly from GitHub. No PyPI account needed, no separate sdist download. Pip fetches the current `main` branch, builds a wheel, and installs it into your active Python environment.
 
-**What you get**: a `conversus` binary on your PATH, the engine code as an importable Python module, and all 8 game theory modes wired up.
+**What you get**: a `deliberator` binary on your PATH, the engine code as an importable Python module, and all 8 game theory modes wired up.
 
 Verify the install:
 
 ```bash
-conversus --version
+deliberator --version
 ```
 
 ## Step 2: Grant permissions
 
 ```bash
-conversus init
+deliberator init
 ```
 
-**What this does**: writes a runtime settings file in your project so conversus can dispatch sub-agents **without** stopping for interactive permission prompts.
+**What this does**: writes a runtime settings file in your project so deliberator can dispatch sub-agents **without** stopping for interactive permission prompts.
 
-By default it writes `.claude/settings.json` (for Claude Code) with grants for the tools conversus needs:
+By default it writes `.claude/settings.json` (for Claude Code) with grants for the tools deliberator needs:
 
 - **`Agent`** — dispatch parallel sub-agents (one per deliberation phase × role)
 - **`Read`** — read the target document being deliberated on
-- **`Write`** — write per-agent outputs to the `conversus-output/` directory
-- **`Bash`** — invoke the `conversus` CLI from within dispatched agents
+- **`Write`** — write per-agent outputs to the `deliberator-output/` directory
+- **`Bash`** — invoke the `deliberator` CLI from within dispatched agents
 
 **Why you need it**: a `decide` run dispatches 5-10 sub-agents. A full 4-agent deliberation in mechanism-design mode dispatches 29. Without `init`, every single dispatch stops and waits for you to click Approve. `init` grants those permissions once so the pipeline runs unattended.
 
-**Other runtimes**: `conversus init --runtime opencode` (or `copilot`, `gemini`, `codex`, `aider`) writes the equivalent settings file for that runtime instead. Each runtime has its own permission format.
+**Other runtimes**: `deliberator init --runtime opencode` (or `copilot`, `gemini`, `codex`, `aider`) writes the equivalent settings file for that runtime instead. Each runtime has its own permission format.
 
 ## Step 3: Ask a real question
 
 ```bash
-conversus decide "Should we write unit tests or integration tests first for a new service?" --provider claude-code
+deliberator decide "Should we write unit tests or integration tests first for a new service?" --provider claude-code
 ```
 
-**What this does**: runs an ad-hoc deliberation on a natural-language question, bypassing the config file. Under the hood, `decide` generates a temporary `conversus.yml` using two preset agents (pragmatist + devil's advocate), runs the full 5-phase pipeline, and prints structured results.
+**What this does**: runs an ad-hoc deliberation on a natural-language question, bypassing the config file. Under the hood, `decide` generates a temporary `deliberator.yml` using two preset agents (pragmatist + devil's advocate), runs the full 5-phase pipeline, and prints structured results.
 
 **The flags**:
 
@@ -53,7 +53,7 @@ conversus decide "Should we write unit tests or integration tests first for a ne
 **No credentials or free preview?** Use `--provider mock` to see the full pipeline with synthetic agent responses — perfect for learning the mechanics before spending anything:
 
 ```bash
-conversus decide "Should we write unit tests or integration tests first?" --provider mock
+deliberator decide "Should we write unit tests or integration tests first?" --provider mock
 ```
 
 ## What you'll see
@@ -128,7 +128,7 @@ This is the file you read. But the rest of the tree is preserved so you can audi
 
 ```text
 your-project/
-└── conversus-output/
+└── deliberator-output/
     └── 2026-04-10_142103/
         ├── pragmatist/
         │   ├── review.md
@@ -147,7 +147,7 @@ Open `summary/final.md` in your editor. That's the synthesized answer, grounded 
 
 Ask ChatGPT "Should I write unit tests or integration tests first?" and you get one answer from one perspective, confidently stated.
 
-Conversus gives you:
+Deliberator gives you:
 
 1. **Two initial positions** written in isolation (no groupthink)
 2. **Cross-reviews** where each agent has to defend against the other's critique
@@ -155,13 +155,13 @@ Conversus gives you:
 4. **Formal disputes** — what remains unresolved is explicit, not buried
 5. **A synthesis** that accounts for the adversarial record
 
-The important part is the **cross-review phase**. Single-LLM answers sound confident because they're never challenged. Conversus makes the LLM challenge itself — and the weak arguments get exposed.
+The important part is the **cross-review phase**. Single-LLM answers sound confident because they're never challenged. Deliberator makes the LLM challenge itself — and the weak arguments get exposed.
 
 ## A real example
 
-The decisions behind conversus itself were made by running conversus. See the [packaging strategy deliberation](https://github.com/Build-Fractal/conversus-oss/tree/main/deliberations/packaging-strategy): 4 agents (APM maximizer, non-technical user advocate, technical power user, fact-based arbiter), 29 LLM launches, mechanism-design mode. It produced the three-layer PyPI + MCP + Claude Code plugin architecture.
+The decisions behind deliberator itself were made by running deliberator. See the [packaging strategy deliberation](https://github.com/Build-Fractal/deliberator/tree/main/deliberations/packaging-strategy): 4 agents (APM maximizer, non-technical user advocate, technical power user, fact-based arbiter), 29 LLM launches, mechanism-design mode. It produced the three-layer PyPI + MCP + Claude Code plugin architecture.
 
-Browse the per-agent reviews, the cross-reviews, and the final synthesis. That's what a full conversus run looks like.
+Browse the per-agent reviews, the cross-reviews, and the final synthesis. That's what a full deliberator run looks like.
 
 ## Next steps
 
@@ -170,7 +170,7 @@ You've run a quick `decide`. The next step is custom deliberations with your own
 Two paths:
 
 !!! tip "Guided path — recommended"
-    Install the [Claude Code plugin](mcp-setup.md) and run `/conversus design`. It walks you through building a `conversus.yml` interactively — question, mode, agents, target — and writes the file for you. Zero YAML knowledge required.
+    Install the [Claude Code plugin](mcp-setup.md) and run `/deliberator design`. It walks you through building a `deliberator.yml` interactively — question, mode, agents, target — and writes the file for you. Zero YAML knowledge required.
 
 **Manual path** — read [Building a Config](building-a-config.md) for the 6-step walkthrough. You'll write the YAML yourself but learn every field and option along the way.
 
@@ -179,5 +179,5 @@ Two paths:
 - **[Modes](modes.md)** — deep dive on all 8 deliberation modes (cooperative, winner-take-all, red-blue, prisoner's dilemma, negotiation, resource-allocation, fair-division, mechanism-design)
 - **[Config reference](config-reference.md)** — full YAML schema reference
 - **[CLI reference](cli.md)** — every command and flag
-- **[MCP setup](mcp-setup.md)** — use conversus directly from Claude Code, Cursor, or Windsurf without leaving your editor
-- **[Specs & Deliberations](../developer-guide/specs-and-deliberations.md)** — real case studies of conversus in action
+- **[MCP setup](mcp-setup.md)** — use deliberator directly from Claude Code, Cursor, or Windsurf without leaving your editor
+- **[Specs & Deliberations](../developer-guide/specs-and-deliberations.md)** — real case studies of deliberator in action

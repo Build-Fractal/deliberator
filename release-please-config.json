@@ -21,7 +21,7 @@
   ],
   "packages": {
     ".": {
-      "package-name": "conversus",
+      "package-name": "deliberator",
       "extra-files": [
         "engine/__init__.py",
         {

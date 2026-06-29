@@ -5,15 +5,15 @@
 # disagreements but the synthesis emphasizes integration.
 #
 # Run:
-#   conversus run examples/doc-review-cooperative.yml --provider mock
-#   conversus run examples/doc-review-cooperative.yml --provider anthropic
+#   deliberator run examples/doc-review-cooperative.yml --provider mock
+#   deliberator run examples/doc-review-cooperative.yml --provider anthropic
 #
 # Cost (mock): ~13 LLM launches (free, synthetic).
 # Cost (anthropic, default model): ~13 paid Sonnet calls.
 
 subject: "README clarity review"
 question: |
-  Is the conversus README clear enough for a first-time visitor to
+  Is the deliberator README clear enough for a first-time visitor to
   install, run their first deliberation, and understand the value
   proposition within 60 seconds?
 

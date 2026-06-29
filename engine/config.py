@@ -1,4 +1,4 @@
-"""Config parser for the conversus engine.
+"""Config parser for the deliberator engine.
 
 Handles all SKILL.md Step 1 logic: YAML parsing, preset resolution
 (single, composed up to 3, with composition templates), target/prior file
@@ -16,7 +16,7 @@ from typing import Any, Literal
 import yaml
 from pydantic import BaseModel
 
-from conversus.schemas.modes import VALID_MODES as _CANONICAL_MODES
+from deliberator.schemas.modes import VALID_MODES as _CANONICAL_MODES
 
 
 # ---------------------------------------------------------------------------
@@ -24,7 +24,7 @@ from conversus.schemas.modes import VALID_MODES as _CANONICAL_MODES
 # ---------------------------------------------------------------------------
 
 class ConfigError(Exception):
-    """Raised when a conversus config fails validation."""
+    """Raised when a deliberator config fails validation."""
 
     pass
 
@@ -106,7 +106,7 @@ class EngineConfig(BaseModel):
     validate_templates: bool = True
     provider: str = "anthropic"
     plugins: list[dict] = []
-    """Plugin configurations from conversus.yml ``plugins:`` key.
+    """Plugin configurations from deliberator.yml ``plugins:`` key.
     Each dict has ``name``, optional ``package``, and optional ``config``."""
 
 
@@ -158,26 +158,26 @@ explicitly rather than silently resolving it."""
 # Internal helpers
 # ---------------------------------------------------------------------------
 
-def _find_conversus_root() -> Path:
-    """Locate the conversus package root (directory containing schema/ and templates/).
+def _find_deliberator_root() -> Path:
+    """Locate the deliberator package root (directory containing schema/ and templates/).
 
     Resolution order:
     1. Parent of *this file* (engine/ lives alongside schema/ and templates/).
-    2. ``importlib.resources`` via ``conversus.paths`` (works when pip-installed).
+    2. ``importlib.resources`` via ``deliberator.paths`` (works when pip-installed).
     3. Current working directory.
 
     Raises:
         ConfigError: If the root cannot be located.
     """
-    # Strategy 1: engine/ is a direct child of the conversus root (dev)
+    # Strategy 1: engine/ is a direct child of the deliberator root (dev)
     candidate = Path(__file__).resolve().parent.parent
     if (candidate / "schema").is_dir() and (candidate / "templates").is_dir():
         return candidate
 
     # Strategy 2: importlib.resources (works when pip-installed)
     try:
-        from conversus.paths import get_presets_dir
-        # The presets dir's parent is the conversus package root in the wheel,
+        from deliberator.paths import get_presets_dir
+        # The presets dir's parent is the deliberator package root in the wheel,
         # which also contains templates/ and schema/ via force-include.
         presets = get_presets_dir()
         pkg_root = presets.parent
@@ -192,8 +192,8 @@ def _find_conversus_root() -> Path:
         return cwd
 
     raise ConfigError(
-        "Cannot locate conversus root (schema/ + templates/). "
-        "Run from the conversus directory or ensure engine/ is inside it."
+        "Cannot locate deliberator root (schema/ + templates/). "
+        "Run from the deliberator directory or ensure engine/ is inside it."
     )
 
 
@@ -575,14 +575,14 @@ def _resolve_arbiter(
 # ---------------------------------------------------------------------------
 
 def parse_config(config_path: Path) -> EngineConfig:
-    """Parse and validate a conversus YAML config file.
+    """Parse and validate a deliberator YAML config file.
 
     Performs all SKILL.md Step 1 validation: YAML parsing, preset resolution,
     target/prior file resolution, agent name validation, mode validation,
     arbiter validation, rounds/stagnation validation.
 
     Args:
-        config_path: Path to the ``conversus.yml`` file.
+        config_path: Path to the ``deliberator.yml`` file.
 
     Returns:
         A fully validated ``EngineConfig`` model.
@@ -607,9 +607,9 @@ def parse_config(config_path: Path) -> EngineConfig:
     # Base path for resolving relative paths in the config
     base_path = config_path.parent
 
-    # Locate conversus package root for presets
-    conversus_root = _find_conversus_root()
-    presets_root = conversus_root / "presets"
+    # Locate deliberator package root for presets
+    deliberator_root = _find_deliberator_root()
+    presets_root = deliberator_root / "presets"
 
     # --- Mode validation ---
     mode = raw.get("mode")

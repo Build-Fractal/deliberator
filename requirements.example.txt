@@ -1,10 +1,10 @@
-# External CLI agents for conversus execution providers
+# External CLI agents for deliberator execution providers
 #
 # These are NOT Python dependencies — they are standalone CLI tools that
-# conversus orchestrates via SubprocessProvider. Install whichever ones
+# deliberator orchestrates via SubprocessProvider. Install whichever ones
 # you want to use as execution providers.
 #
-# None of these are required. conversus works with --provider mock out of
+# None of these are required. deliberator works with --provider mock out of
 # the box, and --provider anthropic only needs ANTHROPIC_API_KEY set.
 #
 # The SubprocessProvider base handles missing binaries gracefully:

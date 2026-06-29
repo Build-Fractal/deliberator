@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Conversus installer — installs the conversus CLI globally.
+# Deliberator installer — installs the deliberator CLI globally.
 #
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/Build-Fractal/conversus/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/Build-Fractal/deliberator/main/install.sh | bash
 #
 # Or with options:
 #   curl -fsSL ... | bash -s -- --method pipx
@@ -17,8 +17,8 @@ set -euo pipefail
 # Defaults
 # ---------------------------------------------------------------------------
 
-REPO="Build-Fractal/conversus"
-PACKAGE="conversus"
+REPO="Build-Fractal/deliberator"
+PACKAGE="deliberator"
 MIN_PYTHON_VERSION="3.12"
 METHOD=""          # auto-detect if empty
 EXTRAS=""          # optional extras: "all", "nashopt", "solvers"
@@ -173,17 +173,17 @@ esac
 # ---------------------------------------------------------------------------
 
 echo ""
-if command -v conversus &>/dev/null; then
-    ok "conversus installed successfully!"
+if command -v deliberator &>/dev/null; then
+    ok "deliberator installed successfully!"
     echo ""
-    conversus --help | head -5
+    deliberator --help | head -5
     echo ""
     info "Get started:"
-    echo "  conversus init                          # set up a project"
-    echo "  conversus decide \"question\" --provider anthropic  # quick deliberation"
-    echo "  conversus run config.yml --provider claude-code    # full pipeline"
+    echo "  deliberator init                          # set up a project"
+    echo "  deliberator decide \"question\" --provider anthropic  # quick deliberation"
+    echo "  deliberator run config.yml --provider claude-code    # full pipeline"
 else
-    warn "conversus was installed but is not in PATH."
+    warn "deliberator was installed but is not in PATH."
     echo "  If using pipx, run: pipx ensurepath"
     echo "  If using pip, ensure ~/.local/bin is in PATH"
 fi

@@ -67,7 +67,7 @@ For each disputed valuation:
   - **Resolution mechanism**: Party convergence | Arbiter ruling | Unresolved
   - **Final status**: Resolved | Provisionally resolved | Unresolved
 
-<!-- CONVERSUS:DISPUTES_BEGIN -->
+<!-- DELIBERATOR:DISPUTES_BEGIN -->
 ### Disputed Valuations
 
 Valuations that survived the full multi-round process:
@@ -78,7 +78,7 @@ Valuations that survived the full multi-round process:
   - **Cross-round evolution**: How valuations shifted.
   - **Divider assessment**: Which valuation the evidence supports.
   - **Recommended resolution**: Use Party A's valuation / Party B's / Average / External benchmark.
-<!-- CONVERSUS:DISPUTES_END -->
+<!-- DELIBERATOR:DISPUTES_END -->
 
 ### Termination Assessment
 

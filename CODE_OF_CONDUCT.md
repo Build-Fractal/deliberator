@@ -4,11 +4,11 @@ This project adopts the [Contributor Covenant, version 2.1](https://www.contribu
 
 ## Scope
 
-The Code of Conduct applies in all conversus project spaces:
+The Code of Conduct applies in all deliberator project spaces:
 
 - Issues, pull requests, and discussions on GitHub repositories under the [Build-Fractal](https://github.com/Build-Fractal) organization
 - Project chat channels (Discord / Slack — when established)
-- Any in-person or virtual events organized in connection with conversus
+- Any in-person or virtual events organized in connection with deliberator
 - Any space where an individual is representing the project
 
 ## Reporting

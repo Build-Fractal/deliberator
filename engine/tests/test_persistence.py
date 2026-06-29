@@ -97,7 +97,7 @@ def test_persist_creates_deliberation_directory(fake_output, project_root):
     )
     assert result.exists()
     assert result.is_dir()
-    assert ".conversus/deliberations/" in str(result)
+    assert ".deliberator/deliberations/" in str(result)
 
 
 def test_persist_copies_output_tree(fake_output, project_root):
@@ -124,7 +124,7 @@ def test_persist_creates_question_md(fake_output, project_root):
 
 
 def test_persist_copies_config_when_provided(fake_output, project_root):
-    config = project_root / "conversus.yml"
+    config = project_root / "deliberator.yml"
     config.write_text("mode: cooperative\nagents: []")
 
     result = persist_deliberation(
@@ -133,19 +133,19 @@ def test_persist_copies_config_when_provided(fake_output, project_root):
         question="Test",
         config_path=config,
     )
-    assert (result / "conversus.yml").exists()
-    assert "cooperative" in (result / "conversus.yml").read_text()
+    assert (result / "deliberator.yml").exists()
+    assert "cooperative" in (result / "deliberator.yml").read_text()
 
 
 def test_persist_creates_deliberations_dir_lazily(fake_output, project_root):
-    """The .conversus/deliberations/ directory is created on first persist."""
-    assert not (project_root / ".conversus").exists()
+    """The .deliberator/deliberations/ directory is created on first persist."""
+    assert not (project_root / ".deliberator").exists()
     persist_deliberation(
         source_dir=fake_output,
         project_root=project_root,
         question="Test",
     )
-    assert (project_root / ".conversus" / "deliberations").exists()
+    assert (project_root / ".deliberator" / "deliberations").exists()
 
 
 # ---------------------------------------------------------------------------
@@ -276,8 +276,8 @@ def test_read_raises_for_missing_file(fake_output, project_root):
 # round-trip test below exercises the full user workflow in one chain:
 #
 #   1. Run deliberation → persist_deliberation
-#   2. `conversus list` → list_deliberations finds the persisted run
-#   3. `conversus show <id>` → read_deliberation_file resolves the id
+#   2. `deliberator list` → list_deliberations finds the persisted run
+#   3. `deliberator show <id>` → read_deliberation_file resolves the id
 #      from list and returns the synthesis content
 #
 # This is the integration boundary spec 061 step 14 calls out under

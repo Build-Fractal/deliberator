@@ -26,15 +26,15 @@ jobs:
       matrix:
         include:
           - runner: macos-latest
-            bundle_name: conversus-darwin-arm64.mcpb
+            bundle_name: deliberator-darwin-arm64.mcpb
             platform: darwin
             arch: arm64
           - runner: ubuntu-latest
-            bundle_name: conversus-linux-x86_64.mcpb
+            bundle_name: deliberator-linux-x86_64.mcpb
             platform: linux
             arch: x86_64
           - runner: windows-latest
-            bundle_name: conversus-win-x86_64.mcpb
+            bundle_name: deliberator-win-x86_64.mcpb
             platform: win32
             arch: x86_64
 
@@ -47,7 +47,7 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install conversus + dependencies into bundle
+      - name: Install deliberator + dependencies into bundle
         shell: bash
         run: |
           python -m pip install --upgrade pip
@@ -87,11 +87,11 @@ jobs:
           from pathlib import Path
 
           # Repo root is the working dir at this CI step. Add it so we can
-          # import capabilities + conversus.registry.projector directly.
+          # import capabilities + deliberator.registry.projector directly.
           sys.path.insert(0, str(Path(".").resolve()))
 
           from capabilities import CAPABILITIES
-          from conversus.registry.projector import project_to_mcpb_manifest_tools
+          from deliberator.registry.projector import project_to_mcpb_manifest_tools
 
           pyproject = tomllib.loads(Path("pyproject.toml").read_text())
           version = pyproject["project"]["version"]
@@ -168,14 +168,14 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
-          name: Conversus ${{ steps.tag.outputs.tag }}
+          name: Deliberator ${{ steps.tag.outputs.tag }}
           draft: false
           prerelease: ${{ contains(steps.tag.outputs.tag, '-') }}
           generate_release_notes: true
           files: |
-            conversus-darwin-arm64.mcpb
-            conversus-linux-x86_64.mcpb
-            conversus-win-x86_64.mcpb
+            deliberator-darwin-arm64.mcpb
+            deliberator-linux-x86_64.mcpb
+            deliberator-win-x86_64.mcpb
           body: |
             ## Desktop Extensions
 
@@ -183,20 +183,20 @@ jobs:
 
             | Platform | File |
             |---|---|
-            | macOS (Apple Silicon) | `conversus-darwin-arm64.mcpb` |
-            | Linux (x86_64) | `conversus-linux-x86_64.mcpb` |
-            | Windows (x86_64) | `conversus-win-x86_64.mcpb` |
+            | macOS (Apple Silicon) | `deliberator-darwin-arm64.mcpb` |
+            | Linux (x86_64) | `deliberator-linux-x86_64.mcpb` |
+            | Windows (x86_64) | `deliberator-win-x86_64.mcpb` |
 
-            **Intel Mac users**: install via `pip install git+https://github.com/Build-Fractal/conversus-oss.git` — GitHub has deprecated free Intel Mac CI runners. Let us know if you need a signed Intel Mac build.
+            **Intel Mac users**: install via `pip install git+https://github.com/Build-Fractal/deliberator.git` — GitHub has deprecated free Intel Mac CI runners. Let us know if you need a signed Intel Mac build.
 
             ## Install
 
             1. Download the bundle for your OS
             2. Double-click the file, or drag it into Claude Desktop → Settings → Extensions → Install from file
-            3. The `conversus_validate`, `conversus_run`, and `conversus_decide` tools appear in Claude Desktop
+            3. The `deliberator_validate`, `deliberator_run`, and `deliberator_decide` tools appear in Claude Desktop
 
             ## Other install methods
 
-            - **Python CLI**: `pip install git+https://github.com/Build-Fractal/conversus-oss.git`
-            - **Claude Code plugin**: `/plugin install https://github.com/Build-Fractal/conversus-oss`
-            - **MCP server** (any MCP-compatible editor): `claude mcp add conversus -- conversus mcp`
+            - **Python CLI**: `pip install git+https://github.com/Build-Fractal/deliberator.git`
+            - **Claude Code plugin**: `/plugin install https://github.com/Build-Fractal/deliberator`
+            - **MCP server** (any MCP-compatible editor): `claude mcp add deliberator -- deliberator mcp`

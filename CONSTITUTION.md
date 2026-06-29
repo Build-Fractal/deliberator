@@ -8,7 +8,7 @@ Modified sections:
   - "Core Principles" reduced to 6 principles (XVII-XXI, XXVI) plus
     retired markers for VI and X. Cross-reference block added at top
     pointing readers to https://github.com/Build-Fractal/build-fractal-mono/blob/main/CONSTITUTION.md (Tier 1) and
-    https://github.com/Build-Fractal/build-fractal-mono/blob/main/conversus/CONSTITUTION.md (Tier 2) for relocated
+    https://github.com/Build-Fractal/build-fractal-mono/blob/main/deliberator/CONSTITUTION.md (Tier 2) for relocated
     principles.
   - "Governance" preserved verbatim. Pathway Taxonomy, Constitutional
     Inclusion Criteria, Compliance, Amendment Process all retained
@@ -27,7 +27,7 @@ Relocated to Tier 1 (https://github.com/Build-Fractal/build-fractal-mono/blob/ma
   XIV. Spec-Implementation Parity
   XXVIII. Test-Fix Boundary Preservation
 
-Relocated to Tier 2 (https://github.com/Build-Fractal/build-fractal-mono/blob/main/conversus/CONSTITUTION.md, v1.0.0):
+Relocated to Tier 2 (https://github.com/Build-Fractal/build-fractal-mono/blob/main/deliberator/CONSTITUTION.md, v1.0.0):
   V. Observable Deliberation
   XII. No Dead Infrastructure
   XIII. Enum Completeness
@@ -58,9 +58,9 @@ preservation contract (spec §5) the principle bodies are byte-equal at
 their new locations.
 
 Suite admissions ratified at v4.0.0:
-  - conversus-oss admitted Provisional (5 open remediations: V, XII,
+  - deliberator admitted Provisional (5 open remediations: V, XII,
     XXII, XXIV, XXVI) per CONFORMANCE.md.
-  - conversus admitted Provisional (4 open remediations: III, XIV,
+  - deliberator admitted Provisional (4 open remediations: III, XIV,
     XVI, XXII) per CONFORMANCE.md.
 
 Constitutional debt acknowledgment (per Fix B2):
@@ -80,7 +80,7 @@ Cross-tier weakening prohibition (per Fix B3):
   not-Satisfied; (iii) suite-specific adaptation bypassing a MUST.
   Enforcement: meta-arbiter review + tier-coherence linter
   flagged-words check + existing-implementation impact check on
-  every cross-tier amendment. https://github.com/Build-Fractal/build-fractal-mono/blob/main/conversus/CONSTITUTION.md
+  every cross-tier amendment. https://github.com/Build-Fractal/build-fractal-mono/blob/main/deliberator/CONSTITUTION.md
   § Cross-tier weakening prohibition documents the full operational
   definition.
 
@@ -97,12 +97,12 @@ Verification deliberations (both required per spec 067):
     Verdict: PASS WITH FIXES — 5 fixes B1-B5 applied in spec v3.
 
 Spec: specs/v4.0.0-tier-extraction/spec.md (v3 — both verifications passed).
-Governance log: https://github.com/Build-Fractal/build-fractal-mono/blob/main/conversus/CONSTITUTIONAL_CONVERSATIONS.md
+Governance log: https://github.com/Build-Fractal/build-fractal-mono/blob/main/deliberator/CONSTITUTIONAL_CONVERSATIONS.md
                 CONSTITUTIONAL_CONVERSATIONS.md (this repo)
 
 Engine note: arbitration phase auto-arbitrator crashed on both
 verification deliberations at dispatch (1ms / 2ms; bug logged in
-project_conversus_arbitration_crash_2026_05_06 memory). Manual
+project_deliberator_arbitration_crash_2026_05_06 memory). Manual
 arbitrations performed grounded in synthesis + disputes per spec 067
 balanced-arbiter standard. Both manual arbitrations recorded in their
 respective resolution.md files. Engine fix tracked separately.
@@ -115,15 +115,15 @@ Prior amendment SIRs preserved below for audit trail (per Fix #3 + Fix B2).
 
 
 
-# Conversus OSS Constitution (Component Tier)
+# Deliberator OSS Constitution (Component Tier)
 
 **Status:** RATIFIED — v4.2.0 (2026-05-13).
 **Version:** 4.2.0
 **Inherits from:**
 - `https://github.com/Build-Fractal/build-fractal-mono/blob/main/CONSTITUTION.md` (Tier 1 — Universal, v1.0.0)
-- `https://github.com/Build-Fractal/build-fractal-mono/blob/main/conversus/CONSTITUTION.md` (Tier 2 — Suite, v1.0.0)
+- `https://github.com/Build-Fractal/build-fractal-mono/blob/main/deliberator/CONSTITUTION.md` (Tier 2 — Suite, v1.0.0)
 
-For Universal and Suite principles, see those documents. This document holds the **7 component-tier principles** specific to the conversus-oss repo, plus the canonical Governance section (which governs amendments at all tiers), plus retired-principle markers, plus the full audit trail of prior Sync Impact Reports.
+For Universal and Suite principles, see those documents. This document holds the **7 component-tier principles** specific to the deliberator repo, plus the canonical Governance section (which governs amendments at all tiers), plus retired-principle markers, plus the full audit trail of prior Sync Impact Reports.
 
 ---
 
@@ -190,7 +190,7 @@ only what the current invocation requires.
 
 - Load triggers are either **dispatch-routed** (subcommand match from
   the dispatch table) or **config-conditional** (field presence in
-  `conversus.yml`, e.g., "if `arbiter:` is present, read
+  `deliberator.yml`, e.g., "if `arbiter:` is present, read
   `references/subsystem-arbitration.md`").
 - Generic triggers like "see references/" are prohibited — they defeat
   the context-reduction purpose of extraction by making the agent guess
@@ -201,7 +201,7 @@ only what the current invocation requires.
   but the load trigger chain MUST be acyclic and documented.
 - The root SKILL.md SHOULD stay under 500 lines / ~5,000 tokens.
   Per-invocation total (root + loaded references) is permitted to
-  reach 8-12k tokens for complex paths (e.g., `/conversus run` with
+  reach 8-12k tokens for complex paths (e.g., `/deliberator run` with
   multi-round + arbiter). This is a documented exception to the
   agentskills.io 5,000-token recommendation, not a compliance failure.
 
@@ -335,14 +335,14 @@ to all parametrized capability sets.*
 
 ### XXIX. Structured Deliberation Outputs
 
-Conversus-oss deliberation outputs (review, cross-review, revision, disputes, synthesis, arbitration) MUST be emitted as declared, schema-validated JSON envelopes per the canonical schemas in `engine/schema/v1/*.schema.json`. The Component-tier implementation of Tier 2 Principle XXVIII (Persistence Contract Discipline) for conversus-oss is specified by spec `v4.2.0-structured-deliberation-outputs` (RATIFIED 2026-05-13).
+Deliberator-oss deliberation outputs (review, cross-review, revision, disputes, synthesis, arbitration) MUST be emitted as declared, schema-validated JSON envelopes per the canonical schemas in `engine/schema/v1/*.schema.json`. The Component-tier implementation of Tier 2 Principle XXVIII (Persistence Contract Discipline) for deliberator is specified by spec `v4.2.0-structured-deliberation-outputs` (RATIFIED 2026-05-13).
 
 - **Schema location MUST be discoverable** via `CONFORMANCE.md` (one canonical path) with cross-references from `README.md` AND `CLAUDE.md`. This implements XXVIII sub-clause 1.
 - **A non-blocking validator MUST emit conformance warnings** to an event stream and a sidecar `.validation-warnings.json` adjacent to each persisted output. The validator MUST NOT raise or abort — per Tier 2 Principle V, malformed output is better than no output. The persistence layer writes the output file UNCONDITIONALLY before any validator invocation. This implements XXVIII sub-clause 2 while preserving Principle V.
 - **A PR-required CI gate** (`validate-conformance` + `drift-detection-bidirectional` + `schema-version-bump-detection` + `fixture-and-renderer-tests` jobs) MUST block merge of non-conformant changes on `main`. Constitutional authority: Tier 1 Principle II (Stable Interfaces) + Tier 2 Principle XXVIII sub-clause 2.
 - **Four fixture types per output type** MUST be carried: conformant, missing-required, wrong-type, baseline. This implements XXVIII C6 with one additional type beyond the three-type minimum.
 - **Schema versioning** follows SemVer with the consumer-impact rule: a field rename or removal that breaks any declared consumer is MAJOR; a backward-compatible addition is MINOR; pure validator-error-format adjustment is PATCH. Initial schema version is `1.0.0-rc.1`; promotion to `1.0.0` requires 30 days of clean operation per the qualification criteria in spec § 4.8.
-- **A `CONSUMER-CONTRACT.md` at the repo root** MUST declare each consumed surface using the six-section template (Consumed Surface Declaration / Schema Version Pinning / Stability Guarantee / Consumer-Side Obligations / Producer-Side Enforcement / Change Coordination) per spec § 7.1. The conversus-oss CONSUMER-CONTRACT.md MUST declare deliberation-output schemas as a stable consumed surface for downstream consumers (orchestrator spec-kit adapter, conversus-enhanced).
+- **A `CONSUMER-CONTRACT.md` at the repo root** MUST declare each consumed surface using the six-section template (Consumed Surface Declaration / Schema Version Pinning / Stability Guarantee / Consumer-Side Obligations / Producer-Side Enforcement / Change Coordination) per spec § 7.1. The deliberator CONSUMER-CONTRACT.md MUST declare deliberation-output schemas as a stable consumed surface for downstream consumers (orchestrator spec-kit adapter, deliberator-enhanced).
 
 **Cliff date:** Markdown deliberation outputs are deprecated effective **2026-12-01** (Tier 2 Principle XXVIII universal deadline). All six mode templates MUST emit JSON envelopes by the cliff date; the orchestrator spec-kit adapter MUST migrate from grep-parsing to JSON parsing during the rollout window (T1-T4 per spec § 11).
 
@@ -599,7 +599,7 @@ justifies the deviation.
   **Note on the RFC/CVE analogy**: the RFC/CVE reference in the
   Principle Number Stability subsection above supports identifier
   stability — the no-reuse rule for principle numbers. RFC and CVE
-  processes use single amendment pathways; the conversus
+  processes use single amendment pathways; the deliberator
   multi-pathway taxonomy is a departure from that model, not an
   extension of it. The analogy cannot be cited as authority for
   adding new pathway rows to this taxonomy. Adding a fifth, sixth,

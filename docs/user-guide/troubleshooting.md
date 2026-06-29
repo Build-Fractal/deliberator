@@ -1,6 +1,6 @@
 # Troubleshooting & FAQ
 
-When something goes wrong with conversus, the failure usually falls into one of the buckets below. Each entry follows the "If you see X, do Y" pattern.
+When something goes wrong with deliberator, the failure usually falls into one of the buckets below. Each entry follows the "If you see X, do Y" pattern.
 
 ## Auth & providers
 
@@ -15,10 +15,10 @@ Fix one of these:
 export ANTHROPIC_API_KEY=sk-ant-...
 
 # Option B: OAuth via your Claude.ai account
-conversus login anthropic
+deliberator login anthropic
 ```
 
-Verify with `conversus status`.
+Verify with `deliberator status`.
 
 ### `ProviderError: No credentials available for 'openai'`
 
@@ -27,7 +27,7 @@ Same pattern as Anthropic:
 ```bash
 export OPENAI_API_KEY=sk-...
 # or
-conversus login openai
+deliberator login openai
 ```
 
 ### `OAuth token expired`
@@ -35,20 +35,20 @@ conversus login openai
 Stored OAuth tokens have a finite lifetime. Re-login:
 
 ```bash
-conversus logout anthropic && conversus login anthropic
+deliberator logout anthropic && deliberator login anthropic
 ```
 
-If `conversus status` shows "expired" even after a fresh login, your system clock may be wrong — OAuth validation checks `exp` against the local time.
+If `deliberator status` shows "expired" even after a fresh login, your system clock may be wrong — OAuth validation checks `exp` against the local time.
 
 ### `Invalid value for '--provider': 'X' is not one of …`
 
-You passed a provider name the CLI doesn't recognize. Run `conversus decide --help` to see the full accepted list. The CLI supports all 13 registered execution providers plus `demo` (an alias for `mock`) plus `openai` (OAuth/API-key).
+You passed a provider name the CLI doesn't recognize. Run `deliberator decide --help` to see the full accepted list. The CLI supports all 13 registered execution providers plus `demo` (an alias for `mock`) plus `openai` (OAuth/API-key).
 
-If you specifically need a provider that doesn't appear (rare), check that your conversus install is current — providers are added periodically.
+If you specifically need a provider that doesn't appear (rare), check that your deliberator install is current — providers are added periodically.
 
-### `Provider not configured` from `conversus status` even though I set the env var
+### `Provider not configured` from `deliberator status` even though I set the env var
 
-`conversus status` shows what's configured *for OAuth-style providers* (anthropic, openai). It doesn't probe arbitrary env vars. As long as `$ANTHROPIC_API_KEY` or `$OPENAI_API_KEY` is set in the shell where you run `conversus`, the provider will resolve at run time even if `status` says "not configured."
+`deliberator status` shows what's configured *for OAuth-style providers* (anthropic, openai). It doesn't probe arbitrary env vars. As long as `$ANTHROPIC_API_KEY` or `$OPENAI_API_KEY` is set in the shell where you run `deliberator`, the provider will resolve at run time even if `status` says "not configured."
 
 ### `ollama` provider fails with connection refused
 
@@ -99,7 +99,7 @@ Each deliberation issues a burst of parallel agent calls (one per agent per phas
 
 1. Switch to `--provider claude-code` (uses your Claude.ai subscription, not API tokens)
 2. Reduce agent count from 3 → 2 (the cost-per-agent scales as N + N(N-1) + N + N + 1 — see CLI Reference cost-estimate output)
-3. Run mock-first to validate the config: `conversus run config.yml --provider mock`
+3. Run mock-first to validate the config: `deliberator run config.yml --provider mock`
 4. Add a small `iterations` cap if your config sets it higher than 1
 
 ### How do I know what a deliberation will cost?
@@ -107,7 +107,7 @@ Each deliberation issues a burst of parallel agent calls (one per agent per phas
 Before any LLM call:
 
 ```bash
-conversus validate config.yml
+deliberator validate config.yml
 ```
 
 The cost-estimate breakdown shows total launches and per-phase counts. Multiply by your provider's per-call price; the LLM model determines the price point.
@@ -120,28 +120,28 @@ If a dispatch is hung waiting on a network call, `Ctrl-C` may take a few seconds
 
 ## MCP & editor integration
 
-### `conversus mcp` exits immediately
+### `deliberator mcp` exits immediately
 
 The MCP server uses stdio transport — it doesn't run unless something connects. To test it works at all:
 
 ```bash
-conversus mcp --help  # exits 0 if the entry point is wired correctly
+deliberator mcp --help  # exits 0 if the entry point is wired correctly
 ```
 
 To actually use it, register it with your editor:
 
 ```bash
-claude mcp add conversus -- conversus mcp     # Claude Code
+claude mcp add deliberator -- deliberator mcp     # Claude Code
 ```
 
 For Cursor / Windsurf / other MCP clients, see [MCP Setup](mcp-setup.md).
 
 ### Claude Code says "MCP server not found"
 
-The CLI entry point isn't on PATH. Either install conversus with pip (so `conversus` becomes available globally) or wire the full path into the MCP registration:
+The CLI entry point isn't on PATH. Either install deliberator with pip (so `deliberator` becomes available globally) or wire the full path into the MCP registration:
 
 ```bash
-claude mcp add conversus -- /full/path/to/conversus mcp
+claude mcp add deliberator -- /full/path/to/deliberator mcp
 ```
 
 ### Tools missing from Claude Desktop after `.mcpb` install
@@ -152,7 +152,7 @@ Restart Claude Desktop. Extensions load at startup; a freshly-installed `.mcpb` 
 
 ### Where do deliberation outputs go?
 
-`conversus init` creates `.conversus/deliberations/` for project-scoped runs. `conversus decide` writes to a temp directory unless you pass `--output ./somewhere/`. `conversus run` writes to the path in the config's `output:` field (see path-resolution note above).
+`deliberator init` creates `.deliberator/deliberations/` for project-scoped runs. `deliberator decide` writes to a temp directory unless you pass `--output ./somewhere/`. `deliberator run` writes to the path in the config's `output:` field (see path-resolution note above).
 
 ### How do I read the output?
 
@@ -184,12 +184,12 @@ Two common causes:
 
 Usually a sign the provider returned a refusal or hit a content filter. Check the per-agent file for the actual model output — refusals often look like polished but content-free prose.
 
-### `conversus decide` always returns the same verdict
+### `deliberator decide` always returns the same verdict
 
-`decide` uses fixed pragmatist + devil's-advocate presets and a synthesizer. For the same question + same mode + same provider, you'll get **deterministic-ish** output (LLMs aren't fully deterministic but they're close at temperature 0). To get genuinely different results, change agents or mode — use `conversus run config.yml` with custom agents instead of `decide`.
+`decide` uses fixed pragmatist + devil's-advocate presets and a synthesizer. For the same question + same mode + same provider, you'll get **deterministic-ish** output (LLMs aren't fully deterministic but they're close at temperature 0). To get genuinely different results, change agents or mode — use `deliberator run config.yml` with custom agents instead of `decide`.
 
 ## Still stuck?
 
-- Open an issue: [github.com/Build-Fractal/conversus-oss/issues](https://github.com/Build-Fractal/conversus-oss/issues)
+- Open an issue: [github.com/Build-Fractal/deliberator/issues](https://github.com/Build-Fractal/deliberator/issues)
 - Read the [first deliberation walkthrough](first-deliberation.md) to see what a healthy run looks like
-- Check [CONTRIBUTING.md](https://github.com/Build-Fractal/conversus-oss/blob/main/CONTRIBUTING.md) for how to report a reproducible bug
+- Check [CONTRIBUTING.md](https://github.com/Build-Fractal/deliberator/blob/main/CONTRIBUTING.md) for how to report a reproducible bug

@@ -20,7 +20,7 @@ set -euo pipefail
 # --------------------------------------------------------------------------
 SPEC_BRANCH="spec/v4.2.0-structured-deliberation-outputs"
 DELIB_DIR="deliberations/v4.2.0-structured-deliberation-outputs-blind-2026-05-13"
-CONFIG_PATH="${DELIB_DIR}/conversus.yml"
+CONFIG_PATH="${DELIB_DIR}/deliberator.yml"
 PROVIDER="claude-code"
 EXPECTED_LAUNCHES=42
 
@@ -58,9 +58,9 @@ done
 hdr "Pre-flight"
 
 if [[ ! -d "engine" || ! -d "linter" || ! -f "pyproject.toml" ]]; then
-    fail "Not inside conversus-oss. cd to build-fractal/conversus/conversus-oss/ first."
+    fail "Not inside deliberator. cd to build-fractal/deliberator/deliberator/ first."
 fi
-ok "Inside conversus-oss ($(pwd))"
+ok "Inside deliberator ($(pwd))"
 
 current_branch=$(git branch --show-current)
 if [[ "$current_branch" != "$SPEC_BRANCH" ]]; then
@@ -81,15 +81,15 @@ if [[ ! -f "$CONFIG_PATH" ]]; then
 fi
 ok "Config present: $CONFIG_PATH"
 
-if ! command -v conversus &>/dev/null; then
-    fail "conversus CLI not on PATH. Install or activate the venv first."
+if ! command -v deliberator &>/dev/null; then
+    fail "deliberator CLI not on PATH. Install or activate the venv first."
 fi
-ok "conversus CLI: $(which conversus)"
+ok "deliberator CLI: $(which deliberator)"
 
 say "Validating config..."
-if ! conversus validate "$CONFIG_PATH" >/dev/null 2>&1; then
+if ! deliberator validate "$CONFIG_PATH" >/dev/null 2>&1; then
     warn "Validation reports issues; showing details:"
-    conversus validate "$CONFIG_PATH" || true
+    deliberator validate "$CONFIG_PATH" || true
     read -r -p "Continue anyway? [y/N] " ans
     [[ "$ans" =~ ^[Yy]$ ]] || fail "Abort: config validation failed."
 fi
@@ -105,13 +105,13 @@ fi
 ok "Blind invariant: prior context is absent (agents see only spec + constitutions)"
 
 say "Checking $PROVIDER auth..."
-auth_status=$(conversus status 2>&1 | grep -A 1 "anthropic" | grep "logged in" || true)
+auth_status=$(deliberator status 2>&1 | grep -A 1 "anthropic" | grep "logged in" || true)
 if [[ -z "$auth_status" ]]; then
     warn "$PROVIDER does not show as logged in."
     cat <<EOF
 
 If you need to refresh OAuth:
-  1. Run: conversus login anthropic
+  1. Run: deliberator login anthropic
   2. Open the printed URL in your browser
   3. Complete OAuth, paste code at the prompt
 
@@ -167,11 +167,11 @@ if [[ "$MODE" == "interactive" ]]; then
 fi
 
 start_ts=$(date +%s)
-log_file="/tmp/conversus-v4.2.0-blind-$(date +%Y%m%d-%H%M%S).log"
+log_file="/tmp/deliberator-v4.2.0-blind-$(date +%Y%m%d-%H%M%S).log"
 say "Logging to: $log_file"
 
 set +e
-conversus run "$CONFIG_PATH" --provider "$PROVIDER" 2>&1 | tee "$log_file"
+deliberator run "$CONFIG_PATH" --provider "$PROVIDER" 2>&1 | tee "$log_file"
 exit_code=${PIPESTATUS[0]}
 set -e
 
@@ -188,7 +188,7 @@ Log: $log_file
 
 Common causes:
   - Rate limit (429): wait 5-10 min, re-run; Anthropic OAuth budget is per-minute
-  - Auth (401): token expired, run \`conversus login anthropic\` in a real terminal
+  - Auth (401): token expired, run \`deliberator login anthropic\` in a real terminal
   - Provider model mismatch: check $CONFIG_PATH agents have valid model names
   - Arbitration prompt overflow: only if synthesis output is huge (>200K chars)
 

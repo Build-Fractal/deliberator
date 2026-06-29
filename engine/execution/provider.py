@@ -1,7 +1,7 @@
 """Execution provider protocol for agentic task dispatch.
 
 This module defines the ``ExecutionProvider`` protocol (spec 042) — the
-abstraction through which the conversus engine dispatches agentic tasks to
+abstraction through which the deliberator engine dispatches agentic tasks to
 external runtimes (Claude Code CLI, OpenCode HTTP server, Aider subprocess,
 direct LLM APIs, future A2A servers, etc.).
 
@@ -15,7 +15,7 @@ The data-type shape is intentionally A2A-Task-Request-compatible per binding
 condition #1 of the spec 042 arbitration ruling.  Providers that do not need
 the full structured shape use :meth:`ExecutionTask.from_prompt` for the flat
 compatibility path, which constructs an ``ExecutionTask`` with a single text
-part.  When conversus later ships an ``A2AProvider`` wrapping a live A2A
+part.  When deliberator later ships an ``A2AProvider`` wrapping a live A2A
 server, no rewrite of the task shape is required — the fields already map
 one-to-one to A2A Task Request semantics.
 
@@ -47,7 +47,7 @@ TaskPartMediaType = Literal["text/plain", "text/markdown"]
 class TaskPart:
     """A structured content part inside an :class:`ExecutionTask`.
 
-    Mirrors the A2A Task Request ``message.parts`` shape.  Most conversus
+    Mirrors the A2A Task Request ``message.parts`` shape.  Most deliberator
     tasks carry a single part (the filled phase-template prompt), but the
     structured list exists so providers can attach additional context
     without losing semantic boundaries (e.g., an agent identity block
@@ -56,7 +56,7 @@ class TaskPart:
     Attributes:
         content: The text content of the part.
         media_type: The MIME type of ``content``.  Defaults to
-            ``"text/markdown"`` because conversus phase templates are
+            ``"text/markdown"`` because deliberator phase templates are
             markdown by construction.
     """
 
@@ -121,8 +121,8 @@ class Cost:
 #: compatible with spec 047's ``Duration``.  Until spec 047 ships, we use
 #: :class:`datetime.timedelta` from the stdlib — it is convertible with
 #: zero precision loss for any duration under ~100 years, which covers
-#: every agent execution conversus will ever see.  When spec 047 lands,
-#: this alias is redefined to point at ``conversus.schemas.duration.Duration``
+#: every agent execution deliberator will ever see.  When spec 047 lands,
+#: this alias is redefined to point at ``deliberator.schemas.duration.Duration``
 #: and existing code continues to work via implicit conversion.
 Duration = timedelta
 
@@ -288,7 +288,7 @@ class ExecutionResult:
 
 @runtime_checkable
 class ExecutionProvider(Protocol):
-    """Protocol for executing a single conversus agent task.
+    """Protocol for executing a single deliberator agent task.
 
     An execution provider accepts an :class:`ExecutionTask` and produces
     an :class:`ExecutionResult`.  The provider handles *how* to execute
@@ -307,7 +307,7 @@ class ExecutionProvider(Protocol):
     Providers are registered via :data:`PROVIDER_REGISTRY` (entry point
     style, post-spec-032 packaging).  The engine resolves providers by
     name at run time from :class:`ExecutionTask.metadata` or from the
-    ``conversus.yml`` ``executor:`` field.
+    ``deliberator.yml`` ``executor:`` field.
     """
 
     async def execute(self, task: ExecutionTask) -> ExecutionResult:

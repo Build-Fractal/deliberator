@@ -15,7 +15,7 @@ import pytest
 from pydantic import ValidationError
 
 from linter.output_contract import (
-    ConversusOutput,
+    DeliberatorOutput,
     QualityIndicators,
     parse_synthesis,
     _extract_cross_reviews_performed,
@@ -26,7 +26,7 @@ from linter.output_contract import (
 # Fixtures
 # ---------------------------------------------------------------------------
 
-REFERENCE_DIR = Path("conversus/quality_floor/reference-outputs")
+REFERENCE_DIR = Path("deliberator/quality_floor/reference-outputs")
 MONOREPO_PATH = REFERENCE_DIR / "passing/monorepo-vs-polyrepo/summary/final.md"
 LEASE_PATH = REFERENCE_DIR / "passing/lease-vs-buy/summary/final.md"
 FACTUAL_PATH = REFERENCE_DIR / "failing/factual-capital/summary/final.md"
@@ -67,7 +67,7 @@ class TestModelConstraints:
         with pytest.raises(ValidationError):
             qi.agent_count = 99  # type: ignore[misc]
 
-    def test_conversus_output_frozen(self, monorepo_text: str) -> None:
+    def test_deliberator_output_frozen(self, monorepo_text: str) -> None:
         result = parse_synthesis(monorepo_text)
         with pytest.raises(ValidationError):
             result.headline = "mutated"  # type: ignore[misc]
@@ -85,8 +85,8 @@ class TestModelConstraints:
         actual = set(QualityIndicators.model_fields.keys())
         assert actual == expected
 
-    def test_conversus_output_has_all_five_fields(self) -> None:
-        """ConversusOutput must have exactly the 5 contract fields."""
+    def test_deliberator_output_has_all_five_fields(self) -> None:
+        """DeliberatorOutput must have exactly the 5 contract fields."""
         expected = {
             "headline",
             "summary",
@@ -94,7 +94,7 @@ class TestModelConstraints:
             "quality_indicators",
             "debate_transcript",
         }
-        actual = set(ConversusOutput.model_fields.keys())
+        actual = set(DeliberatorOutput.model_fields.keys())
         assert actual == expected
 
 
@@ -307,7 +307,7 @@ class TestEdgeCases:
         mode-extraction path still falls through to the caller default.
         """
         text = (
-            "<!-- CONVERSUS:METADATA\n"
+            "<!-- DELIBERATOR:METADATA\n"
             "agents: 2\n"
             "agent_names: a, b\n"
             "phases_completed: 5\n"
@@ -329,7 +329,7 @@ class TestEdgeCases:
         shape still parses.
         """
         text = (
-            "<!-- CONVERSUS:METADATA\n"
+            "<!-- DELIBERATOR:METADATA\n"
             "agents: 2\n"
             "agent_names: a, b\n"
             "mode: cooperative\n"
@@ -778,13 +778,13 @@ class TestRiskIdDedup:
 
 
 class TestMetadataBlock:
-    """Engine injects a ``<!-- CONVERSUS:METADATA ... -->`` block at the top
+    """Engine injects a ``<!-- DELIBERATOR:METADATA ... -->`` block at the top
     of every synthesis. Parser must trust it over LLM prose so ``agent_count``
     and ``phases_completed`` stop reading zero just because the synthesizer
     failed to recite them."""
 
     METADATA_ONLY = (
-        "<!-- CONVERSUS:METADATA\n"
+        "<!-- DELIBERATOR:METADATA\n"
         "agents: 2\n"
         "agent_names: blue-advocate, red-advocate\n"
         "mode: red-blue\n"
@@ -816,7 +816,7 @@ class TestMetadataBlock:
         """When both metadata and prose headers are present, metadata wins —
         the engine is authoritative about its own run state."""
         text = (
-            "<!-- CONVERSUS:METADATA\n"
+            "<!-- DELIBERATOR:METADATA\n"
             "agents: 3\n"
             "agent_names: a, b, c\n"
             "mode: red-blue\n"
@@ -941,7 +941,7 @@ class TestMetadataBlock:
         (This is the engine's own receipt of a run; prose absence is a
         different failure to diagnose elsewhere.)"""
         text = (
-            "<!-- CONVERSUS:METADATA\n"
+            "<!-- DELIBERATOR:METADATA\n"
             "agents: 2\n"
             "agent_names: a, b\n"
             "mode: red-blue\n"
@@ -959,7 +959,7 @@ class TestMetadataBlock:
 # Cross-mode coverage — Tier 2 Principle V (Observable Deliberation)
 # ---------------------------------------------------------------------------
 #
-# The conversus suite ships 8 deliberation modes (see ``templates/`` and the
+# The deliberator suite ships 8 deliberation modes (see ``templates/`` and the
 # CONFORMANCE.md Tier 2 declaration). ``linter/output_contract.py`` was
 # originally written when only ``cooperative`` mode existed. Principle V
 # requires every deliberation phase to emit observable output that downstream
@@ -1003,7 +1003,7 @@ def _metadata_only_synthesis(mode: str) -> str:
     is structural evidence (see :class:`TestMetadataBlock`) and the parser must
     accept it for every mode."""
     return (
-        "<!-- CONVERSUS:METADATA\n"
+        "<!-- DELIBERATOR:METADATA\n"
         "agents: 2\n"
         "agent_names: a, b\n"
         f"mode: {mode}\n"
@@ -1021,7 +1021,7 @@ def _metadata_only_synthesis(mode: str) -> str:
 #
 # Note on fixture style: templates show entries as list items (``- **Dispute:
 # [Label]**``), but real synthesizer outputs frequently drop the list dash
-# (compare ``conversus/quality_floor/reference-outputs/passing/monorepo-vs-
+# (compare ``deliberator/quality_floor/reference-outputs/passing/monorepo-vs-
 # polyrepo/summary/final.md`` — entries are flush-left ``**Dispute: ...**``).
 # These fixtures use the flush-left form to mirror what reference outputs
 # actually look like; the marker-tier regex anchors to ``(?:^|\n)\s*`` so
@@ -1091,7 +1091,7 @@ def _synthesis_with_disputes(mode: str) -> str:
     a DISPUTES_BEGIN/END section whose inner body matches the mode's
     ``templates/<mode>/synthesis.md`` "For each:" entry shape exactly."""
     return (
-        "<!-- CONVERSUS:METADATA\n"
+        "<!-- DELIBERATOR:METADATA\n"
         "agents: 2\n"
         "agent_names: a, b\n"
         f"mode: {mode}\n"
@@ -1101,9 +1101,9 @@ def _synthesis_with_disputes(mode: str) -> str:
         f"# Synthesis: Cross-mode dispute probe — {mode}\n\n"
         "## Process Summary\n\n"
         "| Agents | 2 (a, b) |\n\n"
-        "<!-- CONVERSUS:DISPUTES_BEGIN -->\n"
+        "<!-- DELIBERATOR:DISPUTES_BEGIN -->\n"
         + _MODE_DISPUTE_BODIES[mode]
-        + "<!-- CONVERSUS:DISPUTES_END -->\n"
+        + "<!-- DELIBERATOR:DISPUTES_END -->\n"
     )
 
 

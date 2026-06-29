@@ -447,7 +447,7 @@ class TestClaudeCodeOutputParsing:
     # The CLI changed `--output-format json` from emitting an array of
     # messages to emitting a single result object with `.result` holding
     # the assistant text.  The parser must handle both shapes so
-    # conversus works across claude-code versions — and against the
+    # deliberator works across claude-code versions — and against the
     # Max-plan OAuth path where each subprocess is a Claude Code
     # interactive session.
 

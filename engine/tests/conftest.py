@@ -21,8 +21,8 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 
 @pytest.fixture
 def example_config_path() -> Path:
-    """Absolute path to conversus.example.yml."""
-    return PROJECT_ROOT / "conversus.example.yml"
+    """Absolute path to deliberator.example.yml."""
+    return PROJECT_ROOT / "deliberator.example.yml"
 
 
 # ---------------------------------------------------------------------------
@@ -89,10 +89,10 @@ def sample_engine_config(example_config_path: Path) -> EngineConfig:
 # Kept in lockstep with engine.settings._ENV_VAR_FOR_FIELD; the unit test
 # in test_settings.py asserts the two stay aligned.
 _CASCADE_ENV_VARS: tuple[str, ...] = (
-    "CONVERSUS_DEFAULT_PROVIDER",
-    "CONVERSUS_DEFAULT_MODE",
-    "CONVERSUS_DEFAULT_MODEL",
-    "CONVERSUS_MAX_LAUNCHES",
+    "DELIBERATOR_DEFAULT_PROVIDER",
+    "DELIBERATOR_DEFAULT_MODE",
+    "DELIBERATOR_DEFAULT_MODEL",
+    "DELIBERATOR_MAX_LAUNCHES",
 )
 
 
@@ -102,8 +102,8 @@ class CleanSettings:
 
     Provides a tmpfs-rooted ``home`` and ``project`` pair with all
     cascade env vars unset and ``Path.home()`` patched. Tests opt in
-    by writing to ``home / ".conversus" / "settings.yml"`` (global
-    layer) or ``project / ".conversus" / "settings.yml"`` (project
+    by writing to ``home / ".deliberator" / "settings.yml"`` (global
+    layer) or ``project / ".deliberator" / "settings.yml"`` (project
     layer), and by calling ``monkeypatch.setenv`` for the env layer.
     """
 
@@ -124,7 +124,7 @@ def clean_settings(
 
     Use this whenever a test exercises ``load_settings`` or
     ``inspect_settings_cascade`` and wants to start from a known clean
-    slate. Without it, a developer with ``CONVERSUS_*`` set in their
+    slate. Without it, a developer with ``DELIBERATOR_*`` set in their
     shell can have local-only test failures that pass in CI.
     """
     for var in _CASCADE_ENV_VARS:

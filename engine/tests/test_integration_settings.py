@@ -1,8 +1,8 @@
 """Integration tests for the settings cascade across all layers (spec 057).
 
 Verifies the settings cascade works end-to-end through the handler layer:
-    CLI flag  >  env var  >  project .conversus/settings.yml  >
-    global ~/.conversus/settings.yml  >  built-in defaults.
+    CLI flag  >  env var  >  project .deliberator/settings.yml  >
+    global ~/.deliberator/settings.yml  >  built-in defaults.
 
 The unit tests in ``test_settings.py`` cover the cascade in isolation.
 These tests prove the cascade is wired correctly into the handler layer
@@ -31,9 +31,9 @@ from engine.results import DecideResult
 
 
 def _write_settings(directory: Path, data: dict) -> Path:
-    """Write a settings.yml inside *directory*/.conversus/ and return the
+    """Write a settings.yml inside *directory*/.deliberator/ and return the
     YAML file path."""
-    settings_dir = directory / ".conversus"
+    settings_dir = directory / ".deliberator"
     settings_dir.mkdir(parents=True, exist_ok=True)
     settings_file = settings_dir / "settings.yml"
     settings_file.write_text(yaml.dump(data, sort_keys=False), encoding="utf-8")
@@ -54,8 +54,8 @@ def _patch_roots(monkeypatch: pytest.MonkeyPatch, project: Path, home: Path) -> 
     ``engine.auth.DEFAULT_AUTH_PATH`` and ``DEFAULT_CREDENTIALS_DIR`` are
     captured at module import time using the *real* ``Path.home()``, so
     patching ``Path.home`` alone is not enough to isolate the credential
-    store from the user's real ``~/.conversus`` (spec 057 SC-004 — per-
-    provider files at ``~/.conversus/credentials/``). Pin both constants
+    store from the user's real ``~/.deliberator`` (spec 057 SC-004 — per-
+    provider files at ``~/.deliberator/credentials/``). Pin both constants
     to the test home explicitly.
     """
     monkeypatch.setattr(
@@ -63,10 +63,10 @@ def _patch_roots(monkeypatch: pytest.MonkeyPatch, project: Path, home: Path) -> 
     )
     monkeypatch.setattr(Path, "home", lambda: home)
     monkeypatch.setattr(
-        "engine.auth.DEFAULT_AUTH_PATH", home / ".conversus" / "auth.json"
+        "engine.auth.DEFAULT_AUTH_PATH", home / ".deliberator" / "auth.json"
     )
     monkeypatch.setattr(
-        "engine.auth.DEFAULT_CREDENTIALS_DIR", home / ".conversus" / "credentials"
+        "engine.auth.DEFAULT_CREDENTIALS_DIR", home / ".deliberator" / "credentials"
     )
 
 
@@ -106,7 +106,7 @@ class TestHandlerUsesSettingsDefaultProvider:
         _patch_roots(monkeypatch, project, home)
 
         # Clear any env vars that might interfere
-        monkeypatch.delenv("CONVERSUS_DEFAULT_PROVIDER", raising=False)
+        monkeypatch.delenv("DELIBERATOR_DEFAULT_PROVIDER", raising=False)
         monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
 
         result = run_decide_mcp(question=_QUESTION, provider="mock")
@@ -127,14 +127,14 @@ class TestHandlerUsesSettingsDefaultProvider:
 
 
 class TestEnvVarOverridesFileSettings:
-    """CONVERSUS_DEFAULT_PROVIDER env var beats project settings.yml."""
+    """DELIBERATOR_DEFAULT_PROVIDER env var beats project settings.yml."""
 
     def test_env_var_overrides_file_settings(
         self,
         tmp_path: Path,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
-        """Set CONVERSUS_DEFAULT_PROVIDER=openai via monkeypatch. Create
+        """Set DELIBERATOR_DEFAULT_PROVIDER=openai via monkeypatch. Create
         project settings with default_provider=anthropic. The env var
         should win — provider resolves to openai, which fails with an
         error referencing openai (no API key)."""
@@ -146,7 +146,7 @@ class TestEnvVarOverridesFileSettings:
         _write_settings(project, {"default_provider": "anthropic"})
         _patch_roots(monkeypatch, project, home)
 
-        monkeypatch.setenv("CONVERSUS_DEFAULT_PROVIDER", "openai")
+        monkeypatch.setenv("DELIBERATOR_DEFAULT_PROVIDER", "openai")
         monkeypatch.delenv("OPENAI_API_KEY", raising=False)
         monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
 
@@ -190,7 +190,7 @@ class TestCliFlagOverridesEverything:
         _write_settings(project, {"default_provider": "anthropic"})
         _patch_roots(monkeypatch, project, home)
 
-        monkeypatch.setenv("CONVERSUS_DEFAULT_PROVIDER", "anthropic")
+        monkeypatch.setenv("DELIBERATOR_DEFAULT_PROVIDER", "anthropic")
         monkeypatch.delenv("OPENAI_API_KEY", raising=False)
         monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
 
@@ -226,7 +226,7 @@ class TestPersistenceRespectsSettings:
     ) -> None:
         """Create settings with persistence.enabled=false. Run a handler
         with the mock provider (which succeeds without API keys). Verify
-        no .conversus/deliberations/ directory is created."""
+        no .deliberator/deliberations/ directory is created."""
         project = tmp_path / "project"
         project.mkdir()
         home = tmp_path / "home"
@@ -239,7 +239,7 @@ class TestPersistenceRespectsSettings:
         _patch_roots(monkeypatch, project, home)
 
         # Ensure the mock provider is used (no env var override)
-        monkeypatch.delenv("CONVERSUS_DEFAULT_PROVIDER", raising=False)
+        monkeypatch.delenv("DELIBERATOR_DEFAULT_PROVIDER", raising=False)
 
         result = run_decide_mcp(question=_QUESTION, provider="mock")
 
@@ -247,7 +247,7 @@ class TestPersistenceRespectsSettings:
         # The mock provider should succeed without errors, or at worst
         # produce non-provider errors. The key assertion is about
         # persistence, not pipeline success.
-        deliberations_dir = project / ".conversus" / "deliberations"
+        deliberations_dir = project / ".deliberator" / "deliberations"
         assert not deliberations_dir.exists(), (
             f"Deliberations directory should not exist when persistence "
             f"is disabled, but found: {deliberations_dir}"

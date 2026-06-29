@@ -1,4 +1,4 @@
-"""Integration tests for the conversus CLI (all 5 subcommands).
+"""Integration tests for the deliberator CLI (all 5 subcommands).
 
 Uses Click's ``CliRunner`` to exercise ``run``, ``decide``, ``validate``,
 ``login``, and ``logout`` without subprocess overhead.  Provider and auth
@@ -28,7 +28,7 @@ class TestProviderChoiceParity:
     Prevents the silent regression where a provider gets registered in
     ``engine/execution/providers/`` (so YAML config + SDK accept it) but
     is missing from the CLI's hardcoded Click choice list (so
-    ``conversus run --provider <name>`` fails Click validation before
+    ``deliberator run --provider <name>`` fails Click validation before
     even reaching the engine). Surfaced empirically: ``claude-desktop``
     and ``demo`` were both registered + documented but rejected by the
     CLI prior to this guard.
@@ -56,7 +56,7 @@ class TestProviderChoiceParity:
         registered = self._registered_providers()
         missing = registered - choices
         assert not missing, (
-            f"`conversus run --provider` Click choices missing registered "
+            f"`deliberator run --provider` Click choices missing registered "
             f"providers: {sorted(missing)}. Either add them to the choice "
             f"list in engine/cli/__init__.py or de-register the provider."
         )
@@ -66,7 +66,7 @@ class TestProviderChoiceParity:
         registered = self._registered_providers()
         missing = registered - choices
         assert not missing, (
-            f"`conversus decide --provider` Click choices missing registered "
+            f"`deliberator decide --provider` Click choices missing registered "
             f"providers: {sorted(missing)}. Either add them to the choice "
             f"list in engine/cli/__init__.py or de-register the provider."
         )
@@ -78,7 +78,7 @@ class TestProviderChoiceParity:
 
 
 def _write_valid_config(tmp_path: Path) -> Path:
-    """Write a minimal valid conversus config and return its path.
+    """Write a minimal valid deliberator config and return its path.
 
     Creates the target spec file that the config references so
     ``parse_config`` resolves successfully.
@@ -96,7 +96,7 @@ def _write_valid_config(tmp_path: Path) -> Path:
             {"name": "agent-beta", "prompt": "Beta perspective."},
         ],
     }
-    config_path = tmp_path / "conversus.yml"
+    config_path = tmp_path / "deliberator.yml"
     config_path.write_text(yaml.dump(config_data, sort_keys=False), encoding="utf-8")
     return config_path
 
@@ -114,7 +114,7 @@ def _write_invalid_config(tmp_path: Path) -> Path:
             {"name": "a1", "prompt": "P1"},
         ],
     }
-    config_path = tmp_path / "conversus.yml"
+    config_path = tmp_path / "deliberator.yml"
     config_path.write_text(yaml.dump(config_data, sort_keys=False), encoding="utf-8")
     return config_path
 
@@ -140,7 +140,7 @@ class TestHelp:
         assert result.exit_code == 0
 
     def test_group_help_has_examples(self) -> None:
-        """Top-level ``conversus --help`` includes usage examples."""
+        """Top-level ``deliberator --help`` includes usage examples."""
         runner = CliRunner()
         result = runner.invoke(cli, ["--help"])
         assert result.exit_code == 0
@@ -165,7 +165,7 @@ class TestHelp:
 
 
 class TestRunCommand:
-    """Tests for ``conversus run``."""
+    """Tests for ``deliberator run``."""
 
     def test_run_valid_config_mock(self, tmp_path: Path) -> None:
         """Run with a valid config and mock provider exits 0."""
@@ -192,7 +192,7 @@ class TestRunCommand:
         assert "error" in combined.lower() or "Error" in combined
 
     def test_run_help(self) -> None:
-        """``conversus run --help`` exits 0 and shows options."""
+        """``deliberator run --help`` exits 0 and shows options."""
         runner = CliRunner()
         result = runner.invoke(cli, ["run", "--help"])
         assert result.exit_code == 0
@@ -221,7 +221,7 @@ class TestRunCommand:
 
 
 class TestValidateCommand:
-    """Tests for ``conversus validate``."""
+    """Tests for ``deliberator validate``."""
 
     def test_validate_valid_config(self, tmp_path: Path) -> None:
         """Validate with valid config exits 0 and prints cost estimate."""
@@ -265,7 +265,7 @@ class TestValidateCommand:
         assert result.exit_code != 0
 
     def test_validate_help(self) -> None:
-        """``conversus validate --help`` exits 0."""
+        """``deliberator validate --help`` exits 0."""
         runner = CliRunner()
         result = runner.invoke(cli, ["validate", "--help"])
         assert result.exit_code == 0
@@ -278,7 +278,7 @@ class TestValidateCommand:
 
 
 class TestLoginCommand:
-    """Tests for ``conversus login``."""
+    """Tests for ``deliberator login``."""
 
     def test_login_unknown_provider(self) -> None:
         """Login with an unknown provider exits 1."""
@@ -320,7 +320,7 @@ class TestLoginCommand:
         assert "error" in result.output.lower()
 
     def test_login_help(self) -> None:
-        """``conversus login --help`` exits 0."""
+        """``deliberator login --help`` exits 0."""
         runner = CliRunner()
         result = runner.invoke(cli, ["login", "--help"])
         assert result.exit_code == 0
@@ -332,7 +332,7 @@ class TestLoginCommand:
 
 
 class TestLogoutCommand:
-    """Tests for ``conversus logout``."""
+    """Tests for ``deliberator logout``."""
 
     @patch("engine.auth.logout")
     def test_logout_provider(self, mock_logout) -> None:
@@ -352,7 +352,7 @@ class TestLogoutCommand:
         assert "logged out" in result.output.lower()
 
     def test_logout_help(self) -> None:
-        """``conversus logout --help`` exits 0."""
+        """``deliberator logout --help`` exits 0."""
         runner = CliRunner()
         result = runner.invoke(cli, ["logout", "--help"])
         assert result.exit_code == 0
@@ -364,7 +364,7 @@ class TestLogoutCommand:
 
 
 class TestDecideCommand:
-    """Tests for ``conversus decide``."""
+    """Tests for ``deliberator decide``."""
 
     def test_decide_with_mock_provider(self) -> None:
         """Decide with mock provider completes and prints formatted output."""
@@ -391,7 +391,7 @@ class TestDecideCommand:
         assert result.exit_code != 0
 
     def test_decide_help(self) -> None:
-        """``conversus decide --help`` exits 0 and mentions question."""
+        """``deliberator decide --help`` exits 0 and mentions question."""
         runner = CliRunner()
         result = runner.invoke(cli, ["decide", "--help"])
         assert result.exit_code == 0
@@ -518,7 +518,7 @@ class TestDecideCommand:
 
         CliRunner captures stdout to StringIO, which Rich detects as
         non-TTY and auto-strips all ANSI escape sequences.  This proves
-        that piped invocations (``conversus decide ... | cat``) produce
+        that piped invocations (``deliberator decide ... | cat``) produce
         clean, human-readable output with zero ANSI codes.
         """
         runner = CliRunner()
@@ -551,10 +551,10 @@ class TestDecideCommand:
 
 
 class TestDecideJsonFormat:
-    """Tests for ``conversus decide --format json``."""
+    """Tests for ``deliberator decide --format json``."""
 
     def test_decide_json_format_outputs_valid_json(self) -> None:
-        """``--format json`` emits valid JSON with all ConversusOutput fields."""
+        """``--format json`` emits valid JSON with all DeliberatorOutput fields."""
         import json
 
         runner = CliRunner()
@@ -616,7 +616,7 @@ class TestDecideJsonFormat:
 
 
 class TestStatusCommand:
-    """Tests for ``conversus status``."""
+    """Tests for ``deliberator status``."""
 
     def test_status_no_credentials(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Status with no stored credentials and no env vars shows 'not configured'."""
@@ -779,10 +779,10 @@ class TestStatusCommand:
         monkeypatch.setattr(Path, "home", lambda: home)
 
         for var in (
-            "CONVERSUS_DEFAULT_PROVIDER",
-            "CONVERSUS_DEFAULT_MODE",
-            "CONVERSUS_DEFAULT_MODEL",
-            "CONVERSUS_MAX_LAUNCHES",
+            "DELIBERATOR_DEFAULT_PROVIDER",
+            "DELIBERATOR_DEFAULT_MODE",
+            "DELIBERATOR_DEFAULT_MODEL",
+            "DELIBERATOR_MAX_LAUNCHES",
         ):
             monkeypatch.delenv(var, raising=False)
 
@@ -797,7 +797,7 @@ class TestStatusCommand:
 
     @staticmethod
     def _write_yaml(directory: Path, data: dict) -> Path:
-        settings_dir = directory / ".conversus"
+        settings_dir = directory / ".deliberator"
         settings_dir.mkdir(parents=True, exist_ok=True)
         out = settings_dir / "settings.yml"
         out.write_text(yaml.dump(data, sort_keys=False), encoding="utf-8")
@@ -839,14 +839,14 @@ class TestStatusCommand:
 
         self._write_yaml(home, {"default_provider": "anthropic"})
         self._write_yaml(project, {"default_provider": "claude-code"})
-        monkeypatch.setenv("CONVERSUS_DEFAULT_PROVIDER", "openai")
+        monkeypatch.setenv("DELIBERATOR_DEFAULT_PROVIDER", "openai")
 
         runner = CliRunner()
         result = runner.invoke(cli, ["status"])
         assert result.exit_code == 0
         # The env-resolved value renders, with the env var name annotated.
         assert "openai" in result.output
-        assert "CONVERSUS_DEFAULT_PROVIDER" in result.output
+        assert "DELIBERATOR_DEFAULT_PROVIDER" in result.output
 
     def test_status_cascade_project_overrides_global(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
@@ -880,15 +880,15 @@ class TestStatusCommand:
     def test_status_cascade_shows_all_setting_keys(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """Every ConversusSettings.model_fields key appears in the table."""
-        from engine.settings import ConversusSettings
+        """Every DeliberatorSettings.model_fields key appears in the table."""
+        from engine.settings import DeliberatorSettings
 
         self._isolate_settings(tmp_path, monkeypatch)
 
         runner = CliRunner()
         result = runner.invoke(cli, ["status"])
         assert result.exit_code == 0
-        for field_name in ConversusSettings.model_fields:
+        for field_name in DeliberatorSettings.model_fields:
             assert field_name in result.output, (
                 f"Settings cascade table missing field {field_name!r}"
             )
@@ -1003,7 +1003,7 @@ class TestStatusCommand:
 
 
 class TestSkillsCommand:
-    """`conversus skills` lists all available skills."""
+    """`deliberator skills` lists all available skills."""
 
     def test_skills_lists_core_capabilities(self) -> None:
         """The skills command exits 0 and includes core skills."""
@@ -1031,7 +1031,7 @@ class TestSkillsCommand:
 
 
 class TestSkillCommand:
-    """`conversus skill <name>` prints the SKILL.md for one capability."""
+    """`deliberator skill <name>` prints the SKILL.md for one capability."""
 
     def test_skill_decide_prints_skill_md(self) -> None:
         runner = CliRunner()
@@ -1045,14 +1045,14 @@ class TestSkillCommand:
         runner = CliRunner()
         result = runner.invoke(cli, ["skill", "run"])
         assert result.exit_code == 0
-        assert "Conversus Run" in result.output
+        assert "Deliberator Run" in result.output
 
     def test_skill_help_prints_meta_skill(self) -> None:
         """spec 059 Phase 3 — help meta-skill is readable via skill <name>."""
         runner = CliRunner()
         result = runner.invoke(cli, ["skill", "help"])
         assert result.exit_code == 0
-        assert "Conversus Help" in result.output
+        assert "Deliberator Help" in result.output
 
     def test_skill_unknown_name_exits_nonzero(self) -> None:
         """Unknown skill name produces a clear error and exit 1."""
@@ -1063,7 +1063,7 @@ class TestSkillCommand:
         assert "Available skills" in result.output
 
     def test_skill_requires_name_argument(self) -> None:
-        """`conversus skill` without a name argument fails (Click exit 2)."""
+        """`deliberator skill` without a name argument fails (Click exit 2)."""
         runner = CliRunner()
         result = runner.invoke(cli, ["skill"])
         assert result.exit_code == 2

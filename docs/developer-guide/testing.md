@@ -1,6 +1,6 @@
 # Testing
 
-Conversus has ~1400 tests across engine, linter, MCP server, web backend, and frontend.
+Deliberator has ~1400 tests across engine, linter, MCP server, web backend, and frontend.
 
 ## Running tests
 
@@ -39,7 +39,7 @@ uv run pytest tests/test_plugins.py::test_echo_plugin -x -v
 All models use `model_config = {"frozen": True}`. In tests, construct them directly:
 
 ```python
-from conversus.plugins.base import AgentState, DeliberationState
+from deliberator.plugins.base import AgentState, DeliberationState
 
 state = DeliberationState(
     mode="cooperative",
@@ -97,7 +97,7 @@ async def test_anthropic_dispatch():
 For construction pipeline tests, use `NonInteractiveGapFiller` (fails on gaps) or write a custom one:
 
 ```python
-from conversus.schemas.construction import GapFiller
+from deliberator.schemas.construction import GapFiller
 
 class FixedGapFiller:
     """Returns predetermined answers for testing."""
@@ -115,7 +115,7 @@ class FixedGapFiller:
 
 ## Fixture data
 
-Reference deliberation outputs for testing live in `specs/` subdirectories. These are real conversus runs committed as test fixtures. The output contract parser tests use them to verify parsing against known-good synthesis output.
+Reference deliberation outputs for testing live in `specs/` subdirectories. These are real deliberator runs committed as test fixtures. The output contract parser tests use them to verify parsing against known-good synthesis output.
 
 For domain plugin tests, construct `DomainContext` with a temp workspace:
 
@@ -163,7 +163,7 @@ Config tests cover the full validation matrix -- valid configs, missing fields, 
 
 ```python
 def test_invalid_mode(tmp_path):
-    config_path = tmp_path / "conversus.yml"
+    config_path = tmp_path / "deliberator.yml"
     config_path.write_text("mode: invalid\ntarget: x.md\noutput: out/\nagents: []")
 
     with pytest.raises(ConfigError, match="is not valid"):
@@ -176,7 +176,7 @@ To test a plugin, construct a `DeliberationState` with the fields your plugin re
 
 ```python
 from pathlib import Path
-from conversus.plugins.base import (
+from deliberator.plugins.base import (
     AgentState,
     DeliberationState,
     HookPoint,
@@ -239,7 +239,7 @@ Construct a `DomainContext` with a temporary workspace, write any fixture files 
 import json
 from pathlib import Path
 from typing import Any
-from conversus.domains.base import DomainContext, DomainPlugin, VariableExtractor
+from deliberator.domains.base import DomainContext, DomainPlugin, VariableExtractor
 
 
 class StubExtractor:
@@ -300,7 +300,7 @@ def test_domain_record_creation(tmp_path):
     context = DomainContext(workspace=tmp_path)
 
     # Use a pre-built score (bypass extraction)
-    from conversus.domains.base import DomainScore
+    from deliberator.domains.base import DomainScore
     score = DomainScore(
         overall=0.8, verdict="pass", dimensions={"coverage": 0.85},
         hard_blocks=[], recommendations=[], variables={"coverage": 0.85},

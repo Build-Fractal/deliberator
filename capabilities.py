@@ -1,6 +1,6 @@
-"""Conversus capability registry — the single source of truth.
+"""Deliberator capability registry — the single source of truth.
 
-This module declares every conversus capability that the projector
+This module declares every deliberator capability that the projector
 (``scripts/build-surfaces.py``) walks to generate the four distribution
 surface files: ``engine/cli/__init__.py``, ``mcp_server.py``,
 ``claude-code-plugin/skills/*/SKILL.md``, and ``desktop-extension/manifest.json``.
@@ -38,7 +38,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from conversus.registry import (
+from deliberator.registry import (
     Capability,
     DefaultMCPAdapter,
     DefaultMCPBAdapter,
@@ -114,7 +114,7 @@ class ValidateMCPBAdapter(DefaultMCPBAdapter):
     def render(self, capability: "Capability") -> dict:
         entry = super().render(capability)
         entry["description"] = (
-            "Validate a conversus YAML config and estimate the total LLM "
+            "Validate a deliberator YAML config and estimate the total LLM "
             "launch count BEFORE running. Catches schema errors, missing "
             "target files, and invalid mode names. Always run this before "
             "a real deliberation to know the cost."
@@ -127,7 +127,7 @@ class ListDeliberationsMCPBAdapter(DefaultMCPBAdapter):
         entry = super().render(capability)
         entry["description"] = (
             "List past deliberations stored in the project's "
-            ".conversus/deliberations/ directory. Returns deliberation "
+            ".deliberator/deliberations/ directory. Returns deliberation "
             "names, timestamps, and summary metadata. Use this to browse "
             "deliberation history before reading individual files."
         )
@@ -267,9 +267,9 @@ decide = Capability(
 
 run = Capability(
     name="run",
-    summary="Run a deliberation from a conversus config file",
+    summary="Run a deliberation from a deliberator config file",
     long_description=(
-        "Executes the full 5-phase deliberation pipeline from a conversus "
+        "Executes the full 5-phase deliberation pipeline from a deliberator "
         "YAML config. On the CLI surface, takes a path to a config file and "
         "runs with Rich progress display. On the MCP surface, takes the "
         "config YAML inline and operates in one of three modes: validate-"
@@ -284,7 +284,7 @@ run = Capability(
             name="config_path",
             type=str,
             required=True,
-            help="Path to a conversus.yml config file.",
+            help="Path to a deliberator.yml config file.",
             surfaces=[Surface.CLI, Surface.PLUGIN],
         ),
         # MCP-only: full YAML text passed inline.
@@ -292,7 +292,7 @@ run = Capability(
             name="config_yaml",
             type=str,
             required=True,
-            help="Full YAML configuration string for a conversus run.",
+            help="Full YAML configuration string for a deliberator run.",
             surfaces=[Surface.MCP],
         ),
         # Shared: provider selection.
@@ -371,14 +371,14 @@ run = Capability(
 
 
 # ---------------------------------------------------------------------------
-# validate — validate a conversus config and print a cost estimate
+# validate — validate a deliberator config and print a cost estimate
 # ---------------------------------------------------------------------------
 
 validate = Capability(
     name="validate",
-    summary="Validate a conversus config and print a cost estimate",
+    summary="Validate a deliberator config and print a cost estimate",
     long_description=(
-        "Parses and validates a conversus YAML configuration, runs "
+        "Parses and validates a deliberator YAML configuration, runs "
         "template validation, optionally classifies a deliberation "
         "question for sufficiency, and computes a cost estimate (number "
         "of LLM launches required). Returns before any pipeline execution "
@@ -390,14 +390,14 @@ validate = Capability(
             name="config_path",
             type=str,
             required=True,
-            help="Path to a conversus.yml config file.",
+            help="Path to a deliberator.yml config file.",
             surfaces=[Surface.CLI, Surface.PLUGIN],
         ),
         Param(
             name="config_yaml",
             type=str,
             required=True,
-            help="Full YAML configuration string for a conversus run.",
+            help="Full YAML configuration string for a deliberator run.",
             surfaces=[Surface.MCP],
         ),
         Param(
@@ -506,11 +506,11 @@ context = Capability(
 
 mcp = Capability(
     name="mcp",
-    summary="Start the Conversus MCP server (stdio transport)",
+    summary="Start the Deliberator MCP server (stdio transport)",
     long_description=(
-        "Launches an MCP-compatible server that exposes conversus "
+        "Launches an MCP-compatible server that exposes deliberator "
         "deliberation tools to editors such as Claude Code, Cursor, "
-        "and Windsurf. Requires the mcp extras: pip install conversus[mcp]"
+        "and Windsurf. Requires the mcp extras: pip install deliberator[mcp]"
     ),
     surfaces=[Surface.CLI],
     params=[],
@@ -524,9 +524,9 @@ mcp = Capability(
 
 init = Capability(
     name="init",
-    summary="Initialize a .conversus/ directory with runtime permissions",
+    summary="Initialize a .deliberator/ directory with runtime permissions",
     long_description=(
-        "Creates the project-level configuration so conversus agents can "
+        "Creates the project-level configuration so deliberator agents can "
         "run non-interactively without permission prompts. Each runtime "
         "gets its own config file (claude-code, opencode, copilot, etc.)."
     ),
@@ -591,7 +591,7 @@ class DesignPluginAdapter(PluginAdapter):
 
 design = Capability(
     name="design",
-    summary="Guided config builder — create a conversus.yml interactively",
+    summary="Guided config builder — create a deliberator.yml interactively",
     surfaces=[Surface.PLUGIN],
     params=[],
     handler="engine.handlers:design_cli",  # placeholder — design is plugin-only
@@ -600,11 +600,11 @@ design = Capability(
 
 
 # ---------------------------------------------------------------------------
-# help — meta-skill listing all /conversus:* slash commands
+# help — meta-skill listing all /deliberator:* slash commands
 # ---------------------------------------------------------------------------
 # Spec 059 Phase 3: hand-written SKILL.md (like design). The skill body
-# IS the help text. Surfaces=[PLUGIN] only — the CLI has `conversus
-# skills` (the lister); the plugin needs `/conversus:help` for the same
+# IS the help text. Surfaces=[PLUGIN] only — the CLI has `deliberator
+# skills` (the lister); the plugin needs `/deliberator:help` for the same
 # discoverability inside Claude Code.
 
 _HELP_SKILL_PATH = Path(__file__).parent / "claude-code-plugin" / "skills" / "help" / "SKILL.md"
@@ -613,7 +613,7 @@ _HELP_SKILL_PATH = Path(__file__).parent / "claude-code-plugin" / "skills" / "he
 class HelpPluginAdapter(PluginAdapter):
     """Override adapter that preserves the hand-written help meta-skill.
 
-    The ``help`` command is a static listing of /conversus:* slash
+    The ``help`` command is a static listing of /deliberator:* slash
     commands; its content is hand-curated. This override reads the
     existing file and returns it verbatim, mirroring the
     ``DesignPluginAdapter`` pattern.
@@ -625,7 +625,7 @@ class HelpPluginAdapter(PluginAdapter):
 
 help_capability = Capability(
     name="help",
-    summary="List all /conversus:* slash commands with one-line descriptions",
+    summary="List all /deliberator:* slash commands with one-line descriptions",
     surfaces=[Surface.PLUGIN],
     params=[],
     handler="engine.handlers:help_cli",  # placeholder — help is plugin-only
@@ -634,14 +634,14 @@ help_capability = Capability(
 
 
 # ---------------------------------------------------------------------------
-# list-deliberations — list past deliberations from .conversus/deliberations/
+# list-deliberations — list past deliberations from .deliberator/deliberations/
 # ---------------------------------------------------------------------------
 
 list_deliberations = Capability(
     name="list-deliberations",
-    summary="List past deliberations from the project's .conversus/deliberations/ directory",
+    summary="List past deliberations from the project's .deliberator/deliberations/ directory",
     long_description=(
-        "Scans the project's .conversus/deliberations/ directory and returns "
+        "Scans the project's .deliberator/deliberations/ directory and returns "
         "a listing of all persisted deliberation runs. Each entry includes "
         "the deliberation directory name (which encodes the timestamp and "
         "slug), creation time, and available artifact files. On the CLI "
@@ -683,7 +683,7 @@ show_deliberation = Capability(
     summary="Read a file from a past deliberation",
     long_description=(
         "Reads and returns the contents of a specific file from a persisted "
-        "deliberation in .conversus/deliberations/. Accepts a deliberation "
+        "deliberation in .deliberator/deliberations/. Accepts a deliberation "
         "directory path and a relative file path within it (e.g. "
         "summary/final.md, pragmatist/review.md). Use list-deliberations "
         "first to discover available deliberations and their contents, then "
@@ -697,7 +697,7 @@ show_deliberation = Capability(
             required=True,
             help=(
                 "Path to the deliberation directory "
-                "(e.g. .conversus/deliberations/20260412T173000-timber/)."
+                "(e.g. .deliberator/deliberations/20260412T173000-timber/)."
             ),
         ),
         Param(
@@ -722,7 +722,7 @@ show_deliberation = Capability(
 
 skills = Capability(
     name="skills",
-    summary="List all available conversus capabilities",
+    summary="List all available deliberator capabilities",
     surfaces=[Surface.CLI],
     params=[],
     handler="engine.handlers:skills_cli",
@@ -735,7 +735,7 @@ skills = Capability(
 
 skill = Capability(
     name="skill",
-    summary="View the guided workflow for a conversus capability",
+    summary="View the guided workflow for a deliberator capability",
     surfaces=[Surface.CLI],
     params=[
         Param(name="name", type=str, required=True, help="Capability name (e.g. decide, run, design)."),
@@ -748,7 +748,7 @@ skill = Capability(
 # The capability list — what the projector walks
 # ---------------------------------------------------------------------------
 
-#: Explicit, authoritative list of conversus capabilities. The projector
+#: Explicit, authoritative list of deliberator capabilities. The projector
 #: imports this name directly and iterates it. There is no module-level
 #: registry populated by decorators — this list is the registration
 #: mechanism (constitution principle IX).

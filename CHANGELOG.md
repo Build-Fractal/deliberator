@@ -4,6 +4,9 @@ All notable changes to this project are documented here. The format is based on 
 
 ## [Unreleased]
 
+### Renamed
+- **MAJOR — Project renamed from `conversus` to `deliberator`** (2026-06-23, pre-first-publish). Targets: PyPI package, CLI entry point, Python foundation package (`conversus/` → `deliberator/`; `engine/` and `linter/` unchanged), GitHub repo (`Build-Fractal/conversus-oss` → `Build-Fractal/deliberator`), MCP tool names (`conversus_*` → `deliberator_*`), slash commands (`/conversus:*` → `/deliberator:*`), config filename (`conversus.yml` → `deliberator.yml`), and user dotfile dir (`~/.conversus/` → `~/.deliberator/`). Pre-rename artifacts in `deliberations/`, `specs/`, and pre-2026-06-23 CHANGELOG / CONSTITUTIONAL_CONVERSATIONS entries are preserved verbatim per audit-trail discipline. Tier 2 governance event logged as a substrate-standup carve-out (precedent: v4.2.0 bootstrap-paradox). Full rationale + scope: [RENAME.md](RENAME.md). Targeted publish version: `v1.0.0` as `deliberator`.
+
 ### Changed
 - **MAJOR — v3.2.3 → v4.0.0 constitutional tier extraction**. CONSTITUTION.md restructured from a flat 28-slot constitution into a hierarchical three-tier system. 10 principles relocated to Tier 1 (Universal) at `../build-fractal/CONSTITUTION.md`; 10 to Tier 2 (Suite) at `../build-fractal/conversus/CONSTITUTION.md`. 6 retained as component-tier in this repo's `CONSTITUTION.md`. 2 retired markers (VI, X) preserved per Principle II number-stability. All prior Sync Impact Report comment blocks preserved as audit trail. Three-deliberation ratification (originating + self-consistency + blind); 12 fixes applied across spec v1 → v2 → v3. See `specs/v4.0.0-tier-extraction/spec.md`.
 

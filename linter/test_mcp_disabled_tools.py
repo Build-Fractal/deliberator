@@ -1,6 +1,6 @@
-"""Tests for CONVERSUS_DISABLED_TOOLS env-var-driven tool filtering.
+"""Tests for DELIBERATOR_DISABLED_TOOLS env-var-driven tool filtering.
 
-The mcp_server module reads ``CONVERSUS_DISABLED_TOOLS`` at import time
+The mcp_server module reads ``DELIBERATOR_DISABLED_TOOLS`` at import time
 and skips FastMCP registration for any tool whose name appears in the
 list. This lets operators (Desktop user_config, MCP launcher env, CI
 bundles) hide specific tools without forking the server code.
@@ -40,7 +40,7 @@ from mcp_server import _optional_tool, _parse_disabled_tools
 
 
 class TestParseDisabledTools:
-    """``CONVERSUS_DISABLED_TOOLS`` env-value parser."""
+    """``DELIBERATOR_DISABLED_TOOLS`` env-value parser."""
 
     def test_none_returns_empty(self) -> None:
         assert _parse_disabled_tools(None) == frozenset()
@@ -52,11 +52,11 @@ class TestParseDisabledTools:
         assert _parse_disabled_tools("   ") == frozenset()
 
     def test_single_name(self) -> None:
-        assert _parse_disabled_tools("conversus_login") == frozenset({"conversus_login"})
+        assert _parse_disabled_tools("deliberator_login") == frozenset({"deliberator_login"})
 
     def test_multiple_names(self) -> None:
-        assert _parse_disabled_tools("conversus_login,conversus_run") == frozenset(
-            {"conversus_login", "conversus_run"}
+        assert _parse_disabled_tools("deliberator_login,deliberator_run") == frozenset(
+            {"deliberator_login", "deliberator_run"}
         )
 
     def test_whitespace_around_names_stripped(self) -> None:

@@ -1,4 +1,4 @@
-"""Non-blocking JSON Schema validator for conversus deliberation outputs.
+"""Non-blocking JSON Schema validator for deliberator deliberation outputs.
 
 Implements the F2 class signatures specified in v4.2.0 spec § 5.1.
 
@@ -113,7 +113,7 @@ class ValidationResult(BaseModel):
 
 
 class SchemaValidator:
-    """Non-blocking JSON Schema validator for conversus deliberation outputs.
+    """Non-blocking JSON Schema validator for deliberator deliberation outputs.
 
     Per v4.2.0 spec § 5.1 (F2):
     - `validate()` NEVER raises on conformance failure.
@@ -137,7 +137,7 @@ class SchemaValidator:
         Args:
             schema_dir: Path to the directory containing envelope.schema.json
                 + (eventually) the six body schemas. Typically
-                `engine/schema/v1/` within conversus-oss.
+                `engine/schema/v1/` within deliberator.
 
         Raises:
             RuntimeError: if `schema_dir` is missing or required schemas are

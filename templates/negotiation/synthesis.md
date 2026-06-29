@@ -97,7 +97,7 @@ If inter-round arbitration fired in prior rounds, list terms that were addressed
 
 If no prior-round arbitration exists, omit this section entirely.
 
-<!-- CONVERSUS:DISPUTES_BEGIN -->
+<!-- DELIBERATOR:DISPUTES_BEGIN -->
 ### Unresolved Terms
 
 Terms that survived the full negotiation process. For each:
@@ -107,7 +107,7 @@ Terms that survived the full negotiation process. For each:
   - **Interest analysis**: What underlying interests drive each party's position on this term.
   - **Mediator assessment**: Which position better serves the overall deal, or why neither is clearly superior.
   - **Recommended resolution**: Accept party A's term / Accept party B's term / Compromise (state the specific compromise term) / Defer with conditions (state what information is needed).
-<!-- CONVERSUS:DISPUTES_END -->
+<!-- DELIBERATOR:DISPUTES_END -->
 
 ### Recommended Deal
 

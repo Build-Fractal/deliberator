@@ -1,5 +1,5 @@
 """
-Test suite for the conversus quality gate checker (linter/quality.py).
+Test suite for the deliberator quality gate checker (linter/quality.py).
 
 Exercises both gates (substantive disagreement + agent attributions) against
 all 3 S01 reference outputs with known expected results, plus edge cases.
@@ -42,7 +42,7 @@ except ImportError:
 # ---------------------------------------------------------------------------
 
 # Root of reference outputs relative to this file
-_REF_ROOT: Path = Path(__file__).resolve().parent.parent / "conversus" / "quality_floor" / "reference-outputs"
+_REF_ROOT: Path = Path(__file__).resolve().parent.parent / "deliberator" / "quality_floor" / "reference-outputs"
 
 
 @pytest.fixture(scope="session")
@@ -147,9 +147,9 @@ class TestDisagreementGate:
     def test_empty_block_between_markers(self) -> None:
         text = (
             "# Synthesis\n"
-            "<!-- CONVERSUS:DISPUTES_BEGIN -->\n"
+            "<!-- DELIBERATOR:DISPUTES_BEGIN -->\n"
             "\n"
-            "<!-- CONVERSUS:DISPUTES_END -->\n"
+            "<!-- DELIBERATOR:DISPUTES_END -->\n"
         )
         result = check_disagreement(text)
         assert result.passed is False
@@ -157,11 +157,11 @@ class TestDisagreementGate:
 
     def test_markers_with_only_none_negation(self) -> None:
         text = (
-            "<!-- CONVERSUS:DISPUTES_BEGIN -->\n"
+            "<!-- DELIBERATOR:DISPUTES_BEGIN -->\n"
             "### Remaining Disputes\n\n"
             "**None.**\n\n"
             "There are no remaining disputes.\n"
-            "<!-- CONVERSUS:DISPUTES_END -->\n"
+            "<!-- DELIBERATOR:DISPUTES_END -->\n"
         )
         result = check_disagreement(text)
         assert result.passed is False
@@ -169,10 +169,10 @@ class TestDisagreementGate:
 
     def test_markers_with_no_remaining_disputes(self) -> None:
         text = (
-            "<!-- CONVERSUS:DISPUTES_BEGIN -->\n"
+            "<!-- DELIBERATOR:DISPUTES_BEGIN -->\n"
             "### Remaining Disputes\n\n"
             "no remaining disputes\n"
-            "<!-- CONVERSUS:DISPUTES_END -->\n"
+            "<!-- DELIBERATOR:DISPUTES_END -->\n"
         )
         result = check_disagreement(text)
         assert result.passed is False
@@ -181,7 +181,7 @@ class TestDisagreementGate:
     def test_begin_marker_only_no_end(self) -> None:
         """BEGIN without END — should parse everything after BEGIN."""
         text = (
-            "<!-- CONVERSUS:DISPUTES_BEGIN -->\n"
+            "<!-- DELIBERATOR:DISPUTES_BEGIN -->\n"
             "**Dispute: Test Dispute**\n\n"
             "*Pragmatist:* Position A\n"
             "*Devil's Advocate:* Position B\n"
@@ -219,7 +219,7 @@ class TestInfluenceAwareDisputeCounting:
     # Three-dispute fixture — all three named "D1", "D2", "D3" inside their
     # labels so a substring match against ["D2"] removes exactly one.
     _THREE_DISPUTE_TEXT: str = (
-        "<!-- CONVERSUS:DISPUTES_BEGIN -->\n"
+        "<!-- DELIBERATOR:DISPUTES_BEGIN -->\n"
         "**Dispute: D1 — first disagreement**\n\n"
         "*Pragmatist:* Position A\n"
         "*Devil's Advocate:* Position B\n\n"
@@ -229,7 +229,7 @@ class TestInfluenceAwareDisputeCounting:
         "**Dispute: D3 — third disagreement**\n\n"
         "*Pragmatist:* Position E\n"
         "*Devil's Advocate:* Position F\n"
-        "<!-- CONVERSUS:DISPUTES_END -->\n"
+        "<!-- DELIBERATOR:DISPUTES_END -->\n"
     )
 
     def test_check_disagreement_binding_removes_addressed_disputes(self) -> None:
@@ -536,14 +536,14 @@ class TestModeSpecificDisagreement:
     def test_wta_marker_based_finds_disputes(self) -> None:
         """WTA with DISPUTES markers uses standard marker parsing."""
         text = (
-            "<!-- CONVERSUS:DISPUTES_BEGIN -->\n"
+            "<!-- DELIBERATOR:DISPUTES_BEGIN -->\n"
             "**Dispute: Benchmark Representativeness**\n\n"
             "*Agent-A:* Position A\n"
             "*Agent-B:* Position B\n\n"
             "**Dispute: Scope Creep**\n\n"
             "*Agent-A:* Position C\n"
             "*Agent-B:* Position D\n"
-            "<!-- CONVERSUS:DISPUTES_END -->\n"
+            "<!-- DELIBERATOR:DISPUTES_END -->\n"
         )
         result = check_disagreement(text, "winner-take-all")
         assert result.passed is True
@@ -587,11 +587,11 @@ class TestModeSpecificDisagreement:
     def test_red_blue_marker_based_finds_disputes(self) -> None:
         """Red-blue with DISPUTES markers uses standard marker parsing."""
         text = (
-            "<!-- CONVERSUS:DISPUTES_BEGIN -->\n"
+            "<!-- DELIBERATOR:DISPUTES_BEGIN -->\n"
             "**Dispute: RISK-002 VPC Flow Log Gap**\n\n"
             "*Red-Team:* Position A\n"
             "*Blue-Team:* Position B\n"
-            "<!-- CONVERSUS:DISPUTES_END -->\n"
+            "<!-- DELIBERATOR:DISPUTES_END -->\n"
         )
         result = check_disagreement(text, "red-blue")
         assert result.passed is True
@@ -639,11 +639,11 @@ class TestModeSpecificDisagreement:
     def test_pd_marker_based_finds_disputes(self) -> None:
         """PD with DISPUTES markers uses standard marker parsing."""
         text = (
-            "<!-- CONVERSUS:DISPUTES_BEGIN -->\n"
+            "<!-- DELIBERATOR:DISPUTES_BEGIN -->\n"
             "**Dispute: Alert Routing Ownership**\n\n"
             "*Platform-Advocate:* Position A\n"
             "*Product-Advocate:* Position B\n"
-            "<!-- CONVERSUS:DISPUTES_END -->\n"
+            "<!-- DELIBERATOR:DISPUTES_END -->\n"
         )
         result = check_disagreement(text, "prisoners-dilemma")
         assert result.passed is True
@@ -691,11 +691,11 @@ class TestModeSpecificDisagreement:
     def test_cooperative_marker_based_unchanged(self) -> None:
         """Cooperative marker-based parsing still works as before."""
         text = (
-            "<!-- CONVERSUS:DISPUTES_BEGIN -->\n"
+            "<!-- DELIBERATOR:DISPUTES_BEGIN -->\n"
             "**Dispute: Timeline Shape**\n\n"
             "*Pragmatist:* Position A\n"
             "*Devil's Advocate:* Position B\n"
-            "<!-- CONVERSUS:DISPUTES_END -->\n"
+            "<!-- DELIBERATOR:DISPUTES_END -->\n"
         )
         result = check_disagreement(text, "cooperative")
         assert result.passed is True
@@ -732,11 +732,11 @@ class TestModeSpecificDisagreement:
     def test_markers_present_heading_absent_uses_markers(self) -> None:
         """When markers are present, heading-based fallback is NOT used."""
         text = (
-            "<!-- CONVERSUS:DISPUTES_BEGIN -->\n"
+            "<!-- DELIBERATOR:DISPUTES_BEGIN -->\n"
             "**Dispute: Marker Dispute**\n\n"
             "*Agent-A:* X\n"
             "*Agent-B:* Y\n"
-            "<!-- CONVERSUS:DISPUTES_END -->\n"
+            "<!-- DELIBERATOR:DISPUTES_END -->\n"
             "### Disputed Risks\n\n"
             "**[RISK-001]: Should be ignored**\n"
         )
@@ -768,8 +768,8 @@ class TestModeSpecificDisagreement:
         """Load WTA fixture, strip markers, verify heading fallback."""
         text = _load_ref("passing/winner-take-all-fixture/summary/final.md")
         # Remove DISPUTES markers to force heading-based fallback
-        text = text.replace("<!-- CONVERSUS:DISPUTES_BEGIN -->", "")
-        text = text.replace("<!-- CONVERSUS:DISPUTES_END -->", "")
+        text = text.replace("<!-- DELIBERATOR:DISPUTES_BEGIN -->", "")
+        text = text.replace("<!-- DELIBERATOR:DISPUTES_END -->", "")
         result = check_disagreement(text, "winner-take-all")
         assert result.passed is True
         # Should find: 1 Runner-Up + 2 Remaining Disputes = 3
@@ -785,8 +785,8 @@ class TestModeSpecificDisagreement:
     def test_red_blue_fixture_heading_fallback(self) -> None:
         """Load red-blue fixture, strip markers, verify heading fallback."""
         text = _load_ref("passing/red-blue-fixture/summary/final.md")
-        text = text.replace("<!-- CONVERSUS:DISPUTES_BEGIN -->", "")
-        text = text.replace("<!-- CONVERSUS:DISPUTES_END -->", "")
+        text = text.replace("<!-- DELIBERATOR:DISPUTES_BEGIN -->", "")
+        text = text.replace("<!-- DELIBERATOR:DISPUTES_END -->", "")
         result = check_disagreement(text, "red-blue")
         assert result.passed is True
         assert result.dispute_count == 2
@@ -804,8 +804,8 @@ class TestModeSpecificDisagreement:
     def test_pd_fixture_heading_fallback(self) -> None:
         """Load PD fixture, strip markers, verify heading fallback."""
         text = _load_ref("passing/prisoners-dilemma-fixture/summary/final.md")
-        text = text.replace("<!-- CONVERSUS:DISPUTES_BEGIN -->", "")
-        text = text.replace("<!-- CONVERSUS:DISPUTES_END -->", "")
+        text = text.replace("<!-- DELIBERATOR:DISPUTES_BEGIN -->", "")
+        text = text.replace("<!-- DELIBERATOR:DISPUTES_END -->", "")
         result = check_disagreement(text, "prisoners-dilemma")
         assert result.passed is True
         assert result.dispute_count == 2

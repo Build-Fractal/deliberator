@@ -4,10 +4,10 @@ Plugins observe deliberation state and produce advisory output. They never modif
 
 ## Plugin ABC
 
-Every plugin extends `conversus.plugins.base.Plugin`:
+Every plugin extends `deliberator.plugins.base.Plugin`:
 
 ```python
-from conversus.plugins.base import (
+from deliberator.plugins.base import (
     DeliberationState,
     HookPoint,
     Plugin,
@@ -144,7 +144,7 @@ Plugin-specific config is passed at instantiation via the config file:
 ```yaml
 plugins:
   - name: equilibrium-scorer
-    package: conversus.plugins.nashopt
+    package: deliberator.plugins.nashopt
     config:
       threshold: 0.85
       gamma: 1.0
@@ -174,7 +174,7 @@ If a package is not installed, a warning is logged and that plugin is skipped. N
 ```python
 """Simple plugin that logs deliberation metrics."""
 
-from conversus.plugins.base import (
+from deliberator.plugins.base import (
     DeliberationState,
     HookPoint,
     Plugin,
@@ -235,7 +235,7 @@ The framework uses a catch-and-skip strategy for plugin failures:
 2. **Recommended patterns:**
     - **Raise freely.** You do not need to wrap your `execute()` body in try/except. The framework catches all exceptions, so let errors propagate naturally.
     - **Use safe access for consumed data.** When reading data from upstream plugins, use `state.plugin_results.get("key", default)` rather than direct indexing. If a producer plugin failed or was skipped, the key will be absent.
-    - **Check warning-level logs during development.** Plugin load failures, missing `produces` keys, and execution exceptions all appear at warning level in the `conversus.plugins` logger.
+    - **Check warning-level logs during development.** Plugin load failures, missing `produces` keys, and execution exceptions all appear at warning level in the `deliberator.plugins` logger.
 
 These are recommended patterns based on the current implementation, not contractual guarantees.
 
@@ -243,6 +243,6 @@ These are recommended patterns based on the current implementation, not contract
 
 | Plugin | Package | Hooks | Produces |
 |--------|---------|-------|----------|
-| `equilibrium-scorer` | `conversus.plugins.nashopt` | POST_PHASE_5, POST_DELIBERATION | `equilibrium_score` |
-| `optimizer` | `conversus.plugins.optimizer` | POST_DELIBERATION | (configurable) |
-| `scenarios` | `conversus.plugins.scenarios` | POST_PHASE_5 | (configurable) |
+| `equilibrium-scorer` | `deliberator.plugins.nashopt` | POST_PHASE_5, POST_DELIBERATION | `equilibrium_score` |
+| `optimizer` | `deliberator.plugins.optimizer` | POST_DELIBERATION | (configurable) |
+| `scenarios` | `deliberator.plugins.scenarios` | POST_PHASE_5 | (configurable) |

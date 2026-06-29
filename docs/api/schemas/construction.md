@@ -4,7 +4,7 @@ Guided objective function construction from natural-language prompts through dec
 
 This module implements the full construction pipeline: classifying a user's natural-language prompt into a `DecisionType`, selecting candidate objective templates, extracting explicit parameters, identifying gaps (missing required parameters), filling those gaps via a `GapFiller` strategy, and assembling the final `AssembledObjective`. The pipeline can run non-interactively (fail on gaps) or interactively (prompt the user). Template loading functions read objective and constraint templates from the bundled YAML schema files.
 
-::: conversus.schemas.construction
+::: deliberator.schemas.construction
     options:
       members:
         - DecisionType

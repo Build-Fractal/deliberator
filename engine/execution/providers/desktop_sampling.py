@@ -36,7 +36,7 @@ from engine.execution.provider import (
     ExecutionTask,
 )
 
-logger = logging.getLogger("conversus.providers.desktop_sampling")
+logger = logging.getLogger("deliberator.providers.desktop_sampling")
 
 
 class DesktopSamplingProvider:

@@ -39,7 +39,7 @@ from linter.question_classifier import ClassificationResult
 
 @pytest.fixture
 def sdk_config_path(tmp_path: Path) -> Path:
-    """Create a minimal but valid conversus config in a temp directory.
+    """Create a minimal but valid deliberator config in a temp directory.
 
     Returns the path to the config file.  Output is routed to tmp_path so
     tests never pollute the project tree.
@@ -59,7 +59,7 @@ def sdk_config_path(tmp_path: Path) -> Path:
             {"name": "agent-beta", "prompt": "Beta perspective."},
         ],
     }
-    config_path = tmp_path / "conversus.yml"
+    config_path = tmp_path / "deliberator.yml"
     config_path.write_text(yaml.dump(config_data, sort_keys=False))
     return config_path
 
@@ -221,7 +221,7 @@ class TestValidate:
         assert "synthesis" in result.cost_estimate
 
     def test_invalid_path_returns_invalid_result(self) -> None:
-        result = validate(Path("/nonexistent/conversus.yml"))
+        result = validate(Path("/nonexistent/deliberator.yml"))
 
         assert isinstance(result, ValidateResult)
         assert result.valid is False
@@ -286,7 +286,7 @@ class TestValidate:
                 {"name": "agent-beta", "prompt": "Beta perspective."},
             ],
         }
-        config_path = tmp_path / "conversus.yml"
+        config_path = tmp_path / "deliberator.yml"
         config_path.write_text(yaml.dump(config_data, sort_keys=False))
 
         result = validate(config_path)

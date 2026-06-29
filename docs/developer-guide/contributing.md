@@ -43,12 +43,12 @@ All Pydantic models must use `model_config = {"frozen": True}`. No mutation afte
 
 ### Import discipline
 
-The `conversus/` package must not import from `engine/`, `linter/`, `web/`, or `mcp_server`. This is the fundamental coupling rule. Domain plugins must not import from `engine/` either.
+The `deliberator/` package must not import from `engine/`, `linter/`, `web/`, or `mcp_server`. This is the fundamental coupling rule. Domain plugins must not import from `engine/` either.
 
 ```python
-# conversus/plugins/nashopt/scorer.py
-from conversus.plugins.base import Plugin       # OK: same package
-from conversus.schemas.features import ...      # OK: schemas package
+# deliberator/plugins/nashopt/scorer.py
+from deliberator.plugins.base import Plugin       # OK: same package
+from deliberator.schemas.features import ...      # OK: schemas package
 from engine.phases import run_pipeline          # FORBIDDEN
 ```
 
@@ -74,7 +74,7 @@ uv run pytest -x -q                    # 1300+ tests
 uv run python3 -m linter.validate      # Template validation
 ```
 
-4. **Write a conversus.yml** for non-trivial changes. Self-review your PR with conversus before requesting human review:
+4. **Write a deliberator.yml** for non-trivial changes. Self-review your PR with deliberator before requesting human review:
 
 ```yaml
 mode: red-blue
@@ -91,38 +91,38 @@ agents:
 
 5. **PR title**: Short, imperative (`Add Bayesian game form`, `Fix arbiter trigger logic`).
 
-6. **PR body**: What changed, why, and how to verify. Include conversus output if you ran a self-review.
+6. **PR body**: What changed, why, and how to verify. Include deliberator output if you ran a self-review.
 
 ## Spec-driven development
 
 Major features start as specs in `specs/`. The workflow:
 
 1. Write a spec (problem statement, requirements, success criteria).
-2. Run conversus against the spec for adversarial review.
+2. Run deliberator against the spec for adversarial review.
 3. Implement based on the reviewed spec.
-4. Run conversus gate checks against the implementation.
+4. Run deliberator gate checks against the implementation.
 
 Specs live in `specs/done/{NNN}-{feature-name}/` after completion.
 
-## Conversus reviews before merge
+## Deliberator reviews before merge
 
-For significant changes, run a conversus deliberation before merge:
+For significant changes, run a deliberator deliberation before merge:
 
 ```bash
 # Quick self-review
-uv run conversus decide "Should we merge this change? [paste summary]" --provider anthropic
+uv run deliberator decide "Should we merge this change? [paste summary]" --provider anthropic
 
 # Full review against the spec
-uv run conversus run specs/my-feature/conversus.yml --provider anthropic
+uv run deliberator run specs/my-feature/deliberator.yml --provider anthropic
 ```
 
-Include the conversus output (or a summary) in the PR description.
+Include the deliberator output (or a summary) in the PR description.
 
 ## Architecture decisions
 
 When making architectural choices, consider:
 
-- **Does this violate the layer coupling rules?** `conversus/` must not import `engine/`.
+- **Does this violate the layer coupling rules?** `deliberator/` must not import `engine/`.
 - **Is the model frozen?** All Pydantic models must be immutable.
 - **Is the function pure?** Prefer pure functions over stateful classes.
 - **Is the plugin isolated?** Plugin failures must not crash the pipeline.
@@ -133,7 +133,7 @@ When making architectural choices, consider:
 Typical steps:
 
 1. Add schema YAML if needed (`schema/`).
-2. Add Pydantic models if needed (`conversus/schemas/`).
+2. Add Pydantic models if needed (`deliberator/schemas/`).
 3. Implement core logic as pure functions.
 4. Add tests alongside the implementation.
 5. Wire into the engine if it's a pipeline change (`engine/`).

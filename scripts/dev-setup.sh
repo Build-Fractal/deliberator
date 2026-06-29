@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ---------------------------------------------------------------------------
-# dev-setup.sh — Bootstrap a conversus development environment.
+# dev-setup.sh — Bootstrap a deliberator development environment.
 #
 # Checks for required CLI tools and agent runtimes, installs missing ones
 # (with user consent), and prints a summary table.
@@ -63,7 +63,7 @@ while [[ $# -gt 0 ]]; do
             echo "  --check-only   Print status without installing anything"
             echo "  --skip LIST    Comma-separated list of tools to skip"
             echo ""
-            echo "Tools: python, conversus, claude, aider, opencode, ollama,"
+            echo "Tools: python, deliberator, claude, aider, opencode, ollama,"
             echo "       codex, gemini, gh, llama-server, vllm"
             exit 0
             ;;
@@ -167,41 +167,41 @@ check_python() {
 }
 
 # ---------------------------------------------------------------------------
-# 2. conversus (local editable install)
+# 2. deliberator (local editable install)
 # ---------------------------------------------------------------------------
 
-check_conversus() {
-    info "Checking conversus package ..."
+check_deliberator() {
+    info "Checking deliberator package ..."
 
-    if should_skip "conversus"; then
-        warn "Skipping conversus"
-        record "conversus" "skipped" "--skip"
+    if should_skip "deliberator"; then
+        warn "Skipping deliberator"
+        record "deliberator" "skipped" "--skip"
         return 0
     fi
 
-    if command -v conversus &>/dev/null; then
-        ok "conversus already installed"
-        record "conversus" "installed" "$(command -v conversus)"
+    if command -v deliberator &>/dev/null; then
+        ok "deliberator already installed"
+        record "deliberator" "installed" "$(command -v deliberator)"
         return 0
     fi
 
     if $CHECK_ONLY; then
-        warn "conversus not installed"
-        record "conversus" "missing" "pip install -e ."
+        warn "deliberator not installed"
+        record "deliberator" "missing" "pip install -e ."
         return 1
     fi
 
-    info "Installing conversus from local repo (editable) ..."
+    info "Installing deliberator from local repo (editable) ..."
     local pip
     pip="$(pip_cmd)"
     if (cd "$PROJECT_ROOT" && "$pip" install -e . 2>&1); then
-        ok "conversus installed"
-        record "conversus" "installed" "editable from $PROJECT_ROOT"
+        ok "deliberator installed"
+        record "deliberator" "installed" "editable from $PROJECT_ROOT"
         return 0
     fi
 
-    fail "conversus install failed"
-    record "conversus" "failed" "run: cd $PROJECT_ROOT && pip install -e ."
+    fail "deliberator install failed"
+    record "deliberator" "failed" "run: cd $PROJECT_ROOT && pip install -e ."
     return 1
 }
 
@@ -570,7 +570,7 @@ print_summary() {
 
 main() {
     echo ""
-    printf "${BOLD}${CYAN}conversus dev-setup${NC}"
+    printf "${BOLD}${CYAN}deliberator dev-setup${NC}"
     if $CHECK_ONLY; then
         printf " ${DIM}(check-only mode)${NC}"
     fi
@@ -578,7 +578,7 @@ main() {
     echo ""
 
     check_python
-    check_conversus
+    check_deliberator
 
     # Agent runtimes
     check_claude

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://build-fractal.org/conversus/schema/v1/review.schema.json",
-  "title": "Conversus Review Body — Phase 1 initial review per agent",
+  "$id": "https://build-fractal.org/deliberator/schema/v1/review.schema.json",
+  "title": "Deliberator Review Body — Phase 1 initial review per agent",
   "description": "Per v4.2.0 spec § 4.2. Wrapped by envelope.schema.json with output_type='review'.",
   "type": "object",
   "required": ["summary_assessment", "strengths", "concerns", "questions", "recommendation"],

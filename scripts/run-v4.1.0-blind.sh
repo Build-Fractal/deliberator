@@ -2,7 +2,7 @@
 #
 # run-v4.1.0-self-consistency.sh — orchestrated runner for the v4.1.0 BLIND-VERIFICATION
 # verification stage (stage 2 of 3 per spec 067). Handles pre-flight checks, the
-# actual conversus run invocation, and post-flight commit + push of the outputs.
+# actual deliberator run invocation, and post-flight commit + push of the outputs.
 #
 # Stage 1 (originating, completed 2026-05-12) lives at:
 #   deliberations/v4.1.0-persistence-contract-discipline-originating-2026-05-11/
@@ -25,7 +25,7 @@ set -euo pipefail
 # --------------------------------------------------------------------------
 SPEC_BRANCH="spec/v4.1.0-persistence-contract-discipline"
 DELIB_DIR="deliberations/v4.1.0-persistence-contract-discipline-blind-2026-05-12"
-CONFIG_PATH="${DELIB_DIR}/conversus.yml"
+CONFIG_PATH="${DELIB_DIR}/deliberator.yml"
 PROVIDER="claude-code"
 EXPECTED_LAUNCHES=42
 
@@ -62,11 +62,11 @@ done
 # --------------------------------------------------------------------------
 hdr "Pre-flight"
 
-# We expect to be inside conversus-oss
+# We expect to be inside deliberator
 if [[ ! -d "engine" || ! -d "linter" || ! -f "pyproject.toml" ]]; then
-    fail "Not inside conversus-oss. cd to build-fractal/conversus/conversus-oss/ first."
+    fail "Not inside deliberator. cd to build-fractal/deliberator/deliberator/ first."
 fi
-ok "Inside conversus-oss ($(pwd))"
+ok "Inside deliberator ($(pwd))"
 
 # Branch check
 current_branch=$(git branch --show-current)
@@ -89,17 +89,17 @@ if [[ ! -f "$CONFIG_PATH" ]]; then
 fi
 ok "Config present: $CONFIG_PATH"
 
-# Conversus CLI available
-if ! command -v conversus &>/dev/null; then
-    fail "conversus CLI not on PATH. Install or activate the venv first."
+# Deliberator CLI available
+if ! command -v deliberator &>/dev/null; then
+    fail "deliberator CLI not on PATH. Install or activate the venv first."
 fi
-ok "conversus CLI: $(which conversus)"
+ok "deliberator CLI: $(which deliberator)"
 
 # Validate config
 say "Validating config..."
-if ! conversus validate "$CONFIG_PATH" >/dev/null 2>&1; then
+if ! deliberator validate "$CONFIG_PATH" >/dev/null 2>&1; then
     warn "Validation reports issues; showing details:"
-    conversus validate "$CONFIG_PATH" || true
+    deliberator validate "$CONFIG_PATH" || true
     read -r -p "Continue anyway? [y/N] " ans
     [[ "$ans" =~ ^[Yy]$ ]] || fail "Abort: config validation failed."
 fi
@@ -153,11 +153,11 @@ if [[ "$MODE" == "interactive" ]]; then
 fi
 
 start_ts=$(date +%s)
-log_file="/tmp/conversus-v4.1.0-self-consistency-$(date +%Y%m%d-%H%M%S).log"
+log_file="/tmp/deliberator-v4.1.0-self-consistency-$(date +%Y%m%d-%H%M%S).log"
 say "Logging to: $log_file"
 
 set +e
-conversus run "$CONFIG_PATH" --provider "$PROVIDER" 2>&1 | tee "$log_file"
+deliberator run "$CONFIG_PATH" --provider "$PROVIDER" 2>&1 | tee "$log_file"
 exit_code=${PIPESTATUS[0]}
 set -e
 
@@ -174,7 +174,7 @@ Log: $log_file
 
 Common causes:
   - Rate limit (429): wait 5-10 min, re-run; Anthropic OAuth budget is per-minute
-  - Auth (401): token expired, run \`conversus login anthropic\` in a real terminal
+  - Auth (401): token expired, run \`deliberator login anthropic\` in a real terminal
   - Provider model mismatch: check $CONFIG_PATH agents have valid model names
   - Arbitration prompt overflow: only if synthesis output is huge (>200K chars)
 

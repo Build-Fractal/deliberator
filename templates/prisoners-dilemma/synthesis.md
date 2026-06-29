@@ -104,7 +104,7 @@ If inter-round arbitration fired in prior rounds, list disputes that were addres
 
 If no prior-round arbitration exists, omit this section entirely.
 
-<!-- CONVERSUS:DISPUTES_BEGIN -->
+<!-- DELIBERATOR:DISPUTES_BEGIN -->
 ## Disputed Boundaries
 
 Boundaries that remained contested through Phase 4, with the arbiter's resolution.
@@ -124,7 +124,7 @@ Rules:
 - Evaluate evidence quality, not argument volume. A single strong architectural reason outweighs three weak anecdotal claims.
 - When evidence is genuinely balanced, prefer the participant with the higher accuracy score — they have demonstrated more reliable self-assessment.
 - If a dispute cannot be resolved on evidence, say so. Recommend a decision process (e.g., "prototype both approaches and measure") rather than making an unsupported ruling.
-<!-- CONVERSUS:DISPUTES_END -->
+<!-- DELIBERATOR:DISPUTES_END -->
 
 ## Recommended Assignments
 

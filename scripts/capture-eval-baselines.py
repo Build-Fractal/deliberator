@@ -333,7 +333,7 @@ def capture_snapshot(
         validate_templates=True,
     )
     provider = resolve_execution_provider(deliberation_provider)
-    config_path = work_dir / "conversus.yml"
+    config_path = work_dir / "deliberator.yml"
     config_path.write_text("# capture-eval-baselines stub\n", encoding="utf-8")
     result = asyncio.run(
         run_pipeline(config, provider, NullEmitter(), config_path=config_path)
@@ -494,18 +494,18 @@ def _parse_args(argv: list[str]) -> argparse.Namespace:
     )
     parser.add_argument(
         "--deliberation-provider",
-        default=os.environ.get("CONVERSUS_EVAL_PROVIDER", "claude-code"),
-        help="Provider used to run the deliberation. Defaults to CONVERSUS_EVAL_PROVIDER or claude-code.",
+        default=os.environ.get("DELIBERATOR_EVAL_PROVIDER", "claude-code"),
+        help="Provider used to run the deliberation. Defaults to DELIBERATOR_EVAL_PROVIDER or claude-code.",
     )
     parser.add_argument(
         "--judge-provider",
-        default=os.environ.get("CONVERSUS_EVAL_JUDGE_PROVIDER", "anthropic"),
+        default=os.environ.get("DELIBERATOR_EVAL_JUDGE_PROVIDER", "anthropic"),
         help="Judge provider used to score artifacts. Defaults to anthropic.",
     )
     parser.add_argument(
         "--judge-model",
         default=os.environ.get(
-            "CONVERSUS_EVAL_JUDGE_MODEL", "claude-sonnet-4-20250514"
+            "DELIBERATOR_EVAL_JUDGE_MODEL", "claude-sonnet-4-20250514"
         ),
         help="Judge model name. Defaults to claude-sonnet-4-20250514.",
     )

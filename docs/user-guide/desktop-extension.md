@@ -1,18 +1,18 @@
 # Claude Desktop Extension (`.mcpb`)
 
-The fastest way to get conversus running in Claude Desktop — **no Python install, no terminal, no pip**. Double-click a bundle file and Claude Desktop installs it in one click.
+The fastest way to get deliberator running in Claude Desktop — **no Python install, no terminal, no pip**. Double-click a bundle file and Claude Desktop installs it in one click.
 
 ## What it is
 
 A Claude Desktop **Extension** is a `.mcpb` (MCP Bundle) — a ZIP archive containing a manifest and a self-contained MCP server. When you install it, Claude Desktop registers the MCP server and makes its tools available to Claude automatically.
 
-For conversus, the bundle ships three tools:
+For deliberator, the bundle ships three tools:
 
 | Tool | What it does |
 |---|---|
-| `conversus_decide` | Run an ad-hoc deliberation on a natural-language question |
-| `conversus_run` | Run or parse a full deliberation from a YAML config file |
-| `conversus_validate` | Validate a config and show the estimated LLM launch count |
+| `deliberator_decide` | Run an ad-hoc deliberation on a natural-language question |
+| `deliberator_run` | Run or parse a full deliberation from a YAML config file |
+| `deliberator_validate` | Validate a config and show the estimated LLM launch count |
 
 Once installed, Claude can invoke these tools autonomously — you just describe what you want in plain language ("deliberate on whether we should use Postgres or MongoDB") and Claude picks the right tool and calls it.
 
@@ -24,12 +24,12 @@ Pick the bundle for your platform from the latest release:
 
 | Platform | File |
 |---|---|
-| macOS (Apple Silicon) | [conversus-darwin-arm64.mcpb](https://github.com/Build-Fractal/conversus-oss/releases/latest/download/conversus-darwin-arm64.mcpb) |
-| Linux (x86_64) | [conversus-linux-x86_64.mcpb](https://github.com/Build-Fractal/conversus-oss/releases/latest/download/conversus-linux-x86_64.mcpb) |
-| Windows (x86_64) | [conversus-win-x86_64.mcpb](https://github.com/Build-Fractal/conversus-oss/releases/latest/download/conversus-win-x86_64.mcpb) |
+| macOS (Apple Silicon) | [deliberator-darwin-arm64.mcpb](https://github.com/Build-Fractal/deliberator/releases/latest/download/deliberator-darwin-arm64.mcpb) |
+| Linux (x86_64) | [deliberator-linux-x86_64.mcpb](https://github.com/Build-Fractal/deliberator/releases/latest/download/deliberator-linux-x86_64.mcpb) |
+| Windows (x86_64) | [deliberator-win-x86_64.mcpb](https://github.com/Build-Fractal/deliberator/releases/latest/download/deliberator-win-x86_64.mcpb) |
 
 !!! note "Intel Mac users"
-    GitHub removed the free Intel Mac CI runner, so we don't ship a `darwin-x86_64.mcpb`. Install via `pip install git+https://github.com/Build-Fractal/conversus-oss.git` instead, or open an issue if you need a signed Intel Mac build.
+    GitHub removed the free Intel Mac CI runner, so we don't ship a `darwin-x86_64.mcpb`. Install via `pip install git+https://github.com/Build-Fractal/deliberator.git` instead, or open an issue if you need a signed Intel Mac build.
 
 ### Step 2: Install in Claude Desktop
 
@@ -55,25 +55,25 @@ Once installed, the extension works through **natural language**, not slash comm
 
 Copy-paste these into a new Claude Desktop chat to see each tool in action:
 
-### For an ad-hoc decision (`conversus_decide`)
+### For an ad-hoc decision (`deliberator_decide`)
 
-> Use conversus to deliberate on whether we should use Postgres or MongoDB for a user profile service. Use the cooperative mode.
+> Use deliberator to deliberate on whether we should use Postgres or MongoDB for a user profile service. Use the cooperative mode.
 
-> Run `conversus_decide` on this question: "Should a 3-person team start with microservices or a monolith?" — use red-blue mode.
+> Run `deliberator_decide` on this question: "Should a 3-person team start with microservices or a monolith?" — use red-blue mode.
 
-> I need to pick between Redis and Memcached for session caching. Can you run a quick conversus deliberation on it?
+> I need to pick between Redis and Memcached for session caching. Can you run a quick deliberator deliberation on it?
 
-### For a full deliberation from a config file (`conversus_run`)
+### For a full deliberation from a config file (`deliberator_run`)
 
-> Run the conversus deliberation at `/path/to/my-review/conversus.yml` using the anthropic provider.
+> Run the deliberator deliberation at `/path/to/my-review/deliberator.yml` using the anthropic provider.
 
-> Parse the existing conversus output at `/path/to/deliberations/auth-review/output/` and summarize the verdict.
+> Parse the existing deliberator output at `/path/to/deliberations/auth-review/output/` and summarize the verdict.
 
-### For cost estimation before committing (`conversus_validate`)
+### For cost estimation before committing (`deliberator_validate`)
 
-> Validate the conversus config at `/path/to/my-deliberation/conversus.yml` and tell me how many LLM launches it'll take.
+> Validate the deliberator config at `/path/to/my-deliberation/deliberator.yml` and tell me how many LLM launches it'll take.
 
-> Check if this config is valid and show me the cost: `/path/to/conversus.yml`
+> Check if this config is valid and show me the cost: `/path/to/deliberator.yml`
 
 ## How Claude picks which tool to call
 
@@ -81,36 +81,36 @@ When you send a message in Claude Desktop, it matches your intent against the to
 
 | If you say... | Claude calls... |
 |---|---|
-| "Deliberate on...", "decide between...", "which should we pick..." (with a question, no config file) | `conversus_decide` |
-| "Run the conversus config at...", "parse this output..." (with a file path) | `conversus_run` |
-| "Validate this config", "check the cost", "how many launches..." | `conversus_validate` |
+| "Deliberate on...", "decide between...", "which should we pick..." (with a question, no config file) | `deliberator_decide` |
+| "Run the deliberator config at...", "parse this output..." (with a file path) | `deliberator_run` |
+| "Validate this config", "check the cost", "how many launches..." | `deliberator_validate` |
 
-You can also **explicitly name the tool**: "Use `conversus_decide` to …" bypasses the routing and forces Claude to call that specific tool.
+You can also **explicitly name the tool**: "Use `deliberator_decide` to …" bypasses the routing and forces Claude to call that specific tool.
 
 ## Troubleshooting: "nothing happens after install"
 
 If you install the extension, ask Claude a question, and nothing happens:
 
 1. **Restart Claude Desktop.** Extensions load at startup — a new install may not take effect until you close and reopen the app.
-2. **Check the extensions panel.** Settings → Extensions — conversus should appear with a green "Installed" indicator. If it shows an error, the bundle failed to load (usually a Python version mismatch or missing compiled dependency).
-3. **Verify the tools are registered.** Start a new chat and ask: "What MCP tools do you have access to?" Claude should list `conversus_decide`, `conversus_run`, and `conversus_validate`. If it doesn't, the MCP server failed to start.
-4. **Check the logs.** Claude Desktop writes MCP server output to its logs — look for errors from the conversus server. On macOS: `~/Library/Logs/Claude/mcp.log` (or similar).
-5. **Test with an explicit tool call.** Try: "Call the `conversus_decide` tool with the question 'Postgres or MongoDB?' and the provider 'mock'". If this works but natural language doesn't, it's a phrasing problem — match the verbs in the tool descriptions more closely.
+2. **Check the extensions panel.** Settings → Extensions — deliberator should appear with a green "Installed" indicator. If it shows an error, the bundle failed to load (usually a Python version mismatch or missing compiled dependency).
+3. **Verify the tools are registered.** Start a new chat and ask: "What MCP tools do you have access to?" Claude should list `deliberator_decide`, `deliberator_run`, and `deliberator_validate`. If it doesn't, the MCP server failed to start.
+4. **Check the logs.** Claude Desktop writes MCP server output to its logs — look for errors from the deliberator server. On macOS: `~/Library/Logs/Claude/mcp.log` (or similar).
+5. **Test with an explicit tool call.** Try: "Call the `deliberator_decide` tool with the question 'Postgres or MongoDB?' and the provider 'mock'". If this works but natural language doesn't, it's a phrasing problem — match the verbs in the tool descriptions more closely.
 
 ## What's inside the bundle
 
 The `.mcpb` is a ZIP with this structure:
 
 ```
-conversus.mcpb (ZIP)
+deliberator.mcpb (ZIP)
 ├── manifest.json         # MCPB v0.3 manifest describing the extension
 └── server/
     ├── main.py           # Bootstrap entry point
     ├── mcp_server.py     # FastMCP server exposing the 3 tools
-    └── lib/              # conversus + all Python dependencies (~90MB)
+    └── lib/              # deliberator + all Python dependencies (~90MB)
 ```
 
-The bundle is **self-contained** — `server/lib/` ships the entire conversus Python package plus transitive dependencies (anthropic, openai, pydantic, mcp, click, rich, and ~40 more). Claude Desktop's bundled Python runs `server/main.py`, which bootstraps `sys.path` from the bundled `lib/` directory and starts the MCP server.
+The bundle is **self-contained** — `server/lib/` ships the entire deliberator Python package plus transitive dependencies (anthropic, openai, pydantic, mcp, click, rich, and ~40 more). Claude Desktop's bundled Python runs `server/main.py`, which bootstraps `sys.path` from the bundled `lib/` directory and starts the MCP server.
 
 This means:
 
@@ -124,25 +124,25 @@ When you install the extension, Claude Desktop shows a warning:
 
 > Installing will grant this extension access to everything on your computer. Any developer information shown has not been verified by Anthropic. Ensure you trust the source of this extension before installation.
 
-This is a **generic warning shown for all extensions**, not a security issue specific to conversus. It's accurate — an MCP server runs with the same permissions as Claude Desktop itself, and only you can verify that the code does what it claims.
+This is a **generic warning shown for all extensions**, not a security issue specific to deliberator. It's accurate — an MCP server runs with the same permissions as Claude Desktop itself, and only you can verify that the code does what it claims.
 
-To audit conversus before installing:
+To audit deliberator before installing:
 
-1. **Read the source** — everything that runs is in the [conversus-oss repo](https://github.com/Build-Fractal/conversus-oss). The `server/main.py` and `server/mcp_server.py` files inside the `.mcpb` are both in the repo and unmodified.
-2. **Inspect the bundle yourself** — a `.mcpb` is just a ZIP: `unzip conversus-darwin-arm64.mcpb` and read the contents.
+1. **Read the source** — everything that runs is in the [deliberator repo](https://github.com/Build-Fractal/deliberator). The `server/main.py` and `server/mcp_server.py` files inside the `.mcpb` are both in the repo and unmodified.
+2. **Inspect the bundle yourself** — a `.mcpb` is just a ZIP: `unzip deliberator-darwin-arm64.mcpb` and read the contents.
 3. **Build it yourself** — clone the repo and run `desktop-extension/build.sh` to produce the same `.mcpb` from source.
 
 ## Updating
 
 Extensions don't auto-update in Claude Desktop. To update:
 
-1. Download the new `.mcpb` from the [releases page](https://github.com/Build-Fractal/conversus-oss/releases)
-2. Settings → Extensions → find conversus → **Uninstall**
+1. Download the new `.mcpb` from the [releases page](https://github.com/Build-Fractal/deliberator/releases)
+2. Settings → Extensions → find deliberator → **Uninstall**
 3. Double-click the new `.mcpb` to install
 
 ## Uninstalling
 
-Settings → Extensions → conversus → **Uninstall**. The bundle and all extracted files are removed.
+Settings → Extensions → deliberator → **Uninstall**. The bundle and all extracted files are removed.
 
 ## Platform compatibility
 
@@ -157,12 +157,12 @@ Settings → Extensions → conversus → **Uninstall**. The bundle and all extr
 
 ## Relationship to other distribution artifacts
 
-The Desktop Extension is one of four conversus distribution channels:
+The Desktop Extension is one of four deliberator distribution channels:
 
 | Channel | Install | Best for |
 |---|---|---|
 | **Desktop Extension** (this page) | Double-click `.mcpb` | Claude Desktop users who want zero-setup install |
-| **Claude Code plugin** | `/plugin marketplace add` | Slash command UX (`/conversus:design`, `/conversus:decide`) |
+| **Claude Code plugin** | `/plugin marketplace add` | Slash command UX (`/deliberator:design`, `/deliberator:decide`) |
 | **MCP server** via `pip install` | `pip install git+...` + `claude mcp add` | Cursor, Windsurf, Zed, Continue, and any MCP client besides Claude Desktop |
 | **Python CLI** | `pip install git+...` | Scripting, CI/CD, terminal power users |
 

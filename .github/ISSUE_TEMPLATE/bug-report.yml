@@ -1,5 +1,5 @@
 name: Bug report
-description: Something in conversus is not working as expected.
+description: Something in deliberator is not working as expected.
 title: "[bug] "
 labels: ["bug", "triage"]
 body:
@@ -8,14 +8,14 @@ body:
       value: |
         Thanks for taking the time to file a bug report. Please fill out the sections below so we can reproduce and fix the issue quickly.
 
-        Before filing, please check whether your issue is already reported in [open issues](https://github.com/Build-Fractal/conversus/issues?q=is%3Aissue+is%3Aopen).
+        Before filing, please check whether your issue is already reported in [open issues](https://github.com/Build-Fractal/deliberator/issues?q=is%3Aissue+is%3Aopen).
 
   - type: textarea
     id: what-happened
     attributes:
       label: What happened?
       description: A clear description of what you observed vs. what you expected.
-      placeholder: "When I ran `conversus run my-config.yml`, the synthesis phase exited with..."
+      placeholder: "When I ran `deliberator run my-config.yml`, the synthesis phase exited with..."
     validations:
       required: true
 
@@ -24,15 +24,15 @@ body:
     attributes:
       label: Reproduction steps
       description: |
-        Exact commands and config to reproduce. If your `conversus.yml` is large, please reduce it to the smallest config that still exhibits the bug.
+        Exact commands and config to reproduce. If your `deliberator.yml` is large, please reduce it to the smallest config that still exhibits the bug.
       placeholder: |
-        1. `conversus init demo-repro && cd demo-repro`
-        2. Replace `conversus.yml` with:
+        1. `deliberator init demo-repro && cd demo-repro`
+        2. Replace `deliberator.yml` with:
            ```yaml
            mode: cooperative
            # ...
            ```
-        3. Run `conversus run conversus.yml --provider mock`
+        3. Run `deliberator run deliberator.yml --provider mock`
         4. Observe error in phase 5
       render: shell
     validations:
@@ -50,8 +50,8 @@ body:
   - type: input
     id: version
     attributes:
-      label: conversus version
-      description: Run `conversus --version` (or `pip show conversus`).
+      label: deliberator version
+      description: Run `deliberator --version` (or `pip show deliberator`).
       placeholder: "0.4.0"
     validations:
       required: true

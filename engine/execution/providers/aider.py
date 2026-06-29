@@ -8,7 +8,7 @@ Install: ``pip install aider-chat``
 Docs: https://aider.chat/docs/install.html
 
 Aider is a Tier 1 agent runtime — it supports autonomous code editing
-via its diff-based edit system.  However, for conversus deliberation
+via its diff-based edit system.  However, for deliberator deliberation
 tasks, we use it in a simpler mode: send a message, capture the
 response, exit.  Aider's full editing capabilities are available via
 the ``--file`` flag for tasks that need file modification.
@@ -96,7 +96,7 @@ DEFAULT_TIMEOUT = 300
 
 
 class AiderProvider(SubprocessProvider):
-    """Execute conversus agent tasks via the ``aider`` CLI.
+    """Execute deliberator agent tasks via the ``aider`` CLI.
 
     Args:
         model: Model name (e.g., ``"sonnet"``, ``"claude-3-5-sonnet"``).

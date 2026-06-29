@@ -2,7 +2,7 @@
 
 Spec 055 §4 Day 5 validation criteria:
 
-    - ``conversus decide "test question" --provider mock`` produces
+    - ``deliberator decide "test question" --provider mock`` produces
       identical output via generated vs hand-written
     - The generated MCP tool has the same signature as the hand-written one
     - All existing tests for ``decide`` still pass against the generated code
@@ -44,7 +44,7 @@ from pathlib import Path
 import click
 import pytest
 
-from conversus.registry.projector import (
+from deliberator.registry.projector import (
     project_to_cli,
     project_to_mcp,
     project_to_mcpb_manifest_tools,
@@ -164,9 +164,9 @@ def test_generated_mcp_tool_has_same_signature_as_hand_written(real_capabilities
     """Spec 055 Day 5 validation: 'The generated MCP tool has the same
     signature as the hand-written one.'
 
-    Hand-written signature from ``mcp_server.py::conversus_decide``:
+    Hand-written signature from ``mcp_server.py::deliberator_decide``:
 
-        def conversus_decide(
+        def deliberator_decide(
             question: str,
             provider: str = "mock",
             mode: str = "cooperative",
@@ -182,7 +182,7 @@ def test_generated_mcp_tool_has_same_signature_as_hand_written(real_capabilities
     source = project_to_mcp(real_capabilities)
     ns = _exec_mcp_source(source)
 
-    fn = ns["conversus_decide"]
+    fn = ns["deliberator_decide"]
     sig = inspect.signature(fn)
 
     params = list(sig.parameters.values())
@@ -227,7 +227,7 @@ def test_generated_decide_plugin_skill_exists(real_capabilities):
     md = skills["decide"]
     assert md.startswith("---\n")
     assert "description:" in md
-    assert "# Conversus Decide" in md
+    assert "# Deliberator Decide" in md
     assert "`--output`" in md
     # CLI-only params visible in plugin docs
     assert "`--output-format`" in md

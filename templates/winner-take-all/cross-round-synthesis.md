@@ -109,7 +109,7 @@ Track how each dispute from the deliberation was resolved. For each dispute that
 
 This section provides the audit trail for dispute resolution attribution across the full multi-round process. Use the per-round arbitration files ({ARBITRATION_PATHS}) and compiled rulings ({ARBITRATION_RULINGS}) to trace arbiter influence on dispute outcomes.
 
-<!-- CONVERSUS:DISPUTES_BEGIN -->
+<!-- DELIBERATOR:DISPUTES_BEGIN -->
 ### Remaining Disputes
 
 Positions that remained genuinely contested across the full multi-round process. For each:
@@ -122,7 +122,7 @@ Positions that remained genuinely contested across the full multi-round process.
   - **Impact on verdict**: Would resolving this contested position differently change the final ranking? If yes, this is a genuine decision risk. If no, it is an academic disagreement.
 
 If no positions remain contested, state: "No remaining contested positions — the final ranking is decisive across all evaluated criteria."
-<!-- CONVERSUS:DISPUTES_END -->
+<!-- DELIBERATOR:DISPUTES_END -->
 
 ### Termination Assessment
 

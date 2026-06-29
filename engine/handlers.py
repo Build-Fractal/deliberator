@@ -1,4 +1,4 @@
-"""Registry-facing handler functions for conversus capabilities.
+"""Registry-facing handler functions for deliberator capabilities.
 
 This module is the target of the ``handler`` import strings declared in
 ``capabilities.py`` at the repo root. Each handler is a plain Python
@@ -72,7 +72,7 @@ from linter.output_contract import parse_synthesis
 from linter.question_classifier import classify_question
 from linter.validate import ValidationConfig, validate_all
 
-logger = logging.getLogger("conversus.handlers")
+logger = logging.getLogger("deliberator.handlers")
 
 
 # ---------------------------------------------------------------------------
@@ -81,7 +81,7 @@ logger = logging.getLogger("conversus.handlers")
 #
 # The MCP entry points (``run_decide_mcp``, ``run_mcp``) accept a narrow,
 # documented set of providers — see the help text in ``mcp_server.py``
-# for ``conversus_run`` and ``conversus_decide``. Even though the engine
+# for ``deliberator_run`` and ``deliberator_decide``. Even though the engine
 # registry can resolve other names (e.g. ``gemini``, ``claude-code``,
 # ``opencode``), those rely on local CLIs / agent runtimes that are not
 # part of the MCP contract; admitting them silently would let the
@@ -137,7 +137,7 @@ def run_decide_mcp(
     Provider and mode resolve through the settings cascade (spec 057):
     CLI flag → project settings → global settings → built-in default.
     The ``"mock"`` default in the function signature is the last-resort
-    fallback; if ``.conversus/settings.yml`` sets ``default_provider:
+    fallback; if ``.deliberator/settings.yml`` sets ``default_provider:
     anthropic``, that takes effect when the caller passes ``"mock"``
     (the signature default).
     """
@@ -264,7 +264,7 @@ def run_decide_mcp(
         else:
             if provider == "claude-desktop":
                 # MCP sampling context not available — fall back to anthropic
-                # credentials if the user has them (from conversus login or
+                # credentials if the user has them (from deliberator login or
                 # ANTHROPIC_API_KEY env var). This makes "claude-desktop" work
                 # even when MCP sampling isn't wired yet.
                 logger.info(
@@ -579,7 +579,7 @@ def _run_in_process(
     tmp_path: Path | None = None
     try:
         fd, tmp_str = tempfile.mkstemp(
-            prefix=".conversus_mcp_", suffix=".yml", dir=Path.cwd()
+            prefix=".deliberator_mcp_", suffix=".yml", dir=Path.cwd()
         )
         tmp_path = Path(tmp_str)
         try:
@@ -691,7 +691,7 @@ def _run_in_process(
 
 
 def validate_mcp(config_yaml: str, question: str = "") -> ValidateResult:
-    """Validate a conversus YAML configuration for the MCP surface.
+    """Validate a deliberator YAML configuration for the MCP surface.
 
     Parses the YAML, runs template validation, optionally classifies
     the deliberation question, and computes cost estimates. Returns a
@@ -738,7 +738,7 @@ def validate_mcp(config_yaml: str, question: str = "") -> ValidateResult:
 
 
 def validate_cli(config_path: str, question: str | None = None) -> None:
-    """Validate a conversus YAML config for the CLI surface.
+    """Validate a deliberator YAML config for the CLI surface.
 
     Mirrors the hand-written ``engine.cli.validate`` body: parses the
     config via ``engine.config.parse_config``, prints a cost summary,
@@ -797,10 +797,10 @@ def run_mcp(
       validates config, estimates cost, returns execution instructions.
     - **parsed_output** (``output_path`` set): validates config, reads
       and parses the synthesis file at the path, returns structured
-      ``ConversusOutput``.
+      ``DeliberatorOutput``.
     - **in_process** (``provider`` set, empty ``output_path``): validates
       config, runs the full engine pipeline in-process, returns
-      structured ``ConversusOutput``.
+      structured ``DeliberatorOutput``.
     """
     config, errors, cost_estimate = _parse_and_validate_config(config_yaml)
 
@@ -821,7 +821,7 @@ def run_mcp(
 
     if not output_path or not output_path.strip():
         instructions = (
-            "Config valid. Execute '/conversus run <path>' in your editor "
+            "Config valid. Execute '/deliberator run <path>' in your editor "
             "to run the deliberation."
             if validated
             else "Config has errors — fix them before running."
@@ -871,7 +871,7 @@ def run_cli(
     rounds: int | None = None,
     phase: str = "all",
 ) -> None:
-    """Run a deliberation from a conversus config file (CLI surface).
+    """Run a deliberation from a deliberator config file (CLI surface).
 
     Mirrors the hand-written ``engine.cli.run`` body: runs the engine
     asynchronously with Rich progress display, prints each written
@@ -967,7 +967,7 @@ def login_mcp(provider: str) -> str:
     """Log in to a model provider via OAuth (MCP surface).
 
     Opens the user's browser for OAuth authentication. The token is
-    stored in ``~/.conversus/auth.json`` so subsequent deliberations
+    stored in ``~/.deliberator/auth.json`` so subsequent deliberations
     use it automatically. Desktop Extension users can say "log in to
     anthropic" in their chat and the browser opens — no CLI needed.
 
@@ -1177,7 +1177,7 @@ def context_cli(as_json: bool = False) -> None:
     from rich.table import Table
 
     console = Console()
-    table = Table(title="Conversus Invocation Context", show_header=True)
+    table = Table(title="Deliberator Invocation Context", show_header=True)
     table.add_column("Field", style="bold cyan")
     table.add_column("Value", style="white")
 
@@ -1209,7 +1209,7 @@ def context_cli(as_json: bool = False) -> None:
 
 
 def mcp_cli() -> None:
-    """Start the Conversus MCP server on stdio transport (CLI surface).
+    """Start the Deliberator MCP server on stdio transport (CLI surface).
 
     This is a "meta-command" that loads ``mcp_server.py`` and invokes
     its ``FastMCP.run(transport='stdio')``. It does not project to any
@@ -1221,7 +1221,7 @@ def mcp_cli() -> None:
     except ImportError:
         click.echo(
             "Error: MCP dependencies are not installed.\n"
-            "Install them with: pip install conversus[mcp]",
+            "Install them with: pip install deliberator[mcp]",
             err=True,
         )
         sys.exit(1)
@@ -1258,7 +1258,7 @@ def init_cli(
     default_model: str = "sonnet",
     force: bool = False,
 ) -> None:
-    """Initialize a .conversus/ directory with runtime permissions (CLI surface).
+    """Initialize a .deliberator/ directory with runtime permissions (CLI surface).
 
     ``runtimes`` is a comma-separated string (e.g. ``"claude-code,opencode"``)
     because the registry Param type set only includes scalar primitives.
@@ -1288,9 +1288,9 @@ def init_cli(
         click.echo("Already initialized (use --force to overwrite).")
         return
 
-    # --- spec 057: create .conversus/settings.yml with init defaults -------
+    # --- spec 057: create .deliberator/settings.yml with init defaults -------
     try:
-        settings_dir = project_root / ".conversus"
+        settings_dir = project_root / ".deliberator"
         settings_dir.mkdir(parents=True, exist_ok=True)
         settings_file = settings_dir / "settings.yml"
         if not settings_file.exists() or force:
@@ -1313,13 +1313,13 @@ def init_cli(
         # spec 056: proactively create deliberations directory
         (settings_dir / "deliberations").mkdir(exist_ok=True)
 
-        # global ~/.conversus/ directory with empty settings.yml
-        global_dir = Path.home() / ".conversus"
+        # global ~/.deliberator/ directory with empty settings.yml
+        global_dir = Path.home() / ".deliberator"
         global_settings = global_dir / "settings.yml"
         if not global_settings.exists():
             global_dir.mkdir(parents=True, exist_ok=True)
             global_settings.write_text(
-                "# Global conversus defaults\n# See: specs/057-settings-architecture.md\n",
+                "# Global deliberator defaults\n# See: specs/057-settings-architecture.md\n",
                 encoding="utf-8",
             )
     except Exception as settings_exc:
@@ -1327,7 +1327,7 @@ def init_cli(
             f"Warning: settings creation failed: {settings_exc}", err=True,
         )
 
-    click.echo(f"Initialized .conversus/ in {project_root}")
+    click.echo(f"Initialized .deliberator/ in {project_root}")
     for desc, path in created.items():
         rel = path.relative_to(project_root) if path.is_relative_to(project_root) else path
         click.echo(f"  {desc}: {rel}")
@@ -1366,7 +1366,7 @@ def list_deliberations_cli(as_json: bool = False) -> None:
         return
 
     if not deliberations:
-        click.echo("No deliberations found in .conversus/deliberations/")
+        click.echo("No deliberations found in .deliberator/deliberations/")
         return
 
     from rich.console import Console
@@ -1431,7 +1431,7 @@ _SKILLS_DIR = Path(__file__).resolve().parent.parent / "claude-code-plugin" / "s
 
 
 def skills_cli() -> None:
-    """List all available conversus skills with summaries (CLI surface)."""
+    """List all available deliberator skills with summaries (CLI surface)."""
     # Import the real CAPABILITIES list to get summaries
     try:
         _repo_root = Path(__file__).resolve().parent.parent
@@ -1450,7 +1450,7 @@ def skills_cli() -> None:
     from rich.table import Table
 
     console = Console()
-    table = Table(title="Conversus Skills")
+    table = Table(title="Deliberator Skills")
     table.add_column("Skill", style="bold cyan")
     table.add_column("Summary", style="white")
     table.add_column("Surfaces", style="dim")
@@ -1460,7 +1460,7 @@ def skills_cli() -> None:
         table.add_row(cap.name, cap.summary, surfaces)
 
     console.print(table)
-    click.echo(f"\nUse 'conversus skill <name>' to see the full guided workflow.")
+    click.echo(f"\nUse 'deliberator skill <name>' to see the full guided workflow.")
 
 
 def skill_cli(name: str) -> None:

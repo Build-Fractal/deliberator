@@ -1,15 +1,15 @@
 """
-Canonical output contract for conversus deliberation results.
+Canonical output contract for deliberator deliberation results.
 
 Defines Pydantic models for the structured output format that downstream
 consumers (MCP server, CI, dashboards) use to read deliberation results.
 
 Public API:
-    parse_synthesis(text, mode) -> ConversusOutput
+    parse_synthesis(text, mode) -> DeliberatorOutput
 
 Models:
     QualityIndicators — structural facts about the deliberation process
-    ConversusOutput — the canonical output: headline, summary, full analysis,
+    DeliberatorOutput — the canonical output: headline, summary, full analysis,
                       quality indicators, and debate transcript
 
 The QualityIndicators model replaces a confidence float (per D004) with
@@ -78,8 +78,8 @@ class QualityIndicators(BaseModel):
     genuine_disagreements_surviving: int
 
 
-class ConversusOutput(BaseModel):
-    """Canonical output format for a conversus deliberation.
+class DeliberatorOutput(BaseModel):
+    """Canonical output format for a deliberator deliberation.
 
     This is the contract that downstream consumers import:
     - S05 MCP server returns this as its response schema
@@ -106,7 +106,7 @@ class ConversusOutput(BaseModel):
 
 # Engine-injected authoritative metadata block. Format (written verbatim by
 # engine.phases._build_metadata_block):
-#   <!-- CONVERSUS:METADATA
+#   <!-- DELIBERATOR:METADATA
 #   agents: 2
 #   agent_names: blue-advocate, red-advocate
 #   mode: red-blue
@@ -118,7 +118,7 @@ class ConversusOutput(BaseModel):
 # LLM prose heuristics are only consulted as a fallback for older fixtures
 # written before the engine began injecting this block.
 _METADATA_BLOCK: re.Pattern[str] = re.compile(
-    r"<!--\s*CONVERSUS:METADATA\s*\n(.*?)\n\s*-->",
+    r"<!--\s*DELIBERATOR:METADATA\s*\n(.*?)\n\s*-->",
     re.DOTALL,
 )
 _METADATA_FIELD: re.Pattern[str] = re.compile(
@@ -138,7 +138,7 @@ _AGENTS_HEADER: re.Pattern[str] = re.compile(
 # Agent count — prose format: "(blue-advocate)", "(red-advocate)",
 # "(pragmatist)", "(devils-advocate)". Red-blue Risk Register synthesis
 # introduces agents this way: "The Blue Team (blue-advocate) initially…".
-# Matches canonical conversus agent identifiers: any ``X-advocate`` form,
+# Matches canonical deliberator agent identifiers: any ``X-advocate`` form,
 # plus the hardcoded ``pragmatist`` / ``synthesizer`` singletons. The
 # restrictive shape prevents false positives on noise like ``(OQ-9)`` or
 # ``(M011/M013/M014)``.
@@ -164,7 +164,7 @@ _PHASES_HEADER: re.Pattern[str] = re.compile(
 # Convergence section — heading levels H1–H4 tolerated for synthesizer drift.
 _CONVERGENCE_SECTION: re.Pattern[str] = re.compile(
     r"#{1,4}\s*Convergence Achieved.*?\n"
-    r"(.*?)(?=\n#{1,4}\s|\n<!--\s*CONVERSUS|$)",
+    r"(.*?)(?=\n#{1,4}\s|\n<!--\s*DELIBERATOR|$)",
     re.DOTALL,
 )
 
@@ -482,7 +482,7 @@ def _extract_headline(text: str) -> str:
 # ---------------------------------------------------------------------------
 
 
-def parse_synthesis(text: str, mode: str = "cooperative") -> ConversusOutput:
+def parse_synthesis(text: str, mode: str = "cooperative") -> DeliberatorOutput:
     """Parse a cooperative synthesis markdown into the canonical output format.
 
     Extracts structured fields from the synthesis using regex-based parsing
@@ -495,7 +495,7 @@ def parse_synthesis(text: str, mode: str = "cooperative") -> ConversusOutput:
               if mode cannot be extracted from the text.
 
     Returns:
-        ConversusOutput with all fields populated.
+        DeliberatorOutput with all fields populated.
 
     Raises:
         ValueError: If text is empty or None.
@@ -503,7 +503,7 @@ def parse_synthesis(text: str, mode: str = "cooperative") -> ConversusOutput:
     if not text or not text.strip():
         raise ValueError(
             "Cannot parse empty synthesis text. "
-            "Provide the full markdown output from a conversus deliberation."
+            "Provide the full markdown output from a deliberator deliberation."
         )
 
     # Extract quality indicators
@@ -570,7 +570,7 @@ def parse_synthesis(text: str, mode: str = "cooperative") -> ConversusOutput:
         genuine_disagreements_surviving=dispute_count,
     )
 
-    return ConversusOutput(
+    return DeliberatorOutput(
         headline=headline,
         summary=summary,
         full_analysis=text,
@@ -590,13 +590,13 @@ if __name__ == "__main__":
     from pathlib import Path
 
     parser = argparse.ArgumentParser(
-        description="Parse conversus synthesis output into the canonical "
-        "ConversusOutput JSON format. "
+        description="Parse deliberator synthesis output into the canonical "
+        "DeliberatorOutput JSON format. "
         "Exits 0 on success, 2 on file-not-found.",
     )
     parser.add_argument(
         "path",
-        help="Path to a conversus synthesis markdown file.",
+        help="Path to a deliberator synthesis markdown file.",
     )
     parser.add_argument(
         "--mode",

@@ -136,7 +136,7 @@ jobs:
   #   - tag pushes starting with 'v' (release verification)
   #
   # Auth model: GitHub Actions can't run the `claude` CLI, so the
-  # judge path is fixed to `anthropic` (CONVERSUS_EVAL_JUDGE_PROVIDER).
+  # judge path is fixed to `anthropic` (DELIBERATOR_EVAL_JUDGE_PROVIDER).
   # The deliberation provider follows the same path — both consume
   # ANTHROPIC_API_KEY. See engine/tests/test_evals.py docstring for
   # the full provider/judge matrix.
@@ -175,8 +175,8 @@ jobs:
       - name: Run deepeval GEval suite
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          CONVERSUS_EVAL_PROVIDER: anthropic
-          CONVERSUS_EVAL_JUDGE_PROVIDER: anthropic
+          DELIBERATOR_EVAL_PROVIDER: anthropic
+          DELIBERATOR_EVAL_JUDGE_PROVIDER: anthropic
         run: uv run pytest engine/tests/test_evals.py -m eval -v --timeout=600
 
       - name: Upload deepeval results

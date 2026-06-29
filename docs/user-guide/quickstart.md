@@ -7,7 +7,7 @@
 ## Install
 
 ```bash
-pip install git+https://github.com/Build-Fractal/conversus-oss.git
+pip install git+https://github.com/Build-Fractal/deliberator.git
 ```
 
 This installs the engine with all 8 deliberation modes, templates, presets, CLI, and MCP server.
@@ -15,25 +15,25 @@ This installs the engine with all 8 deliberation modes, templates, presets, CLI,
 For local development:
 
 ```bash
-git clone https://github.com/Build-Fractal/conversus-oss.git && cd conversus
+git clone https://github.com/Build-Fractal/deliberator.git && cd deliberator
 pip install -e .          # editable install
 # or: uv sync            # if using uv
 ```
 
 !!! note "Running commands"
-    Examples below use the bare `conversus` command (matches the `pip install` path). If you installed via `uv sync`, prefix every command with `uv run`: e.g., `uv run conversus decide ...`.
+    Examples below use the bare `deliberator` command (matches the `pip install` path). If you installed via `uv sync`, prefix every command with `uv run`: e.g., `uv run deliberator decide ...`.
 
 ## First deliberation
 
 ```bash
-conversus decide "Should we use Redis or Postgres for caching?" --provider mock
+deliberator decide "Should we use Redis or Postgres for caching?" --provider mock
 ```
 
 The `--provider mock` flag uses a built-in mock provider that returns synthetic responses -- no API key needed. This lets you explore the full pipeline without spending anything.
 
 ## What just happened
 
-Conversus ran a 5-phase deliberation:
+Deliberator ran a 5-phase deliberation:
 
 1. **Review** -- Two agents (pragmatist + devil's advocate) each reviewed your question from their perspective.
 2. **Cross-review** -- Each agent critiqued the other's position, looking for weak arguments and missed angles.
@@ -51,7 +51,7 @@ You will see five phase headers -- Review, Cross-review, Revision, Disputes, Syn
 Run with `--format json` to verify the phase structure programmatically:
 
 ```bash
-conversus decide "Should we use Redis or Postgres for caching?" --provider mock --format json
+deliberator decide "Should we use Redis or Postgres for caching?" --provider mock --format json
 ```
 
 ## Try with a real provider
@@ -61,36 +61,36 @@ conversus decide "Should we use Redis or Postgres for caching?" --provider mock 
 export ANTHROPIC_API_KEY=sk-ant-...
 
 # Or log in via OAuth
-conversus login anthropic
+deliberator login anthropic
 
 # Run with real LLM agents
-conversus decide "Should we use Redis or Postgres for caching?" --provider anthropic
+deliberator decide "Should we use Redis or Postgres for caching?" --provider anthropic
 ```
 
 Verify your provider credentials at any time:
 
 ```bash
-conversus status
+deliberator status
 ```
 
 ## Try the Guided Workflow (in Your AI Editor)
 
-The `/conversus` commands below are **slash commands typed inside an AI assistant** (such as Claude Code, Cursor, or another MCP-compatible editor). They are not terminal commands -- do not run them in your shell.
+The `/deliberator` commands below are **slash commands typed inside an AI assistant** (such as Claude Code, Cursor, or another MCP-compatible editor). They are not terminal commands -- do not run them in your shell.
 
 The guided workflow walks you through problem definition, interest discovery, mode selection, and execution:
 
 ```
-/conversus define "We need to decide between Redis and Postgres for our metadata cache"
-/conversus interests
-/conversus mode
-/conversus converge
+/deliberator define "We need to decide between Redis and Postgres for our metadata cache"
+/deliberator interests
+/deliberator mode
+/deliberator converge
 ```
 
 See [Guided Workflow](guided-workflow.md) for the full walkthrough.
 
 ## Try a config file
 
-For repeatable deliberations, write a `conversus.yml`:
+For repeatable deliberations, write a `deliberator.yml`:
 
 ```yaml
 mode: cooperative
@@ -105,7 +105,7 @@ agents:
 ```
 
 ```bash
-conversus run conversus.yml --provider anthropic
+deliberator run deliberator.yml --provider anthropic
 ```
 
 See [Config Reference](config-reference.md) for the full schema.
@@ -116,8 +116,8 @@ The most common first-run failure modes:
 
 | If you see... | Fix |
 |---|---|
-| `ProviderError: No credentials available for 'anthropic'` | Set `ANTHROPIC_API_KEY` or run `conversus login anthropic` |
-| `Invalid value for '--provider'` | Check `conversus decide --help` for accepted names |
+| `ProviderError: No credentials available for 'anthropic'` | Set `ANTHROPIC_API_KEY` or run `deliberator login anthropic` |
+| `Invalid value for '--provider'` | Check `deliberator decide --help` for accepted names |
 | `target file not found` and the file is right there | Run from project root — `target:` resolves relative to cwd |
 | Output ends up at `examples/examples/output/…` (doubled path) | `output:` resolves relative to the config file's dir, not cwd |
 | `ollama` provider hangs / refuses connection | Make sure `ollama serve` is running and the model is pulled |

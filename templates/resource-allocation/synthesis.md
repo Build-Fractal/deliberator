@@ -87,7 +87,7 @@ If inter-round arbitration fired in prior rounds, list allocations that were add
 
 If no prior-round arbitration exists, omit this section entirely.
 
-<!-- CONVERSUS:DISPUTES_BEGIN -->
+<!-- DELIBERATOR:DISPUTES_BEGIN -->
 ### Contested Allocations
 
 Allocations that survived the full process without agreement:
@@ -97,7 +97,7 @@ Allocations that survived the full process without agreement:
   - **Pool constraint**: [Total available for this resource]
   - **Allocator assessment**: Which demand better serves overall system efficiency, or why neither is clearly superior.
   - **Recommended allocation**: [Specific quantities for each agent] with rationale.
-<!-- CONVERSUS:DISPUTES_END -->
+<!-- DELIBERATOR:DISPUTES_END -->
 
 ### Actionable Allocation Changes
 

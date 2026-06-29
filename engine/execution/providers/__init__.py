@@ -3,7 +3,7 @@
 This subpackage holds the provider classes that implement
 :class:`~engine.execution.ExecutionProvider`.  Phase 2 ships ``mock`` and
 ``anthropic``.  Phase 3 adds ``claude-code`` and ``opencode``.  The
-optional ``litellm`` companion package lives outside conversus core.
+optional ``litellm`` companion package lives outside deliberator core.
 
 Providers are exposed via the :data:`PROVIDER_REGISTRY` dict for name-based
 resolution at runtime.  The registry is populated at import time by each

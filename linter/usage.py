@@ -1,7 +1,7 @@
 """
-Usage logging and adoption-gate metric reporting for conversus runs.
+Usage logging and adoption-gate metric reporting for deliberator runs.
 
-Logs structured JSONL entries per Just Ask run to ``~/.conversus/usage.jsonl``
+Logs structured JSONL entries per Just Ask run to ``~/.deliberator/usage.jsonl``
 and computes adoption gate metrics (trust rate, return rate, sharing
 indicators) for the summary reporter.
 
@@ -37,7 +37,7 @@ from linter.utils import word_count as _word_count
 # Default paths
 # ---------------------------------------------------------------------------
 
-DEFAULT_USAGE_DIR: Path = Path.home() / ".conversus"
+DEFAULT_USAGE_DIR: Path = Path.home() / ".deliberator"
 DEFAULT_USAGE_FILE: Path = DEFAULT_USAGE_DIR / "usage.jsonl"
 
 
@@ -181,7 +181,7 @@ def log_usage(
             ``attributions`` (with ``passed``).
         fallback_used: Whether a fallback mechanism was triggered.
         session_id: Optional 8-char hex session id; generated if absent.
-        usage_file: Override for the JSONL target file (default ``~/.conversus/usage.jsonl``).
+        usage_file: Override for the JSONL target file (default ``~/.deliberator/usage.jsonl``).
 
     Returns:
         The ``UsageEntry`` that was appended.
@@ -251,7 +251,7 @@ def summarize_usage(path: str | Path | None = None) -> AdoptionMetrics:
     """Read the JSONL log and compute adoption-gate metrics.
 
     Args:
-        path: Path to the JSONL file (default ``~/.conversus/usage.jsonl``).
+        path: Path to the JSONL file (default ``~/.deliberator/usage.jsonl``).
 
     Returns:
         ``AdoptionMetrics`` with trust rate, return rate, sharing status, etc.
@@ -340,7 +340,7 @@ def format_report(metrics: AdoptionMetrics) -> str:
     The output matches the format defined in S07-RESEARCH.md.
     """
     lines: list[str] = [
-        "Conversus Adoption Gate Report",
+        "Deliberator Adoption Gate Report",
         "=" * 30,
         f"Total runs: {metrics.total_runs}",
         f"Unique sessions: {metrics.unique_sessions}",
@@ -391,7 +391,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(
         prog="linter.usage",
-        description="Conversus usage logger and adoption-gate reporter.",
+        description="Deliberator usage logger and adoption-gate reporter.",
     )
     subparsers = parser.add_subparsers(dest="command")
 
@@ -436,7 +436,7 @@ if __name__ == "__main__":
     summary_parser.add_argument(
         "--path",
         default=None,
-        help="Path to the JSONL file (default: ~/.conversus/usage.jsonl).",
+        help="Path to the JSONL file (default: ~/.deliberator/usage.jsonl).",
     )
 
     args = parser.parse_args()

@@ -21,7 +21,7 @@ Key design decisions:
   and per-model usage breakdown.  This satisfies binding conditions #5
   (cost telemetry) and #6 (structured duration) natively.
 - **No permission prompts**: ``--dangerously-skip-permissions`` is
-  required for headless execution.  Conversus runs agents in controlled
+  required for headless execution.  Deliberator runs agents in controlled
   sandbox directories — each agent writes to its own output path.
 - **No session persistence**: ``--no-session-persistence`` prevents
   polluting the user's session list with deliberation noise.
@@ -68,7 +68,7 @@ DEFAULT_TIMEOUT = 1200
 
 
 class ClaudeCodeProvider(SubprocessProvider):
-    """Execute conversus agent tasks via the ``claude`` CLI.
+    """Execute deliberator agent tasks via the ``claude`` CLI.
 
     Args:
         model: Model alias or full name (e.g., ``"sonnet"``, ``"opus"``,
@@ -102,18 +102,18 @@ class ClaudeCodeProvider(SubprocessProvider):
         mcp_config: str | None = None,
         cwd: str | None = None,
     ) -> None:
-        # If a .conversus/ dir exists with .claude/settings.json, use it
+        # If a .deliberator/ dir exists with .claude/settings.json, use it
         # as cwd so claude picks up the permission grants automatically.
         # This means skip_permissions can be False when init has been run.
         if cwd is None:
-            from engine.project import find_conversus_dir, read_settings
+            from engine.project import find_deliberator_dir, read_settings
             from pathlib import Path
 
-            conversus_dir = find_conversus_dir(Path.cwd())
-            if conversus_dir and (conversus_dir / ".claude" / "settings.json").exists():
-                cwd = str(conversus_dir)
+            deliberator_dir = find_deliberator_dir(Path.cwd())
+            if deliberator_dir and (deliberator_dir / ".claude" / "settings.json").exists():
+                cwd = str(deliberator_dir)
                 # If project has settings, respect its skip_permissions pref
-                settings = read_settings(conversus_dir.parent)
+                settings = read_settings(deliberator_dir.parent)
                 skip_permissions = settings.get("skip_permissions", skip_permissions)
 
         super().__init__(timeout=timeout, cwd=cwd)

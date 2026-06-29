@@ -35,8 +35,8 @@ of the change that moved the line.
 
 ## P1 — User config YAML → Engine
 
-**What crosses:** A `conversus.yml` document supplied by a human operator
-or by the `conversus_run` MCP tool. The file declares the mode, the
+**What crosses:** A `deliberator.yml` document supplied by a human operator
+or by the `deliberator_run` MCP tool. The file declares the mode, the
 agents, file paths to read as `target`/`prior`, the provider, and the
 output directory. Any of these fields is attacker-supplied in the MCP
 case.
@@ -55,7 +55,7 @@ validation; relative paths in `target:` escape the project root.
    YAML tags.
 2. **Mode allowlist.** `engine/config.py:611` rejects any `mode` not in
    `VALID_MODES`, which is itself derived from
-   `conversus.schemas.modes.VALID_MODES` (`engine/config.py:19`) — the
+   `deliberator.schemas.modes.VALID_MODES` (`engine/config.py:19`) — the
    single source of truth for the dispatch enum.
 3. **Provider allowlist.** `engine/config.py:665` rejects any `provider`
    not in `VALID_PROVIDERS`.
@@ -87,8 +87,8 @@ bypassed.
 
 ## P2 — MCP tool surface → Engine entry
 
-**What crosses:** Arguments passed to `mcp_server.conversus_validate`,
-`mcp_server.conversus_run`, `mcp_server.conversus_decide`,
+**What crosses:** Arguments passed to `mcp_server.deliberator_validate`,
+`mcp_server.deliberator_run`, `mcp_server.deliberator_decide`,
 `mcp_server.list_deliberations`, `mcp_server.read_deliberation_file`.
 These are caller-supplied across the MCP protocol; the MCP host is
 trusted, the *content* of its tool-call arguments is not.
@@ -120,7 +120,7 @@ sandbox.
    (default 20, configurable via the cascade). Settings cascade is
    `engine/settings.py:184`.
 5. **Disabled-tools env knob.** Operator can hide any MCP tool by name
-   via `CONVERSUS_DISABLED_TOOLS`. Implemented in `mcp_server.py:97`
+   via `DELIBERATOR_DISABLED_TOOLS`. Implemented in `mcp_server.py:97`
    (parser) and `mcp_server.py:120` (`_optional_tool` decorator).
    Independent of the engine guards above; the tool simply never
    registers if disabled.
@@ -143,7 +143,7 @@ target.
 
 **Threat model:** Classic path traversal — read `/etc/passwd` or any
 file on the host. The deliberation history is meant to be a read-only
-view onto `<project_root>/.conversus/deliberations/` and nothing else.
+view onto `<project_root>/.deliberator/deliberations/` and nothing else.
 
 **Guards:**
 
@@ -176,9 +176,9 @@ the contract under CI.
 ## P4 — Capability metadata → Generated CLI/MCP source
 
 **What crosses:** Capability metadata (summary, param help, default
-values, handler strings) registered via `conversus.registry.Capability`
+values, handler strings) registered via `deliberator.registry.Capability`
 flows through `project_to_cli` / `project_to_mcp` in
-`conversus/registry/projector.py`, which *emits Python source code*
+`deliberator/registry/projector.py`, which *emits Python source code*
 that is then `exec`'d by the surface adapter. If any metadata string
 appears unescaped in the emitted source, it executes as Python.
 
@@ -189,12 +189,12 @@ string literal and executes the payload at adapter import time.
 
 **Guards:**
 
-1. **`literal()` rendering helper.** `conversus/registry/adapters/_helpers.py:15`
+1. **`literal()` rendering helper.** `deliberator/registry/adapters/_helpers.py:15`
    wraps every emitted string in `json.dumps`, which produces a
    correctly-escaped double-quoted Python literal. Bool and None are
    handled separately because `json.dumps` would emit `true`/`null`,
    which are not valid Python literals.
-2. **Handler-string shape check.** `conversus/registry/adapters/_helpers.py:53`
+2. **Handler-string shape check.** `deliberator/registry/adapters/_helpers.py:53`
    (`split_handler`) rejects handler strings that do not match the
    `module.path:func_name` shape with exactly one colon. A malformed
    handler is caught at registration time rather than leaking into
@@ -241,7 +241,7 @@ postmortem class of bug.
    distinct type from `ValueError` so callers can catch
    parse-failure-as-PASS specifically.
 2. **Engine-injected authoritative metadata block.** When the engine
-   itself writes the metadata block (`<!-- CONVERSUS:METADATA ... -->`
+   itself writes the metadata block (`<!-- DELIBERATOR:METADATA ... -->`
    pattern at `linter/output_contract.py:120`), the parser prefers it
    over LLM prose extraction (`linter/output_contract.py:246`,
    `linter/output_contract.py:284`). The engine's own count is
@@ -390,12 +390,12 @@ dispatch failures are categorizable rather than opaque.
 ## P9 — Environment variable settings cascade → Engine
 
 **What crosses:** Operator-supplied environment variables
-(`CONVERSUS_DEFAULT_PROVIDER`, `CONVERSUS_MAX_LAUNCHES`, etc.) flow
+(`DELIBERATOR_DEFAULT_PROVIDER`, `DELIBERATOR_MAX_LAUNCHES`, etc.) flow
 through `engine.settings.load_settings`.
 
 **Threat model:** Malicious env var like
-`CONVERSUS_DEFAULT_PROVIDER="'; DROP TABLE users; --"` or
-`CONVERSUS_MAX_LAUNCHES="not_a_number"`; injection into downstream
+`DELIBERATOR_DEFAULT_PROVIDER="'; DROP TABLE users; --"` or
+`DELIBERATOR_MAX_LAUNCHES="not_a_number"`; injection into downstream
 code that treats settings as raw strings.
 
 **Guards:**
@@ -425,7 +425,7 @@ block the represented attack class.
 **What crosses:** A caller-supplied display name (`"UX Reviewer"`) is
 slug-converted by `_sanitize_agent_name` (`engine/adhoc.py:19`) into
 a config name (`"ux-reviewer"`), which is then written into a
-generated `conversus.yml` document.
+generated `deliberator.yml` document.
 
 **Threat model:** Display names containing YAML-special characters
 (colons, brackets, newlines) corrupt the generated config; collisions
@@ -467,13 +467,13 @@ where the next defense-in-depth investment should land.
    add a Pydantic envelope check as a second layer (cheap; small).
 2. **Settings cascade env-var-name allowlist.** Today
    `engine/settings.py:239` maps known config fields to known env vars;
-   the inverse — rejecting unrecognized `CONVERSUS_*` env vars — is
-   not enforced. An unknown `CONVERSUS_X` is silently ignored. This is
+   the inverse — rejecting unrecognized `DELIBERATOR_*` env vars — is
+   not enforced. An unknown `DELIBERATOR_X` is silently ignored. This is
    a usability gap more than a safety gap, but a typo'd
-   `CONVERSUS_MAX_LAUNCHE` (note the missing `S`) would silently keep
+   `DELIBERATOR_MAX_LAUNCHE` (note the missing `S`) would silently keep
    the default rather than warn.
 3. **`literal()` `repr()` fallback for non-stringable values.**
-   `conversus/registry/adapters/_helpers.py:41` returns `repr(value)`
+   `deliberator/registry/adapters/_helpers.py:41` returns `repr(value)`
    for types it doesn't explicitly handle. `repr()` of a malicious
    `__repr__` method on a third-party type could in principle emit
    invalid Python. Today the registry only accepts a small fixed set

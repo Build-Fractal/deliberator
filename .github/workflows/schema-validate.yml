@@ -1,6 +1,6 @@
 # Reference implementation of the schema-validate CI gate.
 #
-# Per v4.2.0 spec § 5.4 (build-fractal-mono/blob/main/conversus/conversus-oss/specs/
+# Per v4.2.0 spec § 5.4 (build-fractal-mono/blob/main/deliberator/deliberator/specs/
 # v4.2.0-structured-deliberation-outputs/spec.md), this workflow operationalizes
 # Tier 2 Principle XXVIII sub-clause 2 (mechanical CI enforcement, PR-required)
 # + Tier 1 Principle II (Stable Interfaces). The four jobs together discharge:

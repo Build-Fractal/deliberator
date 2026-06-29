@@ -13,7 +13,7 @@ from engine.config import AGENT_NAME_RE, ConfigError, parse_config
 
 
 class TestBuildAdhocConfig:
-    """build_adhoc_config() creates valid temp dir, question.md, and conversus.yml."""
+    """build_adhoc_config() creates valid temp dir, question.md, and deliberator.yml."""
 
     def test_returns_three_paths(self) -> None:
         config_path, question_path, tmp_dir = build_adhoc_config("Should we use Postgres?")

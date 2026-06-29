@@ -67,7 +67,7 @@ For each contested allocation:
   - **Resolution mechanism**: Agent convergence | Arbiter ruling | Unresolved
   - **Final status**: Resolved | Provisionally resolved | Unresolved
 
-<!-- CONVERSUS:DISPUTES_BEGIN -->
+<!-- DELIBERATOR:DISPUTES_BEGIN -->
 ### Contested Allocations
 
 Allocations that survived the full multi-round process:
@@ -78,7 +78,7 @@ Allocations that survived the full multi-round process:
   - **Cross-round evolution**: How demands shifted across rounds.
   - **Allocator assessment**: Which demand the evidence supports.
   - **Recommended allocation**: [Specific quantities] with rationale.
-<!-- CONVERSUS:DISPUTES_END -->
+<!-- DELIBERATOR:DISPUTES_END -->
 
 ### Termination Assessment
 

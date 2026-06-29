@@ -1,5 +1,5 @@
 """
-Shared utility functions for conversus linter modules.
+Shared utility functions for deliberator linter modules.
 
 Public API:
     word_count(text) -> int

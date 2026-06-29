@@ -54,7 +54,7 @@ def _minimal_config(
     if extra:
         data.update(extra)
 
-    return _write_yaml(tmp_path / "conversus.yml", data)
+    return _write_yaml(tmp_path / "deliberator.yml", data)
 
 
 # ===================================================================
@@ -63,7 +63,7 @@ def _minimal_config(
 
 
 class TestParseExampleConfig:
-    """Parse conversus.example.yml and verify the high-level shape."""
+    """Parse deliberator.example.yml and verify the high-level shape."""
 
     def test_mode(self, sample_engine_config: EngineConfig) -> None:
         assert sample_engine_config.mode == "cooperative"
@@ -80,7 +80,11 @@ class TestParseExampleConfig:
         assert all(p.suffix == ".md" for p in sample_engine_config.target_files)
 
     def test_output_path(self, sample_engine_config: EngineConfig) -> None:
-        assert "conversus" in str(sample_engine_config.output)
+        # The example config sets `output: example-output/`. Assert on the
+        # leaf directory name rather than the absolute path — substring
+        # checks against the full path are brittle when the repo's local
+        # directory name changes (e.g. parent rename or clone location).
+        assert sample_engine_config.output.name == "example-output"
 
     def test_iterations(self, sample_engine_config: EngineConfig) -> None:
         assert sample_engine_config.iterations == 1
@@ -97,7 +101,7 @@ class TestTargetResolution:
     def test_single_file(self, tmp_path: Path) -> None:
         target = tmp_path / "spec.md"
         target.write_text("# Spec\n")
-        cfg_path = _write_yaml(tmp_path / "conversus.yml", {
+        cfg_path = _write_yaml(tmp_path / "deliberator.yml", {
             "mode": "cooperative",
             "target": "spec.md",
             "output": "out/",
@@ -113,7 +117,7 @@ class TestTargetResolution:
     def test_file_list(self, tmp_path: Path) -> None:
         for name in ("spec.md", "plan.md"):
             (tmp_path / name).write_text(f"# {name}\n")
-        cfg_path = _write_yaml(tmp_path / "conversus.yml", {
+        cfg_path = _write_yaml(tmp_path / "deliberator.yml", {
             "mode": "cooperative",
             "target": ["spec.md", "plan.md"],
             "output": "out/",
@@ -130,7 +134,7 @@ class TestTargetResolution:
         docs.mkdir()
         (docs / "a.md").write_text("# A\n")
         (docs / "b.md").write_text("# B\n")
-        cfg_path = _write_yaml(tmp_path / "conversus.yml", {
+        cfg_path = _write_yaml(tmp_path / "deliberator.yml", {
             "mode": "cooperative",
             "target": "docs/",
             "output": "out/",
@@ -143,7 +147,7 @@ class TestTargetResolution:
         assert len(config.target_files) == 2
 
     def test_missing_target_file_fails(self, tmp_path: Path) -> None:
-        cfg_path = _write_yaml(tmp_path / "conversus.yml", {
+        cfg_path = _write_yaml(tmp_path / "deliberator.yml", {
             "mode": "cooperative",
             "target": "nonexistent.md",
             "output": "out/",
@@ -371,7 +375,7 @@ class TestPresetResolution:
     def test_single_qualified_preset(self, tmp_path: Path) -> None:
         target = tmp_path / "spec.md"
         target.write_text("# Spec\n")
-        cfg_path = _write_yaml(tmp_path / "conversus.yml", {
+        cfg_path = _write_yaml(tmp_path / "deliberator.yml", {
             "mode": "cooperative",
             "target": "spec.md",
             "output": "out/",
@@ -386,7 +390,7 @@ class TestPresetResolution:
     def test_single_unqualified_preset(self, tmp_path: Path) -> None:
         target = tmp_path / "spec.md"
         target.write_text("# Spec\n")
-        cfg_path = _write_yaml(tmp_path / "conversus.yml", {
+        cfg_path = _write_yaml(tmp_path / "deliberator.yml", {
             "mode": "cooperative",
             "target": "spec.md",
             "output": "out/",
@@ -401,7 +405,7 @@ class TestPresetResolution:
     def test_composed_two_presets(self, tmp_path: Path) -> None:
         target = tmp_path / "spec.md"
         target.write_text("# Spec\n")
-        cfg_path = _write_yaml(tmp_path / "conversus.yml", {
+        cfg_path = _write_yaml(tmp_path / "deliberator.yml", {
             "mode": "cooperative",
             "target": "spec.md",
             "output": "out/",
@@ -418,7 +422,7 @@ class TestPresetResolution:
     def test_composed_four_presets_rejected(self, tmp_path: Path) -> None:
         target = tmp_path / "spec.md"
         target.write_text("# Spec\n")
-        cfg_path = _write_yaml(tmp_path / "conversus.yml", {
+        cfg_path = _write_yaml(tmp_path / "deliberator.yml", {
             "mode": "cooperative",
             "target": "spec.md",
             "output": "out/",
@@ -441,7 +445,7 @@ class TestPresetResolution:
     def test_nonexistent_preset_error(self, tmp_path: Path) -> None:
         target = tmp_path / "spec.md"
         target.write_text("# Spec\n")
-        cfg_path = _write_yaml(tmp_path / "conversus.yml", {
+        cfg_path = _write_yaml(tmp_path / "deliberator.yml", {
             "mode": "cooperative",
             "target": "spec.md",
             "output": "out/",
@@ -467,7 +471,7 @@ class TestPriorFiles:
         target.write_text("# Spec\n")
         prior = tmp_path / "prior.md"
         prior.write_text("# Prior\n")
-        cfg_path = _write_yaml(tmp_path / "conversus.yml", {
+        cfg_path = _write_yaml(tmp_path / "deliberator.yml", {
             "mode": "cooperative",
             "target": "spec.md",
             "output": "out/",
@@ -554,7 +558,7 @@ class TestProviderField:
 
 
 class TestAgentOverrides:
-    """Per-agent provider, model, and timeout fields from conversus.yml."""
+    """Per-agent provider, model, and timeout fields from deliberator.yml."""
 
     def test_agent_provider_default_none(self, tmp_path: Path) -> None:
         cfg_path = _minimal_config(tmp_path)
@@ -669,7 +673,7 @@ class TestPathResolution:
         config_dir = tmp_path / "configs"
         config_dir.mkdir(exist_ok=True)
 
-        cfg = config_dir / "conversus.yml"
+        cfg = config_dir / "deliberator.yml"
         cfg.write_text(yaml.dump({
             "mode": "cooperative",
             # Target uses absolute path so the test isolates grounding behavior.
@@ -753,7 +757,7 @@ class TestPathResolution:
         target.write_text("# Target\n")
         config_dir = tmp_path / "nested" / "configs"
         config_dir.mkdir(parents=True)
-        cfg = config_dir / "conversus.yml"
+        cfg = config_dir / "deliberator.yml"
         cfg.write_text(yaml.dump({
             "mode": "cooperative",
             "target": str(target),

@@ -1,6 +1,6 @@
 """Tests for engine.settings — cascading settings resolution (spec 057).
 
-Covers: ConversusSettings defaults, load_settings cascade (project >
+Covers: DeliberatorSettings defaults, load_settings cascade (project >
 global > defaults), nested PersistenceSettings merge, resolve_setting
 CLI-flag override, and error handling for malformed YAML.
 """
@@ -14,7 +14,7 @@ import yaml
 
 from engine.settings import (
     CascadeEntry,
-    ConversusSettings,
+    DeliberatorSettings,
     PersistenceSettings,
     inspect_settings_cascade,
     load_settings,
@@ -27,9 +27,9 @@ from engine.settings import (
 # ---------------------------------------------------------------------------
 
 def _write_settings(directory: Path, data: dict) -> Path:
-    """Write a settings.yml file inside *directory*/.conversus/ and return
+    """Write a settings.yml file inside *directory*/.deliberator/ and return
     the path to the YAML file."""
-    settings_dir = directory / ".conversus"
+    settings_dir = directory / ".deliberator"
     settings_dir.mkdir(parents=True, exist_ok=True)
     settings_file = settings_dir / "settings.yml"
     settings_file.write_text(yaml.dump(data, sort_keys=False), encoding="utf-8")
@@ -42,11 +42,11 @@ def _write_settings(directory: Path, data: dict) -> Path:
 
 
 class TestDefaults:
-    """ConversusSettings() with no args returns all built-in defaults."""
+    """DeliberatorSettings() with no args returns all built-in defaults."""
 
     def test_default_settings(self) -> None:
-        """ConversusSettings() with no args returns all defaults."""
-        settings = ConversusSettings()
+        """DeliberatorSettings() with no args returns all defaults."""
+        settings = DeliberatorSettings()
         assert settings.default_provider == "mock"
         assert settings.default_model is None
         assert settings.default_mode == "cooperative"
@@ -54,12 +54,12 @@ class TestDefaults:
 
     def test_default_provider_is_mock(self) -> None:
         """The built-in default provider is 'mock' (no API key needed)."""
-        settings = ConversusSettings()
+        settings = DeliberatorSettings()
         assert settings.default_provider == "mock"
 
     def test_default_persistence_enabled(self) -> None:
         """Persistence is enabled by default."""
-        settings = ConversusSettings()
+        settings = DeliberatorSettings()
         assert settings.persistence.enabled is True
         assert settings.persistence.retention_days == 90
 
@@ -81,7 +81,7 @@ class TestLoadFromFiles:
     def test_load_settings_from_global(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """~/.conversus/settings.yml values are loaded."""
+        """~/.deliberator/settings.yml values are loaded."""
         home = tmp_path / "home"
         home.mkdir()
         monkeypatch.setattr(Path, "home", lambda: home)
@@ -146,7 +146,7 @@ class TestLoadFromFiles:
         monkeypatch.setattr(Path, "home", lambda: home)
 
         # Write invalid YAML to global settings
-        settings_dir = home / ".conversus"
+        settings_dir = home / ".deliberator"
         settings_dir.mkdir(parents=True, exist_ok=True)
         (settings_dir / "settings.yml").write_text(
             "{{invalid: yaml: [unterminated", encoding="utf-8"
@@ -198,19 +198,19 @@ class TestResolveSetting:
 
     def test_resolve_setting_flag_wins(self) -> None:
         """Non-None flag value overrides the setting."""
-        settings = ConversusSettings(default_provider="anthropic")
+        settings = DeliberatorSettings(default_provider="anthropic")
         result = resolve_setting(settings, "claude-code", "default_provider")
         assert result == "claude-code"
 
     def test_resolve_setting_falls_through_when_flag_none(self) -> None:
         """None flag value falls through to the setting value."""
-        settings = ConversusSettings(default_provider="anthropic")
+        settings = DeliberatorSettings(default_provider="anthropic")
         result = resolve_setting(settings, None, "default_provider")
         assert result == "anthropic"
 
     def test_resolve_setting_falls_through_when_flag_empty(self) -> None:
         """Empty string flag value falls through to the setting value."""
-        settings = ConversusSettings(default_provider="anthropic")
+        settings = DeliberatorSettings(default_provider="anthropic")
         result = resolve_setting(settings, "", "default_provider")
         assert result == "anthropic"
 
@@ -226,10 +226,10 @@ class TestInspectSettingsCascade:
     @staticmethod
     def _clear_env(monkeypatch: pytest.MonkeyPatch) -> None:
         for var in (
-            "CONVERSUS_DEFAULT_PROVIDER",
-            "CONVERSUS_DEFAULT_MODE",
-            "CONVERSUS_DEFAULT_MODEL",
-            "CONVERSUS_MAX_LAUNCHES",
+            "DELIBERATOR_DEFAULT_PROVIDER",
+            "DELIBERATOR_DEFAULT_MODE",
+            "DELIBERATOR_DEFAULT_MODEL",
+            "DELIBERATOR_MAX_LAUNCHES",
         ):
             monkeypatch.delenv(var, raising=False)
 
@@ -248,8 +248,8 @@ class TestInspectSettingsCascade:
         assert all(e.source == "default" for e in entries)
         assert all(e.source_path is None for e in entries)
 
-        # Defaults match ConversusSettings()
-        defaults = ConversusSettings()
+        # Defaults match DeliberatorSettings()
+        defaults = DeliberatorSettings()
         for entry in entries:
             assert entry.value == getattr(defaults, entry.key)
 
@@ -314,7 +314,7 @@ class TestInspectSettingsCascade:
         project = tmp_path / "project"
         _write_settings(project, {"default_provider": "claude-code"})
 
-        monkeypatch.setenv("CONVERSUS_DEFAULT_PROVIDER", "openai")
+        monkeypatch.setenv("DELIBERATOR_DEFAULT_PROVIDER", "openai")
 
         entries = inspect_settings_cascade(project_root=project)
         by_key = {e.key: e for e in entries}
@@ -326,12 +326,12 @@ class TestInspectSettingsCascade:
     def test_inspect_cascade_env_max_launches_coerced_to_int(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """CONVERSUS_MAX_LAUNCHES is parsed as int when set via env."""
+        """DELIBERATOR_MAX_LAUNCHES is parsed as int when set via env."""
         self._clear_env(monkeypatch)
         home = tmp_path / "home"
         home.mkdir()
         monkeypatch.setattr(Path, "home", lambda: home)
-        monkeypatch.setenv("CONVERSUS_MAX_LAUNCHES", "77")
+        monkeypatch.setenv("DELIBERATOR_MAX_LAUNCHES", "77")
 
         entries = inspect_settings_cascade(project_root=tmp_path / "project")
         by_key = {e.key: e for e in entries}
@@ -347,7 +347,7 @@ class TestInspectSettingsCascade:
         home = tmp_path / "home"
         home.mkdir()
         monkeypatch.setattr(Path, "home", lambda: home)
-        monkeypatch.setenv("CONVERSUS_MAX_LAUNCHES", "not-an-int")
+        monkeypatch.setenv("DELIBERATOR_MAX_LAUNCHES", "not-an-int")
 
         entries = inspect_settings_cascade(project_root=tmp_path / "project")
         by_key = {e.key: e for e in entries}
@@ -358,7 +358,7 @@ class TestInspectSettingsCascade:
     def test_inspect_cascade_returns_all_field_count(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """Result has exactly one entry per ConversusSettings.model_fields key."""
+        """Result has exactly one entry per DeliberatorSettings.model_fields key."""
         self._clear_env(monkeypatch)
         home = tmp_path / "home"
         home.mkdir()
@@ -366,9 +366,9 @@ class TestInspectSettingsCascade:
 
         entries = inspect_settings_cascade(project_root=tmp_path / "project")
 
-        assert len(entries) == len(ConversusSettings.model_fields)
+        assert len(entries) == len(DeliberatorSettings.model_fields)
         keys_in_result = {e.key for e in entries}
-        assert keys_in_result == set(ConversusSettings.model_fields.keys())
+        assert keys_in_result == set(DeliberatorSettings.model_fields.keys())
 
     def test_inspect_cascade_handles_missing_yaml_files(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
@@ -404,10 +404,10 @@ class TestProviderAllFiveLevels:
 
     Layer ordering, highest → lowest:
         1. CLI flag      (resolve_setting flag_value arg)
-        2. Env var       (CONVERSUS_DEFAULT_PROVIDER)
-        3. Project YAML  (<project>/.conversus/settings.yml)
-        4. Global YAML   (~/.conversus/settings.yml)
-        5. Default       (ConversusSettings.default_provider = "mock")
+        2. Env var       (DELIBERATOR_DEFAULT_PROVIDER)
+        3. Project YAML  (<project>/.deliberator/settings.yml)
+        4. Global YAML   (~/.deliberator/settings.yml)
+        5. Default       (DeliberatorSettings.default_provider = "mock")
 
     Each test populates layer N with a unique sentinel, then asserts
     `inspect_settings_cascade` reports that layer as the source.
@@ -420,7 +420,7 @@ class TestProviderAllFiveLevels:
         """CLI flag dominates env, project, global, defaults."""
         _write_settings(clean_settings.home, {"default_provider": "L4_global"})
         _write_settings(clean_settings.project, {"default_provider": "L3_project"})
-        monkeypatch.setenv("CONVERSUS_DEFAULT_PROVIDER", "L2_env")
+        monkeypatch.setenv("DELIBERATOR_DEFAULT_PROVIDER", "L2_env")
 
         # CLI flag is enforced via resolve_setting (post-cascade).
         # The cascade itself sees only env > project > global > default.
@@ -433,7 +433,7 @@ class TestProviderAllFiveLevels:
         """No CLI flag → env var is the highest active layer."""
         _write_settings(clean_settings.home, {"default_provider": "L4_global"})
         _write_settings(clean_settings.project, {"default_provider": "L3_project"})
-        monkeypatch.setenv("CONVERSUS_DEFAULT_PROVIDER", "L2_env")
+        monkeypatch.setenv("DELIBERATOR_DEFAULT_PROVIDER", "L2_env")
 
         entries = inspect_settings_cascade(project_root=clean_settings.project)
         provider = next(e for e in entries if e.key == "default_provider")
@@ -489,7 +489,7 @@ class TestProviderAllFiveLevels:
 class TestEnvVarTypeCoercion:
     """Env var strings are coerced to the model's declared types.
 
-    Env vars arrive as strings (POSIX), but `ConversusSettings` declares
+    Env vars arrive as strings (POSIX), but `DeliberatorSettings` declares
     typed fields. Coercion happens in `load_settings`'s env_overrides
     block. These tests pin the contract for each typed field and the
     documented failure modes.
@@ -498,8 +498,8 @@ class TestEnvVarTypeCoercion:
     def test_max_launches_coerced_to_int(
         self, clean_settings, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """CONVERSUS_MAX_LAUNCHES='42' → max_launches == 42 (int)."""
-        monkeypatch.setenv("CONVERSUS_MAX_LAUNCHES", "42")
+        """DELIBERATOR_MAX_LAUNCHES='42' → max_launches == 42 (int)."""
+        monkeypatch.setenv("DELIBERATOR_MAX_LAUNCHES", "42")
         settings = load_settings(project_root=clean_settings.project)
         assert settings.max_launches == 42
         assert isinstance(settings.max_launches, int)
@@ -508,7 +508,7 @@ class TestEnvVarTypeCoercion:
         self, clean_settings, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """Non-numeric env value → coercion logs and falls through."""
-        monkeypatch.setenv("CONVERSUS_MAX_LAUNCHES", "not-a-number")
+        monkeypatch.setenv("DELIBERATOR_MAX_LAUNCHES", "not-a-number")
         settings = load_settings(project_root=clean_settings.project)
         # Default is 20; invalid env must NOT raise nor leave an unset field
         assert settings.max_launches == 20
@@ -518,7 +518,7 @@ class TestEnvVarTypeCoercion:
     ) -> None:
         """Invalid env coercion preserves a lower-tier YAML value (no clobber)."""
         _write_settings(clean_settings.home, {"max_launches": 99})
-        monkeypatch.setenv("CONVERSUS_MAX_LAUNCHES", "garbage")
+        monkeypatch.setenv("DELIBERATOR_MAX_LAUNCHES", "garbage")
         settings = load_settings(project_root=clean_settings.project)
         # Global YAML's 99 must survive — invalid env doesn't override
         # with a default, it leaves the lower tier intact.
@@ -528,9 +528,9 @@ class TestEnvVarTypeCoercion:
         self, clean_settings, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """String-typed env vars round-trip without coercion."""
-        monkeypatch.setenv("CONVERSUS_DEFAULT_PROVIDER", "claude-code")
-        monkeypatch.setenv("CONVERSUS_DEFAULT_MODE", "winner-take-all")
-        monkeypatch.setenv("CONVERSUS_DEFAULT_MODEL", "claude-opus-4-5")
+        monkeypatch.setenv("DELIBERATOR_DEFAULT_PROVIDER", "claude-code")
+        monkeypatch.setenv("DELIBERATOR_DEFAULT_MODE", "winner-take-all")
+        monkeypatch.setenv("DELIBERATOR_DEFAULT_MODEL", "claude-opus-4-5")
 
         settings = load_settings(project_root=clean_settings.project)
 
@@ -541,16 +541,16 @@ class TestEnvVarTypeCoercion:
     def test_empty_string_env_var_treated_as_unset(
         self, clean_settings, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """Empty CONVERSUS_DEFAULT_PROVIDER='' must not override lower tiers.
+        """Empty DELIBERATOR_DEFAULT_PROVIDER='' must not override lower tiers.
 
         Empty strings are how shells signal "I cleared this var" without
         unsetting it. Treating them as values would mean a `unset
-        CONVERSUS_DEFAULT_PROVIDER; export CONVERSUS_DEFAULT_PROVIDER=`
+        DELIBERATOR_DEFAULT_PROVIDER; export DELIBERATOR_DEFAULT_PROVIDER=`
         sequence quietly clobbers the user's settings.yml. The cascade
         must skip empty env values and fall through.
         """
         _write_settings(clean_settings.home, {"default_provider": "anthropic"})
-        monkeypatch.setenv("CONVERSUS_DEFAULT_PROVIDER", "")
+        monkeypatch.setenv("DELIBERATOR_DEFAULT_PROVIDER", "")
 
         settings = load_settings(project_root=clean_settings.project)
         # Global YAML's value must survive; empty string is not a value.
@@ -670,8 +670,8 @@ class TestResolveProviderWithContext:
     def test_env_var_wins_over_context(
         self, clean_settings, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """CONVERSUS_DEFAULT_PROVIDER wins over context inference."""
-        monkeypatch.setenv("CONVERSUS_DEFAULT_PROVIDER", "openai")
+        """DELIBERATOR_DEFAULT_PROVIDER wins over context inference."""
+        monkeypatch.setenv("DELIBERATOR_DEFAULT_PROVIDER", "openai")
         from engine.settings import resolve_provider_with_context
         settings = load_settings(project_root=clean_settings.project)
         result = resolve_provider_with_context(

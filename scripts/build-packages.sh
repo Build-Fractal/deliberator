@@ -18,7 +18,7 @@ cleanup() {
 }
 trap cleanup EXIT
 
-echo "Building conversus packages..."
+echo "Building deliberator packages..."
 
 cp "$ORIGINAL" "$BACKUP"
 

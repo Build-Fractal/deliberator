@@ -1,10 +1,10 @@
 {
   "manifest_version": "0.3",
-  "name": "conversus",
-  "display_name": "Conversus",
+  "name": "deliberator",
+  "display_name": "Deliberator",
   "version": "0.4.0",
   "description": "Run competitive multi-agent deliberations \u2014 structured adversarial reviews, red-team proposals, and consensus building with game theory modes",
-  "long_description": "**Make better decisions by pitting AI agents against each other in structured debate.**\n\nInstead of one LLM giving you a confident but unchallenged answer, conversus runs multiple agents with different perspectives through a structured adversarial pipeline. Weak arguments get exposed, disagreements get surfaced explicitly, and the final verdict is grounded in the full adversarial record.\n\n## How it works\n\nEvery deliberation runs a **5-phase pipeline**:\n\n1. **Review** \u2014 Each agent independently analyzes your question or document. No agent sees another\u2019s work, forcing genuinely independent perspectives.\n2. **Cross-Review** \u2014 Every agent reads every other agent\u2019s review and identifies contradictions, tensions, and agreements. This is the adversarial core.\n3. **Revision** \u2014 Each agent revises their position after reading the cross-reviews. They must explicitly withdraw, modify, or defend every recommendation \u2014 no dodging.\n4. **Disputes** \u2014 Unresolved disagreements are extracted and structured: what the dispute is, who disagrees, and what evidence would settle it.\n5. **Synthesis** \u2014 A neutral synthesizer reads the entire record and produces a final verdict that honors convergence, resolves disputes, and cites every claim back to the pipeline.\n\nThe result: a decision grounded in adversarial testing, not a single model\u2019s confidence.\n\n## Setup \u2014 your first deliberation in 30 seconds\n\nNo API keys needed to try it. The built-in **mock provider** runs a complete deliberation with synthetic responses so you can see the full pipeline shape before spending credits.\n\n1. Open a new Claude Desktop chat\n2. Paste: *\"Help me decide whether to lease or buy a car. Use provider mock.\"*\n3. Claude calls the tool, runs all 5 phases in milliseconds, and shows you the structured result\n\nOnce you\u2019ve seen the pipeline shape, you\u2019re ready for real deliberations.\n\n**To use a real LLM provider**, go to the extension settings (Claude Desktop \u2192 Settings \u2192 Extensions \u2192 Conversus) and set your **Default Provider** to `anthropic` and add your **Anthropic API Key**. API keys are stored securely in your system keychain. Then just ask:\n\n- *\"Help me decide whether I should build a timber framed home or a conventionally framed home.\"*\n\nNo need to say \"use provider anthropic\" \u2014 the extension reads your configured default automatically.\n\n## Try these prompts\n\n- *\"Help me decide whether I should build a timber framed home or a conventionally framed home.\"*\n- *\"I\u2019m choosing between starting an LLC or an S-Corp for my freelance business. Run a conversus deliberation in red-blue mode.\"*\n- *\"Should I lease or buy my next car if I drive 15,000 miles a year and plan to keep it for 5 years?\"*\n\nNo configuration needed \u2014 `conversus_decide` uses built-in pragmatist + devil\u2019s advocate agents automatically. Just describe your decision and Claude picks the right tool.\n\n## What\u2019s included\n\n**8 game theory modes:**\n\n- **Cooperative** \u2014 agents seek convergence, surface integration issues\n- **Winner-take-all** \u2014 each agent defends a position, synthesis picks one winner\n- **Prisoner\u2019s dilemma** \u2014 agents choose cooperate/defect, tests whether trust holds\n- **Red-blue** \u2014 one team attacks, one defends (asymmetric adversarial review)\n- **Negotiation** \u2014 agents negotiate terms with explicit offers and counteroffers\n- **Resource-allocation** \u2014 agents compete for a fixed budget of attention/priority\n- **Fair-division** \u2014 agents divide responsibilities or scope using fairness criteria\n- **Mechanism-design** \u2014 agents propose and evaluate incentive structures\n\n**3 tools:**\n\n- `conversus_decide` \u2014 quick ad-hoc deliberation, no config file\n- `conversus_run` \u2014 full deliberation from a YAML config with custom agents\n- `conversus_validate` \u2014 check your config and see the cost before committing\n\n**Also:**\n\n- **10+ LLM providers** \u2014 Anthropic, OpenAI, Ollama, Gemini, Claude Code, and more\n- **Self-contained** \u2014 no separate Python or pip install required. Claude Desktop\u2019s bundled runtime handles everything.\n\n## New to conversus?\n\nSee the [5-minute walkthrough](https://github.com/Build-Fractal/conversus-oss/blob/main/docs/user-guide/first-deliberation.md) \u2014 it runs a real deliberation and explains what you just saw.\n\nFull documentation: [Desktop Extension guide](https://github.com/Build-Fractal/conversus-oss/blob/main/docs/user-guide/desktop-extension.md)",
+  "long_description": "**Make better decisions by pitting AI agents against each other in structured debate.**\n\nInstead of one LLM giving you a confident but unchallenged answer, deliberator runs multiple agents with different perspectives through a structured adversarial pipeline. Weak arguments get exposed, disagreements get surfaced explicitly, and the final verdict is grounded in the full adversarial record.\n\n## How it works\n\nEvery deliberation runs a **5-phase pipeline**:\n\n1. **Review** \u2014 Each agent independently analyzes your question or document. No agent sees another\u2019s work, forcing genuinely independent perspectives.\n2. **Cross-Review** \u2014 Every agent reads every other agent\u2019s review and identifies contradictions, tensions, and agreements. This is the adversarial core.\n3. **Revision** \u2014 Each agent revises their position after reading the cross-reviews. They must explicitly withdraw, modify, or defend every recommendation \u2014 no dodging.\n4. **Disputes** \u2014 Unresolved disagreements are extracted and structured: what the dispute is, who disagrees, and what evidence would settle it.\n5. **Synthesis** \u2014 A neutral synthesizer reads the entire record and produces a final verdict that honors convergence, resolves disputes, and cites every claim back to the pipeline.\n\nThe result: a decision grounded in adversarial testing, not a single model\u2019s confidence.\n\n## Setup \u2014 your first deliberation in 30 seconds\n\nNo API keys needed to try it. The built-in **mock provider** runs a complete deliberation with synthetic responses so you can see the full pipeline shape before spending credits.\n\n1. Open a new Claude Desktop chat\n2. Paste: *\"Help me decide whether to lease or buy a car. Use provider mock.\"*\n3. Claude calls the tool, runs all 5 phases in milliseconds, and shows you the structured result\n\nOnce you\u2019ve seen the pipeline shape, you\u2019re ready for real deliberations.\n\n**To use a real LLM provider**, go to the extension settings (Claude Desktop \u2192 Settings \u2192 Extensions \u2192 Deliberator) and set your **Default Provider** to `anthropic` and add your **Anthropic API Key**. API keys are stored securely in your system keychain. Then just ask:\n\n- *\"Help me decide whether I should build a timber framed home or a conventionally framed home.\"*\n\nNo need to say \"use provider anthropic\" \u2014 the extension reads your configured default automatically.\n\n## Try these prompts\n\n- *\"Help me decide whether I should build a timber framed home or a conventionally framed home.\"*\n- *\"I\u2019m choosing between starting an LLC or an S-Corp for my freelance business. Run a deliberator deliberation in red-blue mode.\"*\n- *\"Should I lease or buy my next car if I drive 15,000 miles a year and plan to keep it for 5 years?\"*\n\nNo configuration needed \u2014 `deliberator_decide` uses built-in pragmatist + devil\u2019s advocate agents automatically. Just describe your decision and Claude picks the right tool.\n\n## What\u2019s included\n\n**8 game theory modes:**\n\n- **Cooperative** \u2014 agents seek convergence, surface integration issues\n- **Winner-take-all** \u2014 each agent defends a position, synthesis picks one winner\n- **Prisoner\u2019s dilemma** \u2014 agents choose cooperate/defect, tests whether trust holds\n- **Red-blue** \u2014 one team attacks, one defends (asymmetric adversarial review)\n- **Negotiation** \u2014 agents negotiate terms with explicit offers and counteroffers\n- **Resource-allocation** \u2014 agents compete for a fixed budget of attention/priority\n- **Fair-division** \u2014 agents divide responsibilities or scope using fairness criteria\n- **Mechanism-design** \u2014 agents propose and evaluate incentive structures\n\n**3 tools:**\n\n- `deliberator_decide` \u2014 quick ad-hoc deliberation, no config file\n- `deliberator_run` \u2014 full deliberation from a YAML config with custom agents\n- `deliberator_validate` \u2014 check your config and see the cost before committing\n\n**Also:**\n\n- **10+ LLM providers** \u2014 Anthropic, OpenAI, Ollama, Gemini, Claude Code, and more\n- **Self-contained** \u2014 no separate Python or pip install required. Claude Desktop\u2019s bundled runtime handles everything.\n\n## New to deliberator?\n\nSee the [5-minute walkthrough](https://github.com/Build-Fractal/deliberator/blob/main/docs/user-guide/first-deliberation.md) \u2014 it runs a real deliberation and explains what you just saw.\n\nFull documentation: [Desktop Extension guide](https://github.com/Build-Fractal/deliberator/blob/main/docs/user-guide/desktop-extension.md)",
   "author": {
     "name": "Build Fractal",
     "email": "hello@buildfractal.com",
@@ -12,11 +12,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Build-Fractal/conversus-oss.git"
+    "url": "https://github.com/Build-Fractal/deliberator.git"
   },
-  "homepage": "https://github.com/Build-Fractal/conversus-oss",
-  "documentation": "https://github.com/Build-Fractal/conversus-oss/blob/main/docs/user-guide/desktop-extension.md",
-  "support": "https://github.com/Build-Fractal/conversus-oss/issues",
+  "homepage": "https://github.com/Build-Fractal/deliberator",
+  "documentation": "https://github.com/Build-Fractal/deliberator/blob/main/docs/user-guide/desktop-extension.md",
+  "support": "https://github.com/Build-Fractal/deliberator/issues",
   "license": "Apache-2.0",
   "keywords": [
     "deliberation",
@@ -50,13 +50,13 @@
     }
   },
   "user_config": {
-    "CONVERSUS_DEFAULT_PROVIDER": {
+    "DELIBERATOR_DEFAULT_PROVIDER": {
       "type": "string",
       "title": "Default Provider",
       "description": "claude-desktop (uses your Claude session, no API key) | anthropic (direct API, needs key) | openai (GPT, needs key) | demo (free test mode)",
       "default": "claude-desktop"
     },
-    "CONVERSUS_DEFAULT_MODE": {
+    "DELIBERATOR_DEFAULT_MODE": {
       "type": "string",
       "title": "Default Mode",
       "description": "cooperative (balanced) | winner-take-all (pick one) | red-blue (attack/defend) | prisoners-dilemma (test trust)",
@@ -87,10 +87,10 @@
       "default": "http://localhost:11434",
       "sensitive": false
     },
-    "CONVERSUS_DISABLED_TOOLS": {
+    "DELIBERATOR_DISABLED_TOOLS": {
       "type": "string",
       "title": "Disabled Tools",
-      "description": "Comma-separated list of tool names to hide from this MCP server (e.g. 'conversus_login,conversus_run'). Disabled tools are not registered and don't appear in the tool list. Leave blank to expose all tools.",
+      "description": "Comma-separated list of tool names to hide from this MCP server (e.g. 'deliberator_login,deliberator_run'). Disabled tools are not registered and don't appear in the tool list. Leave blank to expose all tools.",
       "default": "",
       "sensitive": false
     }
@@ -100,67 +100,67 @@
       "name": "deliberate",
       "description": "Analyze your question, recommend a deliberation mode, explain the setup, and run after your approval",
       "arguments": ["question"],
-      "text": "I want to run a conversus deliberation on this question:\n\n> ${arguments.question}\n\nBefore running, analyze the question and recommend a mode (cooperative, winner-take-all, red-blue, or prisoners-dilemma). Present your recommendation as a table with Mode, Why, What to expect, and Cost. Then ask me to confirm before calling conversus_decide."
+      "text": "I want to run a deliberator deliberation on this question:\n\n> ${arguments.question}\n\nBefore running, analyze the question and recommend a mode (cooperative, winner-take-all, red-blue, or prisoners-dilemma). Present your recommendation as a table with Mode, Why, What to expect, and Cost. Then ask me to confirm before calling deliberator_decide."
     },
     {
       "name": "challenge",
       "description": "Red-team a decision — one agent attacks, one defends. Explains the setup before running.",
       "arguments": ["question"],
-      "text": "I want to stress-test this decision with a conversus red-blue deliberation:\n\n> ${arguments.question}\n\nBriefly explain what the red team will attack and what the blue team will defend. Then ask me to confirm before calling conversus_decide with mode red-blue."
+      "text": "I want to stress-test this decision with a deliberator red-blue deliberation:\n\n> ${arguments.question}\n\nBriefly explain what the red team will attack and what the blue team will defend. Then ask me to confirm before calling deliberator_decide with mode red-blue."
     },
     {
       "name": "force_decision",
       "description": "Force a definitive answer — no compromise, pick one winner. Explains the setup before running.",
       "arguments": ["question"],
-      "text": "I need a definitive answer on this — no 'it depends':\n\n> ${arguments.question}\n\nExplain the two competing positions and why winner-take-all mode is right for this question. Then ask me to confirm before calling conversus_decide with mode winner-take-all."
+      "text": "I need a definitive answer on this — no 'it depends':\n\n> ${arguments.question}\n\nExplain the two competing positions and why winner-take-all mode is right for this question. Then ask me to confirm before calling deliberator_decide with mode winner-take-all."
     },
     {
       "name": "design_deliberation",
       "description": "Build a custom deliberation config through a guided conversation",
-      "text": "Let's design a conversus deliberation config together."
+      "text": "Let's design a deliberator deliberation config together."
     },
     {
       "name": "analyze_documents",
       "description": "Multi-agent analysis over one or many documents — extract claims, compare, or find contradictions",
-      "text": "Let's run a conversus document analysis."
+      "text": "Let's run a deliberator document analysis."
     },
     {
       "name": "review_config",
       "description": "Run a full deliberation from a YAML config",
       "arguments": ["config_yaml"],
-      "text": "Use the conversus_run tool with this config:\n\n```yaml\n${arguments.config_yaml}\n```"
+      "text": "Use the deliberator_run tool with this config:\n\n```yaml\n${arguments.config_yaml}\n```"
     },
     {
       "name": "check_cost",
       "description": "Check the cost of a deliberation before running it",
       "arguments": ["config_yaml"],
-      "text": "Use the conversus_validate tool to check this config before running:\n\n```yaml\n${arguments.config_yaml}\n```"
+      "text": "Use the deliberator_validate tool to check this config before running:\n\n```yaml\n${arguments.config_yaml}\n```"
     }
   ],
   "tools_generated": false,
   "tools": [
     {
-      "name": "conversus_decide",
+      "name": "deliberator_decide",
       "description": "Run an ad-hoc deliberation on a natural-language question using the built-in pragmatist + devil's advocate agents. Best for quick decisions \u2014 no config file needed. Accepts a mode parameter (cooperative, red-blue, winner-take-all, prisoners-dilemma)."
     },
     {
-      "name": "conversus_run",
+      "name": "deliberator_run",
       "description": "Run or parse a full multi-agent deliberation from a YAML config file. Supports all 8 game theory modes, custom agents, target documents, and optional arbiters. Use this when you want reproducible deliberations with your own stakeholder personas."
     },
     {
-      "name": "conversus_validate",
-      "description": "Validate a conversus YAML config and estimate the total LLM launch count BEFORE running. Catches schema errors, missing target files, and invalid mode names. Always run this before a real deliberation to know the cost."
+      "name": "deliberator_validate",
+      "description": "Validate a deliberator YAML config and estimate the total LLM launch count BEFORE running. Catches schema errors, missing target files, and invalid mode names. Always run this before a real deliberation to know the cost."
     },
     {
-      "name": "conversus_login",
+      "name": "deliberator_login",
       "description": "Opens a browser for OAuth authentication with the specified provider. Stores the token locally so future deliberations use it automatically. Desktop Extension users: just say 'log in to anthropic' and the browser opens for authentication \u2014 no CLI needed."
     },
     {
-      "name": "conversus_list_deliberations",
-      "description": "List past deliberations stored in the project's .conversus/deliberations/ directory. Returns deliberation names, timestamps, and summary metadata. Use this to browse deliberation history before reading individual files."
+      "name": "deliberator_list_deliberations",
+      "description": "List past deliberations stored in the project's .deliberator/deliberations/ directory. Returns deliberation names, timestamps, and summary metadata. Use this to browse deliberation history before reading individual files."
     },
     {
-      "name": "conversus_show_deliberation",
+      "name": "deliberator_show_deliberation",
       "description": "Read a specific file from a past deliberation's output directory. Use after list-deliberations to inspect summaries, individual agent reviews, synthesis documents, or any other artifact produced during a deliberation."
     }
   ]

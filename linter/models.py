@@ -1,5 +1,5 @@
 """
-Pydantic models for conversus template variable typing.
+Pydantic models for deliberator template variable typing.
 
 These models enforce type safety at two levels:
 1. Schema validation — structure of variables.yml and modes/*.yml (used by linter)

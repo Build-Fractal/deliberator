@@ -9,7 +9,7 @@
 # than surfacing the disagreement as an unresolved tension.
 #
 # Run:
-#   conversus run examples/with-arbiter.yml --provider mock
+#   deliberator run examples/with-arbiter.yml --provider mock
 #
 # Cost (mock): ~10 LLM launches (9 base + 1 arbitration when triggered).
 

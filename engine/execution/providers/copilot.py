@@ -5,7 +5,7 @@ Wraps ``gh copilot`` as an :class:`ExecutionProvider` via
 
 GitHub Copilot CLI is part of the ``gh`` CLI extension ecosystem.
 It provides ``suggest`` (shell command generation) and ``explain``
-(code explanation) subcommands.  For conversus deliberation, we use
+(code explanation) subcommands.  For deliberator deliberation, we use
 it in explain mode with the prompt piped as the question.
 
 Install: ``gh extension install github/gh-copilot``
@@ -35,7 +35,7 @@ DEFAULT_TIMEOUT = 120
 
 
 class CopilotProvider(SubprocessProvider):
-    """Execute conversus agent tasks via ``gh copilot``.
+    """Execute deliberator agent tasks via ``gh copilot``.
 
     Args:
         mode: Copilot subcommand (``"explain"`` or ``"suggest"``).

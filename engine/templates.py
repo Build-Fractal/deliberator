@@ -1,7 +1,7 @@
-"""Template loading, filling, and context construction for the conversus engine.
+"""Template loading, filling, and context construction for the deliberator engine.
 
 Provides:
-- ``find_templates_dir()`` — locate templates/ relative to the conversus root
+- ``find_templates_dir()`` — locate templates/ relative to the deliberator root
 - ``load_template()`` — load a mode-specific phase template, rejecting drafts
 - ``fill_template()`` — substitute {VARIABLE} placeholders from a TemplateContext
 - ``build_review_context()`` — construct a ReviewContext for Phase 1
@@ -42,7 +42,7 @@ from engine.output import OutputManager
 
 UNFILLED_VAR_RE = re.compile(r"\{[A-Z_]+\}")
 
-DRAFT_MARKER = "<!-- CONVERSUS:TEMPLATE_STATUS: draft -->"
+DRAFT_MARKER = "<!-- DELIBERATOR:TEMPLATE_STATUS: draft -->"
 
 
 class TemplateError(Exception):
@@ -56,16 +56,16 @@ class TemplateError(Exception):
 # ---------------------------------------------------------------------------
 
 def find_templates_dir(config_path: Path) -> Path:
-    """Locate the ``templates/`` directory relative to the conversus project root.
+    """Locate the ``templates/`` directory relative to the deliberator project root.
 
     Resolution order:
     1. Walk up from the config file's directory.
-    2. ``importlib.resources`` via ``conversus.paths`` (works when pip-installed).
-    3. ``Path(__file__).parent.parent`` (engine/ is a child of conversus root).
+    2. ``importlib.resources`` via ``deliberator.paths`` (works when pip-installed).
+    3. ``Path(__file__).parent.parent`` (engine/ is a child of deliberator root).
     4. Current working directory.
 
     Args:
-        config_path: Path to the conversus YAML config file.
+        config_path: Path to the deliberator YAML config file.
 
     Returns:
         Resolved path to the ``templates/`` directory.
@@ -76,14 +76,14 @@ def find_templates_dir(config_path: Path) -> Path:
     # Strategy 1: walk up from config file location.
     # Require at least one known mode subdir so we don't accept a
     # same-named but unrelated `templates/` sibling (e.g. a project
-    # calling conversus that happens to have its own templates dir).
+    # calling deliberator that happens to have its own templates dir).
     _MODE_MARKERS = (
         "cooperative", "red-blue", "winner-take-all",
         "prisoners-dilemma", "negotiation", "fair-division",
         "resource-allocation", "mechanism-design",
     )
 
-    def _is_conversus_templates_dir(path: Path) -> bool:
+    def _is_deliberator_templates_dir(path: Path) -> bool:
         if not path.is_dir():
             return False
         return any((path / m).is_dir() for m in _MODE_MARKERS)
@@ -91,7 +91,7 @@ def find_templates_dir(config_path: Path) -> Path:
     candidate = config_path.resolve().parent
     for _ in range(10):  # safety bound
         templates = candidate / "templates"
-        if _is_conversus_templates_dir(templates):
+        if _is_deliberator_templates_dir(templates):
             return templates
         parent = candidate.parent
         if parent == candidate:
@@ -100,25 +100,25 @@ def find_templates_dir(config_path: Path) -> Path:
 
     # Strategy 2: importlib.resources (works when pip-installed)
     try:
-        from conversus.paths import get_templates_dir
+        from deliberator.paths import get_templates_dir
         return get_templates_dir()
     except (ImportError, FileNotFoundError):
         pass
 
-    # Strategy 3: engine/ is a child of conversus root (dev fallback)
+    # Strategy 3: engine/ is a child of deliberator root (dev fallback)
     engine_root = Path(__file__).resolve().parent.parent
     templates = engine_root / "templates"
-    if _is_conversus_templates_dir(templates):
+    if _is_deliberator_templates_dir(templates):
         return templates
 
     # Strategy 4: cwd
     templates = Path.cwd() / "templates"
-    if _is_conversus_templates_dir(templates):
+    if _is_deliberator_templates_dir(templates):
         return templates
 
     raise TemplateError(
         "Cannot locate templates/ directory. "
-        "Ensure it exists relative to the config file or the conversus root."
+        "Ensure it exists relative to the config file or the deliberator root."
     )
 
 
@@ -130,7 +130,7 @@ def load_template(templates_dir: Path, mode: str, phase: str) -> str:
     """Load a template file from ``templates/{mode}/{phase}.md``.
 
     Rejects templates marked as draft via the
-    ``<!-- CONVERSUS:TEMPLATE_STATUS: draft -->`` marker on the first line.
+    ``<!-- DELIBERATOR:TEMPLATE_STATUS: draft -->`` marker on the first line.
 
     Args:
         templates_dir: Path to the ``templates/`` directory.
@@ -549,8 +549,8 @@ def build_synthesis_context(
 # ---------------------------------------------------------------------------
 
 # Marker regexes — must match linter/quality.py constants exactly.
-_DISPUTES_BEGIN_RE = re.compile(r"<!--\s*CONVERSUS:DISPUTES_BEGIN\s*-->")
-_DISPUTES_END_RE = re.compile(r"<!--\s*CONVERSUS:DISPUTES_END\s*-->")
+_DISPUTES_BEGIN_RE = re.compile(r"<!--\s*DELIBERATOR:DISPUTES_BEGIN\s*-->")
+_DISPUTES_END_RE = re.compile(r"<!--\s*DELIBERATOR:DISPUTES_END\s*-->")
 
 # Mode-specific dispute headings for fallback extraction.
 # New modes (spec 028): negotiation, resource-allocation, fair-division, mechanism-design.

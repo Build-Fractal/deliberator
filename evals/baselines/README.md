@@ -89,8 +89,8 @@ uv run python scripts/capture-eval-baselines.py \
     --output /tmp/baseline-stub.json
 ```
 
-The capture script honours `CONVERSUS_EVAL_PROVIDER` (default `claude-code`)
-and `CONVERSUS_EVAL_JUDGE_PROVIDER` (default `anthropic`); pass
+The capture script honours `DELIBERATOR_EVAL_PROVIDER` (default `claude-code`)
+and `DELIBERATOR_EVAL_JUDGE_PROVIDER` (default `anthropic`); pass
 `--deliberation-provider` / `--judge-provider` / `--judge-model` to override
 the defaults explicitly.
 

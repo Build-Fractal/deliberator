@@ -1,12 +1,12 @@
-"""Click CLI for the conversus deliberation engine.
+"""Click CLI for the deliberator deliberation engine.
 
-Provides the ``conversus`` command group with subcommands:
+Provides the ``deliberator`` command group with subcommands:
 ``run``, ``decide``, ``validate``, ``login``, ``logout``.
 
 Entry point wired via ``pyproject.toml`` as::
 
     [project.scripts]
-    conversus = "engine.cli:cli"
+    deliberator = "engine.cli:cli"
 
 All user-facing errors are caught and printed cleanly — no raw tracebacks.
 """
@@ -63,17 +63,17 @@ def _format_cost_estimate(
     epilog="""\b
 Examples:
   # Quick ad-hoc deliberation
-  conversus decide "Should we use Postgres or MongoDB?" --provider anthropic
+  deliberator decide "Should we use Postgres or MongoDB?" --provider anthropic
 
   # Run a full deliberation from a config file
-  conversus run path/to/conversus.yml --provider anthropic
+  deliberator run path/to/deliberator.yml --provider anthropic
 
   # Check provider authentication status
-  conversus status
+  deliberator status
 """,
 )
 def cli() -> None:
-    """Conversus — competitive multi-agent deliberation engine."""
+    """Deliberator — competitive multi-agent deliberation engine."""
     # Spec 057 SC-004 verdict: emit a DEBUG-level sweep diff of legacy
     # auth.json keys vs. credentials/ files once per invocation. Stateless
     # — no sentinel file, no in-memory dedup. Best-effort, never raises.
@@ -91,19 +91,19 @@ def cli() -> None:
     epilog="""\b
 Examples:
   # Run with default mock provider
-  conversus run path/to/conversus.yml
+  deliberator run path/to/deliberator.yml
 
   # Run with Anthropic provider and a specific model
-  conversus run path/to/conversus.yml --provider anthropic --model claude-sonnet-4-20250514
+  deliberator run path/to/deliberator.yml --provider anthropic --model claude-sonnet-4-20250514
 
   # Run with Claude Code as agent runtime
-  conversus run config.yml --provider claude-code
+  deliberator run config.yml --provider claude-code
 
   # Run with local Ollama (free, no API key)
-  conversus run config.yml --provider ollama --model llama3
+  deliberator run config.yml --provider ollama --model llama3
 
   # Run only the review phase
-  conversus run config.yml --provider openai --phase review
+  deliberator run config.yml --provider openai --phase review
 """,
 )
 @click.argument("config_path", type=click.Path(exists=True, path_type=Path))
@@ -136,7 +136,7 @@ def run(
     rounds: int | None,
     phase: str,
 ) -> None:
-    """Run a deliberation from a conversus config file."""
+    """Run a deliberation from a deliberator config file."""
     from engine.cli.progress import RichProgressHandler
     from engine.events import CallbackEmitter
     from engine.run import run_engine
@@ -175,16 +175,16 @@ def run(
     epilog="""\b
 Examples:
   # Validate a config file
-  conversus validate path/to/conversus.yml
+  deliberator validate path/to/deliberator.yml
 
   # Validate and classify a question for deliberation sufficiency
-  conversus validate path/to/conversus.yml --question "Is this clear enough?"
+  deliberator validate path/to/deliberator.yml --question "Is this clear enough?"
 """,
 )
 @click.argument("config_path", type=click.Path(exists=True, path_type=Path))
 @click.option("--question", default=None, help="Classify a question for deliberation sufficiency.")
 def validate(config_path: Path, question: str | None) -> None:
-    """Validate a conversus config and print a cost estimate."""
+    """Validate a deliberator config and print a cost estimate."""
     try:
         config = parse_config(config_path.resolve())
     except ConfigError as exc:
@@ -218,7 +218,7 @@ def validate(config_path: Path, question: str | None) -> None:
 
 
 def _find_project_root() -> Path:
-    """Locate the conversus project root (directory containing presets/).
+    """Locate the deliberator project root (directory containing presets/).
 
     Delegates to :func:`engine._root.find_project_root`.
     """
@@ -234,13 +234,13 @@ def _find_project_root() -> Path:
     epilog="""\b
 Examples:
   # Quick ad-hoc deliberation with Anthropic
-  conversus decide "Should we use Postgres or MongoDB?" --provider anthropic
+  deliberator decide "Should we use Postgres or MongoDB?" --provider anthropic
 
   # Cooperative deliberation with JSON output
-  conversus decide "Should we use Postgres or MongoDB?" --provider anthropic --mode cooperative --format json
+  deliberator decide "Should we use Postgres or MongoDB?" --provider anthropic --mode cooperative --format json
 
   # Use a different deliberation mode
-  conversus decide "Build vs buy?" --provider openai --mode red-blue
+  deliberator decide "Build vs buy?" --provider openai --mode red-blue
 """,
 )
 @click.argument("question", type=str)
@@ -282,7 +282,7 @@ Examples:
 def decide(question: str, provider: str, mode: str, model: str | None, output_dir: Path | None, output_format: str) -> None:
     """Run an ad-hoc deliberation on a natural-language question.
 
-    Generates a temporary conversus config using pragmatist + devils-advocate
+    Generates a temporary deliberator config using pragmatist + devils-advocate
     presets, runs the full pipeline, and prints structured results.
     """
     # Validate non-empty question
@@ -383,10 +383,10 @@ def decide(question: str, provider: str, mode: str, model: str | None, output_di
     epilog="""\b
 Examples:
   # Log in to Anthropic via OAuth
-  conversus login anthropic
+  deliberator login anthropic
 
   # Log in to OpenAI
-  conversus login openai
+  deliberator login openai
 """,
 )
 @click.argument("provider", type=str)
@@ -412,10 +412,10 @@ def login(provider: str) -> None:
     epilog="""\b
 Examples:
   # Log out of Anthropic
-  conversus logout anthropic
+  deliberator logout anthropic
 
   # Log out of OpenAI
-  conversus logout openai
+  deliberator logout openai
 """,
 )
 @click.argument("provider", type=str)
@@ -436,7 +436,7 @@ def logout(provider: str) -> None:
     epilog="""\b
 Examples:
   # Check authentication status for all providers
-  conversus status
+  deliberator status
 """,
 )
 def status() -> None:
@@ -460,14 +460,14 @@ def status() -> None:
     epilog="""\b
 Examples:
   # List all available skills with summaries
-  conversus skills
+  deliberator skills
 """,
 )
 def skills() -> None:
-    """List all available conversus skills with their summaries.
+    """List all available deliberator skills with their summaries.
 
     Spec 059 Phase 2 — exposes the same guided-workflow content that
-    Claude Code users get via ``/conversus:*`` slash commands, but
+    Claude Code users get via ``/deliberator:*`` slash commands, but
     accessible from the terminal. The skill content lives in
     ``claude-code-plugin/skills/<name>/SKILL.md`` (single source of
     truth, principle XI).
@@ -481,17 +481,17 @@ def skills() -> None:
     epilog="""\b
 Examples:
   # Print the guided workflow for the decide skill
-  conversus skill decide
+  deliberator skill decide
 
   # Print the guided workflow for the run skill
-  conversus skill run
+  deliberator skill run
 """,
 )
 @click.argument("name", type=str)
 def skill(name: str) -> None:
     """Print the SKILL.md guided workflow for a named capability.
 
-    Spec 059 Phase 2 — companion to ``conversus skills`` (the lister).
+    Spec 059 Phase 2 — companion to ``deliberator skills`` (the lister).
     This command prints the full SKILL.md text for one named skill,
     giving CLI users access to the same guided workflow that Claude
     Code users get via the corresponding slash command.
@@ -510,16 +510,16 @@ def skill(name: str) -> None:
     epilog="""\b
 Examples:
   # Print the detected invocation context (interactive terminal)
-  conversus context
+  deliberator context
 
   # Simulate CI context
-  CI=1 conversus context
+  CI=1 deliberator context
 
   # Simulate Claude Code session context
-  CLAUDECODE=1 conversus context
+  CLAUDECODE=1 deliberator context
 
   # Force JSON output even on a TTY
-  conversus context --json
+  deliberator context --json
 """,
 )
 @click.option(
@@ -538,7 +538,7 @@ def context(as_json: bool) -> None:
 
     Useful for verifying that context detection works correctly in CI,
     cron, hooks, and Claude Code sessions before committing to a
-    specific conversus.yml configuration.
+    specific deliberator.yml configuration.
     """
     from engine.cli.context import detect_context
 
@@ -565,7 +565,7 @@ def context(as_json: bool) -> None:
     from rich.table import Table
 
     console = Console()
-    table = Table(title="Conversus Invocation Context", show_header=True)
+    table = Table(title="Deliberator Invocation Context", show_header=True)
     table.add_column("Field", style="bold cyan")
     table.add_column("Value", style="white")
 
@@ -600,24 +600,24 @@ def context(as_json: bool) -> None:
     epilog="""\b
 Examples:
   # Start the MCP server (stdio transport, for use with Claude Code / Cursor)
-  conversus mcp
+  deliberator mcp
 
   # Add to Claude Code via CLI
-  claude mcp add conversus -- conversus mcp
+  claude mcp add deliberator -- deliberator mcp
 """,
 )
 def mcp() -> None:
-    """Start the Conversus MCP server (stdio transport).
+    """Start the Deliberator MCP server (stdio transport).
 
-    Launches an MCP-compatible server that exposes conversus deliberation
+    Launches an MCP-compatible server that exposes deliberator deliberation
     tools to editors such as Claude Code, Cursor, and Windsurf.
 
-    Requires the mcp extras: pip install conversus[mcp]
+    Requires the mcp extras: pip install deliberator[mcp]
 
     Tools exposed:
-      conversus_validate — validate a YAML config and estimate cost
-      conversus_run      — validate config and parse/run a deliberation
-      conversus_decide   — run an ad-hoc deliberation on a question
+      deliberator_validate — validate a YAML config and estimate cost
+      deliberator_run      — validate config and parse/run a deliberation
+      deliberator_decide   — run an ad-hoc deliberation on a question
 
     Transport: stdio (launched by the editor process, not by the user)
     """
@@ -626,7 +626,7 @@ def mcp() -> None:
     except ImportError:
         click.echo(
             "Error: MCP dependencies are not installed.\n"
-            "Install them with: pip install conversus[mcp]",
+            "Install them with: pip install deliberator[mcp]",
             err=True,
         )
         sys.exit(1)
@@ -664,16 +664,16 @@ def mcp() -> None:
     epilog="""\b
 Examples:
   # Init with Claude Code only (default)
-  conversus init
+  deliberator init
 
   # Init with multiple runtimes
-  conversus init --runtime claude-code --runtime opencode --runtime gemini
+  deliberator init --runtime claude-code --runtime opencode --runtime gemini
 
   # Init with Opus as default model
-  conversus init --model opus
+  deliberator init --model opus
 
   # Re-init to update settings
-  conversus init --force
+  deliberator init --force
 """,
 )
 @click.option(
@@ -711,9 +711,9 @@ def init(
     default_model: str,
     force: bool,
 ) -> None:
-    """Initialize a .conversus/ directory with runtime permissions.
+    """Initialize a .deliberator/ directory with runtime permissions.
 
-    Creates the project-level configuration so conversus agents can
+    Creates the project-level configuration so deliberator agents can
     run non-interactively without permission prompts.  Each runtime
     gets its own config file:
 
@@ -725,7 +725,7 @@ def init(
       codex        → .codex/settings.json
       aider        → .aider.conf.yml (yes-always, no-auto-commits)
 
-    Run this once per project, then all `conversus run --provider <runtime>`
+    Run this once per project, then all `deliberator run --provider <runtime>`
     commands work without interactive permission dialogs.
     """
     from engine.project import init_project
@@ -749,7 +749,7 @@ def init(
         click.echo("Already initialized (use --force to overwrite).")
         return
 
-    click.echo(f"Initialized .conversus/ in {project_root}")
+    click.echo(f"Initialized .deliberator/ in {project_root}")
     for desc, path in created.items():
         rel = path.relative_to(project_root) if path.is_relative_to(project_root) else path
         click.echo(f"  {desc}: {rel}")
@@ -760,20 +760,20 @@ def init(
     click.echo(f"Default model: {default_model}")
     click.echo("")
     click.echo("You can now run:")
-    click.echo(f"  conversus run conversus.yml --provider {default_provider}")
+    click.echo(f"  deliberator run deliberator.yml --provider {default_provider}")
 
 
 # ---------------------------------------------------------------------------
 # Spec 064.1 — runtime registration of entry-point-discovered capabilities
 # ---------------------------------------------------------------------------
 #
-# Capabilities shipped by paid wheels (``conversus-enhanced`` etc.) advertise
+# Capabilities shipped by paid wheels (``deliberator-enhanced`` etc.) advertise
 # themselves via setuptools entry points under the four functional groups
-# defined in :data:`conversus.registry.discovery.CAPABILITY_GROUPS`. The
+# defined in :data:`deliberator.registry.discovery.CAPABILITY_GROUPS`. The
 # registration call below walks those discoveries and installs each as a
 # subcommand on the ``cli`` group. Hand-coded ``@cli.command()`` decorators
 # above are unaffected.
-from conversus.registry.runtime import register_discovered_cli_commands
+from deliberator.registry.runtime import register_discovered_cli_commands
 
 register_discovered_cli_commands(cli)
 

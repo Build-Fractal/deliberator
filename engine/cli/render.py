@@ -1,6 +1,6 @@
 """Rich-based result rendering for deliberation output.
 
-Renders a :class:`linter.output_contract.ConversusOutput` to the
+Renders a :class:`linter.output_contract.DeliberatorOutput` to the
 terminal using Rich panels, tables, and markdown. TTY detection is
 automatic — piped output contains zero ANSI escape sequences.
 
@@ -20,11 +20,11 @@ from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.table import Table
 
-from linter.output_contract import ConversusOutput
+from linter.output_contract import DeliberatorOutput
 
 
 def render_result(
-    result: ConversusOutput,
+    result: DeliberatorOutput,
     console: Console | None = None,
 ) -> None:
     """Render a deliberation result with Rich formatting.

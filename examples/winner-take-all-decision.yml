@@ -5,13 +5,13 @@
 # and "it depends" is unacceptable.
 #
 # Run:
-#   conversus run examples/winner-take-all-decision.yml --provider mock
+#   deliberator run examples/winner-take-all-decision.yml --provider mock
 #
 # Cost (mock): ~9 LLM launches.
 
 subject: "License choice for OSS launch"
 question: |
-  Should conversus stay Apache-2.0, switch to AGPL-3.0, or dual-license?
+  Should deliberator stay Apache-2.0, switch to AGPL-3.0, or dual-license?
   Each agent advocates for one option; the synthesizer must pick one
   winner — no hedging.
 

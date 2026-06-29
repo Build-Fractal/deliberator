@@ -48,7 +48,7 @@ DEFAULT_TIMEOUT = 300
 
 
 class OpenCodeProvider(SubprocessProvider):
-    """Execute conversus agent tasks via the ``opencode`` CLI.
+    """Execute deliberator agent tasks via the ``opencode`` CLI.
 
     Args:
         timeout: Subprocess timeout in seconds.
