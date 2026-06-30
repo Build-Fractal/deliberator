@@ -1,0 +1,9 @@
+mode: cooperative
+target: /private/var/folders/83/8hrfk6_x5r38dj94h_jh9q1m0000gn/T/deliberator-adhoc-1ricn9u9/question.md
+output: /private/var/folders/83/8hrfk6_x5r38dj94h_jh9q1m0000gn/T/deliberator-adhoc-1ricn9u9/output
+iterations: 1
+agents:
+  - name: pragmatist
+    preset: philosophy/pragmatist
+  - name: devils-advocate
+    preset: role/devils-advocate

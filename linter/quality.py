@@ -1,7 +1,7 @@
 """
-Quality gate checker for conversus synthesis output.
+Quality gate checker for deliberator synthesis output.
 
-Structurally parses any conversus cooperative deliberation synthesis and returns
+Structurally parses any deliberator cooperative deliberation synthesis and returns
 pass/fail on two binary gates:
 
 1. **Substantive Disagreement** — at least one named dispute within the
@@ -86,15 +86,15 @@ class QualityResult(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# Regex constants — adapted from conversus/quality_floor/structural-definitions.md
+# Regex constants — adapted from deliberator/quality_floor/structural-definitions.md
 # ---------------------------------------------------------------------------
 
 # Dispute block boundaries
 DISPUTES_BEGIN: re.Pattern[str] = re.compile(
-    r"<!--\s*CONVERSUS:DISPUTES_BEGIN\s*-->"
+    r"<!--\s*DELIBERATOR:DISPUTES_BEGIN\s*-->"
 )
 DISPUTES_END: re.Pattern[str] = re.compile(
-    r"<!--\s*CONVERSUS:DISPUTES_END\s*-->"
+    r"<!--\s*DELIBERATOR:DISPUTES_END\s*-->"
 )
 
 # Individual dispute entries — handles BOTH formats:
@@ -889,12 +889,12 @@ if __name__ == "__main__":
     import sys
 
     parser = argparse.ArgumentParser(
-        description="Conversus quality gate checker. "
+        description="Deliberator quality gate checker. "
         "Exits 0 on pass, 1 on fail, 2 on file-not-found.",
     )
     parser.add_argument(
         "path",
-        help="Path to a conversus synthesis markdown file.",
+        help="Path to a deliberator synthesis markdown file.",
     )
     parser.add_argument(
         "--mode",

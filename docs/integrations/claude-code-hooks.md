@@ -1,12 +1,12 @@
-# Conversus snap-gate for Claude Code PreToolUse hooks
+# Deliberator snap-gate for Claude Code PreToolUse hooks
 
 **Status:** Prototype (no formal spec yet). Validate-by-use before promoting to a v4.3.0+ mode spec.
 
-`conversus snap` is a cheap (~3 agents, single phase, Haiku-default, sub-2s wall-clock target) multi-agent deliberation that evaluates whether Claude Code should proceed with a tool call — most commonly a Bash command. It plugs into Claude Code's [PreToolUse hook](https://code.claude.com/docs/en/hooks-guide) lifecycle, returning `allow` / `deny` / `ask` per the [hooks JSON contract](https://code.claude.com/docs/en/hooks).
+`deliberator snap` is a cheap (~3 agents, single phase, Haiku-default, sub-2s wall-clock target) multi-agent deliberation that evaluates whether Claude Code should proceed with a tool call — most commonly a Bash command. It plugs into Claude Code's [PreToolUse hook](https://code.claude.com/docs/en/hooks-guide) lifecycle, returning `allow` / `deny` / `ask` per the [hooks JSON contract](https://code.claude.com/docs/en/hooks).
 
 ## Why multi-agent deliberation for hooks?
 
-Claude Code already supports prompt-type hooks (single LLM evaluation). `conversus snap` adds **adversarial composition**: a pragmatist + devil's-advocate + safety-auditor each produce an independent verdict. The aggregation rule is deterministic:
+Claude Code already supports prompt-type hooks (single LLM evaluation). `deliberator snap` adds **adversarial composition**: a pragmatist + devil's-advocate + safety-auditor each produce an independent verdict. The aggregation rule is deterministic:
 
 1. **Any DENY → DENY** (safety-wins).
 2. **Else any ASK → ASK** (escalate to user).
@@ -16,11 +16,11 @@ Three independent Haiku calls voting can't simultaneously miss the same edge cas
 
 ## Setup
 
-### 1. Install conversus
+### 1. Install deliberator
 
 ```bash
-pip install conversus    # or: uv tool install conversus
-conversus login anthropic    # one-time OAuth setup
+pip install deliberator    # or: uv tool install deliberator
+deliberator login anthropic    # one-time OAuth setup
 ```
 
 ### 2. Add the hook to `.claude/settings.json`
@@ -37,7 +37,7 @@ Most flexible config — narrow with both `matcher` (tool name) AND `if` (comman
           {
             "type": "command",
             "if": "Bash(rm * | git push --force* | git push -f * | DROP TABLE* | sudo *)",
-            "command": "conversus snap --hook-mode",
+            "command": "deliberator snap --hook-mode",
             "timeout": 10
           }
         ]
@@ -51,7 +51,7 @@ The `if` condition is the cheap pre-filter: only commands matching the patterns 
 
 ### 3. Test it
 
-In a Claude Code session, ask Claude to run a destructive command. The hook fires, conversus snap runs three agents in parallel, and you'll see one of:
+In a Claude Code session, ask Claude to run a destructive command. The hook fires, deliberator snap runs three agents in parallel, and you'll see one of:
 
 - **Silent allow** — three unanimous ALLOWs; Claude proceeds.
 - **Permission prompt** — one or more ASKs; Claude Code prompts you.
@@ -77,14 +77,14 @@ When the matcher + `if` condition match, Claude Code pipes a JSON payload to the
 }
 ```
 
-`conversus snap --hook-mode` reads this, dispatches three agents in parallel against the command, aggregates verdicts, and emits the hook's expected response shape to stdout:
+`deliberator snap --hook-mode` reads this, dispatches three agents in parallel against the command, aggregates verdicts, and emits the hook's expected response shape to stdout:
 
 ```json
 {
   "hookSpecificOutput": {
     "hookEventName": "PreToolUse",
     "permissionDecision": "deny",
-    "permissionDecisionReason": "[conversus snap, mixed-deny-wins] safety-auditor: Recursive force-remove targeting /tmp/build; if path was intended relative, the absolute form is irrecoverable."
+    "permissionDecisionReason": "[deliberator snap, mixed-deny-wins] safety-auditor: Recursive force-remove targeting /tmp/build; if path was intended relative, the absolute form is irrecoverable."
   }
 }
 ```
@@ -101,7 +101,7 @@ Per the hooks contract, exit code `0` + stdout JSON tells Claude Code to apply t
 
 ### Failure modes
 
-- **LLM failure / network error**: that agent's verdict defaults to `ASK` (never silent ALLOW). If all three fail, the hook returns ASK and Claude Code prompts the user. Conversus snap NEVER fail-opens to ALLOW.
+- **LLM failure / network error**: that agent's verdict defaults to `ASK` (never silent ALLOW). If all three fail, the hook returns ASK and Claude Code prompts the user. Deliberator snap NEVER fail-opens to ALLOW.
 - **Malformed stdin JSON**: exit code `2` with stderr message; the hook system surfaces the error and blocks the tool call.
 - **Empty command**: same as malformed stdin — exit code `2`.
 
@@ -114,7 +114,7 @@ If routine commands skip the hook (via `if` pattern narrowing), the latency only
 ## Direct CLI usage (no hook)
 
 ```bash
-$ conversus snap --command "git push --force origin main"
+$ deliberator snap --command "git push --force origin main"
 {
   "verdict": "DENY",
   "rationale": "safety-auditor: Force-push to a shared branch overwrites collaborators' commits without warning.",
@@ -165,7 +165,7 @@ This prototype is intentionally informal. If validated by real use (good UX, lat
 - `templates/snap-gate/` extracted from inline prompts
 - Full four-stage verification protocol on the formalized mode
 - JSON Schema for the snap-gate envelope (extends v4.2.0 Component Principle XXIX)
-- Engine integration via the `composition:` config field (matches conversus-fractal sibling-product architecture)
+- Engine integration via the `composition:` config field (matches deliberator-fractal sibling-product architecture)
 
 For now: code first, spec when warranted.
 
@@ -173,5 +173,5 @@ For now: code first, spec when warranted.
 
 - Claude Code Hooks Guide: https://code.claude.com/docs/en/hooks-guide
 - Claude Code Hooks Reference: https://code.claude.com/docs/en/hooks
-- Conversus v4.2.0 (file persistence + structured outputs): `specs/v4.2.0-structured-deliberation-outputs/spec.md`
-- conversus-fractal CASE (streaming + recursive sibling product): `Build-Fractal/build-fractal-mono` → `conversus/proposals/conversus-fractal-CASE.md`
+- Deliberator v4.2.0 (file persistence + structured outputs): `specs/v4.2.0-structured-deliberation-outputs/spec.md`
+- deliberator-fractal CASE (streaming + recursive sibling product): `Build-Fractal/build-fractal-mono` → `deliberator/proposals/deliberator-fractal-CASE.md`

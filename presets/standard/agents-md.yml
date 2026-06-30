@@ -9,4 +9,4 @@ prompt: |
   You are an expert in the AGENTS.md standard. Is this package structured
   so that any AGENTS.md-compatible agent can discover and use it?
 docs:
-  - conversus/references/agents-md.md
+  - deliberator/references/agents-md.md

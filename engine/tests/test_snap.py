@@ -186,7 +186,7 @@ def test_hook_output_carries_rationale_in_decision_reason():
     """The hook's permissionDecisionReason includes the consensus + rationale for user feedback."""
     payload = _hook_output(_snap_result(final="DENY"))
     reason = payload["hookSpecificOutput"]["permissionDecisionReason"]
-    assert "conversus snap" in reason
+    assert "deliberator snap" in reason
     assert "unanimous-allow" in reason or "test rationale" in reason
 
 
@@ -300,7 +300,7 @@ def test_run_snap_agent_errors_become_ASK_verdicts():
 # ────────────────────────────────────────────────────────────────────────────
 # Auth-resolution order — env-var first, OAuth second
 #
-# Matches the documented contract in the `conversus:status` skill: when the
+# Matches the documented contract in the `deliberator:status` skill: when the
 # user has set ANTHROPIC_API_KEY, that's their explicit override and stored
 # OAuth (which may be expired or scope-restricted) must not silently shadow
 # it. Before this fix, snap.py reached into get_credentials() unconditionally

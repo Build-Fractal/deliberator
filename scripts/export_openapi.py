@@ -1,4 +1,4 @@
-"""Export OpenAPI 3.x JSON from the Conversus FastAPI application.
+"""Export OpenAPI 3.x JSON from the Deliberator FastAPI application.
 
 Instantiates the FastAPI app, mounts domain routers, and writes
 the OpenAPI schema to ``docs/rest-api/openapi.json``.
@@ -27,9 +27,9 @@ def main() -> None:
     try:
         import tempfile
 
-        from conversus.domains.api import create_domain_router
-        from conversus.domains.implementations.code_review import CodeReviewDomain
-        from conversus.domains.store import JSONLStore
+        from deliberator.domains.api import create_domain_router
+        from deliberator.domains.implementations.code_review import CodeReviewDomain
+        from deliberator.domains.store import JSONLStore
 
         domain = CodeReviewDomain()
         store = JSONLStore(Path(tempfile.mkdtemp()) / "openapi_export.jsonl")

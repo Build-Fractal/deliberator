@@ -2,4 +2,4 @@
 
 Pydantic models for objective function validation, defining the structure and constraints of objective templates used throughout the deliberation engine (spec 013).
 
-::: conversus.schemas.objectives
+::: deliberator.schemas.objectives

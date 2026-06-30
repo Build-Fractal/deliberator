@@ -40,7 +40,7 @@ DEFAULT_TIMEOUT = 600
 
 
 class CodexProvider(SubprocessProvider):
-    """Execute conversus agent tasks via the OpenAI ``codex`` CLI.
+    """Execute deliberator agent tasks via the OpenAI ``codex`` CLI.
 
     Args:
         model: Model name (e.g., ``"o4-mini"``, ``"o3"``).

@@ -1,8 +1,8 @@
 # ==============================================================================
-# Conversus Template Variable Schema
+# Deliberator Template Variable Schema
 # ==============================================================================
 #
-# Single source of truth for ALL template variables used by the conversus
+# Single source of truth for ALL template variables used by the deliberator
 # orchestrator. The linter validates templates against this schema.
 #
 # Variable namespace: Core variables defined here carry orchestrator and config

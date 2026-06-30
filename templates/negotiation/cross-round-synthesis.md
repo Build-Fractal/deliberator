@@ -78,7 +78,7 @@ For each term that existed at any point:
   - **Resolution mechanism**: Party convergence (Round [N]) | Arbiter ruling (Round [N]) | Unresolved
   - **Final status**: Agreed | Provisionally resolved | Unresolved
 
-<!-- CONVERSUS:DISPUTES_BEGIN -->
+<!-- DELIBERATOR:DISPUTES_BEGIN -->
 ### Unresolved Terms
 
 Terms that survived the full multi-round process:
@@ -89,7 +89,7 @@ Terms that survived the full multi-round process:
   - **Cross-round evolution**: How positions shifted across rounds.
   - **Mediator assessment**: Which position the cumulative evidence supports.
   - **Recommended resolution**: Accept Party A's term / Accept Party B's term / Compromise (state it) / Defer to arbiter.
-<!-- CONVERSUS:DISPUTES_END -->
+<!-- DELIBERATOR:DISPUTES_END -->
 
 ### Termination Assessment
 

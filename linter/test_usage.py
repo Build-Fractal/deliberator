@@ -1,5 +1,5 @@
 """
-Test suite for the conversus usage logger and adoption-gate reporter (linter/usage.py).
+Test suite for the deliberator usage logger and adoption-gate reporter (linter/usage.py).
 
 Exercises the UsageEntry and AdoptionMetrics models, log_usage(), summarize_usage(),
 format_report(), and the CLI entry points (log + summary).
@@ -661,7 +661,7 @@ class TestFormatReport:
             run_distribution={"1 run": 3, "2 runs": 1, "3+ runs": 1},
         )
         report = format_report(metrics)
-        assert "Conversus Adoption Gate Report" in report
+        assert "Deliberator Adoption Gate Report" in report
 
     def test_contains_trust_rate(self) -> None:
         metrics = AdoptionMetrics(
@@ -853,7 +853,7 @@ class TestCLISummary:
             text=True,
         )
         assert result.returncode == 0, f"stderr: {result.stderr}"
-        assert "Conversus Adoption Gate Report" in result.stdout
+        assert "Deliberator Adoption Gate Report" in result.stdout
         assert "Trust Rate:" in result.stdout
 
     def test_summary_empty_file(self, tmp_path: Path) -> None:

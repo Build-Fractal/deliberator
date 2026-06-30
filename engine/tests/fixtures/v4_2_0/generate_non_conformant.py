@@ -15,7 +15,7 @@ mechanical derivatives. Each fixture is written with `sort_keys=True, indent=2`
 so diffs stay stable across regenerations.
 
 Usage:
-    cd conversus-oss
+    cd deliberator
     uv run python engine/tests/fixtures/v4_2_0/generate_non_conformant.py
 """
 

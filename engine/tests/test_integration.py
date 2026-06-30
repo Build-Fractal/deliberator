@@ -55,7 +55,7 @@ def integration_env(tmp_path: Path) -> tuple[EngineConfig, Path, Path]:
     spec.write_text("# Test Spec\n\nThis is a test specification.\n")
 
     # Output dir (under tmp_path so tests don't pollute project)
-    output_dir = tmp_path / "conversus-output"
+    output_dir = tmp_path / "deliberator-output"
 
     # Write config
     config_data = {
@@ -67,7 +67,7 @@ def integration_env(tmp_path: Path) -> tuple[EngineConfig, Path, Path]:
             {"name": "agent-beta", "prompt": "You review from the beta perspective."},
         ],
     }
-    config_path = tmp_path / "conversus.yml"
+    config_path = tmp_path / "deliberator.yml"
     config_path.write_text(yaml.dump(config_data, sort_keys=False))
 
     config = parse_config(config_path)
@@ -292,7 +292,7 @@ def pipeline_env(tmp_path: Path) -> tuple[Path, Path]:
     spec = tmp_path / "spec.md"
     spec.write_text("# Pipeline Spec\n\nThis is the spec for pipeline tests.\n")
 
-    output_dir = tmp_path / "conversus-output"
+    output_dir = tmp_path / "deliberator-output"
 
     config_data = {
         "mode": "cooperative",
@@ -304,7 +304,7 @@ def pipeline_env(tmp_path: Path) -> tuple[Path, Path]:
             {"name": "agent-beta", "prompt": "Beta perspective."},
         ],
     }
-    config_path = tmp_path / "conversus.yml"
+    config_path = tmp_path / "deliberator.yml"
     config_path.write_text(yaml.dump(config_data, sort_keys=False))
 
     return config_path, output_dir
@@ -654,7 +654,7 @@ class TestProviderResolutionIntegration:
         # Use a temp credential store with no tokens — must override both the
         # legacy auth.json path and the per-provider credentials dir
         # (spec 057 SC-004) so the test can't pick up the user's real
-        # ``~/.conversus/credentials/`` contents.
+        # ``~/.deliberator/credentials/`` contents.
         from engine.auth import CredentialStore
 
         empty_store = CredentialStore(
@@ -692,7 +692,7 @@ class TestProviderResolutionIntegration:
                 {"name": "agent-b", "prompt": "B"},
             ],
         }
-        config_path = tmp_path / "conversus.yml"
+        config_path = tmp_path / "deliberator.yml"
         config_path.write_text(yaml.dump(config_data, sort_keys=False))
 
         # Verify the config parses with provider defaulting to "anthropic"
@@ -809,7 +809,7 @@ class TestMCPProviderResolution:
             )
 
         monkeypatch.setattr("engine.handlers.resolve_provider", _raise_no_creds)
-        # Isolate from the user's real ~/.conversus credentials so the test
+        # Isolate from the user's real ~/.deliberator credentials so the test
         # cannot pick up live OAuth tokens (spec 057 SC-004).
         monkeypatch.setattr(
             "engine.auth.DEFAULT_AUTH_PATH", tmp_path / ".empty_auth.json"

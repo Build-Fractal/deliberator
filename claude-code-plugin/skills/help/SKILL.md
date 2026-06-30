@@ -1,43 +1,43 @@
 ---
-description: List all available `/conversus:*` slash commands with one-line descriptions. Use this when you want to see what conversus capabilities are available without searching.
+description: List all available `/deliberator:*` slash commands with one-line descriptions. Use this when you want to see what deliberator capabilities are available without searching.
 ---
 
-# Conversus Help
+# Deliberator Help
 
-Discover what `/conversus:*` slash commands are available in this Claude Code session.
+Discover what `/deliberator:*` slash commands are available in this Claude Code session.
 
 ## What this skill does
 
-Lists the available conversus slash commands with one-line descriptions, so users can pick the right command for their decision-making need without having to remember each command's exact syntax.
+Lists the available deliberator slash commands with one-line descriptions, so users can pick the right command for their decision-making need without having to remember each command's exact syntax.
 
 ## Available commands
 
 ```
-/conversus:decide   — Quick ad-hoc deliberation. Just give it a natural-language
-                       question; conversus runs a built-in pragmatist + devil's
+/deliberator:decide   — Quick ad-hoc deliberation. Just give it a natural-language
+                       question; deliberator runs a built-in pragmatist + devil's
                        advocate against it.
 
-/conversus:run      — Run a full deliberation from a config file. Use this for
+/deliberator:run      — Run a full deliberation from a config file. Use this for
                        reproducible deliberations with custom agents, modes, and
                        target documents.
 
-/conversus:validate — Validate a conversus.yml config and estimate the LLM
+/deliberator:validate — Validate a deliberator.yml config and estimate the LLM
                        launch cost before running. Useful before kicking off
                        a real (expensive) deliberation.
 
-/conversus:design   — Guided config builder. Walks you through writing a
-                       conversus.yml interactively — picks mode, agents,
+/deliberator:design   — Guided config builder. Walks you through writing a
+                       deliberator.yml interactively — picks mode, agents,
                        targets, and writes the file.
 
-/conversus:init     — Initialize a `.conversus/` directory in the current
+/deliberator:init     — Initialize a `.deliberator/` directory in the current
                        project with runtime permissions and default settings.
 
-/conversus:login    — Log in to a model provider via OAuth (Anthropic, OpenAI,
+/deliberator:login    — Log in to a model provider via OAuth (Anthropic, OpenAI,
                        Google).
 
-/conversus:logout   — Log out of a model provider.
+/deliberator:logout   — Log out of a model provider.
 
-/conversus:status   — Show authentication status for all configured providers
+/deliberator:status   — Show authentication status for all configured providers
                        and the effective settings cascade.
 ```
 
@@ -45,29 +45,29 @@ Lists the available conversus slash commands with one-line descriptions, so user
 
 | Situation | Command |
 |---|---|
-| You have a question and want a quick answer | `/conversus:decide` |
-| You have a config file you want to run | `/conversus:run` |
-| You want to know how much a config will cost | `/conversus:validate` |
-| You want to build a config interactively | `/conversus:design` |
-| First time using conversus in a project | `/conversus:init` |
-| Auth issue or want to check setup | `/conversus:status` |
+| You have a question and want a quick answer | `/deliberator:decide` |
+| You have a config file you want to run | `/deliberator:run` |
+| You want to know how much a config will cost | `/deliberator:validate` |
+| You want to build a config interactively | `/deliberator:design` |
+| First time using deliberator in a project | `/deliberator:init` |
+| Auth issue or want to check setup | `/deliberator:status` |
 
 ## Equivalent CLI commands
 
-The same capabilities are available from the terminal — the `/conversus:*` slash commands wrap the CLI:
+The same capabilities are available from the terminal — the `/deliberator:*` slash commands wrap the CLI:
 
 | Slash command | CLI equivalent |
 |---|---|
-| `/conversus:decide "..."` | `conversus decide "..."` |
-| `/conversus:run config.yml` | `conversus run config.yml` |
-| `/conversus:validate config.yml` | `conversus validate config.yml` |
-| `/conversus:status` | `conversus status` |
-| `/conversus:init` | `conversus init` |
+| `/deliberator:decide "..."` | `deliberator decide "..."` |
+| `/deliberator:run config.yml` | `deliberator run config.yml` |
+| `/deliberator:validate config.yml` | `deliberator validate config.yml` |
+| `/deliberator:status` | `deliberator status` |
+| `/deliberator:init` | `deliberator init` |
 
-The CLI also has `conversus skills` (lists all available skills) and `conversus skill <name>` (prints the guided workflow for a specific skill) — useful when you want to see the same guided content from the terminal that the slash commands provide in Claude Code.
+The CLI also has `deliberator skills` (lists all available skills) and `deliberator skill <name>` (prints the guided workflow for a specific skill) — useful when you want to see the same guided content from the terminal that the slash commands provide in Claude Code.
 
 ## Cross-refs
 
 - Spec 059 §2.3 — skill discovery for Claude Code / Cowork (Phase 3 meta-skill)
-- `/conversus:design` — the next-most-discoverable command for new users
+- `/deliberator:design` — the next-most-discoverable command for new users
 - `claude-code-plugin/skills/` — the source of truth for all skill content

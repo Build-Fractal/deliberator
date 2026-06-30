@@ -1,4 +1,4 @@
-"""Multi-round pipeline orchestrator for the conversus engine.
+"""Multi-round pipeline orchestrator for the deliberator engine.
 
 Executes the full deliberation pipeline:
   Phase 1 (review) → iteration loop [Phase 2 (cross-review) → Phase 3 (revision)]
@@ -184,7 +184,7 @@ def _build_metadata_block(
     iterations: int,
     round_num: int | None = None,
 ) -> str:
-    """Build the ``<!-- CONVERSUS:METADATA ... -->`` block prepended to every
+    """Build the ``<!-- DELIBERATOR:METADATA ... -->`` block prepended to every
     synthesis ``final.md``.
 
     This block is the authoritative source of ``agent_count``,
@@ -198,7 +198,7 @@ def _build_metadata_block(
     """
     agent_names = ", ".join(active_agents)
     lines = [
-        "<!-- CONVERSUS:METADATA",
+        "<!-- DELIBERATOR:METADATA",
         f"agents: {len(active_agents)}",
         f"agent_names: {agent_names}",
         f"mode: {mode}",
@@ -625,7 +625,7 @@ async def _run_single_round(
     # Synthesis is a single-agent dispatch whose prompt is the union of
     # all prior phase outputs — it disproportionately encounters
     # rate-limit and prompt-size failures (see engine.dispatch module
-    # docstring + project_conversus_arbitration_crash memory).
+    # docstring + project_deliberator_arbitration_crash memory).
     synth_results = await dispatch_phase_with_retry(
         agents=[("synthesizer", prompt)],
         model=model,
@@ -720,7 +720,7 @@ async def run_pipeline(
     if config_path is not None:
         templates_dir = find_templates_dir(config_path)
     else:
-        templates_dir = find_templates_dir(Path.cwd() / "conversus.yml")
+        templates_dir = find_templates_dir(Path.cwd() / "deliberator.yml")
 
     base_dir = config_path.resolve().parent if config_path else Path.cwd()
 
@@ -738,7 +738,7 @@ async def run_pipeline(
         _hetero_kw["agent_timeouts"] = _agent_timeouts
 
     # Load plugins (if configured)
-    from conversus.plugins.base import (
+    from deliberator.plugins.base import (
         DeliberationState,
         HookPoint,
         execute_hooks,
@@ -940,7 +940,7 @@ async def run_pipeline(
                     # claude-code subagent context budget (observed
                     # 2026-05-06 + 2026-05-07: 1ms/2ms crashes on synthesis
                     # sizes 174K-231K chars). Disputes-only-context fix per
-                    # the project_conversus_arbitration_crash memory.
+                    # the project_deliberator_arbitration_crash memory.
                     _arb_prompt = _assemble_phase_prompt(
                         filled_template=_arb_filled,
                         target_files=[],

@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-Conversus is in active development (Alpha per `pyproject.toml` classifiers).
+Deliberator is in active development (Alpha per `pyproject.toml` classifiers).
 We support the latest tagged release on `main` for security fixes. Older
 release candidates and dev builds will not receive security updates —
 upgrade to the latest tag for any security-relevant change.
@@ -22,7 +22,7 @@ issues are visible to everyone and may put users at risk before a fix lands.
 Use one of these channels in preference order:
 
 1. **GitHub private vulnerability reporting** (preferred). Open
-   https://github.com/Build-Fractal/conversus/security/advisories/new and
+   https://github.com/Build-Fractal/deliberator/security/advisories/new and
    submit a private advisory. This routes directly to maintainers without
    public exposure.
 2. **Email:** `security@buildfractal.com`. Include a clear description of
@@ -36,8 +36,8 @@ A good report has:
 - A clear description of the issue and its impact.
 - A reproduction recipe (config file, command sequence, expected vs actual
   behavior).
-- The conversus version and Python version where you observed it.
-- Whether the issue is in conversus itself or a dependency.
+- The deliberator version and Python version where you observed it.
+- Whether the issue is in deliberator itself or a dependency.
 - Any mitigations you've identified (workarounds, configuration changes).
 
 ### What to expect
@@ -54,13 +54,13 @@ A good report has:
 
 ## Threat model
 
-Conversus is a developer tool that orchestrates LLM-driven deliberations
+Deliberator is a developer tool that orchestrates LLM-driven deliberations
 and runs on the user's local machine. Security concerns we care about,
 in priority order:
 
 ### In-scope
 
-1. **Code execution from untrusted config.** A `conversus.yml` file
+1. **Code execution from untrusted config.** A `deliberator.yml` file
    should not be able to execute arbitrary code on the host beyond what
    the documented configuration surface allows. Report any path where a
    malformed or hostile config triggers code execution outside the
@@ -71,7 +71,7 @@ in priority order:
    subvert the deliberation verdict, or trigger destructive operations
    via tool calls. Report any path you find.
 3. **Credential exfiltration.** API keys and OAuth tokens stored in
-   `~/.conversus/credentials/` should never be transmitted anywhere
+   `~/.deliberator/credentials/` should never be transmitted anywhere
    except the legitimate provider endpoint. Report any path where
    credentials leak to logs, error messages, deliberation outputs,
    or third-party services.
@@ -89,12 +89,12 @@ in priority order:
 These are known limitations, not vulnerabilities — please don't report
 them as security issues:
 
-- **LLM outputs are not authoritative.** Conversus orchestrates deliberations;
+- **LLM outputs are not authoritative.** Deliberator orchestrates deliberations;
   it does not validate the *content* of agent outputs against ground truth.
   An agent producing incorrect or misleading text is a product concern, not
   a security one.
 - **API credentials are stored in plain JSON files** at
-  `~/.conversus/credentials/`. We use file-permission protection
+  `~/.deliberator/credentials/`. We use file-permission protection
   (`chmod 600`) but not OS keychain integration. If your threat model
   requires keychain storage, file a feature request rather than a security
   advisory.
@@ -109,7 +109,7 @@ them as security issues:
 
 ## Acknowledgements
 
-Security reporters who help us improve conversus will be credited here
+Security reporters who help us improve deliberator will be credited here
 (with permission). No reports yet.
 
 ## Constitutional anchor

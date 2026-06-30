@@ -1,6 +1,6 @@
 # Deliberation Modes
 
-Conversus has 8 modes. Each mode changes agent incentives, how cross-review works, and what the synthesis produces.
+Deliberator has 8 modes. Each mode changes agent incentives, how cross-review works, and what the synthesis produces.
 
 ## cooperative
 

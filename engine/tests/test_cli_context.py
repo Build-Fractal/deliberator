@@ -32,12 +32,12 @@ def _ctx(
 ) -> InvocationContext:
     """Shortcut: call detect_context with explicit signals.
 
-    Default argv is ``["conversus"]`` (program name only); default env
+    Default argv is ``["deliberator"]`` (program name only); default env
     is empty; default isatty is False.  Tests override only what they
     care about.
     """
     return detect_context(
-        argv=argv if argv is not None else ["conversus"],
+        argv=argv if argv is not None else ["deliberator"],
         env=env if env is not None else {},
         stdout_isatty=stdout_isatty if stdout_isatty is not None else False,
     )
@@ -145,26 +145,26 @@ class TestRendererResolution:
 
 class TestExitCodeSchemeResolution:
     def test_plain_run_uses_interactive_scheme(self) -> None:
-        ctx = _ctx(argv=["conversus", "run", "config.yml"])
+        ctx = _ctx(argv=["deliberator", "run", "config.yml"])
         assert ctx.exit_code_scheme == "interactive"
 
     def test_governance_subcommand_uses_governance_scheme(self) -> None:
-        ctx = _ctx(argv=["conversus", "governance", "--gate", "pr"])
+        ctx = _ctx(argv=["deliberator", "governance", "--gate", "pr"])
         assert ctx.exit_code_scheme == "governance"
 
     def test_gate_subcommand_uses_governance_scheme(self) -> None:
         """Spec 011 phase consensus gates also use structured exit codes."""
-        ctx = _ctx(argv=["conversus", "gate", "review", "spec.md"])
+        ctx = _ctx(argv=["deliberator", "gate", "review", "spec.md"])
         assert ctx.exit_code_scheme == "governance"
 
     def test_no_subcommand_uses_interactive_scheme(self) -> None:
-        ctx = _ctx(argv=["conversus"])
+        ctx = _ctx(argv=["deliberator"])
         assert ctx.exit_code_scheme == "interactive"
 
     def test_other_subcommands_use_interactive_scheme(self) -> None:
         """``define``, ``interests``, ``mode``, ``arbitrate`` all use interactive codes."""
         for subcmd in ("define", "interests", "mode", "arbitrate", "converge"):
-            ctx = _ctx(argv=["conversus", subcmd])
+            ctx = _ctx(argv=["deliberator", subcmd])
             assert ctx.exit_code_scheme == "interactive", f"subcommand={subcmd}"
 
 
@@ -252,12 +252,12 @@ class TestDebugEnvSnapshot:
 
 class TestArgvSnapshot:
     def test_argv_preserved(self) -> None:
-        ctx = _ctx(argv=["conversus", "run", "config.yml", "--verbose"])
-        assert ctx.argv == ("conversus", "run", "config.yml", "--verbose")
+        ctx = _ctx(argv=["deliberator", "run", "config.yml", "--verbose"])
+        assert ctx.argv == ("deliberator", "run", "config.yml", "--verbose")
 
     def test_argv_is_tuple_not_list(self) -> None:
         """Frozen dataclass semantics — argv must be hashable."""
-        ctx = _ctx(argv=["conversus", "run"])
+        ctx = _ctx(argv=["deliberator", "run"])
         assert isinstance(ctx.argv, tuple)
 
 
@@ -270,9 +270,9 @@ class TestRealisticScenarios:
     """End-to-end scenarios mirroring the three invocation paths."""
 
     def test_interactive_terminal_user(self) -> None:
-        """User types ``conversus run`` in a terminal."""
+        """User types ``deliberator run`` in a terminal."""
         ctx = _ctx(
-            argv=["conversus", "run", "conversus.yml"],
+            argv=["deliberator", "run", "deliberator.yml"],
             env={"SHELL": "/bin/zsh", "HOME": "/Users/alice"},
             stdout_isatty=True,
         )
@@ -284,9 +284,9 @@ class TestRealisticScenarios:
         assert ctx.exit_code_scheme == "interactive"
 
     def test_github_actions_governance_gate(self) -> None:
-        """CI runs ``conversus governance --gate pr``."""
+        """CI runs ``deliberator governance --gate pr``."""
         ctx = _ctx(
-            argv=["conversus", "governance", "--gate", "pr"],
+            argv=["deliberator", "governance", "--gate", "pr"],
             env={"CI": "true", "GITHUB_ACTIONS": "true"},
             stdout_isatty=False,
         )
@@ -298,9 +298,9 @@ class TestRealisticScenarios:
         assert ctx.exit_code_scheme == "governance"
 
     def test_cron_job_mcp_server(self) -> None:
-        """Cron job or MCP server invokes conversus with no human present."""
+        """Cron job or MCP server invokes deliberator with no human present."""
         ctx = _ctx(
-            argv=["conversus", "run", "daily-audit.yml"],
+            argv=["deliberator", "run", "daily-audit.yml"],
             env={},
             stdout_isatty=False,
         )
@@ -312,9 +312,9 @@ class TestRealisticScenarios:
         assert ctx.exit_code_scheme == "interactive"
 
     def test_claude_code_interactive_session(self) -> None:
-        """User invokes /conversus run inside a Claude Code session."""
+        """User invokes /deliberator run inside a Claude Code session."""
         ctx = _ctx(
-            argv=["conversus", "run", "conversus.yml"],
+            argv=["deliberator", "run", "deliberator.yml"],
             env={"CLAUDECODE": "1"},
             stdout_isatty=False,  # pipes through Claude Code, not a real TTY
         )
@@ -325,9 +325,9 @@ class TestRealisticScenarios:
         assert ctx.exit_code_scheme == "interactive"
 
     def test_gitlab_ci_scheduled_audit(self) -> None:
-        """GitLab CI scheduled pipeline running a non-gate conversus audit."""
+        """GitLab CI scheduled pipeline running a non-gate deliberator audit."""
         ctx = _ctx(
-            argv=["conversus", "run", "audit.yml"],
+            argv=["deliberator", "run", "audit.yml"],
             env={"CI": "true", "GITLAB_CI": "true"},
             stdout_isatty=False,
         )

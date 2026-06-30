@@ -1,56 +1,56 @@
-# Conversus — Claude Code / Cowork Plugin
+# Deliberator — Claude Code / Cowork Plugin
 
-A plugin for **Claude Code** and **Cowork** that adds a `/conversus` command for running competitive multi-agent deliberation directly from your editor or desktop agent.
+A plugin for **Claude Code** and **Cowork** that adds a `/deliberator` command for running competitive multi-agent deliberation directly from your editor or desktop agent.
 
 ## Install
 
-The `conversus-oss` repo IS its own plugin marketplace. Two steps:
+The `deliberator` repo IS its own plugin marketplace. Two steps:
 
 ```shell
-/plugin marketplace add Build-Fractal/conversus-oss
-/plugin install conversus@conversus
+/plugin marketplace add Build-Fractal/deliberator
+/plugin install deliberator@deliberator
 ```
 
 After install, try:
 
 ```shell
-/conversus:design                         # guided config wizard
-/conversus:decide "Postgres or MongoDB?"  # ad-hoc deliberation
+/deliberator:design                         # guided config wizard
+/deliberator:decide "Postgres or MongoDB?"  # ad-hoc deliberation
 ```
 
 ## Prerequisites
 
-The plugin wraps the conversus CLI, so you need the Python package installed too:
+The plugin wraps the deliberator CLI, so you need the Python package installed too:
 
 ```bash
-pip install git+https://github.com/Build-Fractal/conversus-oss.git
+pip install git+https://github.com/Build-Fractal/deliberator.git
 ```
 
-The plugin will prompt you with the install command if it can't find `conversus` on your PATH.
+The plugin will prompt you with the install command if it can't find `deliberator` on your PATH.
 
 ## What you get
 
-Eight slash commands, each namespaced with `conversus:` to avoid conflicts with other plugins:
+Eight slash commands, each namespaced with `deliberator:` to avoid conflicts with other plugins:
 
 ### Core deliberation
 
 | Command | What it does |
 |---|---|
-| `/conversus:design` | **Guided config builder** — walks you through creating a `conversus.yml` interactively. No YAML knowledge needed. |
-| `/conversus:decide` | Ad-hoc deliberation on a natural-language question (no config file needed) |
-| `/conversus:run` | Run a full deliberation from a config file |
-| `/conversus:validate` | Validate a config and show cost estimate before running |
+| `/deliberator:design` | **Guided config builder** — walks you through creating a `deliberator.yml` interactively. No YAML knowledge needed. |
+| `/deliberator:decide` | Ad-hoc deliberation on a natural-language question (no config file needed) |
+| `/deliberator:run` | Run a full deliberation from a config file |
+| `/deliberator:validate` | Validate a config and show cost estimate before running |
 
 ### Setup and auth
 
 | Command | What it does |
 |---|---|
-| `/conversus:init` | **Run this once per project** — sets up runtime permissions so deliberations can dispatch sub-agents without interactive approval prompts |
-| `/conversus:status` | Show authentication status for all model providers |
-| `/conversus:login` | Authenticate with a provider via OAuth (anthropic, openai, …) |
-| `/conversus:logout` | Remove stored credentials for a provider |
+| `/deliberator:init` | **Run this once per project** — sets up runtime permissions so deliberations can dispatch sub-agents without interactive approval prompts |
+| `/deliberator:status` | Show authentication status for all model providers |
+| `/deliberator:login` | Authenticate with a provider via OAuth (anthropic, openai, …) |
+| `/deliberator:logout` | Remove stored credentials for a provider |
 
-The `conversus mcp` subcommand (MCP server) is not exposed as a slash command because it's a stdio server invoked by editors, not by users.
+The `deliberator mcp` subcommand (MCP server) is not exposed as a slash command because it's a stdio server invoked by editors, not by users.
 
 ## Providers
 
@@ -60,27 +60,27 @@ The `conversus mcp` subcommand (MCP server) is not exposed as a slash command be
 
 ```shell
 # 1. One-time project setup (grants runtime permissions)
-/conversus:init
+/deliberator:init
 
 # 2. Check which providers you're logged into
-/conversus:status
+/deliberator:status
 
 # 3. Log in if needed
-/conversus:login anthropic
+/deliberator:login anthropic
 
 # 4. Start with the guided flow — no YAML needed
-/conversus:design
+/deliberator:design
 
 # Or ask a question directly
-/conversus:decide "Should we split the auth service out of the monolith?" --provider claude-code
+/deliberator:decide "Should we split the auth service out of the monolith?" --provider claude-code
 
 # Or run a prebuilt config (after validating cost)
-/conversus:validate deliberations/my-review/conversus.yml
-/conversus:run deliberations/my-review/conversus.yml --provider claude-code
+/deliberator:validate deliberations/my-review/deliberator.yml
+/deliberator:run deliberations/my-review/deliberator.yml --provider claude-code
 ```
 
 ## Links
 
-- [Full documentation](https://github.com/Build-Fractal/conversus-oss)
-- [Building a config guide](https://github.com/Build-Fractal/conversus-oss/blob/main/docs/user-guide/building-a-config.md)
-- [Example configs](https://github.com/Build-Fractal/conversus-oss/tree/main/deliberations)
+- [Full documentation](https://github.com/Build-Fractal/deliberator)
+- [Building a config guide](https://github.com/Build-Fractal/deliberator/blob/main/docs/user-guide/building-a-config.md)
+- [Example configs](https://github.com/Build-Fractal/deliberator/tree/main/deliberations)

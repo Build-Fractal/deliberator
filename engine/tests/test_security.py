@@ -15,9 +15,9 @@ import pytest
 
 pytestmark = pytest.mark.security
 
-from conversus.registry import Capability, Param, Surface
-from conversus.registry.adapters._helpers import literal
-from conversus.registry.projector import project_to_cli, project_to_mcp
+from deliberator.registry import Capability, Param, Surface
+from deliberator.registry.adapters._helpers import literal
+from deliberator.registry.projector import project_to_cli, project_to_mcp
 from engine.persistence import persist_deliberation, read_deliberation_file
 
 
@@ -86,7 +86,7 @@ def test_path_traversal_symlink(deliberation_fixture, tmp_path):
     except OSError:
         pytest.skip("Cannot create symlinks on this platform")
 
-    # The resolved path goes outside .conversus/deliberations/
+    # The resolved path goes outside .deliberator/deliberations/
     with pytest.raises(ValueError, match="[Pp]ath traversal|outside"):
         read_deliberation_file(project, rel, "output/evil_link.md")
 
@@ -173,14 +173,14 @@ def test_projector_escapes_malicious_param_help():
 
 def test_projector_rejects_handler_without_colon():
     """A handler string with no colon is rejected by split_handler."""
-    from conversus.registry.adapters._helpers import split_handler
+    from deliberator.registry.adapters._helpers import split_handler
     with pytest.raises(ValueError, match="handler must be"):
         split_handler("os.system('pwned')")
 
 
 def test_projector_rejects_handler_with_multiple_colons():
     """A handler string with multiple colons is rejected."""
-    from conversus.registry.adapters._helpers import split_handler
+    from deliberator.registry.adapters._helpers import split_handler
     with pytest.raises(ValueError, match="handler must be"):
         split_handler("a:b:c")
 
@@ -191,10 +191,10 @@ def test_projector_rejects_handler_with_multiple_colons():
 
 
 def test_settings_cascade_sanitizes_provider(monkeypatch):
-    """A malicious CONVERSUS_DEFAULT_PROVIDER env var should not inject."""
+    """A malicious DELIBERATOR_DEFAULT_PROVIDER env var should not inject."""
     from engine.settings import load_settings
 
-    monkeypatch.setenv("CONVERSUS_DEFAULT_PROVIDER", "'; DROP TABLE users; --")
+    monkeypatch.setenv("DELIBERATOR_DEFAULT_PROVIDER", "'; DROP TABLE users; --")
     settings = load_settings(Path("/nonexistent"))
 
     # The value is stored as-is (it's a string, not SQL)
@@ -205,10 +205,10 @@ def test_settings_cascade_sanitizes_provider(monkeypatch):
 
 
 def test_settings_cascade_invalid_max_launches(monkeypatch):
-    """Non-numeric CONVERSUS_MAX_LAUNCHES should not crash."""
+    """Non-numeric DELIBERATOR_MAX_LAUNCHES should not crash."""
     from engine.settings import load_settings
 
-    monkeypatch.setenv("CONVERSUS_MAX_LAUNCHES", "not_a_number")
+    monkeypatch.setenv("DELIBERATOR_MAX_LAUNCHES", "not_a_number")
     settings = load_settings(Path("/nonexistent"))
 
     # Should fall back to default, not crash

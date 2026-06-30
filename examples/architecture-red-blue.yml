@@ -9,14 +9,14 @@
 # *before* committing to it.
 #
 # Run:
-#   conversus run examples/architecture-red-blue.yml --provider mock
-#   conversus run examples/architecture-red-blue.yml --provider anthropic
+#   deliberator run examples/architecture-red-blue.yml --provider mock
+#   deliberator run examples/architecture-red-blue.yml --provider anthropic
 #
 # Cost (mock): ~9 LLM launches.
 
 subject: "Contributing-guide attack/defense"
 question: |
-  Should the conversus project keep the current persona-led
+  Should the deliberator project keep the current persona-led
   CONTRIBUTING.md, or revert to a constitutional-theory-first framing?
   The red team will attack the current framing; the blue team defends.
 

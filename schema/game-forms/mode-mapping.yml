@@ -2,7 +2,7 @@
 # Mode-to-Form Mapping
 # ==============================================================================
 #
-# Maps each conversus deliberation mode to its default game theory form.
+# Maps each deliberator deliberation mode to its default game theory form.
 # Downstream specs (013-020) use this mapping to select the appropriate
 # schema for a given mode.
 # ==============================================================================

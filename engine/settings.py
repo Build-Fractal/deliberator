@@ -1,16 +1,16 @@
-"""Settings loader for the conversus engine (spec 057).
+"""Settings loader for the deliberator engine (spec 057).
 
-Implements the settings cascade for ``ConversusSettings``:
+Implements the settings cascade for ``DeliberatorSettings``:
 
     ┌─────────────────────────────────────────────┐
     │  CLI flag  (resolve_setting)                │  ← highest priority
     ├─────────────────────────────────────────────┤
     │  Environment variables                      │  ← Desktop Extension
-    │  (CONVERSUS_DEFAULT_PROVIDER, etc.)          │    user_config
+    │  (DELIBERATOR_DEFAULT_PROVIDER, etc.)          │    user_config
     ├─────────────────────────────────────────────┤
-    │  <project>/.conversus/settings.yml          │
+    │  <project>/.deliberator/settings.yml          │
     ├─────────────────────────────────────────────┤
-    │  ~/.conversus/settings.yml                  │
+    │  ~/.deliberator/settings.yml                  │
     ├─────────────────────────────────────────────┤
     │  Built-in defaults  (Pydantic model)        │  ← lowest priority
     └─────────────────────────────────────────────┘
@@ -41,9 +41,9 @@ from typing import Any, Literal, NamedTuple
 import yaml
 from pydantic import BaseModel, ConfigDict
 
-logger = logging.getLogger("conversus.settings")
+logger = logging.getLogger("deliberator.settings")
 
-_SETTINGS_REL = Path(".conversus") / "settings.yml"
+_SETTINGS_REL = Path(".deliberator") / "settings.yml"
 
 
 # ---------------------------------------------------------------------------
@@ -60,8 +60,8 @@ class PersistenceSettings(BaseModel):
     retention_days: int = 90
 
 
-class ConversusSettings(BaseModel):
-    """Top-level settings for the conversus engine.
+class DeliberatorSettings(BaseModel):
+    """Top-level settings for the deliberator engine.
 
     All fields carry sensible defaults so a zero-config experience is
     possible.  Values are overridden via the YAML settings cascade
@@ -128,13 +128,13 @@ def _read_yaml(path: Path) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
-def load_settings(project_root: Path | None = None) -> ConversusSettings:
+def load_settings(project_root: Path | None = None) -> DeliberatorSettings:
     """Load settings using the three-tier cascade.
 
     Resolution order (most-specific wins):
 
-    1. ``<project_root>/.conversus/settings.yml`` — project-level
-    2. ``~/.conversus/settings.yml`` — global (user-level)
+    1. ``<project_root>/.deliberator/settings.yml`` — project-level
+    2. ``~/.deliberator/settings.yml`` — global (user-level)
     3. Built-in defaults (Pydantic model defaults)
 
     When *project_root* is ``None``, :func:`engine.persistence.find_user_project_root`
@@ -145,7 +145,7 @@ def load_settings(project_root: Path | None = None) -> ConversusSettings:
             discovery via ``find_user_project_root()``.
 
     Returns:
-        A frozen ``ConversusSettings`` instance.
+        A frozen ``DeliberatorSettings`` instance.
     """
     # Resolve project root lazily so callers don't need to.
     if project_root is None:
@@ -171,30 +171,30 @@ def load_settings(project_root: Path | None = None) -> ConversusSettings:
     # settings cascade that CLI/Claude Code users get via YAML files.
     #
     # NOTE: API keys (ANTHROPIC_API_KEY, OPENAI_API_KEY, GOOGLE_API_KEY)
-    # and provider URLs (OLLAMA_BASE_URL) are NOT part of ConversusSettings.
+    # and provider URLs (OLLAMA_BASE_URL) are NOT part of DeliberatorSettings.
     # They are consumed directly by the provider resolution layer in
     # engine/auth.py via os.environ.get(). Do not add them here.
     env_overrides: dict[str, Any] = {}
-    if os.environ.get("CONVERSUS_DEFAULT_PROVIDER"):
-        env_overrides["default_provider"] = os.environ["CONVERSUS_DEFAULT_PROVIDER"]
-    if os.environ.get("CONVERSUS_DEFAULT_MODE"):
-        env_overrides["default_mode"] = os.environ["CONVERSUS_DEFAULT_MODE"]
-    if os.environ.get("CONVERSUS_DEFAULT_MODEL"):
-        env_overrides["default_model"] = os.environ["CONVERSUS_DEFAULT_MODEL"]
-    if os.environ.get("CONVERSUS_MAX_LAUNCHES"):
+    if os.environ.get("DELIBERATOR_DEFAULT_PROVIDER"):
+        env_overrides["default_provider"] = os.environ["DELIBERATOR_DEFAULT_PROVIDER"]
+    if os.environ.get("DELIBERATOR_DEFAULT_MODE"):
+        env_overrides["default_mode"] = os.environ["DELIBERATOR_DEFAULT_MODE"]
+    if os.environ.get("DELIBERATOR_DEFAULT_MODEL"):
+        env_overrides["default_model"] = os.environ["DELIBERATOR_DEFAULT_MODEL"]
+    if os.environ.get("DELIBERATOR_MAX_LAUNCHES"):
         try:
-            env_overrides["max_launches"] = int(os.environ["CONVERSUS_MAX_LAUNCHES"])
+            env_overrides["max_launches"] = int(os.environ["DELIBERATOR_MAX_LAUNCHES"])
         except ValueError:
-            logger.warning("Invalid CONVERSUS_MAX_LAUNCHES: %s", os.environ["CONVERSUS_MAX_LAUNCHES"])
+            logger.warning("Invalid DELIBERATOR_MAX_LAUNCHES: %s", os.environ["DELIBERATOR_MAX_LAUNCHES"])
 
     if env_overrides:
         merged = _deep_merge(merged, env_overrides)
 
-    return ConversusSettings(**merged)
+    return DeliberatorSettings(**merged)
 
 
 def resolve_setting(
-    settings: ConversusSettings,
+    settings: DeliberatorSettings,
     flag_value: str | None,
     setting_name: str,
 ) -> str:
@@ -209,9 +209,9 @@ def resolve_setting(
         provider = resolve_setting(settings, provider_arg, "default_provider")
 
     Args:
-        settings: The loaded ``ConversusSettings`` instance.
+        settings: The loaded ``DeliberatorSettings`` instance.
         flag_value: The value passed via CLI flag, or ``None``.
-        setting_name: Attribute name on ``ConversusSettings`` to fall
+        setting_name: Attribute name on ``DeliberatorSettings`` to fall
             back to.
 
     Returns:
@@ -229,21 +229,21 @@ def resolve_setting(
 # ---------------------------------------------------------------------------
 
 
-# Map ConversusSettings field names to the env vars that override them.
+# Map DeliberatorSettings field names to the env vars that override them.
 # Kept in lockstep with the env_overrides logic in load_settings(). When you
 # add a new env-overridable field there, add it here too.
 _ENV_VAR_FOR_FIELD: dict[str, str] = {
-    "default_provider": "CONVERSUS_DEFAULT_PROVIDER",
-    "default_mode": "CONVERSUS_DEFAULT_MODE",
-    "default_model": "CONVERSUS_DEFAULT_MODEL",
-    "max_launches": "CONVERSUS_MAX_LAUNCHES",
+    "default_provider": "DELIBERATOR_DEFAULT_PROVIDER",
+    "default_mode": "DELIBERATOR_DEFAULT_MODE",
+    "default_model": "DELIBERATOR_DEFAULT_MODEL",
+    "max_launches": "DELIBERATOR_MAX_LAUNCHES",
 }
 
 
 class CascadeEntry(NamedTuple):
     """A single resolved setting with the layer it came from.
 
-    Used by ``conversus status`` to show which tier of the cascade
+    Used by ``deliberator status`` to show which tier of the cascade
     supplied each effective value.
     """
 
@@ -257,7 +257,7 @@ def _coerce_env_value(field_name: str, raw: str) -> Any:
     """Coerce a raw environment-variable string into the field's type.
 
     Mirrors the int-parsing branch in ``load_settings`` for
-    ``CONVERSUS_MAX_LAUNCHES``.  Returns ``None`` if coercion fails so
+    ``DELIBERATOR_MAX_LAUNCHES``.  Returns ``None`` if coercion fails so
     the caller can fall through to the next tier.
     """
     if field_name == "max_launches":
@@ -269,7 +269,7 @@ def _coerce_env_value(field_name: str, raw: str) -> Any:
 
 
 def resolve_provider_with_context(
-    settings: ConversusSettings,
+    settings: DeliberatorSettings,
     flag_value: str | None,
     context_default: str,
     project_root: Path | None = None,
@@ -288,11 +288,11 @@ def resolve_provider_with_context(
     provider for the current session (e.g., ``claude-code`` when
     invoked from a Claude Code session) without overriding any
     explicit user setting. A user with ``default_provider: anthropic``
-    in ``~/.conversus/settings.yml`` still gets anthropic; only the
+    in ``~/.deliberator/settings.yml`` still gets anthropic; only the
     "no preference anywhere" path uses the context inference.
 
     Args:
-        settings: The loaded ``ConversusSettings`` instance.
+        settings: The loaded ``DeliberatorSettings`` instance.
         flag_value: Value passed via ``--provider`` flag, or ``None``.
         context_default: The provider name suggested by
             ``InvocationContext.default_provider``. Typically
@@ -321,11 +321,11 @@ def resolve_provider_with_context(
 def inspect_settings_cascade(
     project_root: Path | None = None,
 ) -> list[CascadeEntry]:
-    """Return per-key resolution of every ``ConversusSettings`` field.
+    """Return per-key resolution of every ``DeliberatorSettings`` field.
 
     Walks the cascade tiers (env → project → global → default) and
-    determines, for each field declared on ``ConversusSettings``, which
-    tier supplied the effective value.  Used by ``conversus status`` to
+    determines, for each field declared on ``DeliberatorSettings``, which
+    tier supplied the effective value.  Used by ``deliberator status`` to
     show users where each setting came from.
 
     Args:
@@ -334,7 +334,7 @@ def inspect_settings_cascade(
 
     Returns:
         A list of ``CascadeEntry`` tuples — one per field on
-        ``ConversusSettings`` — preserving model field order.
+        ``DeliberatorSettings`` — preserving model field order.
     """
     if project_root is None:
         from engine.persistence import find_user_project_root
@@ -347,10 +347,10 @@ def inspect_settings_cascade(
     global_data = _read_yaml(global_path)
     project_data = _read_yaml(project_path)
 
-    defaults = ConversusSettings()
+    defaults = DeliberatorSettings()
 
     entries: list[CascadeEntry] = []
-    for field_name in ConversusSettings.model_fields:
+    for field_name in DeliberatorSettings.model_fields:
         env_var = _ENV_VAR_FOR_FIELD.get(field_name)
         env_raw = os.environ.get(env_var) if env_var else None
 

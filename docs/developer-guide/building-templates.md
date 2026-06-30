@@ -79,7 +79,7 @@ The output contract parser handles all these variants.
 
 ## How to add a new mode
 
-1. **Register the mode** in `conversus/schemas/modes.py`:
+1. **Register the mode** in `deliberator/schemas/modes.py`:
 
 ```python
 VALID_MODES: frozenset[str] = frozenset({
@@ -97,7 +97,7 @@ VALID_MODES: frozenset[str] = frozenset({
 
 5. **Add game form mapping** in `schema/game-forms/mode-mapping.yml` to associate the mode with its game form.
 
-6. **Add payoff function** in `conversus/plugins/nashopt/payoffs.py` for equilibrium scoring.
+6. **Add payoff function** in `deliberator/plugins/nashopt/payoffs.py` for equilibrium scoring.
 
 7. **Run the linter** to validate templates:
 

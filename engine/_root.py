@@ -1,7 +1,7 @@
 """Shared project root discovery.
 
 Provides a single ``find_project_root`` function used by the CLI, SDK,
-and MCP server to locate the conversus project directory.  Each caller
+and MCP server to locate the deliberator project directory.  Each caller
 previously had its own copy of this logic — extracted here per CQ-3.
 
 The ``engine/config.py`` root finder is intentionally *not* shared: it
@@ -19,11 +19,11 @@ def find_project_root(
     marker: str = "presets",
     anchor: Path | None = None,
 ) -> Path:
-    """Locate the conversus project root by looking for a marker directory.
+    """Locate the deliberator project root by looking for a marker directory.
 
     Resolution order:
     1. Parent of *anchor* (if provided), walking up until *marker* is found.
-    2. ``importlib.resources`` via ``conversus.paths`` (works when pip-installed).
+    2. ``importlib.resources`` via ``deliberator.paths`` (works when pip-installed).
     3. Parent of this file's package (``engine/`` -> project root).
     4. Current working directory.
 
@@ -38,10 +38,10 @@ def find_project_root(
     Raises:
         FileNotFoundError: If no directory containing *marker* is found.
     """
-    # Strategy 0: CONVERSUS_ROOT env var — set by the Desktop Extension's
+    # Strategy 0: DELIBERATOR_ROOT env var — set by the Desktop Extension's
     # main.py to point at the bundled server/ directory.
     import os
-    env_root = os.environ.get("CONVERSUS_ROOT")
+    env_root = os.environ.get("DELIBERATOR_ROOT")
     if env_root:
         root = Path(env_root).resolve()
         if (root / marker).is_dir():
@@ -60,8 +60,8 @@ def find_project_root(
 
     # Strategy 2: importlib.resources (works when pip-installed)
     try:
-        from conversus.paths import resolve_package_path
-        marker_path = resolve_package_path("conversus", marker)
+        from deliberator.paths import resolve_package_path
+        marker_path = resolve_package_path("deliberator", marker)
         if marker_path.is_dir():
             return marker_path.parent
     except (ImportError, FileNotFoundError):
@@ -78,6 +78,6 @@ def find_project_root(
         return cwd
 
     raise FileNotFoundError(
-        f"Cannot locate conversus project root ({marker}/ directory). "
-        "Run from the conversus directory or ensure engine/ is inside it."
+        f"Cannot locate deliberator project root ({marker}/ directory). "
+        "Run from the deliberator directory or ensure engine/ is inside it."
     )

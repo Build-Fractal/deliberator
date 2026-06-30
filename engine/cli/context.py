@@ -1,16 +1,16 @@
-"""Invocation context detection for the conversus CLI.
+"""Invocation context detection for the deliberator CLI.
 
-Every invocation of conversus runs in one of three contexts:
+Every invocation of deliberator runs in one of three contexts:
 
-1. **Interactive terminal** — a human typed ``conversus run`` at a TTY.
+1. **Interactive terminal** — a human typed ``deliberator run`` at a TTY.
    Want human-readable progress rendering and interactive exit codes.
 
 2. **Headless CI / cron / hook / MCP server** — a non-human caller
    invoked the CLI from GitHub Actions, a cron job, a git hook, or
-   (post-spec-049) the conversus MCP server running inside VSCode.
+   (post-spec-049) the deliberator MCP server running inside VSCode.
    Want structured JSON output and governance-style exit codes.
 
-3. **Claude Code session** — conversus is running inside a Claude Code
+3. **Claude Code session** — deliberator is running inside a Claude Code
    interactive session (as opposed to being invoked by Claude Code as
    a subprocess).  Want to defer to the Claude Code host's own progress
    rendering; governance exit codes do not apply.
@@ -51,7 +51,7 @@ RendererMode = Literal["tui", "json", "plain"]
 #: Exit code scheme selected by context detection.
 #:
 #: - ``"interactive"``: 0 on success, 1 on any failure.  The default for
-#:   ``conversus run`` from a terminal.
+#:   ``deliberator run`` from a terminal.
 #: - ``"governance"``: structured exit codes for spec 048 governance
 #:   gates: 0=PASS, 1=BLOCK, 2=ERROR, 3=META_DISPUTE.  Selected when
 #:   argv contains the ``governance`` subcommand.
@@ -88,7 +88,7 @@ _CLAUDE_CODE_ENV_VARS: tuple[str, ...] = (
 )
 
 #: argv entries that select the governance exit code scheme.  The CLI
-#: accepts ``conversus governance ...``; if ``governance`` appears as the
+#: accepts ``deliberator governance ...``; if ``governance`` appears as the
 #: first non-program arg, we flip to governance exit codes.
 _GOVERNANCE_SUBCOMMANDS: tuple[str, ...] = (
     "governance",
@@ -103,7 +103,7 @@ _GOVERNANCE_SUBCOMMANDS: tuple[str, ...] = (
 
 @dataclass(frozen=True)
 class InvocationContext:
-    """Resolved invocation context for a single ``conversus`` CLI call.
+    """Resolved invocation context for a single ``deliberator`` CLI call.
 
     Constructed once at CLI startup by :func:`detect_context` and passed
     down into the engine.  All downstream code reads the resolved fields
@@ -120,14 +120,14 @@ class InvocationContext:
         is_ci: One of :data:`_CI_ENV_VARS` is set.  Proxy for
             "this is running in a CI/CD pipeline."
         is_claude_code_session: One of :data:`_CLAUDE_CODE_ENV_VARS` is
-            set.  Proxy for "conversus is running inside a Claude Code
+            set.  Proxy for "deliberator is running inside a Claude Code
             interactive session as the host process — NOT as a subprocess
             spawned by Claude Code."
         is_background: Neither TTY nor Claude Code.  Catches cron jobs,
             git hooks, the spec 049 MCP server, scheduled tasks, and
             pipeline workers that are not themselves CI.
         default_provider: Resolved provider name to use when
-            ``conversus.yml`` does not specify one.  Callers may override
+            ``deliberator.yml`` does not specify one.  Callers may override
             via explicit config.
         renderer: Renderer mode for output rendering.  The CLI picks a
             renderer class based on this value.
@@ -214,7 +214,7 @@ def detect_context(
     #
     # "Background" means no human and no host session is watching output
     # directly.  A TTY means a human.  A Claude Code session means
-    # conversus's output is being consumed by the host's own renderer.
+    # deliberator's output is being consumed by the host's own renderer.
     # CI is a special case: it's non-human but counts as "watched" for
     # the purpose of rendering (we produce JSON, not TUI; we use
     # governance exit codes when invoked that way).  We still tag CI as

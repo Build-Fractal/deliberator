@@ -38,7 +38,7 @@ pytest.importorskip("mcp")
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from capabilities import CAPABILITIES
-from conversus.registry import Surface
+from deliberator.registry import Surface
 
 import mcp_server  # noqa: E402 — must come after sys.path setup
 
@@ -47,11 +47,11 @@ def _expected_mcp_tool_names() -> set[str]:
     """Tool names every static MCP tool MUST register.
 
     Derived from ``CAPABILITIES`` filtered to ``Surface.MCP``. Names
-    use the ``conversus_`` prefix and replace ``-`` with ``_`` (matching
+    use the ``deliberator_`` prefix and replace ``-`` with ``_`` (matching
     the projector + ``@_optional_tool()`` convention).
     """
     return {
-        "conversus_" + cap.name.replace("-", "_")
+        "deliberator_" + cap.name.replace("-", "_")
         for cap in CAPABILITIES
         if Surface.MCP in cap.surfaces
     }
@@ -67,7 +67,7 @@ def test_every_mcp_capability_has_a_static_tool() -> None:
     """Every Capability with Surface.MCP must have a registered tool.
 
     On failure, add the missing ``@_optional_tool()`` decorator to
-    ``mcp_server.py`` so the function name (with ``conversus_`` prefix
+    ``mcp_server.py`` so the function name (with ``deliberator_`` prefix
     and dashes-to-underscores) matches the capability.
     """
     expected = _expected_mcp_tool_names()
@@ -79,7 +79,7 @@ def test_every_mcp_capability_has_a_static_tool() -> None:
         f"the capability registry with Surface.MCP: {sorted(missing)}.\n"
         f"  Fix: add a @_optional_tool() decorator in mcp_server.py for "
         f"each missing tool. Function name MUST match "
-        f"'conversus_' + capability.name.replace('-', '_')."
+        f"'deliberator_' + capability.name.replace('-', '_')."
     )
 
 

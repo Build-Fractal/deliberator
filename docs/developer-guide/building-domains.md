@@ -5,8 +5,8 @@ Domain plugins turn review into a quantifiable optimization problem. They follow
 ## Setup
 
 ```bash
-git clone https://github.com/anthropic/conversus.git
-cd conversus
+git clone https://github.com/anthropic/deliberator.git
+cd deliberator
 uv sync
 ```
 
@@ -21,7 +21,7 @@ Extractors implement the `VariableExtractor` protocol and pull raw data from a `
 ```python
 from pathlib import Path
 from typing import Any
-from conversus.domains.base import DomainContext
+from deliberator.domains.base import DomainContext
 
 class CommitMessageExtractor:
     name = "commit-message"
@@ -45,7 +45,7 @@ class CommitMessageExtractor:
 Wire the extractor into a `DomainPlugin` subclass and point `scaffold_dir` at your YAML configs:
 
 ```python
-from conversus.domains.base import DomainPlugin, VariableExtractor
+from deliberator.domains.base import DomainPlugin, VariableExtractor
 
 class CommitQualityDomain(DomainPlugin):
     name = "commit-quality"
@@ -89,7 +89,7 @@ score = domain.score(variables, "default")
 Use `create_record()` to build a `DomainRecord`, then persist it via a store backend:
 
 ```python
-from conversus.domains.store import JSONLStore
+from deliberator.domains.store import JSONLStore
 
 store = JSONLStore(Path("./reviews"))
 record = domain.create_record(score, context)
@@ -115,7 +115,7 @@ Mount REST endpoints using the router factory:
 
 ```python
 from fastapi import FastAPI
-from conversus.domains.api import create_domain_router
+from deliberator.domains.api import create_domain_router
 
 app = FastAPI()
 router = create_domain_router(domain, store)
@@ -127,11 +127,11 @@ app.include_router(router, prefix="/api")
 
 ## DomainPlugin ABC
 
-Every domain extends `conversus.domains.base.DomainPlugin`:
+Every domain extends `deliberator.domains.base.DomainPlugin`:
 
 ```python
 from pathlib import Path
-from conversus.domains.base import (
+from deliberator.domains.base import (
     DomainPlugin,
     VariableExtractor,
     DomainContext,
@@ -161,7 +161,7 @@ class MyDomain(DomainPlugin):
 Extractors are the data collection layer. Each produces a subset of variables:
 
 ```python
-from conversus.domains.base import DomainContext, VariableExtractor
+from deliberator.domains.base import DomainContext, VariableExtractor
 
 class CoverageExtractor:
     name = "coverage"
@@ -321,7 +321,7 @@ The framework provides two levels of hard block evaluation with different capabi
 Evaluates conditions of the form `"variable_name <op> threshold"` where the condition string must have exactly three whitespace-separated tokens. Supported operators: `<`, `>`, `<=`, `>=`, `==`. This function only handles numeric comparisons -- it skips conditions it cannot parse.
 
 ```python
-from conversus.domains.base import _check_hard_blocks
+from deliberator.domains.base import _check_hard_blocks
 
 triggered = _check_hard_blocks(
     variables={"critical_vulns": 3, "coverage": 0.4},
@@ -354,7 +354,7 @@ def evaluate_hard_blocks(self, rules, variables):
 Two storage backends implement the `DomainStore` protocol:
 
 ```python
-from conversus.domains.store import JSONLStore, SQLiteStore
+from deliberator.domains.store import JSONLStore, SQLiteStore
 
 # JSONL: one file per domain, append-only. Good for < 10K records.
 store = JSONLStore(Path("./reviews"))
@@ -379,8 +379,8 @@ Mount REST endpoints for any domain:
 
 ```python
 from fastapi import FastAPI
-from conversus.domains.api import create_domain_router
-from conversus.domains.store import JSONLStore
+from deliberator.domains.api import create_domain_router
+from deliberator.domains.store import JSONLStore
 
 app = FastAPI()
 domain = MyDomain()
@@ -405,7 +405,7 @@ This creates:
 ```python
 from pathlib import Path
 from typing import Any
-from conversus.domains.base import DomainPlugin, DomainContext, VariableExtractor
+from deliberator.domains.base import DomainPlugin, DomainContext, VariableExtractor
 
 class CommitMessageExtractor:
     name = "commit-message"

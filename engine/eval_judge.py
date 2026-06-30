@@ -1,4 +1,4 @@
-"""Custom deepeval judges for the conversus eval suite.
+"""Custom deepeval judges for the deliberator eval suite.
 
 ``ClaudeCodeJudge`` shells out to ``claude -p`` via the existing
 :class:`engine.execution.providers.claude_code.ClaudeCodeProvider`, so

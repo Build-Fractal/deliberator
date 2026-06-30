@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
-Conversus MCP Server
+Deliberator MCP Server
 
-Exposes conversus deliberation tools via the Model Context Protocol (MCP).
+Exposes deliberator deliberation tools via the Model Context Protocol (MCP).
 Designed for use with Claude Code, Cursor, and other MCP-compatible editors.
 
 Tools:
-    conversus_validate — Validate a YAML config, classify questions, estimate cost
-    conversus_run      — Validate config + parse existing synthesis output into
-                         structured ConversusOutput JSON (hybrid execution model)
-    conversus_decide   — Run an ad-hoc deliberation on a natural-language question
+    deliberator_validate — Validate a YAML config, classify questions, estimate cost
+    deliberator_run      — Validate config + parse existing synthesis output into
+                         structured DeliberatorOutput JSON (hybrid execution model)
+    deliberator_decide   — Run an ad-hoc deliberation on a natural-language question
                          with question sufficiency gate and cost safeguards
 
 Transport: stdio (launched by the editor process)
@@ -65,7 +65,7 @@ from linter.validate import ValidationConfig, validate_all, find_project_root
 # Logging — surface structured diagnostics without polluting MCP stdio
 # ---------------------------------------------------------------------------
 
-logger = logging.getLogger("conversus.mcp")
+logger = logging.getLogger("deliberator.mcp")
 logger.addHandler(logging.StreamHandler(sys.stderr))
 logger.setLevel(logging.INFO)
 
@@ -73,17 +73,17 @@ logger.setLevel(logging.INFO)
 # FastMCP instance
 # ---------------------------------------------------------------------------
 
-mcp = FastMCP("conversus")
+mcp = FastMCP("deliberator")
 
 # ---------------------------------------------------------------------------
-# Tool filtering — CONVERSUS_DISABLED_TOOLS env var
+# Tool filtering — DELIBERATOR_DISABLED_TOOLS env var
 #
 # Operators (Desktop user_config, MCP launcher env, CI bundles) can hide
 # specific tools from the server by listing their names in
-# ``CONVERSUS_DISABLED_TOOLS`` (comma-separated, whitespace tolerant).
+# ``DELIBERATOR_DISABLED_TOOLS`` (comma-separated, whitespace tolerant).
 # Disabled tools are simply not registered with FastMCP — they don't
 # appear in the tool listing returned to clients. Use cases: locked-down
-# Desktop installs, demo bundles that hide ``conversus_login``, CI
+# Desktop installs, demo bundles that hide ``deliberator_login``, CI
 # environments that disable network-bound tools.
 #
 # Filtering applies to the four hand-coded tools below. Runtime-discovered
@@ -95,7 +95,7 @@ mcp = FastMCP("conversus")
 
 
 def _parse_disabled_tools(raw: str | None) -> frozenset[str]:
-    """Parse ``CONVERSUS_DISABLED_TOOLS`` into a set of tool names.
+    """Parse ``DELIBERATOR_DISABLED_TOOLS`` into a set of tool names.
 
     Empty / missing input returns an empty frozenset. Whitespace around
     each name is stripped; empty segments (from trailing commas) are
@@ -107,11 +107,11 @@ def _parse_disabled_tools(raw: str | None) -> frozenset[str]:
 
 
 _DISABLED_TOOLS: frozenset[str] = _parse_disabled_tools(
-    os.environ.get("CONVERSUS_DISABLED_TOOLS")
+    os.environ.get("DELIBERATOR_DISABLED_TOOLS")
 )
 if _DISABLED_TOOLS:
     logger.info(
-        "CONVERSUS_DISABLED_TOOLS active — hiding %d tool(s): %s",
+        "DELIBERATOR_DISABLED_TOOLS active — hiding %d tool(s): %s",
         len(_DISABLED_TOOLS),
         ", ".join(sorted(_DISABLED_TOOLS)),
     )
@@ -129,7 +129,7 @@ def _optional_tool():
     def decorator(func):
         if func.__name__ in _DISABLED_TOOLS:
             logger.info(
-                "Tool %r disabled via CONVERSUS_DISABLED_TOOLS — skipping registration",
+                "Tool %r disabled via DELIBERATOR_DISABLED_TOOLS — skipping registration",
                 func.__name__,
             )
             return func
@@ -173,22 +173,22 @@ from engine.handlers import validate_mcp as _validate_config  # noqa: E402
 
 
 @_optional_tool()
-def conversus_validate(config_yaml: str, question: str = "") -> ValidateResult:
-    """Validate a conversus YAML configuration without executing.
+def deliberator_validate(config_yaml: str, question: str = "") -> ValidateResult:
+    """Validate a deliberator YAML configuration without executing.
 
     Parses the YAML config, validates templates against the schema,
     optionally classifies the deliberation question, and returns a
     cost estimate (number of LLM launches required).
 
     Args:
-        config_yaml: Full YAML configuration string for a conversus run.
+        config_yaml: Full YAML configuration string for a deliberator run.
         question: Optional deliberation question to classify for sufficiency.
 
     Returns:
         ValidateResult with validation status, errors, cost estimate,
         and optional question classification.
     """
-    logger.info("conversus_validate called (config length=%d, question=%r)",
+    logger.info("deliberator_validate called (config length=%d, question=%r)",
                 len(config_yaml), bool(question))
     result = _validate_config(config_yaml, question)
     if not result.valid:
@@ -197,7 +197,7 @@ def conversus_validate(config_yaml: str, question: str = "") -> ValidateResult:
 
 
 # ---------------------------------------------------------------------------
-# conversus_run — MCP tool
+# deliberator_run — MCP tool
 #
 # ``_run_in_process`` and ``_run_config`` moved to ``engine/handlers.py``
 # (constitution principle XI — single source of truth). Aliases below
@@ -210,26 +210,26 @@ from engine.handlers import run_mcp as _run_config  # noqa: E402
 
 
 @_optional_tool()
-def conversus_run(config_yaml: str, output_path: str = "", provider: str = "") -> RunResult:
+def deliberator_run(config_yaml: str, output_path: str = "", provider: str = "") -> RunResult:
     """Run or parse a full multi-agent deliberation from a YAML config.
 
-    Use this tool when conversus_decide's built-in presets aren't enough —
+    Use this tool when deliberator_decide's built-in presets aren't enough —
     custom agent personas, target documents, specific game theory modes,
     multiple iterations, or an arbiter.
 
     Operates in three modes (auto-selected by which args you pass):
 
     **Validate-only** (no output_path, no provider): Validates the YAML config,
-    estimates cost, and returns instructions to execute '/conversus run' in
+    estimates cost, and returns instructions to execute '/deliberator run' in
     the editor.
 
     **Parse-results** (output_path provided): Validates config, reads the
-    synthesis file at the given path, and returns structured ConversusOutput
-    JSON identical to what '/conversus run' produces.
+    synthesis file at the given path, and returns structured DeliberatorOutput
+    JSON identical to what '/deliberator run' produces.
 
     **In-process** (provider set, no output_path): Validates config, runs the
     full engine pipeline in-process using the specified provider, and returns
-    structured ConversusOutput JSON. Supported providers: 'mock', 'demo',
+    structured DeliberatorOutput JSON. Supported providers: 'mock', 'demo',
     'anthropic', 'openai', 'claude-desktop'.
 
     Config shape (minimal example):
@@ -251,13 +251,13 @@ def conversus_run(config_yaml: str, output_path: str = "", provider: str = "") -
           - preset: devils-advocate
 
     Cost reference: 2 agents / 1 iteration → ~9 LLM launches. Always run
-    conversus_validate first to see exact cost before executing.
+    deliberator_validate first to see exact cost before executing.
 
     Args:
-        config_yaml: Full YAML configuration string for a conversus run.
+        config_yaml: Full YAML configuration string for a deliberator run.
         output_path: Optional path to an existing synthesis output file
                      (typically summary/final.md). When provided, the tool
-                     parses the file into structured ConversusOutput JSON.
+                     parses the file into structured DeliberatorOutput JSON.
         provider: Optional provider name for in-process execution. When set
                   (and output_path is empty), the tool runs the full
                   deliberation pipeline in-process.
@@ -267,7 +267,7 @@ def conversus_run(config_yaml: str, output_path: str = "", provider: str = "") -
         execution instructions, parsed structured output, or in-process
         pipeline results.
     """
-    logger.info("conversus_run called (config length=%d, output_path=%r, provider=%r)",
+    logger.info("deliberator_run called (config length=%d, output_path=%r, provider=%r)",
                 len(config_yaml), bool(output_path), provider)
     result = _run_config(config_yaml, output_path, provider)
     if not result.validated:
@@ -278,12 +278,12 @@ def conversus_run(config_yaml: str, output_path: str = "", provider: str = "") -
 
 
 # ---------------------------------------------------------------------------
-# conversus_decide — pure function + MCP tool
+# deliberator_decide — pure function + MCP tool
 # ---------------------------------------------------------------------------
 
 
-def _find_conversus_root() -> Path:
-    """Locate the conversus project root (directory containing presets/).
+def _find_deliberator_root() -> Path:
+    """Locate the deliberator project root (directory containing presets/).
 
     Delegates to :func:`engine._root.find_project_root`.
 
@@ -308,7 +308,7 @@ from engine.handlers import run_decide_mcp as _decide
 
 
 @_optional_tool()
-def conversus_decide(
+def deliberator_decide(
     question: str,
     provider: str = "mock",
     mode: str = "cooperative",
@@ -323,8 +323,8 @@ def conversus_decide(
     Insufficient questions are rejected before execution (quality gate).
 
     Recommended for quick, ad-hoc deliberations on technical/strategic
-    decisions without writing a conversus.yml config file. For document
-    analysis across multiple files, prefer conversus_run with target: set.
+    decisions without writing a deliberator.yml config file. For document
+    analysis across multiple files, prefer deliberator_run with target: set.
 
     Mode selection — pick intentionally:
       - cooperative       Agents seek convergence and surface integration
@@ -365,7 +365,7 @@ def conversus_decide(
         and any errors encountered.
     """
     logger.info(
-        "conversus_decide called (question_len=%d, provider=%r, mode=%r, max_launches=%d)",
+        "deliberator_decide called (question_len=%d, provider=%r, mode=%r, max_launches=%d)",
         len(question),
         provider,
         mode,
@@ -377,27 +377,27 @@ def conversus_decide(
     result = _decide(question, provider, mode, max_launches, mcp_context=ctx)
     if not result.sufficient:
         logger.warning(
-            "conversus_decide: question rejected — %s",
+            "deliberator_decide: question rejected — %s",
             "; ".join(result.errors) if result.errors else "insufficient",
         )
     elif result.errors:
         logger.warning(
-            "conversus_decide: execution error(s) — %s",
+            "deliberator_decide: execution error(s) — %s",
             "; ".join(result.errors),
         )
     elif result.output:
-        logger.info("conversus_decide: deliberation completed successfully")
+        logger.info("deliberator_decide: deliberation completed successfully")
     return result
 
 
 # ---------------------------------------------------------------------------
-# conversus_login — OAuth login from chat (spec 059)
+# deliberator_login — OAuth login from chat (spec 059)
 # ---------------------------------------------------------------------------
 from engine.handlers import login_mcp as _login_mcp
 
 
 @_optional_tool()
-def conversus_login(provider: str) -> str:
+def deliberator_login(provider: str) -> str:
     """Log in to a model provider via OAuth.
 
     Opens your browser for OAuth authentication. The token is stored
@@ -411,20 +411,20 @@ def conversus_login(provider: str) -> str:
     Returns:
         Status message (success or error description).
     """
-    logger.info("conversus_login called (provider=%r)", provider)
+    logger.info("deliberator_login called (provider=%r)", provider)
     return _login_mcp(provider)
 
 
 # ---------------------------------------------------------------------------
-# conversus_list_deliberations / conversus_show_deliberation (spec 056)
+# deliberator_list_deliberations / deliberator_show_deliberation (spec 056)
 # ---------------------------------------------------------------------------
 from engine.handlers import list_deliberations_mcp as _list_deliberations_mcp
 from engine.handlers import show_deliberation_mcp as _show_deliberation_mcp
 
 
 @_optional_tool()
-def conversus_list_deliberations(project_root: str = "") -> ListResult:
-    """List past deliberations from the project's .conversus/deliberations/.
+def deliberator_list_deliberations(project_root: str = "") -> ListResult:
+    """List past deliberations from the project's .deliberator/deliberations/.
 
     Scans the project's deliberation directory and returns each persisted
     run's metadata: directory name (encodes timestamp + slug), timestamp,
@@ -433,31 +433,31 @@ def conversus_list_deliberations(project_root: str = "") -> ListResult:
 
     Args:
         project_root: Project root path. Empty string means current
-            directory; the engine walks up to locate ``.conversus/``.
+            directory; the engine walks up to locate ``.deliberator/``.
 
     Returns:
         ListResult with deliberations list and total count.
     """
     logger.info(
-        "conversus_list_deliberations called (project_root=%r)",
+        "deliberator_list_deliberations called (project_root=%r)",
         project_root,
     )
     return _list_deliberations_mcp(project_root)
 
 
 @_optional_tool()
-def conversus_show_deliberation(
+def deliberator_show_deliberation(
     deliberation_path: str, file_path: str
 ) -> ShowResult:
     """Read a file from a past deliberation's output directory.
 
-    Use after conversus_list_deliberations to inspect summaries, individual
+    Use after deliberator_list_deliberations to inspect summaries, individual
     agent reviews, synthesis documents, or any other artifact produced
     during a deliberation.
 
     Args:
         deliberation_path: Path to the deliberation directory (e.g.
-            ``.conversus/deliberations/20260412T173000-timber/``).
+            ``.deliberator/deliberations/20260412T173000-timber/``).
         file_path: Relative file path within the deliberation (e.g.
             ``summary/final.md``, ``pragmatist/review.md``).
 
@@ -465,7 +465,7 @@ def conversus_show_deliberation(
         ShowResult with file content (or empty content + errors on failure).
     """
     logger.info(
-        "conversus_show_deliberation called (deliberation_path=%r, file_path=%r)",
+        "deliberator_show_deliberation called (deliberation_path=%r, file_path=%r)",
         deliberation_path,
         file_path,
     )
@@ -477,7 +477,7 @@ def conversus_show_deliberation(
 #
 # Prompts are the Desktop equivalent of slash commands. They appear in
 # the Claude Desktop UI as selectable actions so non-technical users can
-# explicitly invoke conversus instead of hoping Claude picks the right
+# explicitly invoke deliberator instead of hoping Claude picks the right
 # tool from the description alone. All 5 prompts ship — the full
 # capability set is visible, not hidden behind progressive disclosure
 # (user override of deliberation recommendation).
@@ -492,10 +492,10 @@ def deliberate(question: str) -> list[dict]:
     explains the reasoning, and waits for your approval before running.
     """
     return [{"role": "user", "content":
-        f"I want to run a conversus deliberation on this question:\n\n"
+        f"I want to run a deliberator deliberation on this question:\n\n"
         f"> {question}\n\n"
         f"Before running, analyze the question and recommend a deliberation setup. "
-        f"Consider these conversus modes:\n\n"
+        f"Consider these deliberator modes:\n\n"
         f"- **cooperative** — agents seek convergence, best for complex decisions where you want a balanced recommendation\n"
         f"- **winner-take-all** — each agent defends a position, synthesis picks ONE winner, best when you need a commitment not a list of pros/cons\n"
         f"- **red-blue** — one agent attacks, one defends, best for stress-testing a plan\n"
@@ -506,7 +506,7 @@ def deliberate(question: str) -> list[dict]:
         f"- **What to expect**: what the 5-phase pipeline will produce for this question\n"
         f"- **Estimated cost**: ~9 LLM launches for 2 agents / 1 iteration\n\n"
         f"Then ask me: 'Ready to run this deliberation, or would you like to adjust the mode?'\n\n"
-        f"Only call the conversus_decide tool AFTER I confirm. Use the mode you recommended "
+        f"Only call the deliberator_decide tool AFTER I confirm. Use the mode you recommended "
         f"(or whatever I chose if I adjusted it)."}]
 
 
@@ -518,7 +518,7 @@ def challenge(question: str) -> list[dict]:
     while the blue team defends. Explains the setup before running.
     """
     return [{"role": "user", "content":
-        f"I want to stress-test this decision with a conversus red-blue deliberation:\n\n"
+        f"I want to stress-test this decision with a deliberator red-blue deliberation:\n\n"
         f"> {question}\n\n"
         f"Red-blue mode assigns one agent as the attacker (finds every flaw, worst-case scenario) "
         f"and one as the defender (makes the strongest possible case). The synthesis weighs both.\n\n"
@@ -527,7 +527,7 @@ def challenge(question: str) -> list[dict]:
         f"- What the **blue team** will defend\n"
         f"- What kind of verdict the synthesis will produce\n\n"
         f"Then ask me: 'Ready to run the red-blue deliberation?'\n\n"
-        f"Only call conversus_decide with mode 'red-blue' AFTER I confirm."}]
+        f"Only call deliberator_decide with mode 'red-blue' AFTER I confirm."}]
 
 
 @mcp.prompt()
@@ -547,14 +547,14 @@ def force_decision(question: str) -> list[dict]:
         f"- Why winner-take-all is the right mode (vs cooperative which would hedge)\n"
         f"- That the verdict will be decisive — one winner, one loser, with reasoning\n\n"
         f"Then ask me: 'Ready to force a decision?'\n\n"
-        f"Only call conversus_decide with mode 'winner-take-all' AFTER I confirm."}]
+        f"Only call deliberator_decide with mode 'winner-take-all' AFTER I confirm."}]
 
 
 @mcp.prompt()
 def design_deliberation() -> list[dict]:
     """Build a custom deliberation config through conversation.
 
-    Walks you through creating a conversus.yml step by step — question,
+    Walks you through creating a deliberator.yml step by step — question,
     mode, agents, iterations, arbiter. Ask one question at a time.
     """
     # Role-split pattern (spec 060 note): short user turn + assistant turn
@@ -564,7 +564,7 @@ def design_deliberation() -> list[dict]:
     # message full of instructional directives.
     return [
         {"role": "user", "content":
-            "Let's design a conversus deliberation config together."},
+            "Let's design a deliberator deliberation config together."},
         {"role": "assistant", "content":
             "Great — I'll help you build one. I need a few things from you, "
             "and I'll ask one at a time so we can iterate:\n\n"
@@ -576,7 +576,7 @@ def design_deliberation() -> list[dict]:
             "4. How many rounds?\n"
             "5. Do you want an arbiter?\n\n"
             "Once I have those, I'll show you the final YAML and we can run "
-            "it with conversus_run. What's your decision?"},
+            "it with deliberator_run. What's your decision?"},
     ]
 
 
@@ -592,9 +592,9 @@ def analyze_documents() -> list[dict]:
     # Role-split pattern — see design_deliberation note.
     return [
         {"role": "user", "content":
-            "Let's run a conversus document analysis."},
+            "Let's run a deliberator document analysis."},
         {"role": "assistant", "content":
-            "I'll set that up. Conversus will run multiple agents over "
+            "I'll set that up. Deliberator will run multiple agents over "
             "your docs independently, then cross-review so disagreements "
             "about what the docs say become explicit. I need three things:\n\n"
             "1. Which documents? Paths or URLs — one or many.\n"
@@ -603,7 +603,7 @@ def analyze_documents() -> list[dict]:
             "3. Which analytical lenses — skeptic + advocate, legal + "
             "technical, domain expert + layperson, or something custom?\n\n"
             "Once I have those, I'll build a YAML config with your docs "
-            "in target: and run it with conversus_run. What documents would "
+            "in target: and run it with deliberator_run. What documents would "
             "you like to start with?"},
     ]
 
@@ -616,7 +616,7 @@ def review_config(config_yaml: str) -> list[dict]:
     and advanced game theory modes. Pass the full YAML config content.
     """
     return [{"role": "user", "content":
-        f"Use the conversus_run tool with this config:\n\n"
+        f"Use the deliberator_run tool with this config:\n\n"
         f"```yaml\n{config_yaml}\n```"}]
 
 
@@ -628,7 +628,7 @@ def check_cost(config_yaml: str) -> list[dict]:
     required, and reports any schema errors — without executing anything.
     """
     return [{"role": "user", "content":
-        f"Use the conversus_validate tool to check this config before running:\n\n"
+        f"Use the deliberator_validate tool to check this config before running:\n\n"
         f"```yaml\n{config_yaml}\n```"}]
 
 
@@ -636,12 +636,12 @@ def check_cost(config_yaml: str) -> list[dict]:
 # Spec 064.1 — runtime registration of entry-point-discovered capabilities
 # ---------------------------------------------------------------------------
 #
-# Capabilities shipped by paid wheels (``conversus-enhanced`` etc.) advertise
+# Capabilities shipped by paid wheels (``deliberator-enhanced`` etc.) advertise
 # themselves via setuptools entry points under the four functional groups
-# defined in :data:`conversus.registry.discovery.CAPABILITY_GROUPS`. The
+# defined in :data:`deliberator.registry.discovery.CAPABILITY_GROUPS`. The
 # registration call below walks those discoveries and registers each as a
 # live MCP tool. Static ``@mcp.tool()`` decorations above are unaffected.
-from conversus.registry.runtime import register_discovered_mcp_tools
+from deliberator.registry.runtime import register_discovered_mcp_tools
 
 register_discovered_mcp_tools(mcp)
 

@@ -99,7 +99,7 @@ If inter-round arbitration fired in prior rounds, list properties addressed by t
 
 If no prior-round arbitration exists, omit this section entirely.
 
-<!-- CONVERSUS:DISPUTES_BEGIN -->
+<!-- DELIBERATOR:DISPUTES_BEGIN -->
 ### Mechanism Vulnerabilities
 
 Property trade-offs and recommendations that survived the full process without resolution:
@@ -109,7 +109,7 @@ Property trade-offs and recommendations that survived the full process without r
   - **Property trade-off**: Which formal properties are in tension.
   - **Designer assessment**: Which balance better serves the mechanism's deployment context.
   - **Recommended resolution**: Favor property A / Favor property B / Implement with configurable trade-off / Accept as fundamental limitation.
-<!-- CONVERSUS:DISPUTES_END -->
+<!-- DELIBERATOR:DISPUTES_END -->
 
 ### Mechanism Specification
 

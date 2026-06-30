@@ -1,4 +1,4 @@
-"""Typed programmatic Python API for conversus.
+"""Typed programmatic Python API for deliberator.
 
 Provides the public SDK surface for CI/CD pipelines, custom tooling, and
 programmatic composition of multi-agent deliberations.
@@ -14,7 +14,7 @@ Usage:
     from engine import Deliberation, Result, validate
 
     # Config-path mode
-    result = await Deliberation(config_path=Path("conversus.yml")).run()
+    result = await Deliberation(config_path=Path("deliberator.yml")).run()
     print(result.headline)
 
     # Ad-hoc question mode
@@ -24,7 +24,7 @@ Usage:
     ).run()
 
     # Validation without execution
-    vr = validate(Path("conversus.yml"))
+    vr = validate(Path("deliberator.yml"))
     if not vr.valid:
         print(vr.errors)
 """
@@ -49,12 +49,12 @@ from engine.events import (
 )
 from engine.phases import PipelineError, run_pipeline
 from engine.providers import ProviderError
-from linter.output_contract import ConversusOutput, QualityIndicators, parse_synthesis
+from linter.output_contract import DeliberatorOutput, QualityIndicators, parse_synthesis
 from linter.question_classifier import ClassificationResult, classify_question
 
 from pydantic import BaseModel
 
-logger = logging.getLogger("conversus.sdk")
+logger = logging.getLogger("deliberator.sdk")
 
 # ---------------------------------------------------------------------------
 # Result models — frozen Pydantic per Constitution Principle IX
@@ -62,9 +62,9 @@ logger = logging.getLogger("conversus.sdk")
 
 
 class Result(BaseModel):
-    """Typed result of a conversus deliberation.
+    """Typed result of a deliberator deliberation.
 
-    Wraps the canonical ``ConversusOutput`` fields (headline, summary,
+    Wraps the canonical ``DeliberatorOutput`` fields (headline, summary,
     full_analysis, quality_indicators, debate_transcript) with pipeline
     metadata (rounds_completed, termination_reason, written_files,
     output_dir) for programmatic consumption.
@@ -84,7 +84,7 @@ class Result(BaseModel):
 
 
 class ValidateResult(BaseModel):
-    """Result of validating a conversus config without execution.
+    """Result of validating a deliberator config without execution.
 
     Contains the validation verdict, structured error list, the parsed
     config (when valid), and a cost estimate showing per-phase launch
@@ -123,10 +123,10 @@ def _estimate_cost(config: EngineConfig) -> dict[str, int]:
 
 
 class Deliberation:
-    """Async orchestrator for conversus deliberations.
+    """Async orchestrator for deliberator deliberations.
 
     Supports two modes:
-    - **Config-path mode:** ``Deliberation(config_path=Path("conversus.yml"))``
+    - **Config-path mode:** ``Deliberation(config_path=Path("deliberator.yml"))``
     - **Ad-hoc question mode:** ``Deliberation(question="Should we...", provider="mock")``
 
     Subscribe to lifecycle events before calling ``run()``:
@@ -136,7 +136,7 @@ class Deliberation:
         result = await d.run()
 
     Parameters:
-        config_path: Path to a conversus YAML config file.
+        config_path: Path to a deliberator YAML config file.
         question: Natural-language question for ad-hoc deliberation.
         provider: Provider name (``"mock"``, ``"anthropic"``, ``"openai"``).
         mode: Deliberation mode (default: ``"cooperative"``).
@@ -292,7 +292,7 @@ class Deliberation:
 
     @staticmethod
     def _find_project_root() -> Path:
-        """Locate the conversus project root (directory containing presets/).
+        """Locate the deliberator project root (directory containing presets/).
 
         Delegates to :func:`engine._root.find_project_root`.
 
@@ -338,13 +338,13 @@ class Deliberation:
 
 
 def validate(config_path: Path) -> ValidateResult:
-    """Validate a conversus config file without executing the pipeline.
+    """Validate a deliberator config file without executing the pipeline.
 
     Parses the config, catches any ``ConfigError``, and computes a cost
     estimate from the parsed config.
 
     Args:
-        config_path: Path to a conversus YAML config file.
+        config_path: Path to a deliberator YAML config file.
 
     Returns:
         A frozen ``ValidateResult`` with validity, errors, parsed config,

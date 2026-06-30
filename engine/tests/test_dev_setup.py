@@ -24,7 +24,7 @@ DEV_SETUP_SH = PROJECT_ROOT / "scripts" / "dev-setup.sh"
 # All tool binaries the script checks for.
 ALL_TOOLS = [
     "python",
-    "conversus",
+    "deliberator",
     "claude",
     "aider",
     "opencode",
@@ -198,7 +198,7 @@ class TestSummaryOutput:
     def test_title_present(self) -> None:
         result = _run_dev_setup()
         output = _strip_ansi(result.stdout)
-        assert "conversus dev-setup" in output
+        assert "deliberator dev-setup" in output
 
     def test_check_only_indicator(self) -> None:
         result = _run_dev_setup()

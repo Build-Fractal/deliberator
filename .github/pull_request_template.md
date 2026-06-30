@@ -1,5 +1,5 @@
 <!--
-PR template for conversus-oss.
+PR template for deliberator.
 
 The "Test fixes" section is BINDING for any PR that modifies a test
 file (Principle XXVIII, ratified v2.5.0; see CONSTITUTION.md and

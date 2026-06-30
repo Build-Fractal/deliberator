@@ -6,10 +6,10 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for proposing an improvement to conversus.
+        Thanks for proposing an improvement to deliberator.
 
         **Before filing:**
-        - For broad direction questions or unclear scope, consider opening a [discussion](https://github.com/Build-Fractal/conversus/discussions) first.
+        - For broad direction questions or unclear scope, consider opening a [discussion](https://github.com/Build-Fractal/deliberator/discussions) first.
         - For changes that would touch a constitutional principle, the proposal should go through the four-stage verification protocol — see `CONTRIBUTING.md` for the contribution-type decision tree.
 
   - type: textarea
@@ -27,9 +27,9 @@ body:
     attributes:
       label: Proposed change
       description: |
-        What should conversus do differently? Include API/CLI shape if relevant.
+        What should deliberator do differently? Include API/CLI shape if relevant.
       placeholder: |
-        Add a `--per-agent` flag to `conversus validate` that emits a per-agent cost breakdown table. Default behavior unchanged.
+        Add a `--per-agent` flag to `deliberator validate` that emits a per-agent cost breakdown table. Default behavior unchanged.
     validations:
       required: true
 

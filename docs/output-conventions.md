@@ -41,7 +41,7 @@ implementation patterns rather than constitutional requirements:
   case Principle XXIV in the constitution governs).
 - **Predictable output tree**: output emitters SHOULD write to
   paths derivable from the config. A reviewer SHOULD be able to
-  predict the output tree from `conversus.yml` alone.
+  predict the output tree from `deliberator.yml` alone.
 - **Shallow hierarchies**: prefer `{agent}/review.md` to deeper
   structures unless the depth is justified by the underlying data.
 

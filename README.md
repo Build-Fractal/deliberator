@@ -1,26 +1,26 @@
-# conversus
+# deliberator
 
-**Stop trusting single-LLM answers that sound confident even when wrong.** Conversus pits AI agents against each other in structured adversarial review so weak arguments get exposed *before* you ship the decision.
+**Stop trusting single-LLM answers that sound confident even when wrong.** Deliberator pits AI agents against each other in structured adversarial review so weak arguments get exposed *before* you ship the decision.
 
 ```bash
-pip install git+https://github.com/Build-Fractal/conversus-oss.git
-conversus decide "Should we use Postgres or MongoDB?" --provider mock
+pip install git+https://github.com/Build-Fractal/deliberator.git
+deliberator decide "Should we use Postgres or MongoDB?" --provider mock
 ```
 
-The `--provider mock` flag runs the full 5-phase pipeline with synthetic responses — no API key, nothing to install, no cost. You see exactly what conversus does in ~10 seconds. Swap to a real provider once you're sold.
+The `--provider mock` flag runs the full 5-phase pipeline with synthetic responses — no API key, nothing to install, no cost. You see exactly what deliberator does in ~10 seconds. Swap to a real provider once you're sold.
 
 ## What is this?
 
-Conversus orchestrates multiple AI agents in structured debates. Each agent reviews a target document from a different perspective, cross-reviews each other's work, revises under pressure, disputes remaining disagreements, and produces a synthesized verdict. The engine supports 8 game theory modes (cooperative, winner-take-all, prisoner's dilemma, red-blue, negotiation, resource-allocation, fair-division, mechanism-design) and 13 execution providers spanning cloud APIs, local models, and CLI coding agents.
+Deliberator orchestrates multiple AI agents in structured debates. Each agent reviews a target document from a different perspective, cross-reviews each other's work, revises under pressure, disputes remaining disagreements, and produces a synthesized verdict. The engine supports 8 game theory modes (cooperative, winner-take-all, prisoner's dilemma, red-blue, negotiation, resource-allocation, fair-division, mechanism-design) and 13 execution providers spanning cloud APIs, local models, and CLI coding agents.
 
-## Why conversus?
+## Why deliberator?
 
-| If you've used... | Conversus differs by... |
+| If you've used... | Deliberator differs by... |
 |---|---|
 | **CrewAI / AutoGen** | Adversarial-by-default. Agents critique each other through a *structured* cross-review phase, not just a chat loop. Disagreements get surfaced as explicit disputes rather than averaged away. |
 | **LangGraph** | No graph to design. The 5-phase pipeline is fixed; you configure agents and mode. Game-theory mode (red-blue, prisoner's dilemma, etc.) selects the competitive dynamic. |
 | **AutoGPT / single-agent loops** | Multiple agents with *different* providers (e.g. Claude defends, local Llama attacks, GPT scores) in one deliberation. Heterogeneous deliberation is the marquee feature. |
-| **Just asking Claude / GPT once** | Conversus produces a record. Every position, cross-review, revision, and dispute is written to disk. You can read *why* the verdict landed where it did and audit the deliberation post-hoc. |
+| **Just asking Claude / GPT once** | Deliberator produces a record. Every position, cross-review, revision, and dispute is written to disk. You can read *why* the verdict landed where it did and audit the deliberation post-hoc. |
 
 ## Showcase: deliberations that earned their keep
 
@@ -36,32 +36,32 @@ For the project's own discovery that it was systematically biased toward ratifyi
 
 ```bash
 # Install from GitHub
-pip install git+https://github.com/Build-Fractal/conversus-oss.git
+pip install git+https://github.com/Build-Fractal/deliberator.git
 
 # Zero-cost mock deliberation — no API keys, runs in seconds
-conversus decide "Microservices vs monolith for a 3-person team?" --provider mock
+deliberator decide "Microservices vs monolith for a 3-person team?" --provider mock
 
 # Real LLM via your Anthropic API key
 export ANTHROPIC_API_KEY=sk-ant-...
-conversus decide "Microservices vs monolith?" --provider anthropic
+deliberator decide "Microservices vs monolith?" --provider anthropic
 
 # Using your Claude subscription (if claude CLI is installed)
-conversus decide "Microservices vs monolith?" --provider claude-code --model opus
+deliberator decide "Microservices vs monolith?" --provider claude-code --model opus
 
 # Full pipeline from config
-conversus run my-review.yml --provider claude-code
+deliberator run my-review.yml --provider claude-code
 ```
 
 ## Providers
 
-Conversus wraps any CLI agent or API as a deliberation participant. 13 providers ship built-in across 4 tiers (`demo` is a friendly alias for `mock`):
+Deliberator wraps any CLI agent or API as a deliberation participant. 13 providers ship built-in across 4 tiers (`demo` is a friendly alias for `mock`):
 
 | Provider | Type | Tool Use | Cost | Install |
 |---|---|---|---|---|
 | `mock` (alias: `demo`) | Direct SDK | No | Free | Built-in |
 | `anthropic` | Direct SDK | No | Paid | `ANTHROPIC_API_KEY` |
 | `claude-code` | Subprocess | Yes | Paid | `npm i -g @anthropic-ai/claude-code` |
-| `claude-desktop` | MCP sampling | Yes | Paid | Claude Desktop with conversus MCP server |
+| `claude-desktop` | MCP sampling | Yes | Paid | Claude Desktop with deliberator MCP server |
 | `aider` | Subprocess | Yes | Paid | `pip install aider-chat` |
 | `opencode` | Subprocess | Yes | Paid | [opencode.ai](https://opencode.ai/) |
 | `codex` | Subprocess | Yes | Paid | `npm i -g @openai/codex` |
@@ -77,7 +77,7 @@ Conversus wraps any CLI agent or API as a deliberation participant. 13 providers
 Different agents can use different providers in the same deliberation — the marquee feature:
 
 ```yaml
-# conversus.yml
+# deliberator.yml
 subject: "Architecture Review"
 question: "Review the migration plan"
 mode: red-blue
@@ -108,7 +108,7 @@ agents:
 ```
 
 ```bash
-conversus run conversus.yml
+deliberator run deliberator.yml
 ```
 
 Claude Opus defends, a local Llama attacks, and Haiku analyzes costs — all in the same structured deliberation.
@@ -136,42 +136,42 @@ Every deliberation runs through 5 phases (6 with arbitration):
 ## Project Setup
 
 ```bash
-# Initialize conversus in your project
-conversus init
+# Initialize deliberator in your project
+deliberator init
 
 # This creates:
-#   .conversus/settings.yml       — project defaults (provider, model, mode)
-#   .conversus/deliberations/     — output directory for `decide` and `run`
+#   .deliberator/settings.yml       — project defaults (provider, model, mode)
+#   .deliberator/deliberations/     — output directory for `decide` and `run`
 #   .claude/settings.json         — permissions for claude-code agents
-#   ~/.conversus/settings.yml     — global defaults
+#   ~/.deliberator/settings.yml     — global defaults
 ```
 
 ## CLI Reference
 
 ```bash
 # Running deliberations
-conversus decide "question"                       # Quick ad-hoc deliberation
-conversus run config.yml                          # Full pipeline from config
-conversus run config.yml --phase review           # Stop after Phase 1 (initial reviews)
-conversus validate config.yml                     # Validate config + cost estimate
+deliberator decide "question"                       # Quick ad-hoc deliberation
+deliberator run config.yml                          # Full pipeline from config
+deliberator run config.yml --phase review           # Stop after Phase 1 (initial reviews)
+deliberator validate config.yml                     # Validate config + cost estimate
                                                   # Add `arbiter:` block to config for Phase 6
 
 # Project setup
-conversus init                                    # Initialize .conversus/ in project
-conversus status                                  # Check provider auth + settings cascade
-conversus context                                 # Debug invocation context (runtime/provider)
+deliberator init                                    # Initialize .deliberator/ in project
+deliberator status                                  # Check provider auth + settings cascade
+deliberator context                                 # Debug invocation context (runtime/provider)
 
 # Auth
-conversus login anthropic                         # OAuth login (also: openai)
-conversus logout anthropic                        # Remove stored credentials
+deliberator login anthropic                         # OAuth login (also: openai)
+deliberator logout anthropic                        # Remove stored credentials
 
 # Integration
-conversus mcp                                     # Start MCP server (stdio transport)
-conversus snap                                    # Snap-verdict for Claude Code PreToolUse hooks
+deliberator mcp                                     # Start MCP server (stdio transport)
+deliberator snap                                    # Snap-verdict for Claude Code PreToolUse hooks
 
 # Skill discovery
-conversus skills                                  # List all skills
-conversus skill <name>                            # Print a SKILL.md guided workflow
+deliberator skills                                  # List all skills
+deliberator skill <name>                            # Print a SKILL.md guided workflow
 ```
 
 12 commands total. Full reference with options + defaults: [docs/user-guide/cli.md](docs/user-guide/cli.md). Things going wrong? See [Troubleshooting & FAQ](docs/user-guide/troubleshooting.md).
@@ -181,7 +181,7 @@ conversus skill <name>                            # Print a SKILL.md guided work
 The plugin system exposes 4 lifecycle hooks. Plugins are optional — the engine works without any:
 
 ```python
-from conversus.plugins.base import Plugin, HookPoint, PluginResult
+from deliberator.plugins.base import Plugin, HookPoint, PluginResult
 
 class MyPlugin(Plugin):
     name = "my-plugin"
@@ -202,11 +202,13 @@ Apache-2.0. See [LICENSE](LICENSE) for details.
 
 See [CHANGELOG.md](CHANGELOG.md) for release notes.
 
+> **Previously known as `conversus`.** Renamed on 2026-06-23, prior to first PyPI publish. See [RENAME.md](RENAME.md) for the full rationale, scope, and historical-artifact policy.
+
 ## Contributing
 
 ```bash
-git clone https://github.com/Build-Fractal/conversus-oss.git
-cd conversus
+git clone https://github.com/Build-Fractal/deliberator.git
+cd deliberator
 pip install -e ".[dev]"
 pytest -m "not live"  # No API keys needed
 ```

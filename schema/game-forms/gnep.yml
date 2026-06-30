@@ -3,7 +3,7 @@
 # ==============================================================================
 #
 # Players optimize individual objectives subject to local constraints and
-# shared (coupled) constraints. The standard form for most conversus modes.
+# shared (coupled) constraints. The standard form for most deliberator modes.
 #
 # Use case: cooperative, prisoners-dilemma, and red-blue modes. Most real
 # deliberations have coupled constraints (shared target document, budget,

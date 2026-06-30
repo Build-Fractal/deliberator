@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://build-fractal.org/conversus/schema/v1/arbitration.schema.json",
-  "title": "Conversus Arbitration Body — Phase 6 arbiter's binding verdict",
+  "$id": "https://build-fractal.org/deliberator/schema/v1/arbitration.schema.json",
+  "title": "Deliberator Arbitration Body — Phase 6 arbiter's binding verdict",
   "description": "Per v4.2.0 spec § 4.7. Wrapped by envelope.schema.json with output_type='arbitration'.",
   "type": "object",
   "required": [

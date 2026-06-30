@@ -37,7 +37,7 @@ from pathlib import Path
 
 import pytest
 
-from conversus.schemas.modes import VALID_MODES as _CANONICAL_MODES
+from deliberator.schemas.modes import VALID_MODES as _CANONICAL_MODES
 from engine.config import AgentConfig, EngineConfig
 from engine.events import CallbackEmitter
 from engine.execution.providers import PROVIDER_REGISTRY
@@ -117,7 +117,7 @@ def _make_minimal_config(tmp_path: Path, *, mode: str) -> EngineConfig:
 
 
 def _config_path() -> Path:
-    return PROJECT_ROOT / "conversus.example.yml"
+    return PROJECT_ROOT / "deliberator.example.yml"
 
 
 # ---------------------------------------------------------------------------
@@ -138,12 +138,12 @@ class TestMatrixSourcesOfTruth:
             f"Mode list drift: ALL_MODES={set(ALL_MODES)} vs "
             f"VALID_MODES={set(_CANONICAL_MODES)}. "
             f"Update engine/tests/test_mode_provider_matrix.py::ALL_MODES "
-            f"after adding/removing a mode in conversus/schemas/modes.py."
+            f"after adding/removing a mode in deliberator/schemas/modes.py."
         )
 
     def test_mode_count_is_eight(self) -> None:
         # Pin the count explicitly so a silent demotion in
-        # conversus/schemas/modes.py (e.g., dropping a mode) doesn't
+        # deliberator/schemas/modes.py (e.g., dropping a mode) doesn't
         # quietly shrink the parametrize footprint.
         assert len(ALL_MODES) == 8, (
             f"Expected 8 modes (cooperative, winner-take-all, "
@@ -261,7 +261,9 @@ class TestProviderDispatchOnlyInstantiation:
     """
 
     @pytest.mark.parametrize("provider_name", DISPATCH_ONLY_PROVIDERS)
-    def test_provider_instantiates(self, provider_name: str) -> None:
+    def test_provider_instantiates(
+        self, provider_name: str, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         if provider_name in PROVIDER_REGISTRY:
             cls = PROVIDER_REGISTRY[provider_name]
             instance = cls()
@@ -277,9 +279,19 @@ class TestProviderDispatchOnlyInstantiation:
 
         # Legacy-auth path (anthropic / openai). These don't live in the
         # registry; engine.run.resolve_execution_provider wraps them via
-        # ModelProviderExecutionAdapter. Resolve them in a credential-free
-        # way by walking that path directly.
+        # ModelProviderExecutionAdapter. The test verifies the *wiring*
+        # (resolve → wrap → expose .execute), not credential discovery,
+        # so we stub resolve_provider with a no-credential fake. Prior
+        # implementation relied on the local machine having stored OAuth
+        # credentials, which made the test env-dependent.
+        from unittest.mock import MagicMock
         from engine.run import resolve_execution_provider
+        from engine.providers import ModelProvider
+
+        fake_provider = MagicMock(spec=ModelProvider)
+        monkeypatch.setattr(
+            "engine.run.resolve_provider", lambda name: fake_provider
+        )
 
         provider = resolve_execution_provider(provider_name)
         assert provider is not None, (

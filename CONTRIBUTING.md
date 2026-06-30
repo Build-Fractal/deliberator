@@ -1,4 +1,4 @@
-# Contributing to Conversus
+# Contributing to Deliberator
 
 Welcome. This page gets you contributing in under five minutes. For deep technical conventions (code style, frozen models, import discipline, the layer coupling rules), see [docs/developer-guide/contributing.md](docs/developer-guide/contributing.md).
 
@@ -16,8 +16,8 @@ Welcome. This page gets you contributing in under five minutes. For deep technic
 
 ```bash
 # 1. Fork on GitHub, then clone your fork
-git clone https://github.com/<your-username>/conversus-oss.git
-cd conversus-oss
+git clone https://github.com/<your-username>/deliberator.git
+cd deliberator
 
 # 2. Set up the dev environment (pick one)
 pip install -e ".[dev]"          # straight pip
@@ -37,9 +37,9 @@ The PR template will guide you through the rest. Maintainers triage within a few
 In addition to [Quick fix](#quick-fix) above:
 
 1. **Open an issue first** if the change is non-trivial. This gives maintainers a chance to flag any conflicts with in-flight work or constitutional constraints before you invest hours.
-2. **Test discipline:** new code goes in the package it belongs to (e.g. `engine/`, `conversus/`, `linter/`, `web/`). Tests live next to the code (`<pkg>/tests/test_*.py`).
+2. **Test discipline:** new code goes in the package it belongs to (e.g. `engine/`, `deliberator/`, `linter/`, `web/`). Tests live next to the code (`<pkg>/tests/test_*.py`).
 3. **Read the gotchas memo** at [docs/developer-guide/gotchas.md](docs/developer-guide/gotchas.md) before touching the capability registry, the projector, or any generated surface file (`engine/cli/__init__.py`, `mcp_server.py`, `claude-code-plugin/`, `desktop-extension/manifest.json`). It's a hand-off log of subtle bugs prior contributors hit.
-4. **Self-review with conversus** for non-trivial PRs — write a `conversus.yml` that critiques your own change. The pattern is documented in [docs/developer-guide/contributing.md §PR process](docs/developer-guide/contributing.md#pr-process). Optional but appreciated; needs API access.
+4. **Self-review with deliberator** for non-trivial PRs — write a `deliberator.yml` that critiques your own change. The pattern is documented in [docs/developer-guide/contributing.md §PR process](docs/developer-guide/contributing.md#pr-process). Optional but appreciated; needs API access.
 5. **Run the full suite** before pushing: `pytest -q` (or `pytest -m "not live and not eval"` to skip the paid suites). Smoke + unit should take under two minutes.
 
 ## Governance changes
@@ -68,7 +68,7 @@ By participating in this project, you agree to abide by the [Contributor Covenan
 
 ## Where to ask questions
 
-- **Bug reports / feature requests:** [open an issue](https://github.com/Build-Fractal/conversus-oss/issues/new/choose) (templates provided)
+- **Bug reports / feature requests:** [open an issue](https://github.com/Build-Fractal/deliberator/issues/new/choose) (templates provided)
 - **Security issues:** see [SECURITY.md](SECURITY.md) for the private disclosure path
 - **General questions:** GitHub Discussions (once enabled), or open an issue tagged `question`
 

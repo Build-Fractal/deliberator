@@ -1,6 +1,6 @@
 # Examples
 
-Four working configs you can copy-paste and run with `--provider mock` (no API key, no install beyond conversus itself). Each demonstrates a distinct deliberation pattern.
+Four working configs you can copy-paste and run with `--provider mock` (no API key, no install beyond deliberator itself). Each demonstrates a distinct deliberation pattern.
 
 | File | Mode | Pattern | Cost (mock) |
 |---|---|---|---|
@@ -13,11 +13,11 @@ Four working configs you can copy-paste and run with `--provider mock` (no API k
 
 ```bash
 # Mock — synthetic responses, no API key
-conversus run examples/doc-review-cooperative.yml --provider mock
+deliberator run examples/doc-review-cooperative.yml --provider mock
 
 # Real LLM
 export ANTHROPIC_API_KEY=sk-ant-...
-conversus run examples/doc-review-cooperative.yml --provider anthropic
+deliberator run examples/doc-review-cooperative.yml --provider anthropic
 ```
 
 Output lands in `examples/output/<example-name>/`. The directory is git-ignored.
@@ -40,7 +40,7 @@ These are copy-paste starting points, not production configs. To adapt:
 1. Change `target:` to the file(s) you want agents to read.
 2. Rewrite each agent's `prompt` so each role has a genuinely different incentive — *what does this agent lose if they're wrong?* If you can't answer that for two agents, collapse them into one.
 3. Pick a `mode` that matches your decision type — see [docs/user-guide/modes.md](../docs/user-guide/modes.md).
-4. Validate first: `conversus validate <your-config.yml>` prints the cost estimate before any LLM call.
+4. Validate first: `deliberator validate <your-config.yml>` prints the cost estimate before any LLM call.
 
 ## Note on `output:` and `arbiter.grounding:` paths
 

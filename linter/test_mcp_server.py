@@ -1,5 +1,5 @@
 """
-Tests for MCP server tool logic — conversus_validate and cost estimation.
+Tests for MCP server tool logic — deliberator_validate and cost estimation.
 
 Tests exercise the pure functions directly (no running MCP server needed).
 Covers:
@@ -46,7 +46,7 @@ from mcp_server import (
 VALID_CONFIG_YAML = """\
 mode: cooperative
 target: specs/001-speckit-orchestrator/spec.md
-output: specs/001-speckit-orchestrator/conversus/
+output: specs/001-speckit-orchestrator/deliberator/
 iterations: 1
 agents:
   - name: apm
@@ -62,7 +62,7 @@ agents:
 THREE_AGENT_CONFIG_YAML = """\
 mode: cooperative
 target: specs/001/spec.md
-output: specs/001/conversus/
+output: specs/001/deliberator/
 iterations: 1
 agents:
   - name: agent-a
@@ -79,7 +79,7 @@ agents:
 ARBITER_CONFIG_YAML = """\
 mode: cooperative
 target: specs/001/spec.md
-output: specs/001/conversus/
+output: specs/001/deliberator/
 iterations: 1
 agents:
   - name: agent-a
@@ -99,7 +99,7 @@ arbiter:
 TWO_ITERATION_CONFIG_YAML = """\
 mode: cooperative
 target: specs/001/spec.md
-output: specs/001/conversus/
+output: specs/001/deliberator/
 iterations: 2
 agents:
   - name: agent-a
@@ -350,13 +350,13 @@ class TestPydanticModels:
 
 
 # ---------------------------------------------------------------------------
-# conversus_run tool logic tests
+# deliberator_run tool logic tests
 # ---------------------------------------------------------------------------
 
 # Path to a real reference synthesis for parse-results mode testing
 REFERENCE_SYNTHESIS_PATH = str(
     Path(__file__).resolve().parent.parent
-    / "conversus"
+    / "deliberator"
     / "quality_floor"
     / "reference-outputs"
     / "passing"
@@ -377,7 +377,7 @@ class TestRunConfig:
         assert result.validated is True
         assert result.errors == []
         assert result.instructions is not None
-        assert "/conversus run" in result.instructions
+        assert "/deliberator run" in result.instructions
         assert result.output is None
 
     def test_validate_only_mode_has_cost_estimate(self) -> None:
@@ -408,7 +408,7 @@ class TestRunConfig:
         assert result.validated is True
         assert result.errors == []
         assert result.output is not None
-        # ConversusOutput fields must be present
+        # DeliberatorOutput fields must be present
         assert "headline" in result.output
         assert "summary" in result.output
         assert "full_analysis" in result.output
@@ -592,13 +592,13 @@ class TestInProcessExecution:
         assert result.output is not None
 
     def test_run_in_process_output_has_fields(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-        """In-process output dict has expected ConversusOutput fields."""
+        """In-process output dict has expected DeliberatorOutput fields."""
         monkeypatch.chdir(tmp_path)
         config_yaml = _make_in_process_config_yaml(tmp_path)
 
         result = _run_config(config_yaml=config_yaml, provider="mock")
         assert result.output is not None
-        # ConversusOutput should have at least these fields
+        # DeliberatorOutput should have at least these fields
         assert len(result.output) > 0
         assert result.rounds_completed is not None
         assert result.rounds_completed >= 1
@@ -626,7 +626,7 @@ class TestInProcessExecution:
         assert result.mode == "validate_only"
         assert result.validated is True
         assert result.instructions is not None
-        assert "/conversus run" in result.instructions
+        assert "/deliberator run" in result.instructions
         assert result.output is None
 
     def test_parsed_output_still_works(self) -> None:
@@ -647,7 +647,7 @@ class TestInProcessExecution:
 
 
 # ---------------------------------------------------------------------------
-# conversus_decide tool logic tests
+# deliberator_decide tool logic tests
 # ---------------------------------------------------------------------------
 
 # A detailed question that reliably passes the question classifier.
@@ -690,7 +690,7 @@ class TestDecideConfig:
     def test_decide_output_has_fields(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """Output dict contains expected ConversusOutput fields."""
+        """Output dict contains expected DeliberatorOutput fields."""
         monkeypatch.chdir(tmp_path)
         result = _decide(SUFFICIENT_QUESTION, provider="mock")
 

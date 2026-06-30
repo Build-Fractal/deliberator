@@ -1,4 +1,4 @@
-"""Conversus multi-agent deliberation engine.
+"""Deliberator multi-agent deliberation engine.
 
 Orchestrates competitive LLM agents through structured phases (review,
 cross-review, revision, disputes, synthesis) using configurable game-theory

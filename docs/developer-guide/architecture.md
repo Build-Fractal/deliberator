@@ -1,6 +1,6 @@
 # Architecture
 
-Conversus is organized into three layers with strict coupling rules.
+Deliberator is organized into three layers with strict coupling rules.
 
 !!! info "Design history"
     The architecture below is the result of specs and deliberations in the repo.
@@ -13,26 +13,26 @@ Conversus is organized into three layers with strict coupling rules.
 ┌─────────────────────────────────────────────────────┐
 │  domains/        Vertical domain plugins            │
 │  (code-review, future: security, compliance, ...)   │
-│  MAY import: conversus.domains.base, conversus.schemas, stdlib
+│  MAY import: deliberator.domains.base, deliberator.schemas, stdlib
 │  MUST NOT import: engine.*, linter.*, web.*         │
 ├─────────────────────────────────────────────────────┤
-│  conversus/      Solvers + plugin infrastructure    │
+│  deliberator/      Solvers + plugin infrastructure    │
 │  (plugins/, schemas/, domains/)                     │
 │  MAY import: pydantic, stdlib                       │
 │  MUST NOT import: engine.*                          │
 ├─────────────────────────────────────────────────────┤
 │  engine/         Core deliberation engine (free)    │
 │  (cli/, providers/, phases, dispatch, events, sdk)  │
-│  MAY import: conversus.schemas, linter              │
+│  MAY import: deliberator.schemas, linter              │
 │  linter/         Template validation + quality      │
 │  web/            FastAPI backend                     │
 └─────────────────────────────────────────────────────┘
 ```
 
 **Key coupling rules:**
-- The `conversus/` package imports nothing from `engine/`, `linter/`, `web/`, or `mcp_server`.
-- Domain plugins import only from `conversus.domains.base`, `conversus.schemas`, and stdlib.
-- The engine imports from `conversus.schemas` and `linter` but never from `conversus.plugins` or `conversus.domains` directly.
+- The `deliberator/` package imports nothing from `engine/`, `linter/`, `web/`, or `mcp_server`.
+- Domain plugins import only from `deliberator.domains.base`, `deliberator.schemas`, and stdlib.
+- The engine imports from `deliberator.schemas` and `linter` but never from `deliberator.plugins` or `deliberator.domains` directly.
 
 ## Package boundaries
 
@@ -41,9 +41,9 @@ Conversus is organized into three layers with strict coupling rules.
 | `engine/` | CLI, providers, phases pipeline, dispatch, events, SDK, auth, config, cost, templates | pydantic, click, anthropic, openai, yaml, rich |
 | `linter/` | Template validation, output contract parsing, question classifier, quality checks | pydantic, yaml |
 | `web/` | FastAPI app, Supabase DB, analyze endpoint | fastapi, supabase |
-| `conversus/schemas/` | Game forms, modes, objectives, features, construction pipeline, extraction, validation | pydantic, yaml |
-| `conversus/plugins/` | Plugin base class, hook execution, nashopt scorer, optimizer, scenarios | pydantic |
-| `conversus/domains/` | Domain plugin base, store (JSONL/SQLite), API router factory, code-review domain | pydantic, fastapi (api.py only) |
+| `deliberator/schemas/` | Game forms, modes, objectives, features, construction pipeline, extraction, validation | pydantic, yaml |
+| `deliberator/plugins/` | Plugin base class, hook execution, nashopt scorer, optimizer, scenarios | pydantic |
+| `deliberator/domains/` | Domain plugin base, store (JSONL/SQLite), API router factory, code-review domain | pydantic, fastapi (api.py only) |
 | `templates/` | Prompt templates -- 7 per mode (review, cross-review, revision, disputes, synthesis, arbitration, cross-round-synthesis) | N/A (markdown) |
 | `schema/` | YAML schemas -- game forms, modes, features, objective functions, variables | N/A (data) |
 | `presets/` | Agent presets -- YAML files organized by category | N/A (data) |
@@ -90,7 +90,7 @@ question / config.yml
         │
         ▼
    ┌──────────┐
-   │  parse    │  linter/output_contract.py: synthesis → ConversusOutput
+   │  parse    │  linter/output_contract.py: synthesis → DeliberatorOutput
    │  output   │  headline, summary, quality indicators, disputes
    └──────────┘
 ```
@@ -134,7 +134,7 @@ Key variables: `{AGENT_NAME}`, `{AGENT_PROMPT}`, `{MODE}`, `{TARGET_FILES}`, `{A
 
 ## Domain-engine integration
 
-Domains operate alongside -- but are decoupled from -- the core engine pipeline. The engine imports from `conversus.schemas` and `linter` but never from `conversus.domains` directly. Domains are activated via configuration and execute their own lifecycle.
+Domains operate alongside -- but are decoupled from -- the core engine pipeline. The engine imports from `deliberator.schemas` and `linter` but never from `deliberator.domains` directly. Domains are activated via configuration and execute their own lifecycle.
 
 ### Where domains fit in the deliberation lifecycle
 
@@ -168,4 +168,4 @@ Domains operate alongside -- but are decoupled from -- the core engine pipeline.
 
 ### Coupling rules
 
-Domains import only from `conversus.domains.base`, `conversus.schemas`, and stdlib. They never import from `engine/`, `linter/`, `web/`, or `mcp_server`. This means domain logic is testable in isolation without the engine installed.
+Domains import only from `deliberator.domains.base`, `deliberator.schemas`, and stdlib. They never import from `engine/`, `linter/`, `web/`, or `mcp_server`. This means domain logic is testable in isolation without the engine installed.

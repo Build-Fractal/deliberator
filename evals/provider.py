@@ -1,4 +1,4 @@
-"""Custom promptfoo provider that calls conversus decide via subprocess.
+"""Custom promptfoo provider that calls deliberator decide via subprocess.
 
 Avoids shell quoting issues with exec: providers.
 Promptfoo calls call_api(prompt, options, context) and expects {"output": str}.
@@ -10,7 +10,7 @@ import os
 
 
 def call_api(prompt: str, options: dict, context: dict) -> dict:
-    """Run conversus decide and return JSON output."""
+    """Run deliberator decide and return JSON output."""
     config = options.get("config", {})
     mode = config.get("mode", "cooperative")
     provider = config.get("provider", "mock")
@@ -21,7 +21,7 @@ def call_api(prompt: str, options: dict, context: dict) -> dict:
     try:
         result = subprocess.run(
             [
-                "uv", "run", "conversus", "decide",
+                "uv", "run", "deliberator", "decide",
                 prompt,
                 "--provider", provider,
                 "--mode", mode,
@@ -49,7 +49,7 @@ def call_api(prompt: str, options: dict, context: dict) -> dict:
         return {
             "output": json.dumps({
                 "error": True,
-                "message": "Timeout: conversus decide took >120s",
+                "message": "Timeout: deliberator decide took >120s",
             }),
         }
     except Exception as e:

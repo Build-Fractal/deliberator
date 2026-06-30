@@ -27,7 +27,7 @@ DEFAULT_TIMEOUT = 300
 
 
 class PiProvider(SubprocessProvider):
-    """Execute conversus agent tasks via the Inflection ``pi`` CLI.
+    """Execute deliberator agent tasks via the Inflection ``pi`` CLI.
 
     Args:
         timeout: Subprocess timeout in seconds.

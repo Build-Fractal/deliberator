@@ -1,4 +1,4 @@
-"""Tests for the engine-first /conversus skill execution path.
+"""Tests for the engine-first /deliberator skill execution path.
 
 These tests validate that the CLI commands the skill calls produce
 correct output. The skill is a thin wrapper — these tests verify the
@@ -21,9 +21,9 @@ pytestmark = pytest.mark.smoke
 
 def _run_decide(question: str, mode: str = "cooperative", provider: str = "mock",
                 fmt: str = "json") -> dict:
-    """Run conversus decide and return parsed JSON or error dict."""
+    """Run deliberator decide and return parsed JSON or error dict."""
     result = subprocess.run(
-        ["uv", "run", "conversus", "decide", question,
+        ["uv", "run", "deliberator", "decide", question,
          "--provider", provider, "--mode", mode, "--format", fmt],
         capture_output=True, text=True, cwd=str(REPO_ROOT), timeout=30,
     )
@@ -38,9 +38,9 @@ def _run_decide(question: str, mode: str = "cooperative", provider: str = "mock"
 
 
 def _run_validate(config_path: str) -> subprocess.CompletedProcess:
-    """Run conversus validate and return the CompletedProcess."""
+    """Run deliberator validate and return the CompletedProcess."""
     return subprocess.run(
-        ["uv", "run", "conversus", "validate", config_path],
+        ["uv", "run", "deliberator", "validate", config_path],
         capture_output=True, text=True, cwd=str(REPO_ROOT), timeout=15,
     )
 
@@ -135,15 +135,15 @@ class TestEdgeCases:
 # ---------------------------------------------------------------
 
 class TestValidate:
-    """conversus validate produces useful output."""
+    """deliberator validate produces useful output."""
 
     def test_validate_nonexistent_config(self) -> None:
-        result = _run_validate("/nonexistent/conversus.yml")
+        result = _run_validate("/nonexistent/deliberator.yml")
         assert result.returncode != 0
 
     def test_validate_valid_config(self, tmp_path: Path) -> None:
         """A minimal valid config passes validation."""
-        config = tmp_path / "conversus.yml"
+        config = tmp_path / "deliberator.yml"
         question = tmp_path / "question.md"
         question.write_text("# Test\nShould we use X or Y?")
         config.write_text(

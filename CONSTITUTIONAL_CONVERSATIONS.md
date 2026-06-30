@@ -63,6 +63,37 @@ This file is an index, not a transcript.
 
 ---
 
+## 2026-06-23 — Project rename: `conversus` → `deliberator` (Tier 2 suite identity change)
+
+**Type**: Suite-identity event (substrate-standup carve-out; precedent: v4.2.0 bootstrap-paradox).
+**Source**: Direct user directive 2026-06-23; PyPI name availability confirmed pre-publish; alternative name `deliberate` ruled out due to active competitor occupying the slot (`hardbyte/deliberate` v0.1.3).
+**Scope of change**: The Tier 2 suite is renaming its own identity. All living references across code, CLI, MCP tools, slash commands, config filenames, user dotfile dirs, GitHub repo, and PyPI package name. Foundation Python package `conversus/` → `deliberator/`; runtime packages `engine/` and `linter/` unchanged. Historical artifacts (`deliberations/`, `specs/`, pre-2026-06-23 CHANGELOG + CONSTITUTIONAL_CONVERSATIONS entries) preserved verbatim — the audit trail of the project's prior identity remains intact.
+
+**Why carve-out, not four-stage protocol**: The four-stage verification protocol (spec 067) is designed for *content amendments* to constitutional principles — changes that admit refutation through originating proposal → self-consistency → blind verification → ratification. A *self-referential identity change* (the suite renaming itself) doesn't fit that shape: there is no principle text to refute, no content to verify against a status quo. The substrate-standup carve-out precedent from v4.2.0 (bootstrap-paradox: the build-fractal-mono repo had to be created before its own constitution could exist) applies here by analogy: structural events that *enable* the governance system rather than amend its content are carved out of the four-stage protocol with explicit logging.
+
+**Anti-precedent containment**: This carve-out is narrowly scoped to *self-referential identity changes*. It does not apply to:
+- Suite-level *principle additions* (still four-stage)
+- Suite-level *principle deletions or relaxations* (still four-stage)
+- Cross-tier reorganizations of existing content (e.g., demotion / promotion between Tier 1 / Tier 2 / Component — still four-stage)
+- Adoption of a new sibling project under the suite (still four-stage if it implies principle changes)
+
+A future suite-identity change (e.g., second rename) would invoke this same precedent; no other situation qualifies.
+
+**Artifacts**:
+- `RENAME.md` at repo root — full scope, what-changed / what-didn't, redirect guidance
+- `CHANGELOG.md` Unreleased "Renamed" entry
+- `README.md` footnote pointing readers landing from stale links at RENAME.md
+- This entry
+
+**Targeted publish**: `v1.0.0` as `deliberator` on PyPI. Rename event is pre-first-publish, so no migration story for external users.
+
+**Cross-references**:
+- PyPI placeholder pending Trusted Publisher claim: 2026-06-23
+- GitHub placeholder repo (`Build-Fractal/deliberator`) created 2026-06-23 to prevent squatting during rename limbo
+- Tier 2 governance log entry mirrored at `build-fractal/deliberator/CONSTITUTIONAL_CONVERSATIONS.md` (suite-level)
+
+---
+
 ## 2026-05-08 — v4.0.0 erratum C1 — URL-reference cross-tier resolution
 
 **Type**: Erratum (PATCH-equivalent; substantive content unchanged).

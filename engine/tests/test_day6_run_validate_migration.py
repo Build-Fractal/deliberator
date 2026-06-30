@@ -37,7 +37,7 @@ from pathlib import Path
 import click
 import pytest
 
-from conversus.registry.projector import (
+from deliberator.registry.projector import (
     project_to_cli,
     project_to_mcp,
     project_to_plugin_skills,
@@ -116,10 +116,10 @@ def test_generated_run_cli_dispatches_to_run_cli_handler(real_capabilities):
 
 
 def test_generated_run_mcp_has_same_signature_as_hand_written(generated_mcp_namespace):
-    """Hand-written: ``conversus_run(config_yaml: str, output_path: str = "",
+    """Hand-written: ``deliberator_run(config_yaml: str, output_path: str = "",
     provider: str = "")``. Parameter *set* must match exactly — ordering
     is allowed to differ because every existing call site uses kwargs."""
-    fn = generated_mcp_namespace["conversus_run"]
+    fn = generated_mcp_namespace["deliberator_run"]
     sig = inspect.signature(fn)
     param_names = set(sig.parameters.keys())
 
@@ -139,7 +139,7 @@ def test_generated_run_mcp_dispatches_to_run_mcp_handler(real_capabilities):
     # (e.g. ``model: str``, ``phase: str``) rather than the bare word, so
     # the ``phase`` appearing in the docstring ("5-phase pipeline") doesn't
     # trip the assertion.
-    run_block = source.split("def conversus_run(")[1].split("def conversus_validate(")[0]
+    run_block = source.split("def deliberator_run(")[1].split("def deliberator_validate(")[0]
     assert "config_path" not in run_block
     assert "model: str" not in run_block
     assert "rounds: int" not in run_block
@@ -183,8 +183,8 @@ def test_generated_validate_cli_dispatches_to_validate_cli_handler(real_capabili
 def test_generated_validate_mcp_has_same_signature_as_hand_written(
     generated_mcp_namespace,
 ):
-    """Hand-written: ``conversus_validate(config_yaml: str, question: str = "")``"""
-    fn = generated_mcp_namespace["conversus_validate"]
+    """Hand-written: ``deliberator_validate(config_yaml: str, question: str = "")``"""
+    fn = generated_mcp_namespace["deliberator_validate"]
     sig = inspect.signature(fn)
     param_names = list(sig.parameters.keys())
 
@@ -263,7 +263,7 @@ def test_cli_run_has_model_rounds_phase_but_mcp_run_does_not(real_capabilities):
     assert "phase: str" in cli_run_block
 
     # MCP run doesn't see these
-    mcp_run_block = mcp_source.split("def conversus_run(")[1].split("def conversus_validate(")[0]
+    mcp_run_block = mcp_source.split("def deliberator_run(")[1].split("def deliberator_validate(")[0]
     assert "model:" not in mcp_run_block
     assert "rounds:" not in mcp_run_block
     assert "phase:" not in mcp_run_block
@@ -277,7 +277,7 @@ def test_mcp_run_has_config_yaml_and_output_path_but_cli_run_does_not(real_capab
     assert "config_yaml" not in cli_run_block
     assert "output_path" not in cli_run_block
 
-    mcp_run_block = mcp_source.split("def conversus_run(")[1].split("def conversus_validate(")[0]
+    mcp_run_block = mcp_source.split("def deliberator_run(")[1].split("def deliberator_validate(")[0]
     assert "config_yaml: str" in mcp_run_block
     assert "output_path" in mcp_run_block
 
@@ -289,7 +289,7 @@ def test_mcp_run_has_config_yaml_and_output_path_but_cli_run_does_not(real_capab
 
 def test_all_plugin_opted_skills_generated(real_capabilities):
     """Every capability that opts into Surface.PLUGIN gets a SKILL.md."""
-    from conversus.registry.params import Surface
+    from deliberator.registry.params import Surface
 
     skills = project_to_plugin_skills(real_capabilities)
     expected = {

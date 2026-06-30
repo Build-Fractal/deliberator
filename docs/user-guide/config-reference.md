@@ -1,6 +1,6 @@
 # Config Reference
 
-Every conversus deliberation is driven by a YAML config file (`conversus.yml`).
+Every deliberator deliberation is driven by a YAML config file (`deliberator.yml`).
 
 !!! example "Minimal starter config"
     ```yaml
@@ -15,7 +15,7 @@ Every conversus deliberation is driven by a YAML config file (`conversus.yml`).
     ```
 
 !!! warning "Provider defaults differ by surface"
-    The provider default depends on how you run conversus:
+    The provider default depends on how you run deliberator:
 
     - **Config file** (`provider:` field): defaults to `anthropic`
     - **CLI** (`--provider` flag): defaults to `mock`
@@ -40,7 +40,7 @@ target: specs/my-feature/spec.md
 #   - specs/my-feature/plan.md
 # target: specs/my-feature/
 
-output: specs/my-feature/conversus/
+output: specs/my-feature/deliberator/
 # Where deliberation output files are written.
 
 agents:
@@ -69,9 +69,9 @@ stagnation: detect
 # if dispute count doesn't decrease between rounds.
 
 prior:
-  - specs/my-feature/conversus/summary/final.md
+  - specs/my-feature/deliberator/summary/final.md
 # Optional prior iteration context. When this run builds on a previous
-# conversus iteration, list the prior outputs so agents have history.
+# deliberator iteration, list the prior outputs so agents have history.
 
 validate_templates: true
 # Set false to skip template schema validation. Default: true.
@@ -163,7 +163,7 @@ The `plugins:` key declares an ordered list of plugin entries. Each entry has a 
 ```yaml
 plugins:
   - name: equilibrium-scorer
-    package: conversus.plugins.nashopt
+    package: deliberator.plugins.nashopt
     config:
       threshold: 0.85
       gamma: 1.0
@@ -174,7 +174,7 @@ plugins:
     # No config needed
 
   - name: scenario-runner
-    package: conversus.plugins.scenarios
+    package: deliberator.plugins.scenarios
     config:
       max_scenarios: 5
 ```
@@ -226,7 +226,7 @@ Three fields take filesystem paths: `target`, `output`, and `arbiter.grounding`.
 
 Absolute paths are always honored as-is for all three fields. Use them as the escape hatch when neither pass would land where you want.
 
-**Worked example.** Config at `examples/foo.yml`, run as `conversus run examples/foo.yml` from project root:
+**Worked example.** Config at `examples/foo.yml`, run as `deliberator run examples/foo.yml` from project root:
 
 ```yaml
 target: README.md             # → <root>/README.md (fallback to cwd; not found in examples/)

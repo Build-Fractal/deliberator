@@ -22,7 +22,7 @@ from pathlib import Path
 
 import pytest
 
-from conversus.registry import (
+from deliberator.registry import (
     Capability,
     CLIAdapter,
     DefaultCLIAdapter,
@@ -31,7 +31,7 @@ from conversus.registry import (
     Param,
     Surface,
 )
-from conversus.registry.projector import (
+from deliberator.registry.projector import (
     project_to_cli,
     project_to_mcp,
     project_to_mcpb_manifest_tools,
@@ -61,7 +61,7 @@ def hello_capability() -> Capability:
                 help="Shout instead of whispering.",
             ),
         ],
-        handler="conversus.demo:say_hello",
+        handler="deliberator.demo:say_hello",
     )
 
 
@@ -166,7 +166,7 @@ def test_project_to_cli_contains_expected_command_block(hello_list):
     assert '"--loud"' in source
     assert "def hello(who: str, loud: bool = False) -> None:" in source
     # Lazy handler import
-    assert "from conversus.demo import say_hello" in source
+    assert "from deliberator.demo import say_hello" in source
     assert "return say_hello(who=who, loud=loud)" in source
 
 
@@ -223,21 +223,21 @@ def test_project_to_mcp_execs_cleanly(hello_list):
     source = project_to_mcp(hello_list)
     ns = _exec_mcp_source(source)
     assert "mcp" in ns
-    assert "conversus_hello" in ns
+    assert "deliberator_hello" in ns
     tool_names = [fn.__name__ for fn in ns["mcp"].tools]
-    assert "conversus_hello" in tool_names
+    assert "deliberator_hello" in tool_names
 
 
 def test_project_to_mcp_contains_expected_tool_block(hello_list):
     source = project_to_mcp(hello_list)
     assert "from mcp.server.fastmcp import FastMCP" in source
-    assert 'mcp = FastMCP("conversus")' in source
+    assert 'mcp = FastMCP("deliberator")' in source
     assert "@mcp.tool()" in source
-    assert "def conversus_hello(" in source
+    assert "def deliberator_hello(" in source
     assert "who: str" in source
     # Python bool literal — capital F, not "false" (JSON)
     assert "loud: bool = False" in source
-    assert "from conversus.demo import say_hello" in source
+    assert "from deliberator.demo import say_hello" in source
     assert 'mcp.run(transport="stdio")' in source
 
 
@@ -265,16 +265,16 @@ def test_project_to_plugin_skills_has_valid_frontmatter(hello_list):
 
 def test_plugin_skill_body_includes_install_check_and_run_section(hello_list):
     md = project_to_plugin_skills(hello_list)["hello"]
-    assert "# Conversus Hello" in md
+    assert "# Deliberator Hello" in md
     assert "## Step 0: Check installation" in md
-    assert "conversus --version" in md
+    assert "deliberator --version" in md
     assert "## Step 1: Parse arguments" in md
     assert "`who` (required)" in md
     assert "`--loud`" in md
     assert "## Step 2: Run" in md
-    assert 'conversus hello "<who>"' in md
+    assert 'deliberator hello "<who>"' in md
     assert "## Troubleshooting" in md
-    assert "`conversus hello --help`" in md
+    assert "`deliberator hello --help`" in md
 
 
 # ---------------------------------------------------------------------------
@@ -289,7 +289,7 @@ def test_project_to_mcpb_manifest_tools_returns_valid_entries(hello_list):
 
     entry = tools[0]
     assert isinstance(entry, dict)  # TypedDict is a dict at runtime
-    assert entry["name"] == "conversus_hello"
+    assert entry["name"] == "deliberator_hello"
     assert isinstance(entry["description"], str)
     assert "Greet a person" in entry["description"]
     # JSON round-trip (what the projector actually does)
@@ -314,7 +314,7 @@ def test_cli_only_capability_omitted_from_mcp_and_mcpb():
             summary="OAuth login",
             surfaces=[Surface.CLI, Surface.PLUGIN],  # not MCP, not MCPB
             params=[Param(name="provider", type=str, required=True)],
-            handler="conversus.engine.auth:oauth_login",
+            handler="deliberator.engine.auth:oauth_login",
         )
     ]
 
@@ -324,7 +324,7 @@ def test_cli_only_capability_omitted_from_mcp_and_mcpb():
     mcpb_tools = project_to_mcpb_manifest_tools(caps)
 
     assert '@cli.command("login"' in cli_source
-    assert "conversus_login" not in mcp_source
+    assert "deliberator_login" not in mcp_source
     assert "login" in skills
     assert mcpb_tools == []
 
@@ -375,7 +375,7 @@ def test_override_mcp_adapter_replaces_default_projection():
 
     source = project_to_mcp(caps)
     assert "# CUSTOM_MCP_MARKER" in source
-    assert "def conversus_decide(" not in source
+    assert "def deliberator_decide(" not in source
 
 
 # ---------------------------------------------------------------------------

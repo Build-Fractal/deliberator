@@ -1,4 +1,4 @@
-"""``conversus snap`` — snap-verdict deliberation for Claude Code PreToolUse hooks.
+"""``deliberator snap`` — snap-verdict deliberation for Claude Code PreToolUse hooks.
 
 Cheap (3 agents, single phase, Haiku-default) deliberation evaluating whether
 Claude Code should proceed with a tool call (typically a Bash command). Returns
@@ -19,10 +19,10 @@ Architectural notes:
 Usage:
 
     # Direct invocation (native verdict shape):
-    conversus snap --command "rm -rf /tmp/build"
+    deliberator snap --command "rm -rf /tmp/build"
 
     # As a Claude Code PreToolUse hook (reads stdin per hooks contract):
-    echo '{"tool_input": {"command": "rm -rf /tmp/build"}}' | conversus snap --hook-mode
+    echo '{"tool_input": {"command": "rm -rf /tmp/build"}}' | deliberator snap --hook-mode
 
 The --hook-mode flag emits Claude Code's `hookSpecificOutput` JSON shape
 directly (per https://code.claude.com/docs/en/hooks) so a hook config can
@@ -233,7 +233,7 @@ async def run_snap(
     """Run a snap-verdict deliberation. Provider can be injected for tests."""
     if provider is None:
         # Lazy construct an Anthropic provider. Resolution order matches the
-        # documented contract in the `conversus:status` skill:
+        # documented contract in the `deliberator:status` skill:
         #   1. ANTHROPIC_API_KEY env var (the Anthropic SDK reads this
         #      automatically when constructed with auth_token=None)
         #   2. Stored OAuth credential (per-provider file or legacy auth.json)
@@ -319,7 +319,7 @@ def _hook_output(result: SnapResult) -> dict:
             "hookEventName": "PreToolUse",
             "permissionDecision": decision_map[result.final_verdict],
             "permissionDecisionReason": (
-                f"[conversus snap, {result.consensus}] {result.rationale}"
+                f"[deliberator snap, {result.consensus}] {result.rationale}"
             ),
         }
     }
@@ -336,17 +336,17 @@ def _hook_output(result: SnapResult) -> dict:
     epilog="""\b
 Examples:
   # Evaluate a command directly:
-  conversus snap --command "rm -rf /tmp/build"
+  deliberator snap --command "rm -rf /tmp/build"
 
   # Use as a Claude Code PreToolUse hook (reads stdin):
-  echo '{"tool_input": {"command": "git push --force"}}' | conversus snap --hook-mode
+  echo '{"tool_input": {"command": "git push --force"}}' | deliberator snap --hook-mode
 
 Add to .claude/settings.json:
 
   {"hooks": {"PreToolUse": [{"matcher": "Bash", "hooks": [{
     "type": "command",
     "if": "Bash(rm * | git push --force* | DROP TABLE*)",
-    "command": "conversus snap --hook-mode"
+    "command": "deliberator snap --hook-mode"
   }]}]}}
 """,
 )
@@ -385,11 +385,11 @@ def snap(command: str | None, hook_mode: bool, model: str) -> None:
             command = (stdin_json.get("tool_input") or {}).get("command")
             cwd = stdin_json.get("cwd")
         except (json.JSONDecodeError, AttributeError) as exc:
-            print(f"conversus snap: malformed stdin JSON: {exc}", file=sys.stderr)
+            print(f"deliberator snap: malformed stdin JSON: {exc}", file=sys.stderr)
             sys.exit(2)
 
     if not command:
-        print("conversus snap: no command provided (use --command or pipe hook JSON)", file=sys.stderr)
+        print("deliberator snap: no command provided (use --command or pipe hook JSON)", file=sys.stderr)
         sys.exit(2)
 
     # Run the deliberation.

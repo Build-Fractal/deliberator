@@ -8,7 +8,7 @@ import pytest
 from rich.console import Console
 
 from engine.cli.render import render_result
-from linter.output_contract import ConversusOutput, QualityIndicators
+from linter.output_contract import DeliberatorOutput, QualityIndicators
 
 
 # ── Fixtures ──────────────────────────────────────────────────────────────
@@ -33,8 +33,8 @@ def _sample_output(
     disagreements_surfaced: int = 3,
     disagreements_surviving: int = 1,
     debate_transcript: str = "Full transcript here.",
-) -> ConversusOutput:
-    return ConversusOutput(
+) -> DeliberatorOutput:
+    return DeliberatorOutput(
         headline=headline,
         summary=summary,
         full_analysis=full_analysis,

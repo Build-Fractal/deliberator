@@ -1,19 +1,19 @@
-# Conversus Claude Desktop Extension (.mcpb)
+# Deliberator Claude Desktop Extension (.mcpb)
 
-One-click install for Claude Desktop. Wraps the `conversus mcp` stdio server.
+One-click install for Claude Desktop. Wraps the `deliberator mcp` stdio server.
 
 ## Prerequisites
 
-Install conversus with MCP extras:
+Install deliberator with MCP extras:
 
 ```bash
-pip install "conversus[mcp] @ git+https://github.com/Build-Fractal/conversus-oss.git"
+pip install "deliberator[mcp] @ git+https://github.com/Build-Fractal/deliberator.git"
 ```
 
 Verify the CLI is on your PATH:
 
 ```bash
-conversus --version
+deliberator --version
 ```
 
 ## Build the .mcpb bundle
@@ -23,11 +23,11 @@ cd desktop-extension
 ./build.sh
 ```
 
-This produces `conversus.mcpb` in the repo root.
+This produces `deliberator.mcpb` in the repo root.
 
 ## Install
 
-Double-click `conversus.mcpb` — Claude Desktop opens an install dialog.
+Double-click `deliberator.mcpb` — Claude Desktop opens an install dialog.
 
 Or: Claude Desktop → Settings → Extensions → Install from file.
 
@@ -36,7 +36,7 @@ Or: Claude Desktop → Settings → Extensions → Install from file.
 If you prefer raw MCP config instead of the .mcpb bundle:
 
 ```bash
-claude mcp add conversus -- conversus mcp
+claude mcp add deliberator -- deliberator mcp
 ```
 
 Or add to your MCP client config JSON:
@@ -44,8 +44,8 @@ Or add to your MCP client config JSON:
 ```json
 {
   "mcpServers": {
-    "conversus": {
-      "command": "conversus",
+    "deliberator": {
+      "command": "deliberator",
       "args": ["mcp"]
     }
   }

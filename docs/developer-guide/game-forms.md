@@ -1,6 +1,6 @@
 # Game Forms
 
-Game forms define the mathematical structure underlying each deliberation mode. They live in `schema/game-forms/` as YAML files validated by Pydantic models in `conversus/schemas/game_forms.py`.
+Game forms define the mathematical structure underlying each deliberation mode. They live in `schema/game-forms/` as YAML files validated by Pydantic models in `deliberator/schemas/game_forms.py`.
 
 ## Existing game forms
 
@@ -20,7 +20,7 @@ The mapping from modes to game forms is in `schema/game-forms/mode-mapping.yml`.
 
 ## Game form to payoff mapping
 
-Each mode has a corresponding payoff function in `conversus/plugins/nashopt/payoffs.py`. The game form determines the mathematical structure; the payoff function computes the numeric score.
+Each mode has a corresponding payoff function in `deliberator/plugins/nashopt/payoffs.py`. The game form determines the mathematical structure; the payoff function computes the numeric score.
 
 | Game form | Mode | Payoff function | Key features |
 |-----------|------|----------------|--------------|
@@ -83,7 +83,7 @@ Valid field types (closed set): `string`, `integer`, `float`, `list[string]`, `l
 
 ### 2. Add the Pydantic model
 
-In `conversus/schemas/game_forms.py`, add a validation model:
+In `deliberator/schemas/game_forms.py`, add a validation model:
 
 ```python
 class MyFormGame(BaseModel):
@@ -155,7 +155,7 @@ parameters:
 
 ## Construction pipeline integration
 
-The `construct_objective()` function in `conversus/schemas/construction.py` orchestrates the 3-stage pipeline:
+The `construct_objective()` function in `deliberator/schemas/construction.py` orchestrates the 3-stage pipeline:
 
 1. **Stage 1 (deterministic):** Classify decision type, select template, extract explicit parameters, identify gaps.
 2. **Stage 2 (interactive):** Fill gaps via `GapFiller` protocol (interactive prompt, LLM, or fail-fast).

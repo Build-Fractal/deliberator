@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://build-fractal.org/conversus/schema/v1/validator-error.schema.json",
-  "title": "Conversus Validator Error Object",
+  "$id": "https://build-fractal.org/deliberator/schema/v1/validator-error.schema.json",
+  "title": "Deliberator Validator Error Object",
   "description": "Structured error object emitted by SchemaValidator per v4.2.0 spec § 4.9 (C9). Stable interface across schema versions; consumer tooling can rely on the failure surface.",
   "type": "object",
   "required": [

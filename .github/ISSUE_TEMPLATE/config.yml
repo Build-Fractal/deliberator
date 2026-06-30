@@ -1,11 +1,11 @@
 blank_issues_enabled: false
 contact_links:
   - name: Question or discussion
-    url: https://github.com/Build-Fractal/conversus/discussions
+    url: https://github.com/Build-Fractal/deliberator/discussions
     about: Ask questions, share use cases, or discuss ideas before filing a feature request.
   - name: Security vulnerability
-    url: https://github.com/Build-Fractal/conversus/security/advisories/new
+    url: https://github.com/Build-Fractal/deliberator/security/advisories/new
     about: Report a security issue privately. See SECURITY.md for the threat model and what to include.
   - name: Documentation
-    url: https://docs.conversus.dev/
+    url: https://docs.deliberator.dev/
     about: Browse the user guide, developer guide, and API reference.

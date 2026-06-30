@@ -24,7 +24,7 @@
 
 **Symptom**: The capability projector generates code like
 `@click.option(..., default=false, ...)` or
-`def conversus_hello(..., loud: bool = false)`. The generated code
+`def deliberator_hello(..., loud: bool = false)`. The generated code
 parses cleanly with `ast.parse()` — no syntax error — but fails at
 decorator evaluation or function call time with a `NameError: name
 'false' is not defined`.
@@ -36,7 +36,7 @@ tempting because it handles strings correctly (with double quotes,
 which the hand-written surface files prefer), but it silently breaks on
 those three types.
 
-**Fix**: `conversus/registry/adapters/_helpers.py::literal()` has type-
+**Fix**: `deliberator/registry/adapters/_helpers.py::literal()` has type-
 specific branches — `None` → `"None"`, `bool` → `"True"`/`"False"`
 (before the int check, because `bool` is a subclass of `int`), and only
 strings fall through to `json.dumps`. Do not revert to a single-line
@@ -138,11 +138,11 @@ failure modes — but the rule is literal, not interpretive.
 `CAPABILITIES: list[Capability] = [...]` list. Capability instances are
 constructed directly via the Pydantic constructor — no decorator, no
 side effects at import time. The projector and the build script take
-the list as an explicit parameter. See `conversus/registry/__init__.py`
+the list as an explicit parameter. See `deliberator/registry/__init__.py`
 and `scripts/build-surfaces.py` for the pattern.
 
 **How to avoid next time**: when designing any new "registry" or
-"plugin system" component in conversus-oss, start from the explicit-
+"plugin system" component in deliberator, start from the explicit-
 list model. Reach for decorators only as pure constructors (returning
 a value without side effects) — never as side-effect-producing
 class transformers.
@@ -188,7 +188,7 @@ it at refactor time is far cheaper than debugging it later.
 
 **Symptom**: Prompts appear in Claude Desktop's prompt picker. User
 fills in the form and clicks "Add prompt". Error: "Failed to attach
-prompt." The MCP server log shows: `Extension Conversus attempted
+prompt." The MCP server log shows: `Extension Deliberator attempted
 undeclared prompt: deliberate`.
 
 **Cause**: Claude Desktop's extension security model validates prompts
@@ -240,13 +240,13 @@ response.
 # WRONG — returns str, fails silently
 @mcp.prompt()
 def deliberate(question: str) -> str:
-    return f"Use conversus_decide on: {question}"
+    return f"Use deliberator_decide on: {question}"
 
 # CORRECT — returns list[dict], works
 @mcp.prompt()
 def deliberate(question: str) -> list[dict]:
     return [{"role": "user", "content":
-        f"Use conversus_decide on: {question}"}]
+        f"Use deliberator_decide on: {question}"}]
 ```
 
 **How to avoid next time**: always check FastMCP's `help(mcp.prompt)`

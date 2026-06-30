@@ -49,7 +49,7 @@ def test_three_slots_in_order_per_spec_worked_example():
 
 <<<CONCERNS_BEGIN>>>
 - The 100ms validator budget is unmeasured against real synthesis outputs.
-- Markdown deprecation cliff overlaps with conversus-oss v1.0.0-rc cycle.
+- Markdown deprecation cliff overlaps with deliberator v1.0.0-rc cycle.
 <<<CONCERNS_END>>>
 
 <<<VERDICT_BEGIN>>>
@@ -72,7 +72,7 @@ APPROVE-WITH-FIXES
     ]
     assert result.slots["CONCERNS"] == [
         "The 100ms validator budget is unmeasured against real synthesis outputs.",
-        "Markdown deprecation cliff overlaps with conversus-oss v1.0.0-rc cycle.",
+        "Markdown deprecation cliff overlaps with deliberator v1.0.0-rc cycle.",
     ]
     assert result.slots["VERDICT"] == "APPROVE-WITH-FIXES"
     assert result.preamble.startswith("The proposal scopes well")

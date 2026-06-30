@@ -83,7 +83,7 @@ def _make_matrix_config(
 
 
 def _config_path() -> Path:
-    return PROJECT_ROOT / "conversus.example.yml"
+    return PROJECT_ROOT / "deliberator.example.yml"
 
 
 def _collect_events() -> tuple[CallbackEmitter, list[EngineEvent]]:
@@ -95,7 +95,7 @@ def _write_persistence_settings(
     project_root: Path, *, enabled: bool
 ) -> None:
     """Pin persistence on/off via project-level settings.yml."""
-    settings_dir = project_root / ".conversus"
+    settings_dir = project_root / ".deliberator"
     settings_dir.mkdir(parents=True, exist_ok=True)
     settings_file = settings_dir / "settings.yml"
     settings_file.write_text(

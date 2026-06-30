@@ -120,7 +120,7 @@ If inter-round arbitration fired in prior rounds, list disputes that were addres
 
 If no prior-round arbitration exists, omit this section entirely.
 
-<!-- CONVERSUS:DISPUTES_BEGIN -->
+<!-- DELIBERATOR:DISPUTES_BEGIN -->
 ### Disputed Risks
 
 Risks where Red and Blue teams fundamentally disagreed through the entire deliberation and could not reach resolution. The arbiter must weigh in.
@@ -132,7 +132,7 @@ For each:
   - **Blue's final position**: Summary with reference.
   - **Core disagreement**: The specific factual or analytical point they could not resolve.
   - **Arbiter's ruling**: Your independent assessment — who has the stronger case and why. If the evidence is genuinely ambiguous, say so and recommend how to resolve it (testing, proof of concept, expert review).
-<!-- CONVERSUS:DISPUTES_END -->
+<!-- DELIBERATOR:DISPUTES_END -->
 
 ### Scorecard
 

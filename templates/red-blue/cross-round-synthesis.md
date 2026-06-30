@@ -128,7 +128,7 @@ Track how each dispute from the deliberation was resolved. For each dispute that
 
 This section provides the audit trail for dispute resolution attribution across the full multi-round process. Use the per-round arbitration files ({ARBITRATION_PATHS}) and compiled rulings ({ARBITRATION_RULINGS}) to trace arbiter influence on dispute outcomes.
 
-<!-- CONVERSUS:DISPUTES_BEGIN -->
+<!-- DELIBERATOR:DISPUTES_BEGIN -->
 ### Disputed Risks
 
 Risks where Red and Blue teams fundamentally disagreed through the entire multi-round deliberation and could not reach resolution. For each:
@@ -140,7 +140,7 @@ Risks where Red and Blue teams fundamentally disagreed through the entire multi-
   - **Cross-round evolution**: How arguments evolved across rounds — did Red sharpen the attack vector? Did Blue strengthen the defense? Or did both teams simply repeat their positions?
   - **Synthesizer assessment**: Which position the cumulative evidence better supports. Was this dispute productive to pursue across multiple rounds, or did it stagnate after a specific round?
   - **Recommended resolution**: Accept Red's assessment / Accept Blue's defense / Reclassify at different severity / Accept with monitoring / Defer to subject arbitration / Commission specific testing.
-<!-- CONVERSUS:DISPUTES_END -->
+<!-- DELIBERATOR:DISPUTES_END -->
 
 ### Termination Assessment
 

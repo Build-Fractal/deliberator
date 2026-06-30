@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# serve-blog.sh — Build and serve the conversus docs site (includes blog)
+# serve-blog.sh — Build and serve the deliberator docs site (includes blog)
 #
 # The blog is powered by mkdocs-material's blog plugin. Posts live in
 # docs/blog/posts/ as standard markdown with YAML frontmatter. The plugin
@@ -52,7 +52,7 @@ if [ "$PORT" = "--build" ]; then
 fi
 
 # Serve mode
-echo "Starting docs server on http://127.0.0.1:$PORT/conversus/blog/"
+echo "Starting docs server on http://127.0.0.1:$PORT/deliberator/blog/"
 echo "Press Ctrl+C to stop."
 echo ""
 uv run mkdocs serve --dev-addr "127.0.0.1:$PORT"

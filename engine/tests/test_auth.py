@@ -160,9 +160,9 @@ class TestCredentialStore:
 class TestCredentialStoreSC4:
     """SC-004: per-provider credential files with lazy migration.
 
-    Each provider's credentials live at ``~/.conversus/credentials/{provider}.json``
+    Each provider's credentials live at ``~/.deliberator/credentials/{provider}.json``
     (single dict, not a nested ``{provider: dict}`` mapping). On first ``get()``,
-    legacy entries from ``~/.conversus/auth.json`` are migrated to the new
+    legacy entries from ``~/.deliberator/auth.json`` are migrated to the new
     location. The legacy file is preserved.
     """
 
@@ -941,7 +941,7 @@ class TestFallbackDebugLog:
             encoding="utf-8",
         )
 
-        with caplog.at_level(logging.DEBUG, logger="conversus.auth"):
+        with caplog.at_level(logging.DEBUG, logger="deliberator.auth"):
             result = store.get("anthropic")
 
         assert result == {"access_token": "legacy-tok"}
@@ -954,7 +954,7 @@ class TestFallbackDebugLog:
         assert len(fallback_records) == 1
         msg = fallback_records[0].getMessage()
         assert "legacy auth.json" in msg
-        assert "conversus migrate-credentials" in msg
+        assert "deliberator migrate-credentials" in msg
 
     def test_get_no_fallback_no_debug_log(
         self, tmp_path: Path, caplog: pytest.LogCaptureFixture
@@ -963,7 +963,7 @@ class TestFallbackDebugLog:
         store = _make_store(tmp_path)
         store.set("anthropic", {"access_token": "fresh"})
 
-        with caplog.at_level(logging.DEBUG, logger="conversus.auth"):
+        with caplog.at_level(logging.DEBUG, logger="deliberator.auth"):
             store.get("anthropic")
 
         fallback_records = [
@@ -1004,7 +1004,7 @@ class TestUnmigratedSweep:
         monkeypatch.setattr(auth, "DEFAULT_AUTH_PATH", legacy_path)
         monkeypatch.setattr(auth, "DEFAULT_CREDENTIALS_DIR", cred_dir)
 
-        with caplog.at_level(logging.DEBUG, logger="conversus.auth"):
+        with caplog.at_level(logging.DEBUG, logger="deliberator.auth"):
             auth.log_unmigrated_credentials_sweep()
 
         sweep_records = [
@@ -1039,7 +1039,7 @@ class TestUnmigratedSweep:
         monkeypatch.setattr(auth, "DEFAULT_AUTH_PATH", legacy_path)
         monkeypatch.setattr(auth, "DEFAULT_CREDENTIALS_DIR", cred_dir)
 
-        with caplog.at_level(logging.DEBUG, logger="conversus.auth"):
+        with caplog.at_level(logging.DEBUG, logger="deliberator.auth"):
             auth.log_unmigrated_credentials_sweep()
 
         sweep_records = [
@@ -1063,7 +1063,7 @@ class TestUnmigratedSweep:
         monkeypatch.setattr(auth, "DEFAULT_AUTH_PATH", legacy_path)
         monkeypatch.setattr(auth, "DEFAULT_CREDENTIALS_DIR", cred_dir)
 
-        with caplog.at_level(logging.DEBUG, logger="conversus.auth"):
+        with caplog.at_level(logging.DEBUG, logger="deliberator.auth"):
             auth.log_unmigrated_credentials_sweep()
 
         sweep_records = [
@@ -1148,7 +1148,7 @@ class TestAtomicWriteAmendments:
 class TestInspectCredentialSource:
     """``inspect_credential_source`` reports where a provider's creds come from.
 
-    Spec 072 SC-005: ``conversus status`` needs to tell the user whether the
+    Spec 072 SC-005: ``deliberator status`` needs to tell the user whether the
     effective credentials for a provider live in the per-provider file, the
     legacy ``auth.json`` fallback, an env var, or nowhere. The helper is pure
     inspection — it must not trigger the lazy-migration write that

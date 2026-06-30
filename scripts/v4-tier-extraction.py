@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """v4.0.0 tier extraction — programmatic relocation script.
 
-Reads conversus-oss/CONSTITUTION.md v3.2.3 and produces:
+Reads deliberator/CONSTITUTION.md v3.2.3 and produces:
 - build-fractal/CONSTITUTION.md (Tier 1 — Universal, v1.0.0) with byte-equal text of 10 principles
-- build-fractal/conversus/CONSTITUTION.md (Tier 2 — Suite, v1.0.0) with byte-equal text of 10 principles
-- conversus-oss/CONSTITUTION.md (component, v4.0.0 — reduced)
+- build-fractal/deliberator/CONSTITUTION.md (Tier 2 — Suite, v1.0.0) with byte-equal text of 10 principles
+- deliberator/CONSTITUTION.md (component, v4.0.0 — reduced)
 
-Spec: conversus-oss/specs/v4.0.0-tier-extraction/spec.md (v3 — both verifications passed).
-Both verification deliberations are at conversus-oss/deliberations/v4.0.0-tier-extraction-{originating,self-consistency,blind}-2026-05-{06,07}/.
+Spec: deliberator/specs/v4.0.0-tier-extraction/spec.md (v3 — both verifications passed).
+Both verification deliberations are at deliberator/deliberations/v4.0.0-tier-extraction-{originating,self-consistency,blind}-2026-05-{06,07}/.
 
-Run from conversus-oss directory:
-    cd conversus-oss && uv run python scripts/v4-tier-extraction.py
+Run from deliberator directory:
+    cd deliberator && uv run python scripts/v4-tier-extraction.py
 """
 
 from __future__ import annotations
@@ -19,11 +19,11 @@ import re
 import sys
 from pathlib import Path
 
-# Resolve paths relative to the conversus-oss working dir
+# Resolve paths relative to the deliberator working dir
 ROOT = Path(__file__).resolve().parents[1]
 CONSTITUTION = ROOT / "CONSTITUTION.md"
 TIER1 = ROOT.parent / "build-fractal" / "CONSTITUTION.md"
-TIER2 = ROOT.parent / "build-fractal" / "conversus" / "CONSTITUTION.md"
+TIER2 = ROOT.parent / "build-fractal" / "deliberator" / "CONSTITUTION.md"
 
 # Tier classification per spec v3 §4
 TIER1_PRINCIPLES = ["I", "II", "III", "IV", "VII", "VIII", "IX", "XI", "XIV", "XXVIII"]
@@ -118,13 +118,13 @@ TIER1_PREAMBLE = """# Build Fractal — Tier 1 (Universal) Constitution
 Sync Impact Report
 Version: (newly ratified) → 1.0.0 (Tier 1 establishment)
 
-Established: 2026-05-07 via v4.0.0 tier-extraction amendment in conversus-oss.
+Established: 2026-05-07 via v4.0.0 tier-extraction amendment in deliberator.
 
 This document carries the principles that apply to every Build Fractal product.
 The 10 Universal principles below are the result of the v4.0.0 ratification
-deliberation chain in conversus-oss/deliberations/v4.0.0-tier-extraction-*/.
+deliberation chain in deliberator/deliberations/v4.0.0-tier-extraction-*/.
 
-Principles relocated here from conversus-oss/CONSTITUTION.md v3.2.3:
+Principles relocated here from deliberator/CONSTITUTION.md v3.2.3:
   I. Spec-Driven Development
   II. Stable Interfaces
   III. Backward-Compatible Extension
@@ -144,14 +144,14 @@ post-gate. Future targeted amendments may address individual principle
 post-gate conformance as separate cycles.
 
 Verbatim preservation contract (per spec §5): each principle's body text
-appears here byte-for-byte identical to its source in conversus-oss
+appears here byte-for-byte identical to its source in deliberator
 CONSTITUTION.md v3.2.3, modulo only documented cross-reference path-prefix
 rewrites.
 -->
 
 **Status:** RATIFIED — v4.0.0 (2026-05-07).
 **Version:** 1.0.0
-**Ratification:** Originating + self-consistency + blind verification 2026-05-06/07. Logged in `../conversus-oss/CONSTITUTIONAL_CONVERSATIONS.md` and `conversus/CONSTITUTIONAL_CONVERSATIONS.md`.
+**Ratification:** Originating + self-consistency + blind verification 2026-05-06/07. Logged in `../deliberator/CONSTITUTIONAL_CONVERSATIONS.md` and `deliberator/CONSTITUTIONAL_CONVERSATIONS.md`.
 
 ---
 
@@ -159,28 +159,28 @@ rewrites.
 
 This tier holds principles that apply to **every Build Fractal product**. When a sibling product joins the namespace, it inherits this tier automatically.
 
-For the conversus suite's tier-2 (Suite) constitution, see `conversus/CONSTITUTION.md`. For component-level constitutions, see each repo's own `CONSTITUTION.md`.
+For the deliberator suite's tier-2 (Suite) constitution, see `deliberator/CONSTITUTION.md`. For component-level constitutions, see each repo's own `CONSTITUTION.md`.
 
 ## Tier Model
 
 ```
 Tier 1 (Universal)   ← THIS DOCUMENT — every Build Fractal product
    │
-   ├── Tier 2 (Suite — conversus): conversus/CONSTITUTION.md
+   ├── Tier 2 (Suite — deliberator): deliberator/CONSTITUTION.md
    │       │
-   │       ├── Component: ../conversus-oss/CONSTITUTION.md
-   │       └── Component: ../conversus/CONSTITUTION.md (does not yet exist)
+   │       ├── Component: ../deliberator/CONSTITUTION.md
+   │       └── Component: ../deliberator/CONSTITUTION.md (does not yet exist)
    │
    └── (future suites)
 ```
 
 Lower tiers may strengthen rules from higher tiers but may not weaken them.
 
-The operational definition of "weakening" — and the enforcement mechanism — is documented in `conversus/CONSTITUTION.md` § Cross-tier weakening prohibition.
+The operational definition of "weakening" — and the enforcement mechanism — is documented in `deliberator/CONSTITUTION.md` § Cross-tier weakening prohibition.
 
 ## Principles
 
-The 10 principles below are byte-for-byte identical to their text in `../conversus-oss/CONSTITUTION.md` v3.2.3. Cross-references to other principles use the form `Principle {Roman}` (without path prefix when intra-document) or `{tier}/CONSTITUTION.md § Principle {Roman}` (when cross-tier).
+The 10 principles below are byte-for-byte identical to their text in `../deliberator/CONSTITUTION.md` v3.2.3. Cross-references to other principles use the form `Principle {Roman}` (without path prefix when intra-document) or `{tier}/CONSTITUTION.md § Principle {Roman}` (when cross-tier).
 
 """
 
@@ -190,11 +190,11 @@ TIER1_FOOTER = """
 
 ## Amendment Process
 
-Amendments to this Tier 1 constitution follow the pathway taxonomy documented in `../conversus-oss/CONSTITUTION.md` § Governance. The conversus suite's `conversus/GOVERNANCE.md` is the operational runbook for that procedure.
+Amendments to this Tier 1 constitution follow the pathway taxonomy documented in `../deliberator/CONSTITUTION.md` § Governance. The deliberator suite's `deliberator/GOVERNANCE.md` is the operational runbook for that procedure.
 
 Amendments at this tier propagate downward to all suite-tier and component-tier constitutions. Per the cross-tier inheritance rule, lower tiers MUST honor any tightening of Tier 1 rules; loosening at Tier 1 takes effect immediately at all tiers.
 
-Cross-tier weakening prohibition (per the v4.0.0 amendment): a lower-tier amendment that grants implicit relief, shifts implementation impact, or adds bypass language for a Tier 1 principle is considered a weakening and is rejected. See `conversus/CONSTITUTION.md` § Cross-tier weakening prohibition for the operational definition + enforcement.
+Cross-tier weakening prohibition (per the v4.0.0 amendment): a lower-tier amendment that grants implicit relief, shifts implementation impact, or adds bypass language for a Tier 1 principle is considered a weakening and is rejected. See `deliberator/CONSTITUTION.md` § Cross-tier weakening prohibition for the operational definition + enforcement.
 
 ## Governance log
 
@@ -206,20 +206,20 @@ Tier 1 governance events (amendments, propagations, etc.) are logged at `CONSTIT
 # Tier 2 — Suite preamble + new SIR + bodies + B2/B3/B5
 # ---------------------------------------------------------------------------
 
-TIER2_PREAMBLE = """# Conversus Suite — Tier 2 Constitution
+TIER2_PREAMBLE = """# Deliberator Suite — Tier 2 Constitution
 
 <!--
 Sync Impact Report
 Version: (newly ratified) → 1.0.0 (Tier 2 establishment)
 
-Established: 2026-05-07 via v4.0.0 tier-extraction amendment in conversus-oss.
+Established: 2026-05-07 via v4.0.0 tier-extraction amendment in deliberator.
 
 Inherits from: ../CONSTITUTION.md (Tier 1 — Universal, v1.0.0).
 
-This document carries the principles that apply to all conversus-family
+This document carries the principles that apply to all deliberator-family
 repos (the OSS engine, the paid enhanced layer, future siblings).
 
-Principles relocated here from conversus-oss/CONSTITUTION.md v3.2.3:
+Principles relocated here from deliberator/CONSTITUTION.md v3.2.3:
   V. Observable Deliberation
   XII. No Dead Infrastructure
   XIII. Enum Completeness
@@ -235,7 +235,7 @@ Sections added under Fix B3 (cross-tier weakening prohibition) and Fix B5
 (XVI Suite-tier rationale) per the 2026-05-07 blind verification deliberation.
 
 Verbatim preservation contract (per spec §5): each principle's body text
-appears here byte-for-byte identical to its source in conversus-oss
+appears here byte-for-byte identical to its source in deliberator
 CONSTITUTION.md v3.2.3, modulo only documented cross-reference path-prefix
 rewrites.
 -->
@@ -243,17 +243,17 @@ rewrites.
 **Status:** RATIFIED — v4.0.0 (2026-05-07).
 **Version:** 1.0.0
 **Inherits from:** `../CONSTITUTION.md` (Tier 1 Universal, v1.0.0).
-**Ratification:** Originating + self-consistency + blind verification 2026-05-06/07. Logged in `CONSTITUTIONAL_CONVERSATIONS.md` and `../../conversus-oss/CONSTITUTIONAL_CONVERSATIONS.md`.
+**Ratification:** Originating + self-consistency + blind verification 2026-05-06/07. Logged in `CONSTITUTIONAL_CONVERSATIONS.md` and `../../deliberator/CONSTITUTIONAL_CONVERSATIONS.md`.
 
 ---
 
 ## Purpose
 
-This tier holds principles that apply to **every conversus-family repo**. The principles below presume multi-agent deliberation as the substrate, plugin entry-points as the integration boundary, and the free/paid partition (spec 033) as the monetization architecture. Other Build Fractal product lines do not need to follow these.
+This tier holds principles that apply to **every deliberator-family repo**. The principles below presume multi-agent deliberation as the substrate, plugin entry-points as the integration boundary, and the free/paid partition (spec 033) as the monetization architecture. Other Build Fractal product lines do not need to follow these.
 
 ## Principles
 
-The 10 principles below are byte-for-byte identical to their text in `../../conversus-oss/CONSTITUTION.md` v3.2.3. Cross-references to Tier 1 principles use `../CONSTITUTION.md § Principle {Roman}`. Cross-references to component-tier principles use `../../conversus-oss/CONSTITUTION.md § Principle {Roman}`.
+The 10 principles below are byte-for-byte identical to their text in `../../deliberator/CONSTITUTION.md` v3.2.3. Cross-references to Tier 1 principles use `../CONSTITUTION.md § Principle {Roman}`. Cross-references to component-tier principles use `../../deliberator/CONSTITUTION.md § Principle {Roman}`.
 
 """
 
@@ -261,7 +261,7 @@ TIER2_XVI_RATIONALE = """
 
 ### XVI Suite-tier rationale (Fix B5)
 
-Mathematical transparency applies suite-wide because it is the governance constraint on ANY scoring/optimization approach in the conversus suite — it constrains the assembled objective function's *assembly form* (parameter names, template selection, gap-identifier set), not the optimizer's internal mathematics. Future suite siblings adopting fundamentally different optimization paradigms (e.g., neural optimization without explicit parameter pinning) inherit XVI's discipline regardless of mathematical form, because the discipline is about cross-run determinism + transparency of inputs, not about specific math operations. Surviving Dispute 1 of the 2026-05-07 blind verification ruled in favor of Suite-tier with this rationale; see `../../conversus-oss/deliberations/v4.0.0-tier-extraction-blind-2026-05-07/arbitration/resolution.md`.
+Mathematical transparency applies suite-wide because it is the governance constraint on ANY scoring/optimization approach in the deliberator suite — it constrains the assembled objective function's *assembly form* (parameter names, template selection, gap-identifier set), not the optimizer's internal mathematics. Future suite siblings adopting fundamentally different optimization paradigms (e.g., neural optimization without explicit parameter pinning) inherit XVI's discipline regardless of mathematical form, because the discipline is about cross-run determinism + transparency of inputs, not about specific math operations. Surviving Dispute 1 of the 2026-05-07 blind verification ruled in favor of Suite-tier with this rationale; see `../../deliberator/deliberations/v4.0.0-tier-extraction-blind-2026-05-07/arbitration/resolution.md`.
 
 """
 
@@ -281,14 +281,14 @@ TIER2_FOOTER = """
 
 **Enforcement:**
 - **Meta-arbiter responsibility:** any cross-tier amendment MUST be reviewed by a balanced-arbiter agent specifically tasked with checking criteria (i), (ii), (iii) against existing upper-tier principles.
-- **Linter-flagged review:** the tier-coherence linter at `../../conversus-oss/linter/tier_coherence.py` flags any Tier 2 / Component principle text that contains "relief," "exception," "adaptation," "exemption," "carve-out," or "bypass" within 200 characters of a Tier 1 principle name. Flag triggers manual impl-PR review.
+- **Linter-flagged review:** the tier-coherence linter at `../../deliberator/linter/tier_coherence.py` flags any Tier 2 / Component principle text that contains "relief," "exception," "adaptation," "exemption," "carve-out," or "bypass" within 200 characters of a Tier 1 principle name. Flag triggers manual impl-PR review.
 - **Existing-implementation impact check:** the impl-PR review for any cross-tier amendment runs the check against existing repo CONFORMANCE.md declarations and confirms Satisfied claims remain valid.
 
 This prohibition is binding on the v4.0.0 amendment itself and on all future cross-tier amendments. Surfaced by the 2026-05-07 blind verification (Convergence 3); ratified per Surviving Dispute 2.
 
 ## Component-tier residue
 
-After v4.0.0, `../../conversus-oss/CONSTITUTION.md` retains 6 component-tier principles plus the Governance section + retired markers + audit-trail SIRs:
+After v4.0.0, `../../deliberator/CONSTITUTION.md` retains 6 component-tier principles plus the Governance section + retired markers + audit-trail SIRs:
 
 - **XVII. Content Classification** — what counts as free vs paid (spec 033)
 - **XVIII. Progressive Disclosure** — capability discovery surface in the OSS layer
@@ -301,7 +301,7 @@ These remain at component tier because they describe constraints on the OSS laye
 
 ## Amendment Process
 
-Amendments to this Tier 2 constitution follow the pathway taxonomy documented in `../../conversus-oss/CONSTITUTION.md` § Governance. The full procedure is documented in `GOVERNANCE.md` (this directory).
+Amendments to this Tier 2 constitution follow the pathway taxonomy documented in `../../deliberator/CONSTITUTION.md` § Governance. The full procedure is documented in `GOVERNANCE.md` (this directory).
 
 Cross-tier interaction:
 - A Tier 2 amendment cannot grant relief from a Tier 1 principle (per the weakening prohibition above).
@@ -327,7 +327,7 @@ Modified sections:
   - "Core Principles" reduced to 6 principles (XVII-XXI, XXVI) plus
     retired markers for VI and X. Cross-reference block added at top
     pointing readers to ../build-fractal/CONSTITUTION.md (Tier 1) and
-    ../build-fractal/conversus/CONSTITUTION.md (Tier 2) for relocated
+    ../build-fractal/deliberator/CONSTITUTION.md (Tier 2) for relocated
     principles.
   - "Governance" preserved verbatim. Pathway Taxonomy, Constitutional
     Inclusion Criteria, Compliance, Amendment Process all retained
@@ -346,7 +346,7 @@ Relocated to Tier 1 (../build-fractal/CONSTITUTION.md, v1.0.0):
   XIV. Spec-Implementation Parity
   XXVIII. Test-Fix Boundary Preservation
 
-Relocated to Tier 2 (../build-fractal/conversus/CONSTITUTION.md, v1.0.0):
+Relocated to Tier 2 (../build-fractal/deliberator/CONSTITUTION.md, v1.0.0):
   V. Observable Deliberation
   XII. No Dead Infrastructure
   XIII. Enum Completeness
@@ -377,9 +377,9 @@ preservation contract (spec §5) the principle bodies are byte-equal at
 their new locations.
 
 Suite admissions ratified at v4.0.0:
-  - conversus-oss admitted Provisional (5 open remediations: V, XII,
+  - deliberator admitted Provisional (5 open remediations: V, XII,
     XXII, XXIV, XXVI) per CONFORMANCE.md.
-  - conversus admitted Provisional (4 open remediations: III, XIV,
+  - deliberator admitted Provisional (4 open remediations: III, XIV,
     XVI, XXII) per CONFORMANCE.md.
 
 Constitutional debt acknowledgment (per Fix B2):
@@ -399,7 +399,7 @@ Cross-tier weakening prohibition (per Fix B3):
   not-Satisfied; (iii) suite-specific adaptation bypassing a MUST.
   Enforcement: meta-arbiter review + tier-coherence linter
   flagged-words check + existing-implementation impact check on
-  every cross-tier amendment. ../build-fractal/conversus/CONSTITUTION.md
+  every cross-tier amendment. ../build-fractal/deliberator/CONSTITUTION.md
   § Cross-tier weakening prohibition documents the full operational
   definition.
 
@@ -416,12 +416,12 @@ Verification deliberations (both required per spec 067):
     Verdict: PASS WITH FIXES — 5 fixes B1-B5 applied in spec v3.
 
 Spec: specs/v4.0.0-tier-extraction/spec.md (v3 — both verifications passed).
-Governance log: ../build-fractal/conversus/CONSTITUTIONAL_CONVERSATIONS.md
+Governance log: ../build-fractal/deliberator/CONSTITUTIONAL_CONVERSATIONS.md
                 CONSTITUTIONAL_CONVERSATIONS.md (this repo)
 
 Engine note: arbitration phase auto-arbitrator crashed on both
 verification deliberations at dispatch (1ms / 2ms; bug logged in
-project_conversus_arbitration_crash_2026_05_06 memory). Manual
+project_deliberator_arbitration_crash_2026_05_06 memory). Manual
 arbitrations performed grounded in synthesis + disputes per spec 067
 balanced-arbiter standard. Both manual arbitrations recorded in their
 respective resolution.md files. Engine fix tracked separately.
@@ -434,15 +434,15 @@ Prior amendment SIRs preserved below for audit trail (per Fix #3 + Fix B2).
 
 """
 
-COMPONENT_HEADER_INTRO = """# Conversus OSS Constitution (Component Tier)
+COMPONENT_HEADER_INTRO = """# Deliberator OSS Constitution (Component Tier)
 
 **Status:** RATIFIED — v4.0.0 (2026-05-07).
 **Version:** 4.0.0
 **Inherits from:**
 - `../build-fractal/CONSTITUTION.md` (Tier 1 — Universal, v1.0.0)
-- `../build-fractal/conversus/CONSTITUTION.md` (Tier 2 — Suite, v1.0.0)
+- `../build-fractal/deliberator/CONSTITUTION.md` (Tier 2 — Suite, v1.0.0)
 
-For Universal and Suite principles, see those documents. This document holds the **6 component-tier principles** specific to the conversus-oss repo, plus the canonical Governance section (which governs amendments at all tiers), plus retired-principle markers, plus the full audit trail of prior Sync Impact Reports.
+For Universal and Suite principles, see those documents. This document holds the **6 component-tier principles** specific to the deliberator repo, plus the canonical Governance section (which governs amendments at all tiers), plus retired-principle markers, plus the full audit trail of prior Sync Impact Reports.
 
 ---
 

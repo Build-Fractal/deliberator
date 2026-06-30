@@ -1,8 +1,8 @@
-site_name: Conversus
+site_name: Deliberator
 site_description: Multi-agent deliberation engine with game theory optimization
-site_url: https://docs.conversus.dev/
-repo_url: https://github.com/Build-Fractal/conversus-oss
-repo_name: Build-Fractal/conversus-oss
+site_url: https://docs.deliberator.dev/
+repo_url: https://github.com/Build-Fractal/deliberator
+repo_name: Build-Fractal/deliberator
 
 theme:
   name: material

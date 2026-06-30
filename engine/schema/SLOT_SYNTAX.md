@@ -5,7 +5,7 @@
 **Spec source:** `specs/v4.2.0-structured-deliberation-outputs/spec.md` § 5.1, § 11
 **Ratification PR:** (this PR — feat/v4.2.0-impl-f1-template-slot-syntax)
 
-This document defines the canonical slot-marker syntax that conversus-oss mode templates use to delimit structured fields within agent prose. It is the load-bearing contract between (a) the templates agents fill, (b) the parser that extracts structured fields from filled prose, and (c) the JSON Schema validator that asserts conformance.
+This document defines the canonical slot-marker syntax that deliberator mode templates use to delimit structured fields within agent prose. It is the load-bearing contract between (a) the templates agents fill, (b) the parser that extracts structured fields from filled prose, and (c) the JSON Schema validator that asserts conformance.
 
 Per spec v4.2.0 § 11 F1: this specification MUST be complete and ratified BEFORE validator error specification (§ 4.9 error-code semantics) or the validator class implementation lands. Parser semantics specified here are the source-of-truth referenced by the validator.
 
@@ -59,7 +59,7 @@ The proposal scopes well to a 4-week implementation window.
 
 <<<CONCERNS_BEGIN>>>
 - The 100ms validator budget is unmeasured against real synthesis outputs.
-- Markdown deprecation cliff overlaps with conversus-oss v1.0.0-rc cycle.
+- Markdown deprecation cliff overlaps with deliberator v1.0.0-rc cycle.
 <<<CONCERNS_END>>>
 
 <<<VERDICT_BEGIN>>>
@@ -277,11 +277,11 @@ Per Principle V: the validator NEVER blocks file writes. The persistence layer w
 
 ## 5. Migration from existing markdown markers
 
-The existing markdown templates use `CONVERSUS:DISPUTES_BEGIN` / `CONVERSUS:DISPUTES_END` markers (see `linter/validate.py`). Those markers are part of the pre-v4.2.0 markdown-only flow.
+The existing markdown templates use `DELIBERATOR:DISPUTES_BEGIN` / `DELIBERATOR:DISPUTES_END` markers (see `linter/validate.py`). Those markers are part of the pre-v4.2.0 markdown-only flow.
 
 The new slot syntax `<<<NAME_BEGIN>>> ... <<<NAME_END>>>` (this spec) is for the v4.2.0 JSON envelope migration. The two conventions coexist during the parallel-format window (T1 through T3 per § 11 tiered rollout) and the markdown convention is deprecated at T4 (2026-12-01 cliff date).
 
-Templates migrated to the new slot syntax MAY also retain the old `CONVERSUS:DISPUTES_*` markers during the transition. The slot-parser ignores old-format markers (they're prose under the conservative recognition rule § 2.1). The legacy markdown linter at `linter/validate.py` continues to check old-format markers until T4.
+Templates migrated to the new slot syntax MAY also retain the old `DELIBERATOR:DISPUTES_*` markers during the transition. The slot-parser ignores old-format markers (they're prose under the conservative recognition rule § 2.1). The legacy markdown linter at `linter/validate.py` continues to check old-format markers until T4.
 
 ---
 

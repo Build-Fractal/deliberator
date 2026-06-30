@@ -1,6 +1,6 @@
 # API Reference
 
-Auto-generated reference documentation for the `conversus` Python package. Each page uses [mkdocstrings](https://mkdocstrings.github.io/) to render docstrings, type annotations, and signatures directly from source code.
+Auto-generated reference documentation for the `deliberator` Python package. Each page uses [mkdocstrings](https://mkdocstrings.github.io/) to render docstrings, type annotations, and signatures directly from source code.
 
 ## Packages
 

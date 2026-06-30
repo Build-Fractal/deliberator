@@ -1,7 +1,7 @@
 # Meta-Review Instructions
 
 ## Scope
-A meta-review synthesizes findings from multiple per-spec conversus deliberations. It reads all syntheses AND actual implementation code.
+A meta-review synthesizes findings from multiple per-spec deliberator deliberations. It reads all syntheses AND actual implementation code.
 
 ## Mandatory Checks
 

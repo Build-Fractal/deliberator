@@ -104,7 +104,7 @@ Track how each dispute from the deliberation was resolved. For each dispute that
 
 This section provides the audit trail for dispute resolution attribution across the full multi-round process. Use the per-round arbitration files ({ARBITRATION_PATHS}) and compiled rulings ({ARBITRATION_RULINGS}) to trace arbiter influence on dispute outcomes.
 
-<!-- CONVERSUS:DISPUTES_BEGIN -->
+<!-- DELIBERATOR:DISPUTES_BEGIN -->
 ### Remaining Disputes
 
 Disputes that survived the full multi-round process. For each:
@@ -115,7 +115,7 @@ Disputes that survived the full multi-round process. For each:
   - **Cross-round evolution**: How arguments evolved across rounds (did agents refine positions, provide new evidence, or simply repeat?).
   - **Synthesizer assessment**: Which position the cumulative evidence better supports. Was this dispute productive to pursue across multiple rounds, or did it stagnate?
   - **Recommended resolution**: Adopt position A / Adopt position B / Compromise (state it) / Defer to arbiter / Accept as genuine design trade-off.
-<!-- CONVERSUS:DISPUTES_END -->
+<!-- DELIBERATOR:DISPUTES_END -->
 
 ### Termination Assessment
 

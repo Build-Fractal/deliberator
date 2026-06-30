@@ -28,7 +28,7 @@ import sys
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
-# Path bootstrap — make ``capabilities`` + ``conversus.registry`` importable
+# Path bootstrap — make ``capabilities`` + ``deliberator.registry`` importable
 # ---------------------------------------------------------------------------
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -36,8 +36,8 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 
-from conversus.registry import Capability  # noqa: E402
-from conversus.registry.projector import (  # noqa: E402
+from deliberator.registry import Capability  # noqa: E402
+from deliberator.registry.projector import (  # noqa: E402
     project_to_cli,
     project_to_mcp,
     project_to_mcpb_manifest_tools,
@@ -199,7 +199,7 @@ def _write(
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Regenerate conversus surface files from the capability registry."
+        description="Regenerate deliberator surface files from the capability registry."
     )
     parser.add_argument(
         "--dry-run",

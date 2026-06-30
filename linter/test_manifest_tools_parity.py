@@ -21,7 +21,7 @@ import json
 from pathlib import Path
 
 from capabilities import CAPABILITIES
-from conversus.registry.projector import project_to_mcpb_manifest_tools
+from deliberator.registry.projector import project_to_mcpb_manifest_tools
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -37,7 +37,7 @@ def test_manifest_tools_matches_projector() -> None:
         import json
         from pathlib import Path
         from capabilities import CAPABILITIES
-        from conversus.registry.projector import project_to_mcpb_manifest_tools
+        from deliberator.registry.projector import project_to_mcpb_manifest_tools
         m = json.loads(Path('desktop-extension/manifest.json').read_text())
         m['tools'] = [dict(e) for e in project_to_mcpb_manifest_tools(CAPABILITIES)]
         Path('desktop-extension/manifest.json').write_text(json.dumps(m, indent=2) + '\n')
@@ -66,10 +66,10 @@ def test_every_mcpb_capability_appears_in_manifest() -> None:
     message when a single capability is missing (vs reporting "lists
     not equal" which forces a manual diff).
     """
-    from conversus.registry import Surface
+    from deliberator.registry import Surface
 
     expected_names = {
-        "conversus_" + cap.name.replace("-", "_")
+        "deliberator_" + cap.name.replace("-", "_")
         for cap in CAPABILITIES
         if Surface.MCPB in cap.surfaces
     }

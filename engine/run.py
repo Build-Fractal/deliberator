@@ -66,7 +66,7 @@ def resolve_execution_provider(
        OAuth credential management in :func:`~engine.auth.resolve_provider`.
        Use the legacy path (which handles env vars + OAuth tokens), then
        wrap in :class:`ModelProviderExecutionAdapter`.  This preserves
-       ``conversus login`` / credential store support.
+       ``deliberator login`` / credential store support.
     2. **Execution registry** — for all other names (``claude-code``,
        ``ollama``, ``mock``, etc.), instantiate from
        :data:`~engine.execution.providers.PROVIDER_REGISTRY` directly.
@@ -163,7 +163,7 @@ async def run_phase1(
         templates_dir = find_templates_dir(config_path)
     else:
         # Fall back to engine root's parent
-        templates_dir = find_templates_dir(Path.cwd() / "conversus.yml")
+        templates_dir = find_templates_dir(Path.cwd() / "deliberator.yml")
 
     template = load_template(templates_dir, config.mode, "review")
 
@@ -244,7 +244,7 @@ async def run_engine(
     runs.
 
     Args:
-        config_path: Path to the conversus YAML config file.
+        config_path: Path to the deliberator YAML config file.
         phase: Phase to run.  ``"all"`` (default) runs the full pipeline;
             ``"review"`` runs Phase 1 only.
         provider_name: Provider identifier (``"mock"``, ``"anthropic"``, or ``"openai"``).

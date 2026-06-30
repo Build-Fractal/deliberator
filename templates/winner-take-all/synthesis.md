@@ -113,11 +113,11 @@ If inter-round arbitration fired in prior rounds, list disputes that were addres
 
 If no prior-round arbitration exists, omit this section entirely.
 
-<!-- CONVERSUS:DISPUTES_BEGIN -->
+<!-- DELIBERATOR:DISPUTES_BEGIN -->
 ### Remaining Disputes
 
 If any criteria scores were too close to call, or if evidence was genuinely ambiguous on a decisive criterion, note those contested points here. If the verdict is clear, state "No remaining disputes — verdict is decisive."
-<!-- CONVERSUS:DISPUTES_END -->
+<!-- DELIBERATOR:DISPUTES_END -->
 
 ## Decision Record
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Conversus Template Linter
+Deliberator Template Linter
 
 Validates templates/{mode}/*.md against schema/variables.yml and schema/modes/{mode}.yml.
 Catches missing variables, unknown variables, heading mismatches, and missing structural
@@ -83,23 +83,23 @@ class ValidationResult(BaseModel):
 # ---------------------------------------------------------------------------
 
 def find_project_root() -> Path:
-    """Locate the conversus root (contains schema/ and templates/).
+    """Locate the deliberator root (contains schema/ and templates/).
 
     Strategy:
       1. ``importlib.resources`` — when pip-installed, schema/ and templates/
-         are bundled inside the ``conversus`` package.
+         are bundled inside the ``deliberator`` package.
       2. Walk up from this script (dev source tree).
       3. Fall back to cwd.
 
     Raises:
-        SchemaLoadError: If the conversus root cannot be located.
+        SchemaLoadError: If the deliberator root cannot be located.
     """
     # Strategy 1: importlib.resources (pip-installed)
     try:
-        from conversus.paths import resolve_package_path
+        from deliberator.paths import resolve_package_path
 
-        schema_dir = resolve_package_path("conversus", "schema")
-        templates_dir = resolve_package_path("conversus", "templates")
+        schema_dir = resolve_package_path("deliberator", "schema")
+        templates_dir = resolve_package_path("deliberator", "templates")
         if schema_dir.is_dir() and templates_dir.is_dir():
             # Both resolved — return their common parent
             return schema_dir.parent
@@ -117,8 +117,8 @@ def find_project_root() -> Path:
         return cwd
 
     raise SchemaLoadError(
-        "Error: cannot locate conversus root (schema/ + templates/). "
-        "Run from the conversus directory or ensure linter/ is inside it."
+        "Error: cannot locate deliberator root (schema/ + templates/). "
+        "Run from the deliberator directory or ensure linter/ is inside it."
     )
 
 
@@ -158,8 +158,8 @@ def load_mode_schema(root: Path, mode: str) -> ModeSchema:
 VAR_PATTERN: re.Pattern[str] = re.compile(r"\{([A-Z][A-Z_0-9]+)\}")
 
 # Structural markers
-DISPUTES_BEGIN: str = "CONVERSUS:DISPUTES_BEGIN"
-DISPUTES_END: str = "CONVERSUS:DISPUTES_END"
+DISPUTES_BEGIN: str = "DELIBERATOR:DISPUTES_BEGIN"
+DISPUTES_END: str = "DELIBERATOR:DISPUTES_END"
 
 
 def extract_variables(content: str) -> frozenset[str]:
@@ -436,7 +436,7 @@ def validate_all(config: ValidationConfig) -> ValidationResult:
               help="Validate only this mode's templates (default: all modes)")
 @click.option("--verbose", is_flag=True, help="Show per-file validation details")
 def main(target_mode: Optional[str], verbose: bool) -> None:
-    """Validate conversus templates against the schema."""
+    """Validate deliberator templates against the schema."""
     try:
         root: Path = find_project_root()
     except SchemaLoadError as e:

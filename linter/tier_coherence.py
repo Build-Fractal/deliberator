@@ -9,7 +9,7 @@ Implements the four checks specified in spec v4.0.0-tier-extraction §6.8:
 Plus the cross-tier weakening prohibition flagged-words check (spec §6.10):
 - Check (e): flag suspicious "weakening" terms near upper-tier principle names.
 
-Run from conversus-oss directory:
+Run from deliberator directory:
     uv run python -m linter.tier_coherence
 
 Exit codes:
@@ -34,7 +34,7 @@ def _find_build_fractal_root(start: Path) -> Path | None:
     Two layouts supported, in priority order:
     1. **build-fractal-mono layout (current, post-2026-05-13 migration):** an
        ancestor directory contains a top-level CONSTITUTION.md (Tier 1) plus
-       a `conversus/CONSTITUTION.md` (Tier 2). The ancestor IS the build-fractal
+       a `deliberator/CONSTITUTION.md` (Tier 2). The ancestor IS the build-fractal
        root.
     2. **Legacy nested layout (pre-migration payer-index-mono):** an ancestor
        contains a `build-fractal/` subdir with the same structure. Returned
@@ -47,7 +47,7 @@ def _find_build_fractal_root(start: Path) -> Path | None:
         # Layout 1: build-fractal-mono — the ancestor IS the root
         if (
             (ancestor / "CONSTITUTION.md").is_file()
-            and (ancestor / "conversus" / "CONSTITUTION.md").is_file()
+            and (ancestor / "deliberator" / "CONSTITUTION.md").is_file()
         ):
             return ancestor
         # Layout 2: legacy nested under build-fractal/
@@ -59,7 +59,7 @@ def _find_build_fractal_root(start: Path) -> Path | None:
 
 _BUILD_FRACTAL = _find_build_fractal_root(ROOT)
 TIER1 = (_BUILD_FRACTAL / "CONSTITUTION.md") if _BUILD_FRACTAL else ROOT.parent / "CONSTITUTION.md"
-TIER2 = (_BUILD_FRACTAL / "conversus" / "CONSTITUTION.md") if _BUILD_FRACTAL else ROOT.parent / "conversus" / "CONSTITUTION.md"
+TIER2 = (_BUILD_FRACTAL / "deliberator" / "CONSTITUTION.md") if _BUILD_FRACTAL else ROOT.parent / "deliberator" / "CONSTITUTION.md"
 
 TIER1_PRINCIPLES = {"I", "II", "III", "IV", "VII", "VIII", "IX", "XI", "XIV", "XXVIII"}
 TIER2_PRINCIPLES = {"V", "XII", "XIII", "XV", "XVI", "XXII", "XXIII", "XXIV", "XXV", "XXVII"}
@@ -344,7 +344,7 @@ def check_weakening_words(text: str, name: str) -> list[str]:
 def main() -> int:
     # Tier coherence is a property of the FULL constitutional hierarchy
     # (Tier 1 Universal + Tier 2 Suite + Component). When this linter runs
-    # in standalone-OSS CI (where conversus-oss is checked out alone, without
+    # in standalone-OSS CI (where deliberator is checked out alone, without
     # its parent build-fractal-mono), the Tier 1/2 files are not present —
     # there is nothing to cross-check. Skip gracefully rather than failing,
     # so the equivalent check at the build-fractal-mono level remains the

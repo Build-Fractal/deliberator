@@ -1,6 +1,6 @@
 """Shared ad-hoc config generation for SDK, CLI, and MCP consumers.
 
-Deduplicates the tempdir → question.md → conversus.yml pattern that was
+Deduplicates the tempdir → question.md → deliberator.yml pattern that was
 previously copy-pasted across ``engine.sdk._run_ad_hoc``,
 ``engine.cli.decide``, and ``mcp_server._decide``.
 """
@@ -77,10 +77,10 @@ def build_adhoc_config(
     *,
     auto_assign_red_blue_roles: bool = True,
 ) -> tuple[Path, Path, Path]:
-    """Generate a temporary conversus config for an ad-hoc question.
+    """Generate a temporary deliberator config for an ad-hoc question.
 
     Creates a temp directory containing ``question.md`` and
-    ``conversus.yml`` configured with the given agents and mode.
+    ``deliberator.yml`` configured with the given agents and mode.
 
     Args:
         question: The deliberation question text (must be non-empty after
@@ -101,12 +101,12 @@ def build_adhoc_config(
 
     Returns:
         A tuple of ``(config_path, question_path, tmp_dir)`` where:
-        - *config_path* is the path to the generated ``conversus.yml``
+        - *config_path* is the path to the generated ``deliberator.yml``
         - *question_path* is the path to the generated ``question.md``
         - *tmp_dir* is the temp directory (caller is responsible for cleanup)
 
     Raises:
-        ConfigError: If the conversus project root or required presets
+        ConfigError: If the deliberator project root or required presets
             cannot be found.
     """
     stripped = question.strip()
@@ -141,7 +141,7 @@ def build_adhoc_config(
             raise ConfigError(f"Preset not found: {agent.preset}")
 
     # Create temp directory and files
-    tmp_dir = Path(tempfile.mkdtemp(prefix="conversus-adhoc-"))
+    tmp_dir = Path(tempfile.mkdtemp(prefix="deliberator-adhoc-"))
     effective_output = output_dir.resolve() if output_dir else (tmp_dir / "output")
 
     # Write question file
@@ -187,7 +187,7 @@ def build_adhoc_config(
         f"{agents_yaml}"
     )
 
-    config_path = tmp_dir / "conversus.yml"
+    config_path = tmp_dir / "deliberator.yml"
     config_path.write_text(config_content, encoding="utf-8")
 
     return config_path, question_path, tmp_dir

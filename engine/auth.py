@@ -1,13 +1,13 @@
 """Credential storage, OAuth PKCE flows, and provider resolution.
 
 Provides:
-- ``CredentialStore``: per-provider token persistence in ``~/.conversus/credentials/{provider}.json``
+- ``CredentialStore``: per-provider token persistence in ``~/.deliberator/credentials/{provider}.json``
 - ``login`` / ``logout`` / ``get_credentials`` / ``refresh_token``: OAuth lifecycle
 - ``resolve_provider``: factory that maps provider name + credentials → ``ModelProvider``
 
 Spec 057 SC-004: each provider's credentials live in their own file under
-``~/.conversus/credentials/`` rather than the legacy monolithic
-``~/.conversus/auth.json``. ``CredentialStore`` lazily migrates from the legacy
+``~/.deliberator/credentials/`` rather than the legacy monolithic
+``~/.deliberator/auth.json``. ``CredentialStore`` lazily migrates from the legacy
 file on first read so existing OAuth users keep working with no manual action.
 The legacy file is preserved on disk after migration (users can ``rm`` it
 themselves); writes never touch it.
@@ -48,14 +48,14 @@ except ImportError:  # pragma: no cover — Windows
     fcntl = None  # type: ignore[assignment]
     _HAS_FCNTL = False
 
-logger = logging.getLogger("conversus.auth")
+logger = logging.getLogger("deliberator.auth")
 
 # ---------------------------------------------------------------------------
 # OAuth provider constants
 # ---------------------------------------------------------------------------
 
-# Default OAuth client ID for the Conversus public app.
-# Override via CONVERSUS_ANTHROPIC_CLIENT_ID env var for custom deployments.
+# Default OAuth client ID for the Deliberator public app.
+# Override via DELIBERATOR_ANTHROPIC_CLIENT_ID env var for custom deployments.
 _DEFAULT_ANTHROPIC_CLIENT_ID = base64.b64decode(
     "OWQxYzI1MGEtZTYxYi00NGQ5LTg4ZWQtNTk0NGQxOTYyZjVl"
 ).decode()
@@ -63,7 +63,7 @@ _DEFAULT_ANTHROPIC_CLIENT_ID = base64.b64decode(
 OAUTH_CONFIGS: dict[str, dict[str, str]] = {
     "anthropic": {
         "client_id": os.environ.get(
-            "CONVERSUS_ANTHROPIC_CLIENT_ID",
+            "DELIBERATOR_ANTHROPIC_CLIENT_ID",
             _DEFAULT_ANTHROPIC_CLIENT_ID,
         ),
         "authorize_url": "https://claude.ai/oauth/authorize",
@@ -81,8 +81,8 @@ OAUTH_CONFIGS: dict[str, dict[str, str]] = {
     },
 }
 
-DEFAULT_AUTH_PATH = Path.home() / ".conversus" / "auth.json"
-DEFAULT_CREDENTIALS_DIR = Path.home() / ".conversus" / "credentials"
+DEFAULT_AUTH_PATH = Path.home() / ".deliberator" / "auth.json"
+DEFAULT_CREDENTIALS_DIR = Path.home() / ".deliberator" / "credentials"
 CALLBACK_TIMEOUT = 120  # seconds
 
 
@@ -97,7 +97,7 @@ def _flock_with_timeout(fd: int, timeout_ms: int = 200) -> None:
     Per the spec 057 SC-004 deliberation verdict
     (``deliberations/057-sc4-migration-strategy-2026-04-30/arbitration/resolution.md``)
     writes to a per-provider credential file must use a non-blocking, bounded
-    file lock. Two ``conversus`` invocations writing the same provider at the
+    file lock. Two ``deliberator`` invocations writing the same provider at the
     same time should serialize, not interleave; the bounded timeout prevents a
     crashed/hung writer from indefinitely blocking the second writer.
 
@@ -171,14 +171,14 @@ def _atomic_write_json(path: Path, data: dict[str, Any], mode: int = 0o600) -> N
 
 
 class CredentialStore:
-    """Read/write per-provider OAuth tokens in ``~/.conversus/credentials/``.
+    """Read/write per-provider OAuth tokens in ``~/.deliberator/credentials/``.
 
     Each provider lives in its own file at ``{credentials_dir}/{provider}.json``
     holding only that provider's credential dict (not a nested
     ``{provider: dict}`` mapping). Files are written atomically and ``chmod
     600``-ed before the rename to keep secrets unreadable to other users.
 
-    The legacy monolithic ``~/.conversus/auth.json`` is read on a fallback path:
+    The legacy monolithic ``~/.deliberator/auth.json`` is read on a fallback path:
     if a per-provider file is missing on first ``get()``, the credentials are
     lazily migrated from the legacy file (if present) to the per-provider
     location. The legacy file is preserved on disk afterward.
@@ -253,7 +253,7 @@ class CredentialStore:
         # §"DEBUG fallback log").
         logger.debug(
             "credentials/%s.json not found; reading from legacy auth.json. "
-            "Run 'conversus migrate-credentials' to migrate.",
+            "Run 'deliberator migrate-credentials' to migrate.",
             provider,
         )
         legacy = self._read_legacy_all()
@@ -356,7 +356,7 @@ def inspect_credential_source(
     beats legacy. Env-var detection uses the OAuth config map only — a provider
     not registered in ``OAUTH_CONFIGS`` simply cannot resolve to ``env-var``.
 
-    This is an inspection helper for ``conversus status`` (spec 072 SC-005);
+    This is an inspection helper for ``deliberator status`` (spec 072 SC-005);
     it is intentionally read-only and **does not** trigger the lazy-migration
     write that ``CredentialStore.get()`` performs.
     """
@@ -980,6 +980,6 @@ def resolve_provider(
     raise ProviderError(
         f"No credentials available for '{provider_name}'. "
         f"Set the {config['env_var']} environment variable or run "
-        f"`conversus login {provider_name}` to authenticate via OAuth.",
+        f"`deliberator login {provider_name}` to authenticate via OAuth.",
         category="auth",
     )

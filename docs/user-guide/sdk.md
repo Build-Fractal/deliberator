@@ -1,29 +1,29 @@
 # Python SDK
 
-The SDK provides programmatic access to conversus for pipelines, scripts, and custom tooling.
+The SDK provides programmatic access to deliberator for pipelines, scripts, and custom tooling.
 
 ## Installation
 
 ```bash
-pip install conversus              # recommended
+pip install deliberator              # recommended
 # or, for development from source:
 uv sync
 ```
 
-!!! info "Two namespaces: `engine` and `conversus`"
-    The wheel installs three top-level packages: `engine`, `linter`, and `conversus`. They serve different layers:
+!!! info "Two namespaces: `engine` and `deliberator`"
+    The wheel installs three top-level packages: `engine`, `linter`, and `deliberator`. They serve different layers:
 
     - **`engine`** — the deliberation runtime. The SDK (`Deliberation`, `Result`, `validate`, `classify`) lives here because it depends on the full pipeline (auth, config, dispatch, phases, providers).
-    - **`conversus`** — the foundation layer: schemas, plugins, registry, paths, presets. Anything that *doesn't* depend on the engine runtime.
+    - **`deliberator`** — the foundation layer: schemas, plugins, registry, paths, presets. Anything that *doesn't* depend on the engine runtime.
     - **`linter`** — output-contract parsing and the question classifier (consumed by the engine, not user-facing).
 
     ```python
     from engine import Deliberation, Result, validate   # SDK — runtime-dependent
-    from conversus.schemas.construction import construct_objective  # primitives — runtime-free
-    from conversus.plugins.base import Plugin                       # primitives — runtime-free
+    from deliberator.schemas.construction import construct_objective  # primitives — runtime-free
+    from deliberator.plugins.base import Plugin                       # primitives — runtime-free
     ```
 
-    The split is enforced by a coupling rule: `conversus/` MUST NOT import from `engine/`, but `engine/` MAY import from `conversus/`. That's what makes `conversus/` reusable as a primitive layer.
+    The split is enforced by a coupling rule: `deliberator/` MUST NOT import from `engine/`, but `engine/` MAY import from `deliberator/`. That's what makes `deliberator/` reusable as a primitive layer.
 
 ## Quick start
 
@@ -45,7 +45,7 @@ asyncio.run(main())
 ```
 
 !!! info "Async-native"
-    Conversus is async-native. The `asyncio.run()` wrapper above lets you run it as a plain Python script. In async contexts (FastAPI, event handlers), use `await` directly -- see [Async patterns](#async-patterns) below.
+    Deliberator is async-native. The `asyncio.run()` wrapper above lets you run it as a plain Python script. In async contexts (FastAPI, event handlers), use `await` directly -- see [Async patterns](#async-patterns) below.
 
 ## Deliberation class
 
@@ -58,7 +58,7 @@ from pathlib import Path
 from engine import Deliberation
 
 result = await Deliberation(
-    config_path=Path("conversus.yml"),
+    config_path=Path("deliberator.yml"),
     provider="anthropic",
 ).run()
 ```
@@ -77,7 +77,7 @@ result = await Deliberation(
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `config_path` | `Path \| None` | `None` | Path to `conversus.yml` |
+| `config_path` | `Path \| None` | `None` | Path to `deliberator.yml` |
 | `question` | `str \| None` | `None` | Ad-hoc question text |
 | `provider` | `str` | `"mock"` | `"mock"`, `"anthropic"`, `"openai"` |
 | `mode` | `str` | `"cooperative"` | Deliberation mode (ad-hoc only) |
@@ -90,7 +90,7 @@ At least one of `config_path` or `question` is required.
 Check cost before running:
 
 ```python
-d = Deliberation(config_path=Path("conversus.yml"))
+d = Deliberation(config_path=Path("deliberator.yml"))
 print(d.cost_estimate)
 # {'review': 3, 'cross_review': 6, 'revision': 3, 'disputes': 3, 'synthesis': 1}
 ```
@@ -103,7 +103,7 @@ print(d.cost_estimate)
 `estimate_cost_usd()` converts the launch count into an approximate dollar cost based on the provider's per-token pricing.
 
 ```python
-d = Deliberation(config_path=Path("conversus.yml"), provider="anthropic")
+d = Deliberation(config_path=Path("deliberator.yml"), provider="anthropic")
 usd = d.estimate_cost_usd()
 if usd is not None:
     print(f"Estimated cost: ${usd:.2f}")
@@ -161,7 +161,7 @@ result.output_dir            # Path: root output directory
 ```python
 from engine import validate
 
-vr = validate(Path("conversus.yml"))
+vr = validate(Path("deliberator.yml"))
 if not vr.valid:
     for error in vr.errors:
         print(f"Error: {error}")
@@ -189,7 +189,7 @@ print(cr.reason)      # Why insufficient (if applicable)
 Build parameterized objective functions from problem descriptions:
 
 ```python
-from conversus.schemas.construction import construct_objective
+from deliberator.schemas.construction import construct_objective
 
 objective = construct_objective(
     problem_text="Choose between Redis and Postgres for caching. Budget is $500/month.",

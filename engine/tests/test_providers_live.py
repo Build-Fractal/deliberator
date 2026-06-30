@@ -99,7 +99,7 @@ def _hello_task() -> ExecutionTask:
     """A minimal task that should round-trip through any LLM."""
     return ExecutionTask.from_prompt(
         prompt="Say hello in one short sentence.",
-        output_path="/tmp/conversus-live-hello.md",
+        output_path="/tmp/deliberator-live-hello.md",
         metadata={"agent_name": "live-hello", "phase": "review"},
     )
 

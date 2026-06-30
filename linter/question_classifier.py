@@ -1,5 +1,5 @@
 """
-Heuristic question classifier for conversus deliberation input.
+Heuristic question classifier for deliberator deliberation input.
 
 Evaluates whether a user's input question is sufficient for multi-agent
 deliberation. Supports two modes:
@@ -10,7 +10,7 @@ deliberation. Supports two modes:
   when input is insufficient.
 
 The classifier is heuristic-based — no LLM call required. This keeps it
-fast for MCP validation (S05's conversus_validate imports classify_question)
+fast for MCP validation (S05's deliberator_validate imports classify_question)
 and suitable for the M001 prototype.
 
 Public API:
@@ -38,7 +38,7 @@ from typing import Literal
 
 from pydantic import BaseModel
 
-from conversus.schemas.duration import TemporalMatch, parse_temporal
+from deliberator.schemas.duration import TemporalMatch, parse_temporal
 from linter.utils import word_count as _word_count
 
 
@@ -103,7 +103,7 @@ _FACTUAL_STARTERS: re.Pattern[str] = re.compile(
 
 # Non-temporal constraint/context indicators — signals real-world context
 # *other than* temporal references. Temporal detection now lives in
-# `conversus.schemas.duration.parse_temporal` (spec 047, FR-011).
+# `deliberator.schemas.duration.parse_temporal` (spec 047, FR-011).
 _NON_TEMPORAL_PATTERN: re.Pattern[str] = re.compile(
     r"\b(?:"
     r"team|budget|timeline|deadline|constraint|requirement|"
@@ -192,7 +192,7 @@ def has_constraints(text: str) -> bool:
 def extract_temporal_constraints(text: str) -> list[TemporalMatch]:
     """Return structured temporal matches found in *text* (FR-010).
 
-    Wraps :func:`conversus.schemas.duration.parse_temporal` so callers in
+    Wraps :func:`deliberator.schemas.duration.parse_temporal` so callers in
     the linter layer can avoid importing across packages.
     """
     return parse_temporal(text)
@@ -363,7 +363,7 @@ if __name__ == "__main__":
     import sys
 
     parser = argparse.ArgumentParser(
-        description="Conversus question classifier. "
+        description="Deliberator question classifier. "
         "Evaluates whether input is sufficient for multi-agent deliberation. "
         "Exits 0 if sufficient, 1 if insufficient.",
     )

@@ -32,7 +32,7 @@ DEFAULT_TIMEOUT = 600
 
 
 class GeminiProvider(SubprocessProvider):
-    """Execute conversus agent tasks via the Google ``gemini`` CLI.
+    """Execute deliberator agent tasks via the Google ``gemini`` CLI.
 
     Args:
         model: Model name (e.g., ``"gemini-2.5-pro"``, ``"gemini-2.5-flash"``).

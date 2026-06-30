@@ -1,13 +1,13 @@
 # Building a Config
 
-`conversus decide` is great for quick ad-hoc questions, but the real power of the tool comes from **custom configs** — your own agents, your own target documents, your own modes. This page walks you through building a `conversus.yml` from scratch.
+`deliberator decide` is great for quick ad-hoc questions, but the real power of the tool comes from **custom configs** — your own agents, your own target documents, your own modes. This page walks you through building a `deliberator.yml` from scratch.
 
 !!! tip "Using Claude Code?"
-    Install the conversus plugin and run `/conversus:design`. It walks you through this entire flow interactively and writes the config for you.
+    Install the deliberator plugin and run `/deliberator:design`. It walks you through this entire flow interactively and writes the config for you.
 
     ```shell
-    /plugin marketplace add Build-Fractal/conversus-oss
-    /plugin install conversus@conversus
+    /plugin marketplace add Build-Fractal/deliberator
+    /plugin install deliberator@deliberator
     ```
 
 ## The 6-step process
@@ -71,7 +71,7 @@ target:
 target: specs/042-execution-providers/
 ```
 
-If you have **no target document**, you're in `decide` territory, not `run` territory — skip the config and use `conversus decide "<question>"` directly.
+If you have **no target document**, you're in `decide` territory, not `run` territory — skip the config and use `deliberator decide "<question>"` directly.
 
 ### Step 4: Define agents
 
@@ -182,13 +182,13 @@ Before committing to a real run:
 
 ```bash
 # 1. Check syntax + estimate cost (no LLM calls)
-conversus validate deliberations/auth-service-extraction/conversus.yml
+deliberator validate deliberations/auth-service-extraction/deliberator.yml
 
 # 2. Dry-run with mock provider (free, synthetic responses)
-conversus run deliberations/auth-service-extraction/conversus.yml --provider mock
+deliberator run deliberations/auth-service-extraction/deliberator.yml --provider mock
 
 # 3. Real run with Claude Code
-conversus run deliberations/auth-service-extraction/conversus.yml --provider claude-code
+deliberator run deliberations/auth-service-extraction/deliberator.yml --provider claude-code
 ```
 
 `validate` prints the total LLM launch count before you commit. A 3-agent cooperative run with an arbiter is ~17 launches. Know your cost before you spend it.
@@ -212,9 +212,9 @@ Common failure modes and fixes:
 
 The best way to learn is to read configs that already work. These are all real deliberations shipped in this repo:
 
-- [packaging-strategy/conversus.yml](https://github.com/Build-Fractal/conversus-oss/blob/main/deliberations/packaging-strategy/conversus.yml) — 4 agents, mechanism-design mode, 29 launches
-- [docs-review/conversus.yml](https://github.com/Build-Fractal/conversus-oss/blob/main/deliberations/docs-review/conversus.yml) — 3 agents + arbiter, cooperative mode, 17 launches
-- [docs-specs-integration/conversus.yml](https://github.com/Build-Fractal/conversus-oss/blob/main/deliberations/docs-specs-integration/conversus.yml) — 4 agents + arbiter, cooperative, 26 launches
+- [packaging-strategy/deliberator.yml](https://github.com/Build-Fractal/deliberator/blob/main/deliberations/packaging-strategy/deliberator.yml) — 4 agents, mechanism-design mode, 29 launches
+- [docs-review/deliberator.yml](https://github.com/Build-Fractal/deliberator/blob/main/deliberations/docs-review/deliberator.yml) — 3 agents + arbiter, cooperative mode, 17 launches
+- [docs-specs-integration/deliberator.yml](https://github.com/Build-Fractal/deliberator/blob/main/deliberations/docs-specs-integration/deliberator.yml) — 4 agents + arbiter, cooperative, 26 launches
 
 Read them side-by-side to see how agent prompts and modes vary by decision type.
 

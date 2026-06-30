@@ -110,7 +110,7 @@ If inter-round arbitration fired in prior rounds, list disputes that were addres
 
 If no prior-round arbitration exists, omit this section entirely.
 
-<!-- CONVERSUS:DISPUTES_BEGIN -->
+<!-- DELIBERATOR:DISPUTES_BEGIN -->
 ### Remaining Disputes
 
 Disputes that survived the full process. For each:
@@ -120,7 +120,7 @@ Disputes that survived the full process. For each:
   - **Arguments**: Summary of each side's strongest argument.
   - **Synthesizer assessment**: Which position the evidence better supports, or why neither is clearly stronger. This is the synthesizer's only editorial judgment — use it carefully and justify it.
   - **Recommended resolution**: What the spec should do. Options: adopt position A, adopt position B, adopt a compromise (state it), defer the decision (state what information is needed), or mark as an open question in the spec.
-<!-- CONVERSUS:DISPUTES_END -->
+<!-- DELIBERATOR:DISPUTES_END -->
 
 ### Actionable Spec Changes
 

@@ -5,13 +5,13 @@
 # Trusted Publishing pointing at this repo + this workflow file. Steps for the
 # maintainer doing the one-time setup:
 #
-#   1. Create the `conversus` project on PyPI (or claim it via a v0.0.1
+#   1. Create the `deliberator` project on PyPI (or claim it via a v0.0.1
 #      placeholder release published manually).
-#   2. On https://pypi.org/manage/project/conversus/settings/publishing/ add
+#   2. On https://pypi.org/manage/project/deliberator/settings/publishing/ add
 #      a new Trusted Publisher:
 #        - Publisher: GitHub
 #        - Owner: Build-Fractal
-#        - Repository: conversus  (or conversus-oss pre-rename)
+#        - Repository: deliberator  (or deliberator pre-rename)
 #        - Workflow filename: release-pypi.yml
 #        - Environment: pypi-publish  (matches the `environment:` block below)
 #   3. (Optional but recommended) Repeat for TestPyPI so the test-publish step
@@ -77,7 +77,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: testpypi-publish
-      url: https://test.pypi.org/p/conversus
+      url: https://test.pypi.org/p/deliberator
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -99,7 +99,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi-publish
-      url: https://pypi.org/p/conversus
+      url: https://pypi.org/p/deliberator
     steps:
       - uses: actions/download-artifact@v4
         with:

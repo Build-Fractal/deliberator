@@ -1,5 +1,5 @@
 """
-End-to-end integration tests for the conversus M001 pipeline.
+End-to-end integration tests for the deliberator M001 pipeline.
 
 Exercises every cross-module boundary that S01–S07 built in isolation:
   quality gate → output contract → MCP server → usage logging → question classifier
@@ -27,9 +27,9 @@ except ImportError:
     from quality import QualityResult, check_quality_floor
 
 try:
-    from .output_contract import ConversusOutput, parse_synthesis
+    from .output_contract import DeliberatorOutput, parse_synthesis
 except ImportError:
-    from output_contract import ConversusOutput, parse_synthesis
+    from output_contract import DeliberatorOutput, parse_synthesis
 
 try:
     from .usage import AdoptionMetrics, UsageEntry, log_usage, summarize_usage
@@ -52,11 +52,11 @@ from mcp_server import RunResult, ValidateResult, _run_config, _validate_config
 # ---------------------------------------------------------------------------
 
 _PROJECT_ROOT: Path = Path(__file__).resolve().parent.parent
-_REF_ROOT: Path = _PROJECT_ROOT / "conversus" / "quality_floor" / "reference-outputs"
+_REF_ROOT: Path = _PROJECT_ROOT / "deliberator" / "quality_floor" / "reference-outputs"
 
 _PASSING_SYNTHESIS: Path = _REF_ROOT / "passing" / "monorepo-vs-polyrepo" / "summary" / "final.md"
 _FAILING_SYNTHESIS: Path = _REF_ROOT / "failing" / "factual-capital" / "summary" / "final.md"
-_QUESTION_FILE: Path = _PROJECT_ROOT / "conversus" / "quality_floor" / "questions" / "monorepo-vs-polyrepo.md"
+_QUESTION_FILE: Path = _PROJECT_ROOT / "deliberator" / "quality_floor" / "questions" / "monorepo-vs-polyrepo.md"
 
 
 # ---------------------------------------------------------------------------
@@ -66,7 +66,7 @@ _QUESTION_FILE: Path = _PROJECT_ROOT / "conversus" / "quality_floor" / "question
 VALID_CONFIG_YAML = """\
 mode: cooperative
 target: specs/001-speckit-orchestrator/spec.md
-output: specs/001-speckit-orchestrator/conversus/
+output: specs/001-speckit-orchestrator/deliberator/
 iterations: 1
 agents:
   - name: apm
@@ -112,7 +112,7 @@ class TestPassingSynthesisFullPipeline:
 
     def test_output_contract_all_5_fields(self, passing_text: str) -> None:
         output = parse_synthesis(passing_text)
-        assert isinstance(output, ConversusOutput)
+        assert isinstance(output, DeliberatorOutput)
         assert len(output.headline) > 0, "headline must be non-empty"
         assert len(output.summary) > 0, "summary must be non-empty"
         assert len(output.full_analysis) > 0, "full_analysis must be non-empty"
@@ -161,7 +161,7 @@ class TestFailingSynthesisDetected:
     def test_output_contract_still_parseable(self, failing_text: str) -> None:
         """Output contract handles low-quality output gracefully — no crash."""
         output = parse_synthesis(failing_text)
-        assert isinstance(output, ConversusOutput)
+        assert isinstance(output, DeliberatorOutput)
         # All 5 fields should still be present (even if quality is low)
         assert output.headline is not None
         assert output.summary is not None
@@ -277,7 +277,7 @@ def test_full_pipeline_compose(tmp_path: Path) -> None:
 
     # Step 5: Parse output contract
     output = parse_synthesis(synthesis_text)
-    assert isinstance(output, ConversusOutput)
+    assert isinstance(output, DeliberatorOutput)
     assert len(output.headline) > 0
 
     # Step 6: Log usage to temp file

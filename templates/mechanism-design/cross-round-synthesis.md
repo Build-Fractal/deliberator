@@ -76,7 +76,7 @@ For each vulnerability:
   - **Resolution mechanism**: Role convergence | Arbiter ruling | Unresolved
   - **Final status**: Resolved | Provisionally resolved | Unresolved
 
-<!-- CONVERSUS:DISPUTES_BEGIN -->
+<!-- DELIBERATOR:DISPUTES_BEGIN -->
 ### Mechanism Vulnerabilities
 
 Vulnerabilities that survived the full multi-round process:
@@ -87,7 +87,7 @@ Vulnerabilities that survived the full multi-round process:
   - **Cross-round evolution**: How the trade-off analysis evolved.
   - **Designer assessment**: Which balance the evidence supports.
   - **Recommended resolution**: Favor property A / Favor property B / Implement configurable / Accept limitation.
-<!-- CONVERSUS:DISPUTES_END -->
+<!-- DELIBERATOR:DISPUTES_END -->
 
 ### Termination Assessment
 

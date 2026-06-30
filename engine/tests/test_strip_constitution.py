@@ -67,7 +67,7 @@ class TestDateExcludesHtmlComments:
     def test_date_in_comment_only_returns_no_leakage(self, strip_module):
         """Date inside HTML comment doesn't trigger leakage."""
         stripped = """
-# Conversus Constitution
+# Deliberator Constitution
 
 <!--
 Sync Impact Report (prior — preserved for audit trail)
@@ -82,7 +82,7 @@ Some body text without dates.
     def test_date_in_body_returns_leakage(self, strip_module):
         """Date in rendered (non-comment) body text IS a real leakage."""
         stripped = """
-# Conversus Constitution
+# Deliberator Constitution
 
 This amendment was made on 2026-05-01.
 """

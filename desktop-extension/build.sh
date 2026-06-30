@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# Build conversus.mcpb — a self-contained Claude Desktop Extension bundle.
+# Build deliberator.mcpb — a self-contained Claude Desktop Extension bundle.
 #
 # Bundles:
 #   - manifest.json (MCPB v0.3 manifest)
 #   - server/main.py (entry point that bootstraps sys.path)
 #   - server/mcp_server.py (FastMCP server with 3 tools)
-#   - server/lib/ (conversus + all Python dependencies, ~90MB)
+#   - server/lib/ (deliberator + all Python dependencies, ~90MB)
 #
 # The result is a self-contained .mcpb that does NOT require `pip install
-# conversus` on the recipient's machine. Claude Desktop's bundled Python
+# deliberator` on the recipient's machine. Claude Desktop's bundled Python
 # runs server/main.py directly.
 #
 # Platform: this build bundles darwin-arm64 native wheels (pydantic-core,
@@ -19,7 +19,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(dirname "$SCRIPT_DIR")"
-OUT="$REPO_ROOT/conversus.mcpb"
+OUT="$REPO_ROOT/deliberator.mcpb"
 
 echo "Building $OUT ..."
 
@@ -45,12 +45,12 @@ from pathlib import Path
 repo_root = Path(sys.argv[1])
 manifest_path = Path(sys.argv[2])
 
-# Repo root has capabilities.py + conversus/ — add to sys.path so we can
+# Repo root has capabilities.py + deliberator/ — add to sys.path so we can
 # import without requiring a dev install.
 sys.path.insert(0, str(repo_root.resolve()))
 
 from capabilities import CAPABILITIES
-from conversus.registry.projector import project_to_mcpb_manifest_tools
+from deliberator.registry.projector import project_to_mcpb_manifest_tools
 
 pyproject = tomllib.loads((repo_root / "pyproject.toml").read_text())
 version = pyproject["project"]["version"]
@@ -81,5 +81,5 @@ zip -r -q "$OUT" manifest.json server -x 'server/__pycache__/*' -x 'server/lib/*
 SIZE_HUMAN="$(du -h "$OUT" | cut -f1)"
 echo "Done: $OUT ($SIZE_HUMAN)"
 echo ""
-echo "Install: double-click conversus.mcpb, or drag it into"
+echo "Install: double-click deliberator.mcpb, or drag it into"
 echo "         Claude Desktop → Settings → Extensions → Install from file."

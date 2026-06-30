@@ -1,26 +1,26 @@
 ---
-description: Guided config builder — walks the user through creating a conversus.yml interactively. Ask one question at a time, build the config incrementally, write it to disk at the end.
+description: Guided config builder — walks the user through creating a deliberator.yml interactively. Ask one question at a time, build the config incrementally, write it to disk at the end.
 ---
 
-# Conversus Design Wizard
+# Deliberator Design Wizard
 
-Guide the user through building a `conversus.yml` file step by step. This is a **conversational wizard** — ask ONE question at a time, don't dump the whole form on them, and confirm each answer before moving to the next step.
+Guide the user through building a `deliberator.yml` file step by step. This is a **conversational wizard** — ask ONE question at a time, don't dump the whole form on them, and confirm each answer before moving to the next step.
 
 ## Step 0: Check installation
 
-Before starting, verify conversus is installed:
+Before starting, verify deliberator is installed:
 
 ```bash
-command -v conversus >/dev/null 2>&1 || echo "NOT_INSTALLED"
+command -v deliberator >/dev/null 2>&1 || echo "NOT_INSTALLED"
 ```
 
 If `NOT_INSTALLED`, stop and tell the user:
 
-> Conversus isn't installed. Install it with:
+> Deliberator isn't installed. Install it with:
 > ```
-> pip install git+https://github.com/Build-Fractal/conversus-oss.git
+> pip install git+https://github.com/Build-Fractal/deliberator.git
 > ```
-> Then re-run `/conversus:design`.
+> Then re-run `/deliberator:design`.
 
 ## Step 1: The question
 
@@ -41,11 +41,11 @@ Ask:
 > **Do you have a spec, proposal, or document to deliberate on?** This is the grounded context the agents will read.
 >
 > - If yes: give me the path(s). Can be a single file, multiple files, or a directory.
-> - If no: we'll use `conversus decide` instead of `conversus run`, which doesn't require a target.
+> - If no: we'll use `deliberator decide` instead of `deliberator run`, which doesn't require a target.
 
 If they have a target, verify it exists with `ls -la <path>`. If it doesn't, ask them to confirm the path.
 
-If they have no target, skip to Step 3 but remember to output a `decide` command at the end instead of writing a `conversus.yml`.
+If they have no target, skip to Step 3 but remember to output a `decide` command at the end instead of writing a `deliberator.yml`.
 
 ## Step 3: Decision type → mode
 
@@ -127,13 +127,13 @@ agents:
 # optional arbiter
 ```
 
-Ask where to save it (default: `deliberations/<kebab-case-title>/conversus.yml`), then use `Write` to save it.
+Ask where to save it (default: `deliberations/<kebab-case-title>/deliberator.yml`), then use `Write` to save it.
 
 Show the user the validate and run commands:
 ```bash
-conversus validate <path>
-conversus run <path> --provider mock     # dry run (free)
-conversus run <path> --provider claude-code  # real run
+deliberator validate <path>
+deliberator run <path> --provider mock     # dry run (free)
+deliberator run <path> --provider claude-code  # real run
 ```
 
 ## No-target fallback
@@ -142,12 +142,12 @@ If the user had no target document in Step 2, skip writing a YAML file. Instead,
 
 > Since you don't have a target document, run this directly:
 > ```bash
-> conversus decide "<question>" --provider claude-code --mode <mode>
+> deliberator decide "<question>" --provider claude-code --mode <mode>
 > ```
 
 ## Rules
 
 - **One question at a time.** Never dump the whole form.
 - **Confirm and iterate.** Show drafts and let the user edit before writing.
-- **Validate at the end.** Always suggest `conversus validate` before the first real run.
+- **Validate at the end.** Always suggest `deliberator validate` before the first real run.
 - **Start with mock.** Encourage `--provider mock` dry runs before spending credits.

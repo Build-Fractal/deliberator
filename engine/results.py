@@ -1,4 +1,4 @@
-"""Canonical result types for conversus ad-hoc deliberations.
+"""Canonical result types for deliberator ad-hoc deliberations.
 
 This is the single source of truth for ``CostEstimate``, ``DecideResult``,
 and the ``_estimate_cost`` helper (constitution principle XI). Both
@@ -36,11 +36,11 @@ from typing import Any
 
 from pydantic import BaseModel
 
-logger = logging.getLogger("conversus.results")
+logger = logging.getLogger("deliberator.results")
 
 
 class CostEstimate(BaseModel):
-    """Estimated launch cost for a conversus deliberation run.
+    """Estimated launch cost for a deliberator deliberation run.
 
     Each 'launch' is one LLM agent invocation. The per-phase breakdown
     shows exactly where the budget goes.
@@ -71,13 +71,13 @@ class DecideResult(BaseModel):
     output_path: str | None = None
     """Path where the deliberation was persisted (spec 056).
 
-    Example: ``.conversus/deliberations/20260412T173000-postgres-vs-mongodb/``.
+    Example: ``.deliberator/deliberations/20260412T173000-postgres-vs-mongodb/``.
     ``None`` when persistence is disabled or the run failed before persistence.
     """
 
 
 class ValidateResult(BaseModel):
-    """Result of validating a conversus YAML configuration.
+    """Result of validating a deliberator YAML configuration.
 
     Returned by ``engine.handlers.validate_mcp``. Contains template
     validation errors, optional question classification, optional
@@ -97,9 +97,9 @@ class RunResult(BaseModel):
     Operates in three modes:
 
     - **validate_only** (no output_path, no provider): validates config,
-      estimates cost, and returns instructions to execute '/conversus run'.
+      estimates cost, and returns instructions to execute '/deliberator run'.
     - **parsed_output** (output_path provided): validates config, reads the
-      synthesis file, parses it into a structured ConversusOutput dict.
+      synthesis file, parses it into a structured DeliberatorOutput dict.
     - **in_process** (provider set, no output_path): validates config, runs
       the full engine pipeline in-process, and returns structured output.
     """
@@ -115,13 +115,13 @@ class RunResult(BaseModel):
     output_path: str | None = None
     """Path where the deliberation was persisted (spec 056).
 
-    Example: ``.conversus/deliberations/20260412T173000-postgres-vs-mongodb/``.
+    Example: ``.deliberator/deliberations/20260412T173000-postgres-vs-mongodb/``.
     ``None`` when persistence is disabled or the run failed before persistence.
     """
 
 
 class ListResult(BaseModel):
-    """Result of listing past deliberations from .conversus/deliberations/."""
+    """Result of listing past deliberations from .deliberator/deliberations/."""
 
     deliberations: list[dict[str, Any]]
     count: int

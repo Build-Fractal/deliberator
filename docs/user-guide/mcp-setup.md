@@ -1,14 +1,14 @@
 # MCP Setup
 
-Conversus exposes three tools via the Model Context Protocol (MCP) for use in AI coding assistants.
+Deliberator exposes three tools via the Model Context Protocol (MCP) for use in AI coding assistants.
 
 ## Available MCP tools
 
 | Tool | Purpose |
 |------|---------|
-| `conversus_validate` | Validate a YAML config, classify questions, estimate cost |
-| `conversus_run` | Validate + run or parse existing output |
-| `conversus_decide` | Ad-hoc deliberation with question quality gate |
+| `deliberator_validate` | Validate a YAML config, classify questions, estimate cost |
+| `deliberator_run` | Validate + run or parse existing output |
+| `deliberator_decide` | Ad-hoc deliberation with question quality gate |
 
 ## Claude Code
 
@@ -17,16 +17,16 @@ The project includes `.mcp.json` at the root -- Claude Code picks it up automati
 If auto-detection doesn't work, register manually:
 
 ```bash
-claude mcp add conversus -- conversus mcp
+claude mcp add deliberator -- deliberator mcp
 ```
 
 Requires MCP extras:
 
 ```bash
-pip install "conversus[mcp] @ git+https://github.com/Build-Fractal/conversus-oss.git"
+pip install "deliberator[mcp] @ git+https://github.com/Build-Fractal/deliberator.git"
 ```
 
-**Verify:** Open Claude Code in the conversus directory and ask it to validate a config. The `conversus_validate` tool should appear in the tool list.
+**Verify:** Open Claude Code in the deliberator directory and ask it to validate a config. The `deliberator_validate` tool should appear in the tool list.
 
 ## Cursor
 
@@ -35,10 +35,10 @@ Add to `.cursor/mcp.json` in your project root:
 ```json
 {
   "mcpServers": {
-    "conversus": {
+    "deliberator": {
       "command": "uv",
       "args": ["run", "python3", "mcp_server.py"],
-      "cwd": "/path/to/conversus"
+      "cwd": "/path/to/deliberator"
     }
   }
 }
@@ -52,7 +52,7 @@ If using an MCP-compatible VS Code extension, add the same server config to the 
 
 ## Tool reference
 
-### conversus_validate
+### deliberator_validate
 
 Validate a config without executing.
 
@@ -67,7 +67,7 @@ Validate a config without executing.
 - `classification`: question sufficiency result (if question provided)
 - `preset_info`: mode, agent names, iteration count
 
-### conversus_run
+### deliberator_run
 
 Validate and optionally run a deliberation.
 
@@ -82,9 +82,9 @@ Validate and optionally run a deliberation.
 - `output_path` (string, optional): Path to existing `summary/final.md`.
 - `provider` (string, optional): `'mock'`, `'anthropic'`, or `'openai'`.
 
-**Returns:** `RunResult` with structured `ConversusOutput` when output is available.
+**Returns:** `RunResult` with structured `DeliberatorOutput` when output is available.
 
-### conversus_decide
+### deliberator_decide
 
 Ad-hoc deliberation with quality gate.
 
@@ -104,8 +104,8 @@ The tool rejects insufficient questions before spending any API calls. For 2 age
 
 ## Troubleshooting
 
-**Tool not appearing:** Make sure `uv` is on your PATH and you're in the conversus project directory. Run `uv run python3 mcp_server.py` manually to check for import errors.
+**Tool not appearing:** Make sure `uv` is on your PATH and you're in the deliberator project directory. Run `uv run python3 mcp_server.py` manually to check for import errors.
 
-**Provider auth errors:** The MCP server resolves credentials the same way as the CLI -- env var first, then `~/.conversus/auth.json`. Run `conversus login anthropic` in a terminal before using the MCP tools.
+**Provider auth errors:** The MCP server resolves credentials the same way as the CLI -- env var first, then `~/.deliberator/auth.json`. Run `deliberator login anthropic` in a terminal before using the MCP tools.
 
-**Timeout on large deliberations:** The MCP server runs synchronously. For large configs (many agents, multiple rounds), use `conversus run` from the CLI instead.
+**Timeout on large deliberations:** The MCP server runs synchronously. For large configs (many agents, multiple rounds), use `deliberator run` from the CLI instead.

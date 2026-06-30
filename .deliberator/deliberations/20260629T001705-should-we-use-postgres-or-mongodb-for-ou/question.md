@@ -1,0 +1,1 @@
+Should we use Postgres or MongoDB for our metadata store given we need ACID transactions and JSON document support?

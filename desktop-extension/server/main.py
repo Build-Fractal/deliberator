@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-Conversus MCP Server — Claude Desktop Extension entry point.
+Deliberator MCP Server — Claude Desktop Extension entry point.
 
 This is the bundled entry point launched by Claude Desktop when the .mcpb
 extension is installed. It:
 
-  1. Prepends the bundled `lib/` directory to sys.path so conversus and
+  1. Prepends the bundled `lib/` directory to sys.path so deliberator and
      all its transitive dependencies resolve from the bundle (no system
-     `pip install conversus` required).
+     `pip install deliberator` required).
   2. Imports the sibling `mcp_server.py` module and runs its FastMCP
      instance via stdio transport.
 
@@ -23,7 +23,7 @@ from pathlib import Path
 
 
 def _bootstrap_sys_path() -> None:
-    """Prepend bundled lib/ to sys.path so conversus + deps resolve."""
+    """Prepend bundled lib/ to sys.path so deliberator + deps resolve."""
     here = Path(__file__).resolve().parent
     bundled_lib = here / "lib"
     if bundled_lib.is_dir():
@@ -42,7 +42,7 @@ def _load_mcp_server():
         )
         sys.exit(1)
 
-    spec = importlib.util.spec_from_file_location("conversus_mcp_server", server_path)
+    spec = importlib.util.spec_from_file_location("deliberator_mcp_server", server_path)
     if spec is None or spec.loader is None:
         sys.stderr.write("Fatal: could not create module spec for mcp_server.py\n")
         sys.exit(1)
@@ -55,7 +55,7 @@ def _load_mcp_server():
 def main() -> None:
     _bootstrap_sys_path()
 
-    # Set CWD to the server/ directory AND CONVERSUS_ROOT env var
+    # Set CWD to the server/ directory AND DELIBERATOR_ROOT env var
     # so the engine's find_project_root and find_project_root() in
     # linter/validate.py find the bundled presets/, schema/, and
     # templates/ directories. Without this, CWD is wherever Claude
@@ -63,7 +63,7 @@ def main() -> None:
     import os
     here = Path(__file__).resolve().parent
     os.chdir(here)
-    os.environ["CONVERSUS_ROOT"] = str(here)
+    os.environ["DELIBERATOR_ROOT"] = str(here)
 
     mcp_module = _load_mcp_server()
     mcp_module.mcp.run(transport="stdio")

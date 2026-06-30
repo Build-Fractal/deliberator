@@ -85,7 +85,7 @@ def _collect_events() -> tuple[CallbackEmitter, list[EngineEvent]]:
 
 def _config_path() -> Path:
     """Return the path to the example config for template discovery."""
-    return PROJECT_ROOT / "conversus.example.yml"
+    return PROJECT_ROOT / "deliberator.example.yml"
 
 
 # ---------------------------------------------------------------------------
@@ -934,12 +934,12 @@ class _DisputeProvider:
         if count == 0:
             return "# Synthesis\n\nAll agents agree. No disputes."
         markers: list[str] = []
-        markers.append("<!-- CONVERSUS:DISPUTES_BEGIN -->")
+        markers.append("<!-- DELIBERATOR:DISPUTES_BEGIN -->")
         for i in range(1, count + 1):
             markers.append(
                 f"**Dispute:** Dispute {i} between agents on topic {i}."
             )
-        markers.append("<!-- CONVERSUS:DISPUTES_END -->")
+        markers.append("<!-- DELIBERATOR:DISPUTES_END -->")
         return "# Synthesis\n\n" + "\n".join(markers)
 
     async def complete(self, prompt: str, model: str, max_tokens: int) -> str:
@@ -1253,7 +1253,7 @@ class TestArbitration:
         (b) caused pre-dispatch crashes when prompt assembly exceeded the
         claude-code subagent context budget — observed 2026-05-06 and
         2026-05-07 (1ms / 2ms crashes on synthesis sizes 174K-231K chars).
-        Bug investigation: project_conversus_arbitration_crash_2026_05_06.
+        Bug investigation: project_deliberator_arbitration_crash_2026_05_06.
 
         The fix: pass ``target_files=[]`` to ``_assemble_phase_prompt`` for
         the arbiter dispatch only. Target files remain inlined for review,
@@ -1344,7 +1344,7 @@ class TestArbitration:
         # marker would appear in the prompt. The fix means it does NOT.
         assert unique_marker not in arbiter_prompt, (
             "Arbiter prompt inlined target file contents — "
-            "agent-isolation violation (project_conversus_arbitration_"
+            "agent-isolation violation (project_deliberator_arbitration_"
             "crash_2026_05_06). Check engine/phases.py arbiter dispatch: "
             "_assemble_phase_prompt should be called with target_files=[]."
         )
@@ -1543,7 +1543,7 @@ class TestMetadataBlock:
             iterations=1,
             round_num=1,
         )
-        assert block.startswith("<!-- CONVERSUS:METADATA\n")
+        assert block.startswith("<!-- DELIBERATOR:METADATA\n")
         assert "agents: 2\n" in block
         assert "agent_names: blue-advocate, red-advocate\n" in block
         assert "mode: red-blue\n" in block
