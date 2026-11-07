@@ -370,6 +370,14 @@ Packaging: everything graph-related is behind an optional extra, `deliberator[gr
 
 Sent to the Lattice session; Deliberator does not redefine any of these.
 
+**Status (2026-11-07):** 1–5 are done in Build-Fractal/lattice `graph-games` at commit `151732b`:
+`requires-python >=3.12`; `argument.conceded` (withdraws only when one participant authored
+both the concession and the target); `schema.widen` for `CITES` (so `GROUNDED_IN` can be
+dropped); `Edge.key` as part of edge identity (key three-way `PREFERS` edges by `over`); and
+schema `name`/`version` written by `node_link` and checked by `from_node_link` (so the § 9.1
+wrapper can go). 6: Brian has said Lattice will be Apache-2.0; the licence file is not yet
+added.
+
 1. **Python range.** `lattice-graph` declares `requires-python >=3.12,<3.13`. Deliberator
    declares `>=3.12`. On Python 3.13 or later `deliberator[graph]` would be uninstallable. Ask:
    widen to `>=3.12`.
