@@ -67,6 +67,20 @@ DEFAULT_TIMEOUT = 1200
 # ---------------------------------------------------------------------------
 
 
+
+#: System prompt for lean calls (see ``ClaudeCodeProvider(lean=True)``).
+LEAN_SYSTEM_PROMPT = "Follow the user's instructions exactly. Reply with the requested output only."
+
+
+def _lean_cwd() -> str:
+    """An empty directory, so a lean call picks up no CLAUDE.md or project settings."""
+    import tempfile
+    from pathlib import Path
+
+    path = Path(tempfile.gettempdir()) / "deliberator-lean-cwd"
+    path.mkdir(exist_ok=True)
+    return str(path)
+
 class ClaudeCodeProvider(SubprocessProvider):
     """Execute deliberator agent tasks via the ``claude`` CLI.
 
@@ -101,10 +115,14 @@ class ClaudeCodeProvider(SubprocessProvider):
         skip_permissions: bool = True,
         mcp_config: str | None = None,
         cwd: str | None = None,
+        lean: bool = False,
+        effort: str | None = None,
     ) -> None:
         # If a .deliberator/ dir exists with .claude/settings.json, use it
         # as cwd so claude picks up the permission grants automatically.
         # This means skip_permissions can be False when init has been run.
+        if cwd is None and lean:
+            cwd = _lean_cwd()
         if cwd is None:
             from engine.project import find_deliberator_dir, read_settings
             from pathlib import Path
@@ -124,6 +142,10 @@ class ClaudeCodeProvider(SubprocessProvider):
         self._max_budget_usd = max_budget_usd
         self._skip_permissions = skip_permissions
         self._mcp_config = mcp_config
+        self._lean = lean
+        self._effort = effort
+        if lean and system_prompt is None:
+            self._system_prompt = LEAN_SYSTEM_PROMPT
 
     @property
     def name(self) -> str:
@@ -151,8 +173,24 @@ class ClaudeCodeProvider(SubprocessProvider):
             "--model", model,
         ]
 
-        if self._skip_permissions:
+        if self._skip_permissions and not self._lean:
             argv.append("--dangerously-skip-permissions")
+
+        if self._lean:
+            # A plain completion: no tools, no MCP servers, no skills, no settings, hooks or
+            # plugins, and a one-line system prompt. Measured on claude 2.1.319 with haiku: about
+            # 690 input tokens of overhead per call instead of about 39,000.
+            argv.extend([
+                "--tools", "",
+                "--strict-mcp-config",
+                "--disable-slash-commands",
+                "--setting-sources", "",
+            ])
+
+        if self._effort is not None:
+            # Thinking is billed as output; on haiku, --effort low cut output tokens to about a
+            # third on a probe (582 -> 169) with the same visible reply.
+            argv.extend(["--effort", self._effort])
 
         if self._system_prompt:
             argv.extend(["--system-prompt", self._system_prompt])
@@ -166,8 +204,8 @@ class ClaudeCodeProvider(SubprocessProvider):
         if self._mcp_config is not None:
             argv.extend(["--mcp-config", self._mcp_config])
 
-        # Pass read paths as --add-dir so the agent can read them
-        for path in task.read_paths:
+        # Pass read paths as --add-dir so the agent can read them (lean calls have no tools)
+        for path in () if self._lean else task.read_paths:
             argv.extend(["--add-dir", path])
 
         return argv

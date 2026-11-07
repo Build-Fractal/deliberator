@@ -193,3 +193,50 @@ def test_parse_is_lenient() -> None:
     out = parse_reply('{"findings":[{"id":"F1","sev":"Blocker","claim":"x"}]}', ReviewOut)
     assert out is not None and out.findings[0].sev == "block"
     assert parse_reply("no json here", ReviewOut) is None
+
+
+@pytest.mark.asyncio
+async def test_duplicates_merge_under_the_strongest_member(tmp_path: Path) -> None:
+    script = _script({("challenge", "cat"): {"objections": [], "agree": [],
+                                              "same": {}},
+                      ("challenge", "bob"): {"objections": [], "agree": [],
+                                             "same": {"ann/F1": "F1"}}})
+    result, _ = await _run(tmp_path, script)
+    by = {f.ref: f for f in result.findings}
+    rep, dup = (by["ann/F1"], by["bob/F1"]) if by["ann/F1"].sev == "block" else (by["bob/F1"], by["ann/F1"])
+    assert dup.duplicate_of == rep.ref and rep.also == (dup.ref,)
+    assert dup.agent in rep.endorsed_by
+    md = (tmp_path / "r1" / "review.md").read_text()
+    assert md.count("| block |") + md.count("| major |") == 1  # one row for the pair
+
+
+@pytest.mark.asyncio
+async def test_one_revision_per_finding(tmp_path: Path) -> None:
+    script = _script({
+        ("challenge", "ann"): {"objections": [{"to": "bob/F1", "why": "vague"}], "agree": []},
+        ("respond", "bob"): {"replies": [
+            {"to": "cat/O1", "act": "revise", "why": "a", "claim": "first"},
+            {"to": "ann/O1", "act": "revise", "why": "b", "claim": "second"}]},
+    })
+    result, _ = await _run(tmp_path, script)
+    revised = [f for f in result.findings if f.revises == "F1" and f.agent == "bob"]
+    assert len(revised) == 1 and revised[0].claim == "first"
+
+
+def test_lean_claude_code_argv() -> None:
+    from engine.execution.providers.claude_code import (
+        LEAN_SYSTEM_PROMPT,
+        ClaudeCodeProvider,
+    )
+
+    task = ExecutionTask.from_prompt("hi", "/dev/null/x", read_paths=["/tmp"], metadata={})
+    lean = ClaudeCodeProvider(lean=True, binary="claude")._build_argv(task)
+    for flag in ("--strict-mcp-config", "--disable-slash-commands"):
+        assert flag in lean
+    assert lean[lean.index("--tools") + 1] == ""
+    assert lean[lean.index("--system-prompt") + 1] == LEAN_SYSTEM_PROMPT
+    assert "--add-dir" not in lean and "--dangerously-skip-permissions" not in lean
+    low = ClaudeCodeProvider(lean=True, effort="low", binary="claude")._build_argv(task)
+    assert low[low.index("--effort") + 1] == "low"
+    plain = ClaudeCodeProvider(binary="claude", cwd="/tmp")._build_argv(task)
+    assert "--tools" not in plain and "--add-dir" in plain

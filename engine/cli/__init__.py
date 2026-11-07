@@ -419,6 +419,11 @@ Examples:
     help="What to print: the rendered review or review.json.",
 )
 @click.option("--gate", is_flag=True, help="Exit 0 pass, 1 changes, 2 block.")
+@click.option(
+    "--effort", default="low", show_default=True,
+    type=click.Choice(["low", "medium", "high"], case_sensitive=False),
+    help="claude-code only: how much the model thinks (thinking is billed as output).",
+)
 def review(
     targets: tuple[str, ...],
     provider: str,
@@ -428,6 +433,7 @@ def review(
     out_dir: Path,
     output_format: str,
     gate: bool,
+    effort: str,
 ) -> None:
     """Review files (or stdin as "-") with a terse structured deliberation.
 
@@ -463,9 +469,16 @@ def review(
             reviewers.append(Reviewer(name.strip(), lens.strip()))
 
     try:
-        execution = resolve_execution_provider(
-            provider, model=model or DEFAULT_MODEL, max_tokens=DEFAULT_MAX_TOKENS
-        )
+        if provider == "claude-code":
+            # Lean CLI calls: no tools, MCP servers, skills or settings (~690 tokens of overhead
+            # per call instead of ~39,000). Review replies are plain JSON; no tools are needed.
+            from engine.execution.providers import get_provider
+
+            execution = get_provider("claude-code", lean=True, effort=effort)
+        else:
+            execution = resolve_execution_provider(
+                provider, model=model or DEFAULT_MODEL, max_tokens=DEFAULT_MAX_TOKENS
+            )
         kwargs = {"arbiter": None} if no_arbiter else {}
         result = asyncio.run(run_review(
             loaded, provider=execution, out_dir=out_dir, model=model, reviewers=reviewers, **kwargs

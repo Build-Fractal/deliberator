@@ -59,6 +59,8 @@ class ChallengeOut(BaseModel):
 
     objections: list[ObjectionOut] = Field(default_factory=list)
     agree: list[str] = Field(default_factory=list)
+    # Another reviewer's finding -> your own finding id that says the same thing.
+    same: dict[str, str] = Field(default_factory=dict)
 
 
 class ReplyOut(BaseModel):

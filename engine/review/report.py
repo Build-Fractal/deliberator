@@ -36,6 +36,8 @@ class Finding(BaseModel):
     objections: int = 0
     revises: str | None = None
     ruling: str | None = None
+    duplicate_of: str | None = None
+    also: tuple[str, ...] = ()
 
 
 class ReviewResult(BaseModel):
@@ -83,12 +85,15 @@ def build_result(
     endorsed: dict[str, set[str]] = defaultdict(set)
     objections: dict[str, int] = defaultdict(int)
     rulings: dict[str, str] = {}
+    same_pairs: list[tuple[str, str]] = []
     for m in moves:
         if m.kind == "agree":
             for ref in m.props.get("refs", []):
                 endorsed[ref].add(str(m.props.get("agent")))
         elif m.kind == "objection":
             objections[str(m.props.get("to"))] += 1
+        elif m.kind == "same":
+            same_pairs.extend(m.props.get("pairs", {}).items())
         elif m.kind == "ruling":
             verdict = "upheld" if m.props.get("uphold") else "rejected"
             rulings[str(m.props.get("finding"))] = f"{verdict}: {m.props.get('why')}"
@@ -113,6 +118,7 @@ def build_result(
                 ruling=rulings.get(ref),
             )
         )
+    findings = _merge_duplicates(findings, same_pairs)
     return ReviewResult(
         run_id=run_id,
         run_dir=str(run_dir),
@@ -124,6 +130,51 @@ def build_result(
         unparsed_share=round(labelled.fold.unparsed_share, 4),
         problems=len(labelled.fold.problems),
     )
+
+
+_STATUS_RANK: dict[Status, int] = {
+    "stands": 0, "contested": 1, "revised": 2, "withdrawn": 3, "defeated": 4}
+
+
+def _merge_duplicates(findings: list[Finding], pairs: Iterable[tuple[str, str]]) -> list[Finding]:
+    """Group findings reviewers said are the same; the strongest member represents the group.
+
+    Every member stays in the result (and counts toward the verdict); the others point at the
+    representative with ``duplicate_of`` and the representative lists them in ``also``.
+    """
+    refs = {f.ref for f in findings}
+    parent = {r: r for r in refs}
+
+    def root(r: str) -> str:
+        while parent[r] != r:
+            parent[r] = parent[parent[r]]
+            r = parent[r]
+        return r
+
+    for a, b in pairs:
+        if a in refs and b in refs:
+            parent[root(a)] = root(b)
+    groups: dict[str, list[Finding]] = defaultdict(list)
+    for f in findings:
+        groups[root(f.ref)].append(f)
+    rep_of: dict[str, Finding] = {}
+    for members in groups.values():
+        rep = min(members, key=lambda f: (_STATUS_RANK[f.status], _ORDER[f.sev]))
+        for f in members:
+            rep_of[f.ref] = rep
+    out = []
+    for f in findings:
+        rep = rep_of[f.ref]
+        group = groups[root(f.ref)]
+        if f.ref == rep.ref:
+            others = tuple(g.ref for g in group if g.ref != f.ref)
+            endorsers = set(f.endorsed_by).union(*(g.endorsed_by for g in group))
+            endorsers.update(g.agent for g in group if g.ref != f.ref)
+            endorsers.discard(f.agent)
+            out.append(f.model_copy(update={"also": others, "endorsed_by": tuple(sorted(endorsers))}))
+        else:
+            out.append(f.model_copy(update={"duplicate_of": rep.ref}))
+    return out
 
 
 _ORDER = {"block": 0, "major": 1, "minor": 2}
@@ -142,7 +193,7 @@ def render_markdown(result: ReviewResult) -> str:
            else "."),
         "",
     ]
-    shown = sorted((f for f in result.findings if f.status in _SHOWN),
+    shown = sorted((f for f in result.findings if f.status in _SHOWN and f.duplicate_of is None),
                    key=lambda f: (_ORDER[f.sev], f.status != "stands", f.ref))
     if shown:
         lines += ["| Sev | Finding | Where | Fix | Status |", "|---|---|---|---|---|"]
@@ -153,7 +204,7 @@ def render_markdown(result: ReviewResult) -> str:
             )
     else:
         lines.append("No findings stand.")
-    dropped = [f for f in result.findings if f.status not in _SHOWN]
+    dropped = [f for f in result.findings if f.status not in _SHOWN and f.duplicate_of is None]
     if dropped:
         lines += ["", "Withdrawn, revised or defeated:", ""]
         lines += [f"- {f.ref} ({f.status}): {f.claim}" for f in dropped]

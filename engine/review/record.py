@@ -179,8 +179,13 @@ def envelope_moves(env: Envelope, protocol: Protocol) -> Iterator[Any]:
         agree = sorted({r for r in model.agree if valid_ref(r) and r.split("/")[0] != agent})
         if agree:
             yield Move(id=f"{author}/agree", author=author, kind="agree", props={**base, "refs": agree})
+        same = {k: f"{agent}/{v}" for k, v in sorted(model.same.items())
+                if valid_ref(k) and k.split("/")[0] != agent and valid_local_id(v)}
+        if same:
+            yield Move(id=f"{author}/same", author=author, kind="same", props={**base, "pairs": same})
 
     elif env.phase == "respond":
+        revised_once: set[str] = set()
         for n, r in enumerate(model.replies, start=1):
             if not valid_ref(r.to):
                 continue
@@ -205,7 +210,10 @@ def envelope_moves(env: Envelope, protocol: Protocol) -> Iterator[Any]:
                            MoveEdge(type="RESPONDS_TO", target=objection)),
                     props={**base, "why": why},
                 )
-            else:  # revise
+            else:  # revise: one revision per finding; later revise replies to it are dropped
+                if finding in revised_once:
+                    continue
+                revised_once.add(finding)
                 revised = f"{finding}r{n}"
                 old = env.props.get("findings", {}).get(target, {})
                 yield Move(

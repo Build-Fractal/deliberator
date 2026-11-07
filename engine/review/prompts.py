@@ -64,8 +64,10 @@ def challenge(
         f"OTHER REVIEWERS' FINDINGS (ref|sev|claim|at):\n{lines}\n"
         f"TASK: object only to findings that are wrong, overstated or unsupported, at most "
         f'{max_items}; cite evidence in "at". Put refs you independently agree with in "agree". '
+        'If one of theirs says the same as one of yours, map it in "same". '
         "Leave out anything you have no view on.\n"
-        'JSON: {"objections":[{"to":"bob/F1","why":"...","at":"..."}],"agree":["bob/F2"]}'
+        'JSON: {"objections":[{"to":"bob/F1","why":"...","at":"..."}],"agree":["bob/F2"],'
+        '"same":{"bob/F3":"F1"}}'
     )
 
 
@@ -83,7 +85,8 @@ def respond(
         f'ROLE: reviewer "{name}".\n'
         f"YOUR FINDINGS UNDER OBJECTION (id|sev|claim, then objection ref|why|at):\n{body}\n"
         "TASK: answer each objection: withdraw (it is right), defend (it is wrong: say why, cite), "
-        'or revise (give the corrected claim in "claim").\n'
+        'or revise (give the corrected claim in "claim"; at most one revise per finding). '
+        "Defend when the evidence supports you; do not concede to be agreeable.\n"
         'JSON: {"replies":[{"to":"carol/O1","act":"defend","why":"...","claim":null}]}'
     )
 
