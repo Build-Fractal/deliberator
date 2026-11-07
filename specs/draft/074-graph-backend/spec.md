@@ -405,19 +405,41 @@ Deliberator needs no wrapper. Build metadata (builder versions, per-source edge 
 share, vocabulary versions applied) goes in a sibling `graph.meta.json`.
 
 - The version is semver (Principle XXVIII sub-clause 3).
-
-### 9.1a `moves.jsonl`
-
-One move per line, append-only, in the mode's own words. Line format and fold are owned by
-`lattice-graph` (being drafted on `graph-games`); Deliberator adds its move kinds
-(`confirm`, `deny`, `generated-candidate`, `correction`, `overturn`, `ladder-turn`,
-`phase-input`, `unparsed`). Never edited or reordered; CI fails if an existing line changes.
 - Deterministic: same inputs, same bytes (`json.dumps(sort_keys=True, indent=1)`).
 - Declared in `engine/schema/graph/graph.schema.json` and in `CONSUMER-CONTRACT.md`.
 - **MAJOR** for removing or renaming a label, edge type or property; **MINOR** for adding one.
 - CI (`.github/workflows/`): builds `graph.json` for every changed run, validates it against the
   schema, round-trips it through `from_node_link`, and fails on drift between the committed
   file and a rebuild.
+
+### 9.1a `moves.jsonl`
+
+Line format and fold are `lattice_graph.moves` (lattice `graph-games`, commit `af84b81`). One
+canonical JSON object per line, written by `dump_move`:
+
+```json
+{"v":1, "id":"<opaque>", "author":"<participant>", "kind":"confirm", "via":"engine",
+ "at":"<iso>", "label":"<mode word>"|null,
+ "edges":[{"type":"…","target":"…","source":"…?","key":"…?","props":{}}],
+ "props":{}, "decides":["<generated move id>"], "payload":<raw>}
+```
+
+- Append-only, in the mode's own words (`label` and edge types are mode vocabulary; the
+  `Vocabulary` passed to `fold` maps them to schema names). Never edited or reordered; CI fails if
+  an existing line changes.
+- Deliberator's kinds: `confirm`, `deny` (with `decides`), `generated` candidates (`via:
+  "generated"`), `correction`, `overturn`, `ladder-turn`, `phase-input`, `unparsed`. Moves with
+  no label and no edges (`phase-input`, `unparsed`) are records: kept, never in the graph.
+- **Phase envelopes are folded through the same code:** each item of a v4.2.0 body becomes a
+  `Move` with id `<run_id>/<agent>/<local_id>`, and envelopes plus log are folded together in run
+  order by `fold(moves, DELIBERATOR_GRAPH_SCHEMA, vocabulary)`.
+- `parse_log` never raises; bad lines are reported with their line number. `Fold.problems`,
+  `Fold.pending` (undecided candidates) and `Fold.unparsed_share` go into `graph.meta.json` and the
+  run report.
+- Participant nodes get the reserved key `participant:<author>`. That prefix is a namespace, not
+  a type name, so § 5.2 holds: renaming the `Participant` label changes no key. Deliberator sets
+  `author` to `<run_id>/<agent>`, because a participant is an agent within one run (§ 7.1);
+  the same agent name in two runs must not fold into one node.
 
 ### 9.2 Spec 046
 
