@@ -375,6 +375,118 @@ def decide(question: str, provider: str, mode: str, model: str | None, output_di
 
 
 # ---------------------------------------------------------------------------
+# review (structured review, spec 074)
+# ---------------------------------------------------------------------------
+
+
+@cli.command(
+    epilog="""\b
+Examples:
+  # Review a plan with three default reviewers (correctness, risk, clarity)
+  deliberator review plan.md --provider anthropic
+
+  # Review generated output from stdin, as a CI gate (exit 0 pass, 1 changes, 2 block)
+  some-generator | deliberator review - --provider claude-code --gate --format json
+
+  # Choose reviewers and their lenses
+  deliberator review spec.md -r "sec:security and abuse" -r "ops:operability" --no-arbiter
+""",
+)
+@click.argument("targets", nargs=-1, required=True)
+@click.option(
+    "--provider",
+    default="mock",
+    type=click.Choice(
+        ["mock", "anthropic", "openai", "claude-code", "claude-desktop", "aider", "opencode",
+         "ollama", "llama-cpp", "vllm", "codex", "copilot", "gemini", "pi"],
+        case_sensitive=False,
+    ),
+    help="Execution provider (default: mock).",
+)
+@click.option("--model", default=None, help="Model for every reviewer and the arbiter.")
+@click.option(
+    "--reviewer", "-r", "reviewer_specs", multiple=True,
+    help='A reviewer as "name:lens". Repeat for more. Default: correctness, risk, clarity.',
+)
+@click.option("--no-arbiter", is_flag=True, help="Leave contested findings contested.")
+@click.option(
+    "--out", "out_dir", default=".deliberator/reviews", type=click.Path(path_type=Path),
+    show_default=True, help="Where runs are written (one folder per run).",
+)
+@click.option(
+    "--format", "output_format", default="markdown",
+    type=click.Choice(["markdown", "json"], case_sensitive=False),
+    help="What to print: the rendered review or review.json.",
+)
+@click.option("--gate", is_flag=True, help="Exit 0 pass, 1 changes, 2 block.")
+def review(
+    targets: tuple[str, ...],
+    provider: str,
+    model: str | None,
+    reviewer_specs: tuple[str, ...],
+    no_arbiter: bool,
+    out_dir: Path,
+    output_format: str,
+    gate: bool,
+) -> None:
+    """Review files (or stdin as "-") with a terse structured deliberation.
+
+    Reviewers find problems, challenge each other's findings, answer objections, and an
+    arbiter rules only on what stays contested. Output: review.json, review.md, graph.json
+    and the full record under --out. Needs: pip install 'deliberator[graph]'.
+    """
+    from engine.review import Reviewer, run_review
+    from engine.run import DEFAULT_MAX_TOKENS, DEFAULT_MODEL, resolve_execution_provider
+
+    loaded: list[tuple[str, str]] = []
+    for t in targets:
+        if t == "-":
+            loaded.append(("stdin", sys.stdin.read()))
+        else:
+            path = Path(t)
+            if not path.is_file():
+                click.echo(f"Error: not a file: {t}", err=True)
+                sys.exit(3)
+            loaded.append((path.name, path.read_text(encoding="utf-8", errors="replace")))
+    if not any(text.strip() for _, text in loaded):
+        click.echo("Error: nothing to review.", err=True)
+        sys.exit(3)
+
+    reviewers = None
+    if reviewer_specs:
+        reviewers = []
+        for spec in reviewer_specs:
+            name, sep, lens = spec.partition(":")
+            if not sep or not name.strip() or not lens.strip():
+                click.echo(f'Error: reviewer must be "name:lens", got {spec!r}', err=True)
+                sys.exit(3)
+            reviewers.append(Reviewer(name.strip(), lens.strip()))
+
+    try:
+        execution = resolve_execution_provider(
+            provider, model=model or DEFAULT_MODEL, max_tokens=DEFAULT_MAX_TOKENS
+        )
+        kwargs = {"arbiter": None} if no_arbiter else {}
+        result = asyncio.run(run_review(
+            loaded, provider=execution, out_dir=out_dir, model=model, reviewers=reviewers, **kwargs
+        ))
+    except ImportError as exc:
+        click.echo(f"Error: {exc}", err=True)
+        sys.exit(3)
+    except (ConfigError, ProviderError, ValueError) as exc:
+        click.echo(f"Error: {exc}", err=True)
+        sys.exit(3)
+
+    if output_format == "json":
+        click.echo(result.model_dump_json(indent=1))
+    else:
+        click.echo((Path(result.run_dir) / "review.md").read_text(encoding="utf-8"))
+        click.echo(f"Run written to {result.run_dir}", err=True)
+    if gate:
+        sys.exit(result.exit_code)
+
+
+# ---------------------------------------------------------------------------
 # login
 # ---------------------------------------------------------------------------
 
