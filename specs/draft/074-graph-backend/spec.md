@@ -2,7 +2,10 @@
 
 **Feature ID**: `074-graph-backend`
 **Created**: 2026-11-07
-**Status**: Draft (v1). Not yet deliberated.
+**Status**: Draft (v2). v2 applies the per-mode verdict signed by the Deliberator and Lattice
+sessions on 2026-11-07 (`debate.md` in this folder): phase JSON stays the store for phase moves,
+an append-only `moves.jsonl` per run holds moves outside phases, the graph is folded from both,
+and there is no Memgraph.
 **Depends On**: v4.2.0 structured deliberation outputs (JSON phase outputs, `engine/schema/v1/`);
 v4.1.0 persistence contract discipline (Principle XXVIII); `lattice-graph` (Build-Fractal/lattice,
 branch `graph-games`, `packages/lattice-graph`), once it is published.
@@ -34,13 +37,17 @@ itself beyond chance" or "which concessions make good training pairs" without re
 3. One schema: `lattice-graph`'s `ARGUMENT_SCHEMA` combined with Deliberator's own types.
 4. Six game mechanics on that graph, specified with their moves, scoring, gaming resistance and
    cost, shipped in a fixed order (§ 8).
-5. A path to Memgraph as a rebuildable index, without making it a dependency.
+5. Small, swappable parts: what things are called (a vocabulary per mode, with aliases), who
+   plays (players bound to roles per run) and which roles exist (the mode file) each change
+   without touching the engine or rewriting old runs (§ 7.4).
+6. A per-mode decision on how far each mode goes onto the graph (§ 8.0).
 
 ## 3. Non-goals
 
 - **No new source of truth.** The graph is always rebuilt from files. Nothing is written only to
   the graph (Principle XI).
-- **No database in the default install or in CI.** NetworkX only.
+- **No graph database.** NetworkX in process, over files. Memgraph and Neo4j are out of scope;
+  a later spec may add one as a rebuildable index if a concrete need appears.
 - **No scores in agent prompts.** Scores are for operators comparing configurations and
   diagnosing runs, not a signal agents see (§ 9.1).
 - **No re-emission of historical runs.** Old markdown runs get a best-effort graph (§ 5.3); they
@@ -57,8 +64,13 @@ the first storage proposal, and it keeps storage as it is:
 | Layer | What it is | Status |
 |---|---|---|
 | Source of truth | Phase outputs on disk under `deliberations/<id>/…`: v4.2.0 JSON envelopes once the engine emits them, markdown before that; specs and `CONSTITUTION.md` for the hand-written references | v4.2.0 schemas and validator exist (`engine/schema/v1/`, `engine/schema_validator.py`); `persist_output` is not yet called by the engine |
-| Derived graph | `deliberations/<id>/graph.json`, built by `deliberator graph build` | this spec |
-| Optional index | Memgraph loaded from many `graph.json` files; thrown away and rebuilt at will | this spec, phase G4 |
+| Out-of-phase moves | `deliberations/<id>/moves.jsonl`, append-only: edge confirmations and denials, generated candidate edges, human corrections, later runs overturning a ruling, challenge-ladder turns, phase-input records. Line format and fold from `lattice-graph` | this spec |
+| Derived graph | `deliberations/<id>/graph.json`, folded from the phase JSON plus `moves.jsonl` by `deliberator graph build` | this spec |
+| Rendered views | markdown per phase and, for graph-native modes (§ 8.0), the arbiter's register or design document rendered from the graph | this spec |
+
+Why two stores and not one log: a v4.2.0 phase envelope already is a batch of moves by one
+author in one phase. The log exists for moves that belong to no envelope; without it they would
+mean editing an agent's output after the fact, which rewrites authorship (`debate.md`, Round 2).
 
 Consequence: the graph's quality depends on structured outputs being wired in. Spec 074 does
 not wire them in, but phase G1 (§ 10) is blocked until the engine writes v4.2.0 JSON for at
@@ -89,6 +101,7 @@ Each addition is an optional field, so 1.0.x outputs stay valid (MINOR bump unde
 |---|---|---|
 | `review.concerns[]`, `cross-review.new_concerns_raised[]` | `evidence[]: {kind, locator, hash?}` (`kind` ∈ file-line / test / quote / url) | `SUPPORTS` from `Evidence`; anti-spam rule in § 8.1 |
 | `cross-review.disagreement_points[]` | `ref` MUST be qualified: `<agent>/<id>` (today a free string) | `ATTACKS` needs a resolvable target |
+| every item with an ID | `responds_to?: [<agent>/<id>]`, `same_as?: [<agent>/<id>]` | which point a move answers; one agent's D2 is another's D1 (today only matchable by text) |
 | `revision.position_changes[]` | when `delta = withdrawn`: `conceded_to?: <agent>/<id>` | `Concession` and what it conceded to |
 | `disputes.disputes[].opposing_positions[]` | `ref?: <agent>/<id>` | `DISPUTES` edges to the claims involved |
 | `arbitration` | `dispute_rulings[]: {dispute: <agent>/D<n>, prefers: <agent>/<id>, over: [<agent>/<id>], outcome: adopt / merge / defer, confidence: 0–1, cites: [link]}` | `RULED_ON`, `PREFERS`, calibration (§ 8.3) |
@@ -96,11 +109,12 @@ Each addition is an optional field, so 1.0.x outputs stay valid (MINOR bump unde
 
 ### 5.2 Node keys
 
-Keys are global and stable: `<kind>:<run_id>/<agent>/<local_id>` for moves (for example
-`claim:v4.2.0-…-blind-2026-05-13/risk-auditor/C3`), `run:<run_id>`, `principle:XI`,
-`commit:<repo>@<sha7+>`, `spec:<spec_id>@<version>`, `section:<spec_id>#<anchor>`. The same
-string is used as the link-grammar reference (§ 6), so a link in a spec and a node in a graph
-name the same thing.
+Keys are global, stable and **carry no type name**, so renaming a type never changes a key:
+`<run_id>/<agent>/<local_id>` for moves (for example
+`v4.2.0-…-blind-2026-05-13/risk-auditor/C3`), `<run_id>` for a run, and for things outside runs
+`XI` (principle), `<repo>@<sha7+>` (commit), `<spec_id>@<version>`, `<spec_id>#<anchor>`.
+The type is the node's label, not part of its key. In the link grammar (§ 6) the kind prefix
+says where to look the key up (`[[claim:<run>/<agent>/C3]]`); it is not stored in the key.
 
 ### 5.3 Historical markdown runs
 
@@ -208,12 +222,11 @@ Edges:
 | `RESULTED_IN` | Condition → SpecVersion |
 | `SECTION_OF` | SpecSection → SpecVersion; `VERSION_OF` SpecVersion → Spec |
 | `AT_COMMIT` | Run / Ruling / SpecVersion → Commit |
-| `GROUNDED_IN` | Ruling / Condition / Claim → SpecSection / Condition / Principle |
 | `RERUN_OF` | Run → Run (self-consistency, blind and rerun stages of the same question) |
+| `CONFIRMS` / `DENIES` | Participant → a candidate edge's reified node (§ 7.5) |
 
-`GROUNDED_IN` exists only because the shared `CITES` cannot be widened from Deliberator
-(`combine` forbids it). If Lattice widens `CITES` (§ 11, item 3), `GROUNDED_IN` is dropped
-before 1.0.0.
+Grounding citations use the shared `CITES`, widened explicitly with
+`lattice_graph.schema.widen(schema, "CITES", sources=(…, "Condition"), targets=(…, "SpecSection", "Condition"))`.
 
 ### 7.3 Derived properties
 
@@ -222,9 +235,73 @@ named jobs (`deliberator graph score <mechanic>`), as `props.derived = {"<job>":
 They are never read back from text and never hand-edited. Moves are add-only: a retraction is a
 new `Concession`, never a deletion.
 
-## 8. Mechanics
+### 7.4 Vocabulary, roles and players
 
-Shipped in this order. Each one is a pure function from `graph.json` (one run, or many) to a
+What a mode calls things, which roles it has and who plays them are data, so each can change on
+its own:
+
+- **Vocabulary.** Each mode file (`schema/modes/<mode>.yml`) gets a `vocabulary` block mapping
+  its words to graph types: red-blue's `Risk`, `Attack`, `Mitigation`; negotiation's `Term`,
+  `Offer`; prisoners-dilemma's `Component`, `OWNS`. The phase JSON and `moves.jsonl` are written
+  in the mode's own words. **Aliases are applied only when the graph is folded.** Renaming a
+  word is a new vocabulary version with an alias (`Challenge → Objection`), never a rewrite of
+  old runs. The vocabulary is versioned under Principle XXVIII.
+- **Roles.** The mode file declares its roles (reviewer, cross-reviewer, arbiter, red, blue,
+  party…) and which moves each role may make in each phase. Red-blue's `AGENT_ROLE`,
+  `REVIEWER_ROLE` and `REVIEWED_ROLE` variables become role declarations.
+- **Players.** A player is a `Configuration` (provider, model, role-prompt hash, lens). Each run
+  binds players to roles in `deliberator.yml`; the graph records the binding as
+  `Participant -RUN_BY-> Configuration` plus the participant's role. Swapping a player means
+  changing the binding. Ladders (§ 8.4) rate a configuration in a role.
+- These replace the markdown patterns the engine greps today (`entry_pattern`,
+  `synthesis_heading`, `DISPUTES_BEGIN/END`) for every mode, including modes whose storage does
+  not change.
+
+### 7.5 Hard edges: candidates, confirmation and silence
+
+`INTRODUCES`, `DEPENDS_ON` and `SAME_AS` are judgements, and a missing one is silent: a missing
+`DEPENDS_ON` invalidates nothing. So:
+
+1. **Candidates are generated mechanically:** a term whose text names another term's ID gives
+   `DEPENDS_ON?`; disputes with near-identical topics give `SAME_AS?`. They are written to
+   `moves.jsonl` with `via: generated` and **count for nothing** until confirmed.
+2. **A confirm-or-deny step** (the arbiter, or a dedicated linter agent) answers every candidate
+   and every hard-edge type the mode declares, as `CONFIRMS` / `DENIES` moves in `moves.jsonl`.
+3. **Silence is measured:** a sample of candidates goes blind to a second confirmer, and the run
+   reports agreement beyond chance (lattice-games' `agreement`).
+4. Every run reports its share of `unparsed` moves: output that didn't parse is still stored raw
+   (Principle V) but is invisible to the mechanics.
+
+## 8. Modes and mechanics
+
+### 8.0 How far each mode goes onto the graph
+
+The verdict signed on 2026-11-07 (`debate.md`):
+
+| Mode | Store | Graph role | Conditions |
+|---|---|---|---|
+| red-blue | phase JSON + `moves.jsonl` | **graph-native**: the risk register is rendered from the graph (`Attack -EXPLOITS-> Risk`, `Mitigation -MITIGATES-> Risk`, `Mitigation -INTRODUCES-> Risk`) | `INTRODUCES` confirmations (§ 7.5) |
+| mechanism-design | phase JSON + `moves.jsonl` | **graph-native**: the design document is rendered from the graph (`Vulnerability -EXPLOITS-> Rule`, `Fix -AMENDS-> Rule`, `Fix -INTRODUCES-> Vulnerability`) | `INTRODUCES` confirmations |
+| negotiation | phase JSON + `moves.jsonl` | graph-native once confirmations exist (`Offer -PROPOSES-> Term`, `Term -DEPENDS_ON-> Term`, `Party -ACCEPTS-> Offer`; an acceptance whose dependency changed is invalidated by a walk) | `DEPENDS_ON` / `SAME_AS` confirm-or-deny |
+| winner-take-all | phase JSON | graph checks: a "ruling with no recorded reason" warning (an attack still stands and the arbiter recorded no `PREFERS {over}`) | — |
+| prisoners-dilemma | phase JSON | graph checks: ownership degree check (a component with no owner or several) | `OWNS` claims added to the review and revision prompts |
+| cooperative | phase JSON | graph checks: stopping rule (converged when every concern is addressed or conceded by its author) | — |
+| resource-allocation | phase JSON | tables stay; the graph records which argument justified which allocation | — |
+| fair-division | phase JSON | tables stay; the graph records disputed valuations and their justifications | — |
+
+Checks are warnings, never blocks. A graph-native mode's renderer becomes its consumer contract
+(Principle XXVIII): versioned, with fixture tests that the rendered headings match what the
+orchestrator adapter reads. It replaces that mode's dispute-parsing contract.
+
+**Frontier context** (sending a phase only the open points plus the evidence they cite) is a
+hypothesis, not a premise. It is A/B tested phase by phase on revision 2, disputes, arbitration
+and cross-round synthesis. Synthesis gets resolved points as a compact list of rulings. The
+engine records each phase's inputs (file list and token count) as `phase-input` moves to give
+the baseline. Estimated on the v4.2.0 blind run: about 300–350 moves per run; typed references
+cost about 5k output tokens (about 8% of about 65k); the possible saving is up to about 50k input
+tokens per run, unmeasured.
+
+The six mechanics below are shipped in this order. Each one is a pure function from `graph.json` (one run, or many) to a
 report; nothing changes the run.
 
 Two rules apply to all six:
@@ -321,20 +398,20 @@ The only mechanic that changes how a run is conducted, so it comes last and is o
 
 ### 9.1 `graph.json`
 
-```json
-{
-  "schema_version": "1.0.0",
-  "schema": "deliberator-graph",
-  "builder": {"deliberator": "0.4.0", "lattice_graph": "0.1.0"},
-  "run": "run:<run_id>",
-  "sources": {"structured": 412, "link": 37, "layout": 58, "extracted": 0},
-  "graph": { "format": "lattice-graph/node-link@1", "nodes": [], "links": [] }
-}
-```
+`graph.json` is exactly `lattice_graph.build.node_link(projection, DELIBERATOR_GRAPH_SCHEMA)`,
+where the schema is built with `combine(..., name="deliberator-graph", version="<semver>")`.
+`node_link` writes `{"schema": {"name", "version"}}` and `from_node_link` refuses a mismatch, so
+Deliberator needs no wrapper. Build metadata (builder versions, per-source edge counts, unparsed
+share, vocabulary versions applied) goes in a sibling `graph.meta.json`.
 
-- `graph` is exactly `lattice_graph.build.node_link(projection, DELIBERATOR_GRAPH_SCHEMA)`.
-  The wrapper carries Deliberator's `schema_version` (semver, Principle XXVIII sub-clause 3)
-  because the lattice format string versions the container, not Deliberator's types.
+- The version is semver (Principle XXVIII sub-clause 3).
+
+### 9.1a `moves.jsonl`
+
+One move per line, append-only, in the mode's own words. Line format and fold are owned by
+`lattice-graph` (being drafted on `graph-games`); Deliberator adds its move kinds
+(`confirm`, `deny`, `generated-candidate`, `correction`, `overturn`, `ladder-turn`,
+`phase-input`, `unparsed`). Never edited or reordered; CI fails if an existing line changes.
 - Deterministic: same inputs, same bytes (`json.dumps(sort_keys=True, indent=1)`).
 - Declared in `engine/schema/graph/graph.schema.json` and in `CONSUMER-CONTRACT.md`.
 - **MAJOR** for removing or renaming a label, edge type or property; **MINOR** for adding one.
@@ -345,21 +422,20 @@ The only mechanic that changes how a run is conducted, so it comes last and is o
 ### 9.2 Spec 046
 
 `commentary/graph.jsonl` is not built. Spec 046's SC-007 cross-run question ("how many times
-has fp-guru conceded?") is answered by § 10's G2 query over `graph.json` files. 046 is amended to
+has fp-guru conceded?") is answered by § 10's G3 cross-run query over `graph.json` files. 046 is amended to
 reference this spec.
 
 ## 10. Phases
 
 | Phase | Delivers | Blocked on |
 |---|---|---|
-| **G0** | Link grammar and lint (§ 6) in migration mode; `DELIBERATOR_SCHEMA` in code; `graph.json` contract | `lattice-graph` installable (§ 11) |
-| **G1** | `deliberator graph build` from structured and layout facts; CI drift gate; survival (§ 8.1) | engine writing v4.2.0 JSON; schema 1.1.0 fields (§ 5.1) |
-| **G2** | Concession harvest and DPO export (§ 8.2); calibration (§ 8.3); cross-run `deliberator graph query` over a directory of `graph.json` files, in NetworkX | G1 |
-| **G3** | Configuration ladder (§ 8.4); decisive-evidence credit (§ 8.5) | enough blind runs (§ 8.3 `n`) |
-| **G4** | Memgraph index: `deliberator graph load` runs `lattice_graph.projection.statements` through one gateway; MAGE only if a query needs it | a concrete need: live in-run queries, or cross-run queries too slow in NetworkX |
-| **G5** | Challenge ladder mode (§ 8.6) pilot | G1–G2 results |
+| **G0** | Link grammar and lint (§ 6) in migration mode; `DELIBERATOR_SCHEMA`; vocabulary, roles and players in the mode files (§ 7.4), replacing the dispute greps; `graph.json` and `moves.jsonl` contracts; phase-input logging | `lattice-graph` installable (§ 11) |
+| **G1** | `deliberator graph build` folding phase JSON + `moves.jsonl`; CI drift gate; survival (§ 8.1); the graph checks for winner-take-all, prisoners-dilemma and cooperative (§ 8.0) | engine writing v4.2.0 JSON; schema 1.1.0 fields (§ 5.1) |
+| **G2** | Hard-edge candidates and confirm-or-deny (§ 7.5); red-blue and mechanism-design graph-native renderers; frontier-context A/B | G1 |
+| **G3** | Negotiation graph-native; concession harvest and DPO export (§ 8.2); calibration (§ 8.3); cross-run `deliberator graph query` over a directory of `graph.json` files | G2 |
+| **G4** | Configuration ladder (§ 8.4); decisive-evidence credit (§ 8.5) | enough blind runs (§ 8.3 `n`) |
+| **G5** | Challenge ladder mode (§ 8.6) pilot, its turns in `moves.jsonl` | G1–G3 results |
 
-Neo4j/GDS: only for a concrete algorithm or customer need, and never alongside Memgraph.
 Preferred or stable semantics (ASPARTIX or another ICCMA solver): only as an optional extra if a
 mechanic needs it; none here does.
 
@@ -388,7 +464,7 @@ added.
 3. **`CITES` endpoints.** `CITES` targets `Principle`, `Evidence` and `Ruling` only, and `combine`
    forbids widening it. Ask: allow a host to extend an edge type's endpoints (an explicit
    `extend` rather than a silent merge), or widen `CITES` to any node type. Until then Deliberator
-   uses `GROUNDED_IN` (§ 7.2).
+   uses its own edge type (done: `widen` is used instead, § 7.2).
 4. **Parallel edges collapse.** `to_networkx` keys parallel edges by type, and `statements`
    writes `MERGE (a)-[r:TYPE]->(b) SET r += $props`. Two `PREFERS` edges from one ruling to one
    claim with different `over` (a three-way dispute), or two `CITES` with different line ranges,
@@ -413,8 +489,10 @@ added.
 - **SC-5** Calibration reports agreement only with `n ≥ 20` paired questions and always shows
   `n`.
 - **SC-6** No score, label or rating appears in any prompt the engine sends (checked by test).
-- **SC-7** Loading the same `graph.json` set into Memgraph twice yields the same node and edge
-  counts (G4).
+- **SC-7** Renaming a vocabulary word (new vocabulary version with an alias) changes the folded
+  graph's labels and leaves every committed phase JSON and `moves.jsonl` byte-identical.
+- **SC-8** Swapping the player bound to a role changes only `deliberator.yml`; no engine code.
+- **SC-9** No mechanic or render uses a `via: generated` edge that has no `CONFIRMS` move.
 
 ## 13. Open questions
 

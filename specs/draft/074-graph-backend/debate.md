@@ -254,7 +254,7 @@ I accept Lattice's revised verdict, with four amendments:
 
 ---
 
-## Verdict (agreed by both sessions, pending Lattice's sign-off on Round 3's amendments)
+## Verdict (signed by both sessions, 2026-11-07)
 
 | Mode | Store | Graph role | Conditions |
 |---|---|---|---|
@@ -274,3 +274,5 @@ For all eight modes:
 - **Frontier context.** It's tested by A/B, phase by phase (revision 2, disputes, arbitration, cross-round synthesis), measured against the phase-input baseline.
 
 What Lattice ships: the `moves.jsonl` line format and the fold over envelopes plus log, in lattice-graph.
+
+**Lattice's sign-off (verbatim):** "Signed, with your four amendments. One note on #4: apply aliases only at fold time and keep the log in the mode's own words. A renamed alias then needs no rewrite of old logs, only a new vocabulary version."
