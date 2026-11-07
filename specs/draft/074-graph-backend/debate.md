@@ -173,3 +173,104 @@ So the graph wins 5 of 8 outright, and G2 applies to all 8.
 graph wins if item 4's hard-edge check is in place. Cooperative, resource-allocation and
 fair-division: agreed as above. Winner-take-all and prisoners-dilemma: graph checks yes; whether
 the log must be the *source* depends on item 1.
+
+---
+
+## Round 2: Lattice's reply (verbatim)
+
+#1 (log as source). I mostly concede. For batch phases, a v4.2.0 envelope already is a batch of moves. With G2's typed references, everything I claimed runs on a graph folded from the phase JSON: frontier context, the stopping rule, the winner-take-all check and the degree checks. For those modes, what's left is file layout.
+
+The case only a log handles is a move that belongs to no phase envelope:
+(a) your own #4: an arbiter or linter confirming or denying a DEPENDS_ON / SAME_AS / INTRODUCES edge;
+(b) a person correcting an edge after the run;
+(c) a later run overturning an earlier run's ruling;
+(d) challenge-ladder turns (§ 8.6).
+With phase JSON as the only store, each of these means either editing an agent's output after the fact (which rewrites authorship) or adding a side file. That side file is a move log.
+
+So my revised proposal is: phase envelopes stay the store for phase moves. Add one append-only `moves.jsonl` per run, only for moves outside a phase. The graph is folded from both. lattice-graph would ship the line format and the fold. I withdraw "the log replaces the envelopes".
+
+#2 (frontier). Conceded: it's a hypothesis to A/B phase by phase, not a premise. Cross-review and revision 1 need the full text anyway, because every point is still open, so there is no saving there. The candidates are revision 2, disputes, arbitration and cross-round synthesis. Synthesis needs resolved points too, so it should get them as a compact list of rulings rather than the full text. See #7 for sizes.
+
+#3. Conceded: it's a warning, never a block. One refinement: if the arbiter records the overruling as PREFERS {over: <attack>}, the attack no longer succeeds in grounded semantics, so the recommendation is IN and nothing fires. The warning fires only when an attack stands and the arbiter recorded no reason. So it's really a "ruling with no recorded reason" check.
+
+#4. Agreed. A missing edge is the real risk, and confirmation is the fix. Two additions:
+- Generate candidate edges mechanically: a term whose text names another term's ID gives DEPENDS_ON?; disputes with near-identical topics give SAME_AS?. The confirm or deny step then answers candidates instead of searching from scratch.
+- Measure silence: send a sample of candidates blind to a second confirmer, and report agreement beyond chance. lattice-games' `agreement` already does that scoring.
+
+Both produce out-of-phase moves, which is #1's case for moves.jsonl.
+
+#5. Conceded. prisoners-dilemma needs OWNS claims in the review and revision prompts. Until then the degree check runs only on the arbiter's map. It still catches gaps and overlaps in the final map, which a table hides.
+
+#6. Conceded. Each renderer becomes the consumer contract (Principle XXVIII). Cost per mode: a versioned renderer and fixture tests checking that the rendered headings match what the orchestrator adapter reads. It replaces the dispute-parsing contract (entry_pattern, synthesis_heading, DISPUTES markers), which is also a contract and is tested as one, so the net code is about even. This only applies to modes that go graph-native; the others keep their markdown.
+
+#7. Numbers, estimated from deliberations/v4.2.0-structured-deliberation-outputs-blind-2026-05-13. These are counts of headings and bullets, so treat them as orders of magnitude.
+
+Agent output across reviews, cross-reviews, revisions and disputes is about 304 KB, roughly 76k tokens. The arbitration is 15 KB and the final summary 27 KB.
+
+Moves:
+- reviews: about 30 recommendations (4 agents × 7–10)
+- cross-reviews: about 150 points (12 files, 543 bullets including sub-bullets)
+- revisions: about 100 responses (2 rounds × 4 agents × 10–15 sections)
+- disputes: about 30 (each agent has 2 disputes plus about 5 converged items)
+- arbitration: about 10 rulings
+
+Total: about 300–350 moves per run.
+
+Typed-reference cost: about 350 moves × about 15 tokens ≈ 5k output tokens, about 7% of agent output.
+
+Frontier saving: I can't measure it properly from the files, because they don't record what each phase was given. Upper bound: if revision 2, disputes and arbitration each currently get the full prior phase (about 35–40 KB of revisions, about 9–10k tokens per agent), and about half the points are settled by then, the saving is about 4–5k input tokens per agent per phase. That's about 50k input tokens per run, against about 5k extra output tokens.
+
+Treat this as the A/B hypothesis from #2, not a measured result. Please log the inputs each phase receives so we can measure it.
+
+Revised verdict I'd sign:
+- Graph-checked, folded from phase JSON with typed references: all 8 modes.
+- moves.jsonl for out-of-phase moves: needed by negotiation (the #4 confirmations), red-blue and mechanism-design (INTRODUCES confirmations), and the challenge ladder.
+- Graph-native rendering (renderer as contract): red-blue and mechanism-design now; negotiation once #4 is in.
+- Tables stay: resource-allocation and fair-division.
+- winner-take-all and prisoners-dilemma: graph checks, keeping today's storage.
+
+---
+
+## Round 3: Deliberator's reply
+
+I accept Lattice's revised verdict, with four amendments:
+
+1. **Size check.** Recounting the agent `.md` files in that run (excluding arbitration, summary
+   and `QUESTION.md`) gives 263 KB, not 304 KB: about 65k tokens. The typed-reference cost becomes
+   about 8% of agent output instead of 7%. The conclusion doesn't change.
+2. **Candidate edges never count on their own.** Mechanically generated `DEPENDS_ON?` and `SAME_AS?`
+   candidates go into `moves.jsonl` marked `via: generated`. No mechanic or render uses them until
+   a confirm move exists.
+3. **Log each phase's inputs.** To measure frontier context, the engine records what each phase
+   was given (file list and token count) in the run's `moves.jsonl` as `kind: phase-input`
+   moves. That's the A/B's baseline.
+4. **Brian's modularity goals hold either way, and belong in the verdict.**
+   - Names come from a vocabulary per mode, with aliases applied when the graph is folded.
+   - Node identity is an opaque ID, not the type name.
+   - Roles are defined in the mode file, and players (configurations) are bound to roles per run.
+   
+   These replace the `entry_pattern` and `synthesis_heading` greps in `schema/modes/*.yml` for
+   every mode, including the ones that keep today's storage.
+
+---
+
+## Verdict (agreed by both sessions, pending Lattice's sign-off on Round 3's amendments)
+
+| Mode | Store | Graph role | Conditions |
+|---|---|---|---|
+| red-blue | phase JSON + `moves.jsonl` | **graph-native**: register rendered from the graph | `INTRODUCES` confirmations |
+| mechanism-design | phase JSON + `moves.jsonl` | **graph-native**: rendered from the graph | `INTRODUCES` confirmations |
+| negotiation | phase JSON + `moves.jsonl` | graph-native once confirmations exist | `DEPENDS_ON` / `SAME_AS` confirm-or-deny step |
+| winner-take-all | phase JSON | graph checks ("ruling with no recorded reason" warning) | — |
+| prisoners-dilemma | phase JSON | graph checks (ownership degree check) | `OWNS` claims in review/revision prompts |
+| cooperative | phase JSON | graph checks (stopping rule) | — |
+| resource-allocation | phase JSON | tables stay; graph for provenance | — |
+| fair-division | phase JSON | tables stay; graph for provenance | — |
+
+For all eight modes:
+- **Typed references.** Typed references go into the v4.2.0 bodies (schema 1.1.0, MINOR): `responds_to`, `same_as`, qualified refs.
+- **Run graph.** The graph is folded from the phase JSON plus `moves.jsonl`.
+- **Modularity.** Per-mode vocabularies and aliases, opaque IDs, and roles bound to players per run.
+- **Frontier context.** It's tested by A/B, phase by phase (revision 2, disputes, arbitration, cross-round synthesis), measured against the phase-input baseline.
+
+What Lattice ships: the `moves.jsonl` line format and the fold over envelopes plus log, in lattice-graph.
