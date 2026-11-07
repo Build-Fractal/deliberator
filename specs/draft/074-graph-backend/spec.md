@@ -440,6 +440,11 @@ canonical JSON object per line, written by `dump_move`:
   a type name, so § 5.2 holds: renaming the `Participant` label changes no key. Deliberator sets
   `author` to `<run_id>/<agent>`, because a participant is an agent within one run (§ 7.1);
   the same agent name in two runs must not fold into one node.
+- Cross-run grouping does not rely on the participant node, which the fold gives only its id.
+  At run start the engine appends one `kind: "run-setup"` move per agent with the edge
+  `participant:<run_id>/<agent> -RUN_BY-> <configuration key>` (the `Configuration` key is the
+  config hash, stable across runs). Every move also carries `props.agent` and
+  `props.config_hash`. Calibration and the ladder (§ 8.3, § 8.4) group by `Configuration`.
 
 ### 9.2 Spec 046
 
