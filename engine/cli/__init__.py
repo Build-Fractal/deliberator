@@ -441,52 +441,24 @@ def review(
     arbiter rules only on what stays contested. Output: review.json, review.md, graph.json
     and the full record under --out. Needs: pip install 'deliberator[graph]'.
     """
-    from engine.review import Reviewer, run_review
-    from engine.run import DEFAULT_MAX_TOKENS, DEFAULT_MODEL, resolve_execution_provider
-
-    loaded: list[tuple[str, str]] = []
-    for t in targets:
-        if t == "-":
-            loaded.append(("stdin", sys.stdin.read()))
-        else:
-            path = Path(t)
-            if not path.is_file():
-                click.echo(f"Error: not a file: {t}", err=True)
-                sys.exit(3)
-            loaded.append((path.name, path.read_text(encoding="utf-8", errors="replace")))
-    if not any(text.strip() for _, text in loaded):
-        click.echo("Error: nothing to review.", err=True)
-        sys.exit(3)
-
-    reviewers = None
-    if reviewer_specs:
-        reviewers = []
-        for spec in reviewer_specs:
-            name, sep, lens = spec.partition(":")
-            if not sep or not name.strip() or not lens.strip():
-                click.echo(f'Error: reviewer must be "name:lens", got {spec!r}', err=True)
-                sys.exit(3)
-            reviewers.append(Reviewer(name.strip(), lens.strip()))
+    from engine.review.service import (
+        ReviewInputError,
+        load_targets,
+        parse_reviewers,
+        review_targets,
+    )
 
     try:
-        if provider == "claude-code":
-            # Lean CLI calls: no tools, MCP servers, skills or settings (~690 tokens of overhead
-            # per call instead of ~39,000). Review replies are plain JSON; no tools are needed.
-            from engine.execution.providers import get_provider
-
-            execution = get_provider("claude-code", lean=True, effort=effort)
-        else:
-            execution = resolve_execution_provider(
-                provider, model=model or DEFAULT_MODEL, max_tokens=DEFAULT_MAX_TOKENS
-            )
-        kwargs = {"arbiter": None} if no_arbiter else {}
-        result = asyncio.run(run_review(
-            loaded, provider=execution, out_dir=out_dir, model=model, reviewers=reviewers, **kwargs
+        loaded = load_targets(targets, stdin=sys.stdin)
+        reviewers = parse_reviewers(reviewer_specs)
+        result = asyncio.run(review_targets(
+            loaded, provider=provider, out_dir=out_dir, model=model, reviewers=reviewers,
+            arbiter=not no_arbiter, effort=effort,
         ))
     except ImportError as exc:
         click.echo(f"Error: {exc}", err=True)
         sys.exit(3)
-    except (ConfigError, ProviderError, ValueError) as exc:
+    except (ReviewInputError, ConfigError, ProviderError, ValueError) as exc:
         click.echo(f"Error: {exc}", err=True)
         sys.exit(3)
 

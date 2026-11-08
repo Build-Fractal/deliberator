@@ -64,7 +64,8 @@ web = [
     "uvicorn[standard]>=0.34.0",
 ]
 mcp = [
-    "mcp[cli]>=1.0.0",
+    # mcp 2.x renamed FastMCP to MCPServer; mcp_server.py is written against 1.x.
+    "mcp[cli]>=1.0.0,<2",
 ]
 nashopt = [
     "nashopt>=0.1.0",

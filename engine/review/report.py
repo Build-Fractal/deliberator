@@ -12,7 +12,7 @@ from collections.abc import Iterable, Sequence
 from pathlib import Path
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, computed_field
 
 from engine.review.protocol import Protocol, Severity, Verdict
 from engine.review.record import Labelled, Status
@@ -54,6 +54,7 @@ class ReviewResult(BaseModel):
     unparsed_share: float
     problems: int
 
+    @computed_field  # type: ignore[prop-decorator]
     @property
     def exit_code(self) -> int:
         """0 pass, 1 changes, 2 block: for CI gates."""

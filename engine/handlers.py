@@ -1343,6 +1343,56 @@ def init_cli(
 # ---------------------------------------------------------------------------
 
 
+_REVIEW_MCP_PROVIDERS: frozenset[str] = frozenset(
+    {"mock", "anthropic", "openai", "claude-code"}
+)
+
+
+async def review_mcp(
+    paths: list[str] | None = None,
+    text: str = "",
+    provider: str = "mock",
+    model: str = "",
+    reviewers: list[str] | None = None,
+    arbiter: bool = True,
+    effort: str = "low",
+    out_dir: str = "",
+) -> dict[str, Any]:
+    """Structured review for the MCP surface: review.json as a dict, or {"error": ...}.
+
+    claude-code is admitted here (unlike run/decide): review calls run lean, with no tools,
+    and the MCP server is a local process, so the local ``claude`` CLI is the cheap path.
+    """
+    from engine.review.service import (
+        ReviewInputError,
+        load_targets,
+        parse_reviewers,
+        review_targets,
+    )
+
+    if provider not in _REVIEW_MCP_PROVIDERS:
+        supported = ", ".join(sorted(_REVIEW_MCP_PROVIDERS))
+        return {"error": f"Unknown provider {provider!r}. Review supports: {supported}."}
+    root = find_user_project_root()
+    target_dir = Path(out_dir) if out_dir else root / ".deliberator" / "reviews"
+    try:
+        # Relative paths are relative to the project root, not the server's working directory.
+        resolved = [p if Path(p).is_absolute() else str(root / p) for p in paths or []]
+        loaded = load_targets(resolved, text)
+        result = await review_targets(
+            loaded,
+            provider=provider,
+            out_dir=target_dir,
+            model=model or None,
+            reviewers=parse_reviewers(reviewers),
+            arbiter=arbiter,
+            effort=effort,
+        )
+    except (ImportError, ReviewInputError, ConfigError, ProviderError, ValueError) as exc:
+        return {"error": str(exc)}
+    return result.model_dump(mode="json")
+
+
 def list_deliberations_mcp(project_root: str = "") -> ListResult:
     """List past deliberations for the MCP surface."""
     root: Path = Path(project_root) if project_root else find_user_project_root()
