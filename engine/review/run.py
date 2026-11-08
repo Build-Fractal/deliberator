@@ -115,6 +115,25 @@ def _slug(text: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")[:40] or "review"
 
 
+def subject_hash(targets: Sequence[tuple[str, str]]) -> str:
+    """Content hash of the reviewed inputs (names and texts), stable across runs."""
+    h = hashlib.sha256()
+    for name, text in targets:
+        h.update(name.encode() + b"\0" + text.encode() + b"\0")
+    return h.hexdigest()[:16]
+
+
+def config_hash(
+    reviewers: Sequence[Reviewer], arbiter: Reviewer | None, model: str | None,
+    protocol: Protocol, number_lines: bool,
+) -> str:
+    """Hash of everything about a run's setup that can change its outcome."""
+    parts = [f"{protocol.protocol}@{protocol.schema_version}", f"lines={number_lines}"]
+    parts += sorted(f"{r.name}={r.config_hash(model)}" for r in reviewers)
+    parts.append(f"arbiter={arbiter.config_hash(model) if arbiter else '-'}")
+    return hashlib.sha256("|".join(parts).encode()).hexdigest()[:12]
+
+
 def new_run_id(title: str) -> str:
     return f"{datetime.now(UTC).strftime('%Y%m%dT%H%M%S')}-{_slug(title)}"
 
@@ -138,8 +157,26 @@ async def run_review(
     names = [r.name for r in reviewers]
     if len(set(names)) != len(names) or any("/" in n for n in names):
         raise ValueError("reviewer names must be unique and contain no '/'")
+    auto_id = run_id is None
     run_id = run_id or new_run_id(targets[0][0] if targets else "review")
+    identity = {
+        "subject": subject_hash(targets),
+        "config": config_hash(reviewers, arbiter, model, protocol, number_lines),
+        "targets": [
+            {"name": n, "sha256": hashlib.sha256(t.encode()).hexdigest(),
+             "lines": len(t.splitlines())}
+            for n, t in targets
+        ],
+        "started": datetime.now(UTC).isoformat(timespec="seconds"),
+    }
     run_dir = out_dir / run_id
+    if auto_id:
+        # Reruns started in the same second would share an id; number them instead.
+        n = 1
+        while run_dir.exists():
+            n += 1
+            run_dir = out_dir / f"{run_id}-{n}"
+        run_id = run_dir.name
     run_dir.mkdir(parents=True, exist_ok=True)
 
     usage = _Usage()
@@ -269,7 +306,8 @@ async def run_review(
 
     append_log(run_dir, log)
     result = build_result(run_id, run_dir, protocol, labelled, all_moves(envelopes, log, protocol),
-                          usage.as_dict(), reviewers=[r.name for r in reviewers])
+                          usage.as_dict(), reviewers=[r.name for r in reviewers],
+                          identity=identity)
     write_outputs(run_dir, result, graph_json(labelled, protocol), render_markdown(result))
     return result
 

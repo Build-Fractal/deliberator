@@ -17,7 +17,7 @@ from pydantic import BaseModel, ConfigDict, computed_field
 from engine.review.protocol import Protocol, Severity, Verdict
 from engine.review.record import Labelled, Status
 
-RESULT_VERSION = "1.0.0"
+RESULT_VERSION = "1.1.0"
 _RANK: dict[Verdict, int] = {"pass": 0, "changes": 1, "block": 2}
 _COUNTS_TOWARD_VERDICT: tuple[Status, ...] = ("stands", "contested")
 
@@ -40,11 +40,27 @@ class Finding(BaseModel):
     also: tuple[str, ...] = ()
 
 
+class TargetRef(BaseModel):
+    """One reviewed input, identified by content so reruns of the same text link up."""
+
+    model_config = ConfigDict(frozen=True)
+
+    name: str
+    sha256: str
+    lines: int
+
+
 class ReviewResult(BaseModel):
     model_config = ConfigDict(frozen=True)
 
-    schema_version: Literal["1.0.0"] = RESULT_VERSION
+    schema_version: Literal["1.0.0", "1.1.0"] = RESULT_VERSION
     run_id: str
+    # 1.1.0: what was reviewed and with which setup, so runs can be linked into trials.
+    # `subject` hashes the targets; `config` hashes reviewers, lenses, model and protocol.
+    subject: str = ""
+    config: str = ""
+    targets: tuple[TargetRef, ...] = ()
+    started: str = ""
     run_dir: str
     protocol: str
     verdict: Verdict
@@ -81,6 +97,7 @@ def build_result(
     usage: dict[str, Any],
     *,
     reviewers: Sequence[str],
+    identity: dict[str, Any] | None = None,
 ) -> ReviewResult:
     prefix = f"{run_id}/"
     endorsed: dict[str, set[str]] = defaultdict(set)
@@ -130,6 +147,7 @@ def build_result(
         usage=usage,
         unparsed_share=round(labelled.fold.unparsed_share, 4),
         problems=len(labelled.fold.problems),
+        **(identity or {}),
     )
 
 
