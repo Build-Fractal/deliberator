@@ -394,6 +394,48 @@ The only mechanic that changes how a run is conducted, so it comes last and is o
 - **Cost:** extra rounds and tokens: the largest cost in this spec. Measured on a pilot before it is
   offered as a mode.
 
+### 8.7 Structured review (implemented: `deliberator review`)
+
+A terse protocol for reviewing files or another tool's output, defined in
+`schema/protocols/review.yml` (vocabulary, roles, phase token caps) and run by `engine/review/`.
+
+- **Phases.** *review* (each reviewer lists findings: severity, location, fix), *challenge*
+  (one call per reviewer over one-line summaries of the others' findings: object, agree, or mark
+  a duplicate), *respond* (only reviewers who drew objections: withdraw, defend or revise),
+  *arbitrate* (one call, only when a finding is still contested). For N reviewers: at most 3N+1
+  calls, each reply one JSON object.
+- **Record.** Phase envelopes plus `moves.jsonl`, folded by `lattice-graph` into `graph.json`
+  (§ 9). The verdict (pass, changes, block) is computed from which findings stand under grounded
+  semantics; no synthesis call.
+- **Surfaces.** CLI `deliberator review` (`--gate` exits 0/1/2) and MCP `deliberator_review`.
+- **`review.json` 1.1.0** adds `subject` (content hash of the targets), `config` (reviewers,
+  lenses, model, protocol) and the targets' hashes, so runs can be linked (§ 8.8).
+
+### 8.8 Trials and bounds (implemented: `deliberator trials`)
+
+One run is one sample. A folder of runs is read as trials:
+
+- **Graph** (`trials.graph.json`, schema `deliberator-trials` 1.0.0). Nodes `Subject`,
+  `Config`, `Trial`, `Issue`. Edges `REVIEWS` (Trial→Subject), `RUN_WITH` (Trial→Config),
+  `RERUN_OF` (same subject and config, to the first run), `RAISES` (Trial→Issue), `ABOUT`
+  (Issue→Subject), and declared `DEPENDS_ON` (Subject→Subject, from `links.jsonl`).
+- **Issues.** Findings on one subject are matched across runs by location (`name:line` within
+  three lines) and wording (word overlap), at most one finding per run per issue. Each issue has
+  a stand rate: the share of the subject's runs where it was raised and still stood. *Stable*
+  ≥ 0.67, *noise* ≤ 0.34, otherwise *unstable*.
+- **Constrained fit.** Each subject gets a verdict level (pass 0, changes 1, block 2) minimising
+  the weighted squared distance to its runs' verdicts, subject to `fitted[B] ≥ fitted[A]` when B
+  depends on A (B can't be in better shape than what it was built from). This is weighted
+  isotonic regression on the dependency DAG, solved exactly by Dykstra's alternating projections.
+  A consensus verdict from issues that stand in at least half the runs is checked against the
+  same rule, and breaches are reported.
+- **Bounds.** A run is out of bounds when its verdict is more than `tolerance` (default 0.75)
+  from the fit, when it misses more than half the stable issues, when it alone raises a block or
+  major issue (subjects with three or more runs), or when its tokens fall outside its config's
+  median ± 3·MAD (three or more runs). `--gate` exits 1 on any of these.
+- **Where to spend.** Subjects are ranked for the next rerun by Σ severity·p(1−p) over their
+  issues plus verdict variance, divided by √runs.
+
 ## 9. Persistence contract
 
 ### 9.1 `graph.json`
@@ -520,6 +562,8 @@ added.
   graph's labels and leaves every committed phase JSON and `moves.jsonl` byte-identical.
 - **SC-8** Swapping the player bound to a role changes only `deliberator.yml`; no engine code.
 - **SC-9** No mechanic or render uses a `via: generated` edge that has no `CONFIRMS` move.
+- **SC-10** `deliberator trials` on a fixed folder of runs is deterministic, and on a run that
+  misses the stable issues, or contradicts a dependency, it exits 1 under `--gate`.
 
 ## 13. Open questions
 

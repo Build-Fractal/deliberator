@@ -84,7 +84,8 @@ def test_stable_issue_missed_and_verdict_outlier_are_out_of_bounds() -> None:
 def test_lone_serious_issue_and_token_outlier() -> None:
     runs = [_run(f"r{i}", "changes", [_f("ann/F1", SSH, "install.sh:42")]) for i in range(4)]
     runs.append(_run("r5", "block", [_f("ann/F1", SSH, "install.sh:42"),
-                                     _f("bob/F1", "Deletes home directory", sev="block")],
+                                     _f("bob/F1", "Deletes home directory", sev="block"),
+                                     _f("cat/F1", "Uploads credentials to pastebin", sev="major")],
                      tokens=400_000))
     report = analyse(runs)
     r5 = next(r for r in report.runs if r.run_id == "r5")

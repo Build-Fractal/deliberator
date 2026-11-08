@@ -7,9 +7,9 @@ trials of the same experiments and answers three questions:
    the targets) and how (``config``: reviewers, lenses, model, protocol). Same subject and
    config makes a run a ``RERUN_OF`` the first one. Declared links add ``DEPENDS_ON`` between
    subjects (B was built from A).
-2. **Which findings are the same issue?** Findings on one subject are matched across runs by
-   where they point (``name:line``) and what they say (word overlap). Each issue gets a
-   *stand rate*: the share of the subject's runs in which it was raised and still stood.
+2. **Which findings are the same issue?** Findings on one subject are clustered across runs by
+   where they point (any line a location names) and what they say (word-stem overlap). Each
+   issue gets a *stand rate*: the share of the subject's runs in which it was raised and still stood.
 3. **Which runs are out of bounds?** A constrained fit finds one verdict level per subject
    that stays as close as possible to every run's verdict while obeying the hard rules
    (if B depends on A, B can't be in better shape than A). It is weighted isotonic regression
@@ -96,7 +96,7 @@ class Run:
         return Run(
             run_id=data["run_id"], subject=data["subject"], config=data["config"],
             verdict=data["verdict"], started=data.get("started", ""), findings=findings,
-            tokens=tokens, cost_usd=usage.get("cost_usd"),
+            tokens=tokens, cost_usd=usage.get("usd"),
             target_names=tuple(t["name"] for t in data.get("targets", [])),
         )
 
@@ -155,56 +155,100 @@ _STOP = frozenset(
         "the", "and", "for", "with", "not", "but", "are", "was", "were", "this", "that",
         "from", "into", "when", "then", "than", "have", "has", "its", "can", "will",
         "would", "should", "could", "may", "might", "any", "all", "one", "only", "also",
-        "even", "just", "does", "doesn"
+        "even", "just", "does", "doesn", "line", "lines", "user", "users", "script",
+        "never", "always",
     ]
 )
-_AT = re.compile(r"([^\s:]+):(\d+)")
+_LINES = re.compile(r"(\d+)(?:\s*-\s*(\d+))?")
 
 
-def _words(text: str) -> frozenset[str]:
-    return frozenset(w for w in _WORD.findall(text.lower()) if w not in _STOP)
+def _stems(text: str) -> frozenset[str]:
+    """Words cut to five letters, so "silently"/"silent" and "ignored"/"ignores" meet."""
+    return frozenset(
+        w[:5] for w in _WORD.findall(text.lower().replace("-", " ")) if w not in _STOP
+    )
 
 
-def _where(at: str | None) -> tuple[str, int] | None:
-    m = _AT.search(at or "")
-    return (m.group(1), int(m.group(2))) if m else None
+def _lines(at: str | None) -> frozenset[int]:
+    """Every line a location names: "f.sh:12", "144-152", "145,152,161"."""
+    found: set[int] = set()
+    for a, b in _LINES.findall(at or ""):
+        lo, hi = int(a), int(b) if b else int(a)
+        if 0 <= hi - lo <= 40:
+            found.update(range(lo, hi + 1))
+    return frozenset(found)
 
 
-def _similar(a: RunFinding, b: RunFinding, *, line_slack: int = 3) -> float:
-    """0..1: how likely two findings are the same issue."""
+def _similar(a: RunFinding, b: RunFinding, *, line_slack: int = 2) -> float:
+    """0..1.5: how likely two findings are the same issue (word-stem overlap, raised when
+    they point at the same lines)."""
     if a.claim.strip().lower() == b.claim.strip().lower() and (a.at or "") == (b.at or ""):
-        return 1.0
-    wa, wb = _words(a.claim), _words(b.claim)
+        return 1.5
+    wa, wb = _stems(a.claim), _stems(b.claim)
     overlap = len(wa & wb) / len(wa | wb) if wa and wb else 0.0
-    pa, pb = _where(a.at), _where(b.at)
-    near = pa is not None and pb is not None and pa[0] == pb[0] and abs(pa[1] - pb[1]) <= line_slack
-    if near and overlap >= 0.12:
-        return min(1.0, overlap + 0.5)
-    return overlap
+    la, lb = _lines(a.at), _lines(b.at)
+    near = any(abs(x - y) <= line_slack for x in la for y in lb)
+    # Tuned on five live runs: a bigger bonus merged distinct bugs on the same lines.
+    return overlap + 0.3 if near and overlap >= 0.15 else overlap
 
 
 @dataclass
 class _Cluster:
-    members: dict[str, RunFinding] = field(default_factory=dict)  # run id -> finding
+    items: list[tuple[str, RunFinding]] = field(default_factory=list)  # (run id, finding)
+
+    @property
+    def members(self) -> dict[str, RunFinding]:
+        """One finding per run: the run's strongest (standing first, then severity)."""
+        best: dict[str, RunFinding] = {}
+        for rid, f in self.items:
+            cur = best.get(rid)
+            if cur is None or _strength(f) > _strength(cur):
+                best[rid] = f
+        return best
 
 
-def match_issues(runs: Sequence[Run], threshold: float = 0.4) -> list[_Cluster]:
-    """Greedy, deterministic clustering: at most one finding per run in each issue."""
-    clusters: list[_Cluster] = []
-    for run in runs:
-        for f in sorted(run.findings, key=lambda x: (-_SEV_WEIGHT.get(x.sev, 1), x.ref)):
-            best, best_score = None, threshold
-            for c in clusters:
-                if run.run_id in c.members:
-                    continue
-                score = max(_similar(f, g) for g in c.members.values())
-                if score >= best_score:
-                    best, best_score = c, score
-            if best is None:
-                best = _Cluster()
-                clusters.append(best)
-            best.members[run.run_id] = f
-    return clusters
+def _strength(f: RunFinding) -> tuple[bool, float]:
+    return (f.status in _STANDING, _SEV_WEIGHT.get(f.sev, 1.0))
+
+
+def match_issues(runs: Sequence[Run], threshold: float = 0.3) -> list[_Cluster]:
+    """Average-link agglomerative clustering of every finding on one subject.
+
+    Two reviewers in one run can report the same issue, so a run may contribute several
+    findings to one issue (it still counts once). Average link, not single link, so a chain of
+    loosely similar findings doesn't merge unrelated issues. Deterministic: ties go to the
+    earliest pair. O(n^3) on findings per subject, fine for tens of runs.
+    """
+    clusters = [
+        _Cluster([(r.run_id, f)])
+        for r in runs
+        for f in sorted(r.findings, key=lambda x: x.ref)
+    ]
+    sims: dict[tuple[int, int], float] = {}
+    for i in range(len(clusters)):
+        for j in range(i + 1, len(clusters)):
+            sims[(i, j)] = _similar(clusters[i].items[0][1], clusters[j].items[0][1])
+    alive = list(range(len(clusters)))
+    sizes = {i: 1 for i in alive}
+    while True:
+        best, pair = threshold, None
+        for x in range(len(alive)):
+            for y in range(x + 1, len(alive)):
+                s = sims[(alive[x], alive[y])]
+                if s >= best and (pair is None or s > best):
+                    best, pair = s, (alive[x], alive[y])
+        if pair is None:
+            break
+        i, j = pair
+        for k in alive:
+            if k in (i, j):
+                continue
+            ik, jk = (min(i, k), max(i, k)), (min(j, k), max(j, k))
+            sims[ik] = (sims[ik] * sizes[i] + sims[jk] * sizes[j]) / (sizes[i] + sizes[j])
+        clusters[i].items.extend(clusters[j].items)
+        sizes[i] += sizes[j]
+        alive.remove(j)
+    return [clusters[i] for i in alive]
 
 
 # ---------------------------------------------------------------------------
@@ -394,6 +438,7 @@ def analyse(
                 stand_rate=round(rate, 3), stability=stability,
                 refs={rid: f.ref for rid, f in c.members.items()},
             ))
+    issue_sev = {i.key: i.sev for i in issues}
     issues_by_subject: dict[str, list[Issue]] = defaultdict(list)
     for issue in issues:
         issues_by_subject[issue.subject].append(issue)
@@ -450,8 +495,11 @@ def analyse(
         stable_count = sum(1 for i in subject_issues if i.stability == "stable")
         if stable_count and len(missed) / stable_count > 0.5:
             reasons.append(f"missed {len(missed)} of {stable_count} stable issues")
-        if lone:
-            reasons.append(f"alone raised {len(lone)} serious issue(s)")
+        # Every run finds something the others missed; that is not drift. A run is out of
+        # bounds when most of its serious standing findings are ones no other run raised.
+        serious = [k for k in mine if issue_sev.get(k) in ("block", "major")]
+        if len(lone) >= 2 and len(lone) > len(serious) / 2:
+            reasons.append(f"alone raised {len(lone)} of its {len(serious)} serious issues")
         if bounds and r.tokens and not bounds[0] <= r.tokens <= bounds[1]:
             reasons.append(f"tokens {r.tokens} outside {bounds[0]:.0f}..{bounds[1]:.0f}")
         trial_runs.append(TrialRun(
