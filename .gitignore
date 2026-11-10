@@ -42,3 +42,6 @@ validator-performance-report.json
 # committed. A single `.tmp-` rule prevents a careless `git add .` from
 # leaking session work.
 .tmp-*
+
+# Local wheels for unpublished dependencies (scripts/lattice-wheel.sh)
+.wheels/

@@ -93,7 +93,7 @@ dev = [
     "mypy>=1.10.0",
 ]
 graph = [
-    # Pinned by commit in [tool.uv.sources] until lattice-graph is on PyPI; then pin a version here.
+    # A local wheel until lattice-graph is on PyPI: see [tool.uv.sources] and scripts/lattice-wheel.sh.
     "lattice-graph>=0.2,<0.3",
 ]
 
@@ -161,4 +161,5 @@ exclude_lines = [
 ]
 
 [tool.uv.sources]
-lattice-graph = { git = "ssh://git@github.com/Build-Fractal/lattice.git", subdirectory = "packages/lattice-graph", rev = "019b940d922b00e4f1de3d4c7cf470cc54857bb2" }
+# lattice-graph 0.2.0, built from Lattice commit 019b940; scripts/lattice-wheel.sh puts it here.
+lattice-graph = { path = ".wheels/lattice_graph-0.2.0-py3-none-any.whl" }
