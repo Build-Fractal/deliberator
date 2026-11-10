@@ -94,7 +94,7 @@ dev = [
 ]
 graph = [
     # Pinned by commit in [tool.uv.sources] until lattice-graph is on PyPI; then pin a version here.
-    "lattice-graph>=0.1,<0.2",
+    "lattice-graph>=0.2,<0.3",
 ]
 # deliberator gate: Bedrock auth (boto3/botocore via anthropic[bedrock]) and the bolt driver
 # Memgraph speaks. anthropic 2.x is the first with the Bedrock Mantle client.
@@ -167,4 +167,4 @@ exclude_lines = [
 ]
 
 [tool.uv.sources]
-lattice-graph = { git = "ssh://git@github.com/Build-Fractal/lattice.git", subdirectory = "packages/lattice-graph", rev = "af84b816ae5844e02f092afeb242a4aebaa00178" }
+lattice-graph = { git = "ssh://git@github.com/Build-Fractal/lattice.git", subdirectory = "packages/lattice-graph", rev = "019b940d922b00e4f1de3d4c7cf470cc54857bb2" }
