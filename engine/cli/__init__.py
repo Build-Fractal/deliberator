@@ -962,3 +962,8 @@ register_discovered_cli_commands(cli)
 from engine.cli.snap import snap as _snap_command  # noqa: E402
 
 cli.add_command(_snap_command)
+
+# Gate: graph-backed allow/deny/ask hooks (engine/gate), the successor to snap.
+from engine.cli.gate import gate as _gate_command  # noqa: E402
+
+cli.add_command(_gate_command)

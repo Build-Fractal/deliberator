@@ -92,6 +92,13 @@ dev = [
     "ruff>=0.4.0",
     "mypy>=1.10.0",
 ]
+# deliberator gate: Bedrock auth (boto3/botocore via anthropic[bedrock]) and the bolt driver
+# Memgraph speaks. anthropic 2.x is the first with the Bedrock Mantle client.
+gate = [
+    "anthropic[bedrock]>=2.6,<3",
+    "neo4j>=5.20,<6",
+]
+
 [dependency-groups]
 dev = [
     "pytest>=9.0.2",
