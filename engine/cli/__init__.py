@@ -375,6 +375,185 @@ def decide(question: str, provider: str, mode: str, model: str | None, output_di
 
 
 # ---------------------------------------------------------------------------
+# review (structured review, spec 074)
+# ---------------------------------------------------------------------------
+
+
+@cli.command(
+    epilog="""\b
+Examples:
+  # Review a plan with three default reviewers (correctness, risk, clarity)
+  deliberator review plan.md --provider anthropic
+
+  # Review generated output from stdin, as a CI gate (exit 0 pass, 1 changes, 2 block)
+  some-generator | deliberator review - --provider claude-code --gate --format json
+
+  # Choose reviewers and their lenses
+  deliberator review spec.md -r "sec:security and abuse" -r "ops:operability" --no-arbiter
+""",
+)
+@click.argument("targets", nargs=-1, required=True)
+@click.option(
+    "--provider",
+    default="mock",
+    type=click.Choice(
+        ["mock", "anthropic", "openai", "claude-code", "claude-desktop", "aider", "opencode",
+         "ollama", "llama-cpp", "vllm", "codex", "copilot", "gemini", "pi"],
+        case_sensitive=False,
+    ),
+    help="Execution provider (default: mock).",
+)
+@click.option("--model", default=None, help="Model for every reviewer and the arbiter.")
+@click.option(
+    "--reviewer", "-r", "reviewer_specs", multiple=True,
+    help='A reviewer as "name:lens". Repeat for more. Default: correctness, risk, clarity.',
+)
+@click.option("--no-arbiter", is_flag=True, help="Leave contested findings contested.")
+@click.option(
+    "--out", "out_dir", default=".deliberator/reviews", type=click.Path(path_type=Path),
+    show_default=True, help="Where runs are written (one folder per run).",
+)
+@click.option(
+    "--format", "output_format", default="markdown",
+    type=click.Choice(["markdown", "json"], case_sensitive=False),
+    help="What to print: the rendered review or review.json.",
+)
+@click.option("--gate", is_flag=True, help="Exit 0 pass, 1 changes, 2 block.")
+@click.option(
+    "--repeat", default=1, show_default=True, type=click.IntRange(1, 20),
+    help="Run the review this many times (trials), then analyse them with `deliberator trials`.",
+)
+@click.option(
+    "--effort", default="low", show_default=True,
+    type=click.Choice(["low", "medium", "high"], case_sensitive=False),
+    help="claude-code only: how much the model thinks (thinking is billed as output).",
+)
+def review(
+    targets: tuple[str, ...],
+    provider: str,
+    model: str | None,
+    reviewer_specs: tuple[str, ...],
+    no_arbiter: bool,
+    out_dir: Path,
+    output_format: str,
+    gate: bool,
+    repeat: int,
+    effort: str,
+) -> None:
+    """Review files (or stdin as "-") with a terse structured deliberation.
+
+    Reviewers find problems, challenge each other's findings, answer objections, and an
+    arbiter rules only on what stays contested. Output: review.json, review.md, graph.json
+    and the full record under --out. Needs lattice-graph: scripts/lattice-wheel.sh --install.
+    """
+    from engine.review.service import (
+        ReviewInputError,
+        load_targets,
+        parse_reviewers,
+        review_targets,
+    )
+
+    try:
+        loaded = load_targets(targets, stdin=sys.stdin)
+        reviewers = parse_reviewers(reviewer_specs)
+        for n in range(repeat):
+            result = asyncio.run(review_targets(
+                loaded, provider=provider, out_dir=out_dir, model=model, reviewers=reviewers,
+                arbiter=not no_arbiter, effort=effort,
+            ))
+            if repeat > 1:
+                click.echo(f"trial {n + 1}/{repeat}: {result.verdict} ({result.run_id})", err=True)
+    except ImportError as exc:
+        click.echo(f"Error: {exc}", err=True)
+        sys.exit(3)
+    except (ReviewInputError, ConfigError, ProviderError, ValueError) as exc:
+        click.echo(f"Error: {exc}", err=True)
+        sys.exit(3)
+
+    if output_format == "json":
+        click.echo(result.model_dump_json(indent=1))
+    else:
+        click.echo((Path(result.run_dir) / "review.md").read_text(encoding="utf-8"))
+        click.echo(f"Run written to {result.run_dir}", err=True)
+    if repeat > 1:
+        from engine.review.trials import run_trials
+
+        report = run_trials(out_dir)
+        click.echo(f"Trials: {len(report.out_of_bounds)} of {len(report.runs)} runs out of bounds; "
+                   f"see {out_dir / 'trials.md'}", err=True)
+    if gate:
+        sys.exit(result.exit_code)
+
+
+# ---------------------------------------------------------------------------
+# trials
+# ---------------------------------------------------------------------------
+
+
+@cli.command(
+    epilog="""\b
+Examples:
+  # Five trials of one review, then the analysis
+  deliberator review install.sh --provider claude-code --model haiku --repeat 5
+  deliberator trials
+
+  # Declare that plan-v2's review depends on plan-v1's (run ids or subject hashes)
+  deliberator trials --link 20261108T101500-plan-v2-md 20261108T100000-plan-v1-md
+
+  # CI: fail when any run is out of bounds or a dependency rule is broken
+  deliberator trials --gate
+""",
+)
+@click.argument(
+    "root", required=False, default=".deliberator/reviews",
+    type=click.Path(path_type=Path, file_okay=False),
+)
+@click.option(
+    "--link", "links", nargs=2, multiple=True, metavar="FROM TO",
+    help="Record that FROM depends on TO (run ids or subject hashes). Repeatable.",
+)
+@click.option(
+    "--tolerance", default=0.75, show_default=True, type=float,
+    help="How far (in verdict levels: pass 0, changes 1, block 2) a run may sit from the fit.",
+)
+@click.option(
+    "--format", "output_format", default="markdown",
+    type=click.Choice(["markdown", "json"], case_sensitive=False),
+)
+@click.option("--gate", is_flag=True, help="Exit 1 when any run is out of bounds.")
+def trials(
+    root: Path, links: tuple[tuple[str, str], ...], tolerance: float, output_format: str,
+    gate: bool,
+) -> None:
+    """Link review runs into trials and flag the ones that are out of bounds.
+
+    Runs of the same input and setup are reruns of one trial. Findings are matched across runs
+    into issues with a stand rate. A constrained fit picks one verdict level per input that
+    respects declared dependencies; runs far from it, runs that miss issues the others agree
+    on, runs that alone raise serious issues, and runs with unusual token use are flagged.
+    Writes trials.json, trials.md and trials.graph.json into ROOT.
+    """
+    try:
+        from engine.review.trials import add_link, render_markdown, run_trials
+
+        for source, target in links:
+            add_link(root, "depends_on", source, target)
+        if not root.is_dir():
+            click.echo(f"Error: no reviews at {root}", err=True)
+            sys.exit(3)
+        report = run_trials(root, tolerance=tolerance)
+    except ImportError as exc:
+        click.echo(f"Error: {exc}", err=True)
+        sys.exit(3)
+    if output_format == "json":
+        click.echo(report.model_dump_json(indent=1))
+    else:
+        click.echo(render_markdown(report))
+    if gate:
+        sys.exit(report.exit_code)
+
+
+# ---------------------------------------------------------------------------
 # login
 # ---------------------------------------------------------------------------
 
@@ -783,3 +962,8 @@ register_discovered_cli_commands(cli)
 from engine.cli.snap import snap as _snap_command  # noqa: E402
 
 cli.add_command(_snap_command)
+
+# Gate: graph-backed allow/deny/ask hooks (engine/gate), the successor to snap.
+from engine.cli.gate import gate as _gate_command  # noqa: E402
+
+cli.add_command(_gate_command)

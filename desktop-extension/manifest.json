@@ -99,20 +99,26 @@
     {
       "name": "deliberate",
       "description": "Analyze your question, recommend a deliberation mode, explain the setup, and run after your approval",
-      "arguments": ["question"],
+      "arguments": [
+        "question"
+      ],
       "text": "I want to run a deliberator deliberation on this question:\n\n> ${arguments.question}\n\nBefore running, analyze the question and recommend a mode (cooperative, winner-take-all, red-blue, or prisoners-dilemma). Present your recommendation as a table with Mode, Why, What to expect, and Cost. Then ask me to confirm before calling deliberator_decide."
     },
     {
       "name": "challenge",
-      "description": "Red-team a decision — one agent attacks, one defends. Explains the setup before running.",
-      "arguments": ["question"],
+      "description": "Red-team a decision \u2014 one agent attacks, one defends. Explains the setup before running.",
+      "arguments": [
+        "question"
+      ],
       "text": "I want to stress-test this decision with a deliberator red-blue deliberation:\n\n> ${arguments.question}\n\nBriefly explain what the red team will attack and what the blue team will defend. Then ask me to confirm before calling deliberator_decide with mode red-blue."
     },
     {
       "name": "force_decision",
-      "description": "Force a definitive answer — no compromise, pick one winner. Explains the setup before running.",
-      "arguments": ["question"],
-      "text": "I need a definitive answer on this — no 'it depends':\n\n> ${arguments.question}\n\nExplain the two competing positions and why winner-take-all mode is right for this question. Then ask me to confirm before calling deliberator_decide with mode winner-take-all."
+      "description": "Force a definitive answer \u2014 no compromise, pick one winner. Explains the setup before running.",
+      "arguments": [
+        "question"
+      ],
+      "text": "I need a definitive answer on this \u2014 no 'it depends':\n\n> ${arguments.question}\n\nExplain the two competing positions and why winner-take-all mode is right for this question. Then ask me to confirm before calling deliberator_decide with mode winner-take-all."
     },
     {
       "name": "design_deliberation",
@@ -121,19 +127,23 @@
     },
     {
       "name": "analyze_documents",
-      "description": "Multi-agent analysis over one or many documents — extract claims, compare, or find contradictions",
+      "description": "Multi-agent analysis over one or many documents \u2014 extract claims, compare, or find contradictions",
       "text": "Let's run a deliberator document analysis."
     },
     {
       "name": "review_config",
       "description": "Run a full deliberation from a YAML config",
-      "arguments": ["config_yaml"],
+      "arguments": [
+        "config_yaml"
+      ],
       "text": "Use the deliberator_run tool with this config:\n\n```yaml\n${arguments.config_yaml}\n```"
     },
     {
       "name": "check_cost",
       "description": "Check the cost of a deliberation before running it",
-      "arguments": ["config_yaml"],
+      "arguments": [
+        "config_yaml"
+      ],
       "text": "Use the deliberator_validate tool to check this config before running:\n\n```yaml\n${arguments.config_yaml}\n```"
     }
   ],
@@ -162,6 +172,10 @@
     {
       "name": "deliberator_show_deliberation",
       "description": "Read a specific file from a past deliberation's output directory. Use after list-deliberations to inspect summaries, individual agent reviews, synthesis documents, or any other artifact produced during a deliberation."
+    },
+    {
+      "name": "deliberator_review",
+      "description": "Review files or text with a terse structured deliberation: reviewers find problems, challenge each other, answer objections, and an arbiter rules only on what stays contested. Returns a verdict (pass, changes, block) and the findings that stand, at a fraction of a full deliberation's tokens."
     }
   ]
 }

@@ -484,6 +484,47 @@ def deliberator_show_deliberation(
 # ---------------------------------------------------------------------------
 
 
+from engine.handlers import review_mcp as _review_mcp
+
+
+@_optional_tool()
+async def deliberator_review(
+    paths: list[str] | None = None,
+    text: str = "",
+    provider: str = "mock",
+    model: str = "",
+    reviewers: list[str] | None = None,
+    arbiter: bool = True,
+    effort: str = "low",
+    out_dir: str = "",
+) -> dict:
+    """Review files or text with a terse structured deliberation.
+
+    Reviewers (default lenses: correctness, risk, clarity) list findings, challenge each
+    other's findings and answer objections; an arbiter rules only on what stays contested.
+    The verdict is computed from the argument graph, not written by a synthesis call. About
+    10 short calls for three reviewers.
+
+    Args:
+        paths: Files to review, absolute or relative to the project root.
+        text: Text to review inline (for example, another tool's output).
+        provider: mock, anthropic, openai or claude-code (lean local CLI calls).
+        model: Model for every reviewer and the arbiter.
+        reviewers: Reviewers as "name:lens" strings.
+        arbiter: Rule on contested findings (default true).
+        effort: claude-code only: low, medium or high.
+        out_dir: Where runs are written (default .deliberator/reviews).
+
+    Returns:
+        review.json as a dict: verdict (pass, changes, block), exit_code (0, 1, 2), findings
+        with status (stands, contested, withdrawn, revised, defeated), usage and run_dir; or
+        {"error": "..."}.
+    """
+    logger.info("deliberator_review called (paths=%d, text=%d chars, provider=%r)",
+                len(paths or []), len(text), provider)
+    return await _review_mcp(paths, text, provider, model, reviewers, arbiter, effort, out_dir)
+
+
 @mcp.prompt()
 def deliberate(question: str) -> list[dict]:
     """Run a multi-agent deliberation on a decision.

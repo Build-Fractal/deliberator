@@ -61,6 +61,11 @@ def _patch_roots(monkeypatch: pytest.MonkeyPatch, project: Path, home: Path) -> 
     monkeypatch.setattr(
         "engine.persistence.find_user_project_root", lambda start=None: project
     )
+    # handlers imports the name directly; patch its reference too, or decide persists into
+    # (and prunes old runs from) the real repository's .deliberator/.
+    monkeypatch.setattr(
+        "engine.handlers.find_user_project_root", lambda start=None: project
+    )
     monkeypatch.setattr(Path, "home", lambda: home)
     monkeypatch.setattr(
         "engine.auth.DEFAULT_AUTH_PATH", home / ".deliberator" / "auth.json"

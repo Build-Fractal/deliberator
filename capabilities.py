@@ -717,6 +717,80 @@ show_deliberation = Capability(
 
 
 # ---------------------------------------------------------------------------
+# review — terse structured review of files or output (spec 074)
+# ---------------------------------------------------------------------------
+
+
+class ReviewMCPBAdapter(DefaultMCPBAdapter):
+    def render(self, capability: Capability) -> dict:
+        entry = super().render(capability)
+        entry["description"] = (
+            "Review files or text with a terse structured deliberation: reviewers find "
+            "problems, challenge each other, answer objections, and an arbiter rules only on "
+            "what stays contested. Returns a verdict (pass, changes, block) and the findings "
+            "that stand, at a fraction of a full deliberation's tokens."
+        )
+        return entry
+
+
+review = Capability(
+    name="review",
+    summary="Review files or output with a terse structured deliberation",
+    long_description=(
+        "Reviewers bound to lenses (default: correctness, risk, clarity) list findings, "
+        "challenge each other's findings, and answer objections; an arbiter rules only on "
+        "findings still contested. Every reply is one short JSON object. The verdict is "
+        "computed from the argument graph (lattice-graph), not written by a synthesis call. "
+        "Writes review.json, review.md, graph.json and moves.jsonl per run. Needs the graph "
+        "extra."
+    ),
+    surfaces=[Surface.MCP, Surface.MCPB],
+    params=[
+        Param(
+            name="paths",
+            type=list,
+            default=None,
+            help="Files to review: absolute, or relative to the project root.",
+        ),
+        Param(
+            name="text",
+            type=str,
+            default="",
+            help="Text to review inline, such as another tool's output.",
+        ),
+        Param(
+            name="provider",
+            type=str,
+            default="mock",
+            help="mock, anthropic, openai or claude-code (lean local calls).",
+        ),
+        Param(name="model", type=str, default="", help="Model for every reviewer."),
+        Param(
+            name="reviewers",
+            type=list,
+            default=None,
+            help='Reviewers as "name:lens" strings. Default: correctness, risk, clarity.',
+        ),
+        Param(name="arbiter", type=bool, default=True, help="Rule on contested findings."),
+        Param(
+            name="effort",
+            type=str,
+            default="low",
+            help="claude-code only: low, medium or high thinking effort.",
+        ),
+        Param(
+            name="out_dir",
+            type=str,
+            default="",
+            help="Where runs are written. Default: .deliberator/reviews in the project.",
+        ),
+    ],
+    handler="engine.handlers:review_mcp",
+    mcpb_adapter=ReviewMCPBAdapter(),
+)
+
+
+# ---------------------------------------------------------------------------
 # skills — list all capabilities with summaries
 # ---------------------------------------------------------------------------
 
@@ -766,6 +840,7 @@ CAPABILITIES: list[Capability] = [
     help_capability,
     list_deliberations,
     show_deliberation,
+    review,
     skills,
     skill,
 ]

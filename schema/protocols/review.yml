@@ -1,0 +1,62 @@
+# Structured review protocol (spec 074).
+#
+# Everything a reviewer or arbiter can do, what the moves are called, and how many tokens each
+# phase may spend is data here, not engine code. Renaming a word: change `vocabulary` (the log
+# keeps the words a run was written in; aliases apply when the graph is folded). Swapping who
+# plays: change the reviewers bound to the `reviewer` role in the call or config, not this file.
+
+protocol: review
+schema_version: "1.0.0"
+
+# Words the run's moves are written in -> lattice-graph ARGUMENT_SCHEMA types.
+vocabulary:
+  labels:
+    Finding: Claim
+    Objection: Challenge
+    Rebuttal: Claim
+    Withdrawal: Concession
+    Ruling: Ruling
+  edges:
+    OBJECTS_TO: ATTACKS
+    REBUTS: ATTACKS
+    WITHDRAWS: CONCEDES
+    REPLACES: SUPERSEDES
+    UPHOLDS: PREFERS
+
+roles:
+  reviewer:
+    phases: [review, challenge, respond]
+  arbiter:
+    phases: [arbitrate]
+
+phases:
+  # One call per reviewer. Output: findings.
+  review:
+    role: reviewer
+    max_tokens: 1200
+    max_items: 8
+  # One call per reviewer, seeing only the other reviewers' findings as one line each
+  # (not their full text, and not one call per pair).
+  challenge:
+    role: reviewer
+    max_tokens: 800
+    max_items: 6
+  # Only reviewers whose findings were objected to; each sees only those objections.
+  respond:
+    role: reviewer
+    max_tokens: 800
+  # Only when findings stay contested (UNDEC); one call, seeing only the contested threads.
+  arbitrate:
+    role: arbiter
+    max_tokens: 900
+
+# Words per free-text field. Agents are told; the parser truncates past 2x.
+text_words: 25
+
+severities: [block, major, minor]
+
+# Verdict from the findings that stand (grounded IN): any `block` -> block; any `major` ->
+# changes; otherwise pass.
+verdict:
+  block: block
+  major: changes

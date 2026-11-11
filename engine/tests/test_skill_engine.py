@@ -10,6 +10,7 @@ runs as pytest for CI integration and finer-grained assertions.
 
 import json
 import subprocess
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -21,12 +22,18 @@ pytestmark = pytest.mark.smoke
 
 def _run_decide(question: str, mode: str = "cooperative", provider: str = "mock",
                 fmt: str = "json") -> dict:
-    """Run deliberator decide and return parsed JSON or error dict."""
-    result = subprocess.run(
-        ["uv", "run", "deliberator", "decide", question,
-         "--provider", provider, "--mode", mode, "--format", fmt],
-        capture_output=True, text=True, cwd=str(REPO_ROOT), timeout=30,
-    )
+    """Run deliberator decide and return parsed JSON or error dict.
+
+    Runs from an empty workspace: decide persists its output into the workspace it finds from
+    the working directory, and prunes runs older than the retention window there. From
+    REPO_ROOT that would rewrite the repository's own .deliberator/ examples.
+    """
+    with tempfile.TemporaryDirectory() as workspace:
+        result = subprocess.run(
+            ["uv", "run", "--project", str(REPO_ROOT), "deliberator", "decide", question,
+             "--provider", provider, "--mode", mode, "--format", fmt],
+            capture_output=True, text=True, cwd=workspace, timeout=30,
+        )
     if result.returncode != 0:
         return {"error": True, "message": result.stderr.strip(),
                 "returncode": result.returncode}
@@ -187,7 +194,7 @@ class TestCrossSurfaceParity:
     """CLI and MCP handlers produce structurally identical output."""
 
     def test_decide_cli_vs_mcp_schema(
-        self, monkeypatch: pytest.MonkeyPatch
+        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     ) -> None:
         # Use a longer question to satisfy MCP's stricter sufficiency gate
         question = (
@@ -210,8 +217,11 @@ class TestCrossSurfaceParity:
         cli_result = _run_decide(question)
         assert "error" not in cli_result
 
-        # MCP path
+        # MCP path. Persist into a temp workspace, not the repository's .deliberator/.
         from engine.handlers import run_decide_mcp
+        monkeypatch.setattr(
+            "engine.handlers.find_user_project_root", lambda start=None: tmp_path
+        )
         mcp_result = run_decide_mcp(question, "mock", "cooperative", 20)
         assert mcp_result.output is not None, (
             f"MCP rejected question: {mcp_result.errors}"
