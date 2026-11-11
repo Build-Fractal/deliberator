@@ -132,6 +132,7 @@ async def decide(
             grant=ruling.grant,
         )
 
+    decision = ledger.redacted(decision)  # secrets never reach the log, graph or reply
     ledger.append(root, decision)
     if push_graph:
         history.decisions.append(decision)
