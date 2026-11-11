@@ -5,7 +5,7 @@
 #   scripts/install-gate.sh            # install or update from this checkout
 #
 # Puts:
-#   $GATE_HOME/venv                 a Python 3.12 environment with deliberator[graph,gate]
+#   $GATE_HOME/venv                 a Python 3.12 environment with deliberator[gate] and lattice-graph
 #                                   (a copy, not an editable install: deleting this checkout
 #                                   or its worktree does not break the hook)
 #   $GATE_HOME/gate-hook.sh         the command for the hooks:
@@ -22,11 +22,12 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 GATE_HOME="${GATE_HOME:-$HOME/.local/share/deliberator}"
 VENV="$GATE_HOME/venv"
 
-"$ROOT/scripts/lattice-wheel.sh" >/dev/null
 mkdir -p "$GATE_HOME"
 [[ -x "$VENV/bin/python" ]] || uv venv -q --python 3.12 "$VENV"
-uv pip install -q --python "$VENV/bin/python" --reinstall-package deliberator \
-    --find-links "$ROOT/.wheels" "$ROOT[graph,gate]"
+uv pip install -q --python "$VENV/bin/python" --reinstall-package deliberator "$ROOT[gate]"
+# lattice-graph (the decision graph) is installed separately; without it the gate still
+# decides and logs, it just doesn't write the graph.
+VIRTUAL_ENV="$VENV" "$ROOT/scripts/lattice-wheel.sh" --install >/dev/null
 
 cat > "$GATE_HOME/gate-hook.sh.new" <<EOF
 #!/usr/bin/env bash

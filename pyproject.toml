@@ -92,11 +92,6 @@ dev = [
     "ruff>=0.4.0",
     "mypy>=1.10.0",
 ]
-graph = [
-    # Lattice's release wheels (PolyForm Noncommercial), compiled for CPython 3.12 only: found
-    # in .wheels/ via [tool.uv] find-links; scripts/lattice-wheel.sh puts them there.
-    "lattice-graph>=0.2.1,<0.3; python_version == '3.12'",
-]
 # deliberator gate: Bedrock auth (boto3/botocore via anthropic[bedrock]) and the bolt driver
 # Memgraph speaks. anthropic 2.x is the first with the Bedrock Mantle client.
 gate = [
@@ -167,6 +162,3 @@ exclude_lines = [
     "@overload",
 ]
 
-[tool.uv]
-# lattice-graph is not on PyPI: its release wheels go in .wheels/ (scripts/lattice-wheel.sh).
-find-links = [".wheels"]
