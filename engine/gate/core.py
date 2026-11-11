@@ -64,7 +64,63 @@ def _edit_inside(tool: str, tool_input: dict[str, Any], cwd: str) -> bool:
         path.relative_to(repo.resolve())
     except ValueError:
         return False
-    return True
+    return not _runs_code(path) and not _risky_content(_written_text(tool, tool_input))
+
+
+# Files that run, or configure what runs: always judged, whatever the edit says.
+_RUNNABLE_SUFFIXES = frozenset({
+    ".sh", ".bash", ".zsh", ".fish", ".command", ".ps1", ".bat", ".cmd", ".service",
+    ".plist", ".desktop",
+})
+_RUNNABLE_NAMES = frozenset({
+    "makefile", "gnumakefile", "justfile", "dockerfile", "containerfile", "procfile",
+    "package.json", "pyproject.toml", "setup.py", "setup.cfg", "conftest.py", ".envrc",
+    "build.rs", "cargo.toml", ".pre-commit-config.yaml", ".npmrc", ".pypirc", "noxfile.py",
+    "tox.ini", "vercel.json", "vercel.ts", "docker-compose.yml", "docker-compose.yaml",
+    "compose.yml", "compose.yaml", ".gitattributes", ".gitmodules",
+})
+_RUNNABLE_DIRS = frozenset({".github", ".circleci", ".husky", "hooks", "bin", "scripts"})
+
+
+def _runs_code(path: Path) -> bool:
+    name = path.name.lower()
+    return (path.suffix.lower() in _RUNNABLE_SUFFIXES or name in _RUNNABLE_NAMES
+            or bool(_RUNNABLE_DIRS & {p.lower() for p in path.parts[:-1]}))
+
+
+def _written_text(tool: str, tool_input: dict[str, Any]) -> str:
+    """What the edit puts in the file (new text only)."""
+    if tool == "Write":
+        return str(tool_input.get("content") or "")
+    if tool == "Edit":
+        return str(tool_input.get("new_string") or "")
+    if tool == "MultiEdit":
+        return "\n".join(str(e.get("new_string") or "") for e in tool_input.get("edits") or []
+                         if isinstance(e, dict))
+    if tool == "NotebookEdit":
+        return str(tool_input.get("new_source") or "")
+    return ""
+
+
+# Content that reaches the network, deletes, runs processes, touches credentials or talks to
+# the gate: the judge reads it before it is written. Ordinary code and prose skips the model.
+_RISKY_CONTENT = re.compile(
+    r"\b(?:curl|wget|nc|ncat|netcat|socat|ssh|scp|sftp|telnet|ftp)\b"
+    r"|rm\s+-[a-z]*[rf]|\brmtree\b|\bunlink\(|\bshred\b|\bmkfs\b|\bdd\s+if="
+    r"|\bsudo\b|\bchmod\s+[0-7]*[+]?[sx]|\bchown\b"
+    r"|\beval\s*\(|\bexec\s*\(|os\.system|os\.popen|\bsubprocess\b|child_process"
+    r"|\bspawn\(|Runtime\.getRuntime|\bpty\b|\bsocket\b"
+    r"|requests\.(?:post|put|patch)|\bfetch\s*\(|urllib|http\.client|httpx|aiohttp"
+    r"|base64\s+-d|b64decode|atob\(|\bfromCharCode\b"
+    r"|\.aws\b|\.ssh\b|id_rsa|id_ed25519|credentials|\.netrc|\.npmrc|keychain"
+    r"|\.claude\b|\.deliberator\b|permission gate|previous instructions|\bverdict\b"
+    r"|\bcrontab\b|launchctl|LaunchAgents|\.zshrc|\.bashrc|\.profile\b",
+    re.IGNORECASE,
+)
+
+
+def _risky_content(text: str) -> bool:
+    return bool(_RISKY_CONTENT.search(text))
 
 
 def _risky_flags(subject: str) -> bool:
