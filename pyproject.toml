@@ -93,8 +93,9 @@ dev = [
     "mypy>=1.10.0",
 ]
 graph = [
-    # A local wheel until lattice-graph is on PyPI: see [tool.uv.sources] and scripts/lattice-wheel.sh.
-    "lattice-graph>=0.2,<0.3",
+    # Lattice's release wheels (PolyForm Noncommercial), compiled for CPython 3.12 only: found
+    # in .wheels/ via [tool.uv] find-links; scripts/lattice-wheel.sh puts them there.
+    "lattice-graph>=0.2.1,<0.3; python_version == '3.12'",
 ]
 
 [dependency-groups]
@@ -160,6 +161,6 @@ exclude_lines = [
     "@overload",
 ]
 
-[tool.uv.sources]
-# lattice-graph 0.2.0, built from Lattice commit 019b940; scripts/lattice-wheel.sh puts it here.
-lattice-graph = { path = ".wheels/lattice_graph-0.2.0-py3-none-any.whl" }
+[tool.uv]
+# lattice-graph is not on PyPI: its release wheels go in .wheels/ (scripts/lattice-wheel.sh).
+find-links = [".wheels"]
