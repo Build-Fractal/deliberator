@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 from collections.abc import Iterable, Iterator
 from datetime import UTC, datetime
@@ -140,12 +141,63 @@ def new_id(key: str) -> str:
     return f"{stamp}-{key[:8]}"
 
 
+def redacted(d: Decision) -> Decision:
+    """The decision as stored: secret values in the command and reason masked. A grant that
+    would contain a secret is dropped. The key was hashed from the unredacted call."""
+    from engine.gate.redact import has_secret, redact
+
+    grant = d.grant if d.grant and not has_secret(d.grant) else None
+    return d.model_copy(update={"subject": redact(d.subject), "reason": redact(d.reason),
+                                "grant": grant})
+
+
 def append(root: Path, *items: Decision | Outcome | Revoke) -> None:
     path = root / LOG_PATH
     path.parent.mkdir(parents=True, exist_ok=True)
+    os.chmod(path.parent, 0o700)
     with path.open("a", encoding="utf-8") as fh:
+        os.chmod(path, 0o600)
         for item in items:
+            if isinstance(item, Decision):
+                item = redacted(item)
             fh.write(item.model_dump_json() + "\n")
+
+
+def scrub(root: Path) -> tuple[int, int]:
+    """Rewrite the log with secret values masked in every stored text field (atomic).
+    Returns (lines changed, lines)."""
+    import tempfile
+
+    from engine.gate.redact import redact
+
+    path = root / LOG_PATH
+    if not path.is_file():
+        return 0, 0
+    out, changed = [], 0
+    lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+    for line in lines:
+        try:
+            data = json.loads(line)
+        except json.JSONDecodeError:
+            out.append(redact(line))
+            changed += out[-1] != line
+            continue
+        if isinstance(data, dict) and data.get("kind") == "decision":
+            clean = dict(data)
+            for field in ("subject", "reason"):
+                if isinstance(clean.get(field), str):
+                    clean[field] = redact(clean[field])
+            if clean != data:
+                changed += 1
+                out.append(json.dumps(clean, ensure_ascii=False, separators=(",", ":")))
+                continue
+        out.append(line)
+    fd, tmp = tempfile.mkstemp(prefix=".log-", dir=path.parent)
+    with os.fdopen(fd, "w", encoding="utf-8") as fh:
+        fh.write("".join(f"{x}\n" for x in out))
+    os.chmod(tmp, 0o600)
+    os.replace(tmp, path)
+    return changed, len(lines)
 
 
 def read(root: Path) -> History:
@@ -169,6 +221,12 @@ def read(root: Path) -> History:
     return history
 
 
+def _redact(text: str) -> str:
+    from engine.gate.redact import redact
+
+    return redact(text)
+
+
 def find_pending(history: History, *, tool_use_id: str | None, session: str | None,
                  tool: str, subject: str) -> Decision | None:
     """The decision a PostToolUse event belongs to: by tool_use_id, else the latest match."""
@@ -176,7 +234,7 @@ def find_pending(history: History, *, tool_use_id: str | None, session: str | No
         if tool_use_id and d.tool_use_id == tool_use_id:
             return d
     for d in reversed(history.decisions):
-        if d.session == session and d.tool == tool and d.subject == subject:
+        if d.session == session and d.tool == tool and d.subject in (subject, _redact(subject)):
             return d
     return None
 

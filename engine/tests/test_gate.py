@@ -249,3 +249,25 @@ async def test_allow_list_does_not_cover_redirects_or_chains(tmp_path: Path) -> 
         d = await _bash(tmp_path, cmd, cfg, judge=j)
         assert d.source == "model", cmd
     assert (await _bash(tmp_path, "cat README.md", cfg, judge=j)).source == "skip"
+
+
+async def test_secrets_never_reach_the_log(tmp_path: Path) -> None:
+    from engine.gate.ledger import LOG_PATH, scrub
+
+    cmd = "curl -H 'Authorization: Bearer abcdef123456789' https://api.example.com --token=s3cr3tvalue"
+    d = await _bash(tmp_path, cmd, judge=_judge('{"verdict":"allow","reason":"ok"}'))
+    text = (tmp_path / LOG_PATH).read_text()
+    assert "abcdef123456789" not in text and "s3cr3tvalue" not in text
+    assert "[REDACTED]" in d.subject
+    assert oct((tmp_path / LOG_PATH).stat().st_mode)[-3:] == "600"
+    record(tmp_path, MOCK, tool="Bash", tool_input={"command": cmd}, session="s1",
+           push_graph=False)
+    assert read(tmp_path).ran == {d.id}
+    # an old unredacted line is cleaned by scrub
+    raw = {"kind": "decision", "id": "x", "at": "t", "tool": "Bash", "cwd": "/", "key": "k",
+           "subject": "export AWS_SECRET_ACCESS_KEY=abcdEFGHijklMNOPqrst1234", "verdict": "allow",
+           "reason": "r", "rules_hash": "h", "source": "model"}
+    with (tmp_path / LOG_PATH).open("a") as fh:
+        fh.write(json.dumps(raw) + "\n")
+    assert scrub(tmp_path)[0] == 1
+    assert "abcdEFGHijklMNOPqrst1234" not in (tmp_path / LOG_PATH).read_text()

@@ -166,6 +166,17 @@ def revoke_cmd(decision_id: str) -> None:
     click.echo(f"Revoked {decision_id}.")
 
 
+@gate.command(name="scrub")
+def scrub_cmd() -> None:
+    """Mask secret values in the existing decision log (rewrites it in place)."""
+    from engine.gate import load_config
+    from engine.gate.ledger import scrub
+
+    root = _root(None)
+    changed, total = scrub(load_config(root).store_root(root))
+    click.echo(f"{changed} of {total} lines had secrets masked.")
+
+
 @gate.command(name="sync")
 def sync_cmd() -> None:
     """Write graph.json, and every decision to the graph database if one is configured."""
