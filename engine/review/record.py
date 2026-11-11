@@ -50,7 +50,8 @@ def _graph() -> Any:
         import lattice_graph  # noqa: F401
     except ImportError as exc:  # pragma: no cover - exercised only without the extra
         raise ImportError(
-            "Structured review needs the graph extra: pip install 'deliberator[graph]'"
+            "Structured review needs lattice-graph, which is not on PyPI: run "
+            "scripts/lattice-wheel.sh --install in the deliberator repo"
         ) from exc
     from lattice_graph import argument, build, moves, schema
 

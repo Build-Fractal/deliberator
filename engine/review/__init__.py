@@ -10,7 +10,7 @@ the verdict is computed from which findings stand, not narrated by a synthesis c
     result.verdict      # "pass" | "changes" | "block"
     result.exit_code    # 0 | 1 | 2
 
-Needs the graph extra: ``pip install 'deliberator[graph]'``.
+Needs lattice-graph, installed separately: ``scripts/lattice-wheel.sh --install``.
 """
 
 from engine.review.protocol import Protocol, load_protocol

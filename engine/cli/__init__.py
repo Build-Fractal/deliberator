@@ -444,7 +444,7 @@ def review(
 
     Reviewers find problems, challenge each other's findings, answer objections, and an
     arbiter rules only on what stays contested. Output: review.json, review.md, graph.json
-    and the full record under --out. Needs: pip install 'deliberator[graph]'.
+    and the full record under --out. Needs lattice-graph: scripts/lattice-wheel.sh --install.
     """
     from engine.review.service import (
         ReviewInputError,
