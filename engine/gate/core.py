@@ -84,7 +84,8 @@ async def decide(
     if config.allow_edits_in_project and _edit_inside(tool, tool_input, cwd):
         decision = Decision(**base, verdict="allow", source="skip",
                             reason="an edit to a file inside the working folder")
-    for pattern in config.allow_without_asking if decision is None else ():
+    simple = tool != "Bash" or not ledger.compound(subject)
+    for pattern in config.allow_without_asking if decision is None and simple else ():
         try:
             if re.search(pattern, subject):
                 decision = Decision(**base, verdict="allow", source="skip",
@@ -92,6 +93,13 @@ async def decide(
                 break
         except re.error:
             continue
+
+    if decision is None and config.learn_from_approvals:
+        grant = history.granted(tool, subject)
+        if grant is not None:
+            decision = Decision(**base, verdict="allow", source="approved",
+                                reason=f"you said yes to calls like this ({grant.grant})",
+                                precedents=(grant.id,))
 
     if decision is None and (config.reuse_identical or config.learn_from_approvals):
         for earlier in ledger.latest_for_key(history, key):
@@ -114,13 +122,14 @@ async def decide(
                                     k=config.precedents)
         prompt = build_prompt(config, tool=tool, subject=subject, cwd=cwd,
                               precedents=precedents, history=history)
-        ruling = await rule_on(prompt, judge or make_judge(config))
+        ruling = await rule_on(prompt, judge or make_judge(config), subject)
         failed = ruling.reason.startswith("gate could not rule")
         decision = Decision(
             **base, verdict=ruling.verdict, reason=ruling.reason, rule=ruling.rule,
             source="error" if failed else "model", model=config.resolved_model(),
             precedents=tuple(p.id for p in precedents), latency_ms=ruling.latency_ms,
             input_tokens=ruling.input_tokens, output_tokens=ruling.output_tokens,
+            grant=ruling.grant,
         )
 
     ledger.append(root, decision)
@@ -152,11 +161,14 @@ def hook_output(decision: Decision, config: GateConfig) -> dict[str, Any]:
     rule = ""
     if decision.rule and 1 <= decision.rule <= len(config.rules):
         rule = f" (rule {decision.rule}: {config.rules[decision.rule - 1]})"
+    grant = ""
+    if decision.verdict == "ask" and decision.grant:
+        grant = f" Yes is kept forever for calls matching {decision.grant}"
     return {
         "hookSpecificOutput": {
             "hookEventName": "PreToolUse",
             "permissionDecision": decision.verdict,
-            "permissionDecisionReason": f"[deliberator gate] {decision.reason}{rule}",
+            "permissionDecisionReason": f"[deliberator gate] {decision.reason}{rule}{grant}",
         }
     }
 

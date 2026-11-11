@@ -8,6 +8,7 @@ Anything that goes wrong becomes ``ask``: the gate never allows by default.
 from __future__ import annotations
 
 import json
+import re
 import time
 from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass
@@ -26,6 +27,7 @@ class Ruling:
     input_tokens: int = 0
     output_tokens: int = 0
     latency_ms: float = 0.0
+    grant: str | None = None
 
 
 # A judge takes the prompt and returns (reply text, input tokens, output tokens).
@@ -33,12 +35,22 @@ Judge = Callable[[str], Awaitable[tuple[str, int, int]]]
 
 _INSTRUCTIONS = (
     "You are the permission gate for an AI coding agent working on a developer's machine. "
-    "Rule on ONE tool call: allow it, deny it, or ask the developer. Apply the rules; follow "
-    "precedent when a past case is alike (the developer's own approvals are strong "
-    "precedent), and say so. Deny only with a reason the agent can act on: what is wrong and "
-    "what to do instead. Ask when it is outside the rules and precedent gives no answer. "
+    "Rule on ONE tool call: allow, deny, or ask the developer. Use judgment the way a trusted "
+    "senior engineer on the team would: the developer wants the agent to move fast, and every "
+    "ask interrupts them. Allow anything that plainly serves the agent's work and that the "
+    "developer would wave through, including work outside the project folder (notes, memory "
+    "and config of the agent, scratch folders, sibling repos it is working on, read-only "
+    "commands anywhere). Deny what would cause harm that is hard to undo, and say what to do "
+    "instead. Ask only when the call is risky or surprising AND you cannot tell whether the "
+    "developer wants it: never just because it is outside the project or no precedent covers "
+    "it. The rules state the developer's intent, not a checklist; precedent shows how they "
+    "decide (their own approvals are strong precedent). "
+    "When you ask, also give a grant: a Python regex, anchored with ^, over the call's input, "
+    "that matches the calls of the same kind the developer's yes would also cover. A yes is "
+    "kept forever, so make it as narrow as the reason you asked (fix the command and the "
+    "risky part; let paths or arguments vary only where that changes nothing). "
     'Reply with ONE JSON object only: {"verdict":"allow|deny|ask","reason":"<=30 words",'
-    '"rule":<rule number or null>}'
+    '"rule":<number of the rule that decided it, or null>,"grant":"<regex, only with ask>"}'
 )
 
 
@@ -59,6 +71,25 @@ def build_prompt(config: GateConfig, *, tool: str, subject: str, cwd: str,
     )
 
 
+def parse_grant(text: str, subject: str) -> str | None:
+    """The grant pattern in a reply, if it is usable: compiles, is anchored with ^, matches
+    the call it was given for, and is not a match-anything pattern."""
+    start, end = text.find("{"), text.rfind("}")
+    try:
+        grant = json.loads(text[start : end + 1]).get("grant")
+    except (json.JSONDecodeError, AttributeError):
+        return None
+    if not isinstance(grant, str) or not grant.startswith("^") or len(grant) > 500:
+        return None
+    try:
+        rx = re.compile(grant)
+    except re.error:
+        return None
+    if not rx.search(subject) or rx.search("") or rx.search("x") or rx.search("/"):
+        return None
+    return grant
+
+
 def parse_ruling(text: str) -> tuple[Verdict, str, int | None] | None:
     start, end = text.find("{"), text.rfind("}")
     if not 0 <= start < end:
@@ -76,7 +107,7 @@ def parse_ruling(text: str) -> tuple[Verdict, str, int | None] | None:
     return verdict, reason, rule  # type: ignore[return-value]
 
 
-async def rule_on(prompt: str, judge: Judge) -> Ruling:
+async def rule_on(prompt: str, judge: Judge, subject: str = "") -> Ruling:
     start = time.perf_counter()
     try:
         text, tin, tout = await judge(prompt)
@@ -89,7 +120,8 @@ async def rule_on(prompt: str, judge: Judge) -> Ruling:
         return Ruling("ask", "gate reply was not a ruling; asking instead", None, tin, tout,
                       latency)
     verdict, reason, rule = parsed
-    return Ruling(verdict, reason, rule, tin, tout, latency)
+    grant = parse_grant(text, subject) if verdict == "ask" else None
+    return Ruling(verdict, reason, rule, tin, tout, latency, grant)
 
 
 # ---------------------------------------------------------------------------

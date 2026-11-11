@@ -136,6 +136,36 @@ def log_cmd(limit: int) -> None:
                    f"{d.subject[:70]!s}  — {d.reason[:80]}")
 
 
+@gate.command(name="grants")
+def grants_cmd() -> None:
+    """Standing yeses: asks you approved, and the pattern of calls each one now allows."""
+    from engine.gate import load_config
+    from engine.gate.ledger import read
+
+    root = _root(None)
+    history = read(load_config(root).store_root(root))
+    grants = history.grants()
+    if not grants:
+        click.echo("No standing grants.")
+    for d in grants:
+        click.echo(f"{d.id}  {d.tool}: {d.grant}\n    first approved for: {d.subject[:100]}")
+
+
+@gate.command(name="revoke")
+@click.argument("decision_id")
+def revoke_cmd(decision_id: str) -> None:
+    """Withdraw a standing grant (and the exact-call approval) by its decision id."""
+    from engine.gate import load_config
+    from engine.gate.ledger import Revoke, append, now, read
+
+    root = _root(None)
+    store = load_config(root).store_root(root)
+    if decision_id not in {d.id for d in read(store).decisions}:
+        raise click.ClickException(f"no decision {decision_id}; see `deliberator gate grants`")
+    append(store, Revoke(decision=decision_id, at=now()))
+    click.echo(f"Revoked {decision_id}.")
+
+
 @gate.command(name="sync")
 def sync_cmd() -> None:
     """Write graph.json, and every decision to the graph database if one is configured."""

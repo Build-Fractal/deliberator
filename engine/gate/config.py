@@ -17,17 +17,25 @@ CONFIG_PATH = Path(".deliberator") / "gate.yml"
 USER_CONFIG_PATH = Path.home() / ".config" / "deliberator" / "gate.yml"
 
 DEFAULT_RULES: tuple[str, ...] = (
-    "Deny anything that deletes or overwrites uncommitted or unpushed work.",
-    "Deny force-pushes, history rewrites or deletes on main, master or shared branches.",
-    "Deny commands that send secrets, keys or credentials anywhere, or print them.",
     (
-        "Ask before changing anything outside the current project: other repos, the home "
-        "directory, machine-wide packages, cloud resources, databases."
+        "Never lose work: deny deleting or overwriting uncommitted or unpushed work, or "
+        "someone else's files, without a backup."
     ),
-    "Ask before anything that publishes: git push, package publish, deploys, messages.",
+    "Deny force-pushes, history rewrites or branch deletes on main, master or shared branches.",
+    "Deny sending secrets, keys or credentials anywhere, or printing their values.",
     (
-        "Allow routine development: reading, searching, building, testing, editing files in "
-        "the project, committing on a feature branch."
+        "Ask before actions that are costly or hard to undo outside the project: deleting "
+        "other repos or data, machine-wide package changes, changing cloud resources, "
+        "writing to shared databases, spending money."
+    ),
+    (
+        "Ask before publishing to other people: package releases, deploys, messages, emails, "
+        "merging to main. Pushing a feature branch or opening a PR is routine."
+    ),
+    (
+        "Allow ordinary work wherever it happens: reading and searching anywhere, building, "
+        "testing, editing, committing, and writing the agent's own notes, memory, scratch "
+        "and temporary files."
     ),
 )
 
@@ -107,13 +115,7 @@ provider: bedrock            # bedrock | anthropic | claude-code | mock
 effort: low                  # thinking effort; low keeps hooks fast
 aws_profile: null            # the AWS profile with Bedrock access
 aws_region: us-east-1
-rules:
-  - Deny anything that deletes or overwrites uncommitted or unpushed work.
-  - Deny force-pushes, history rewrites or deletes on main, master or shared branches.
-  - Deny commands that send secrets, keys or credentials anywhere, or print them.
-  - Ask before changing anything outside the current project.
-  - Ask before anything that publishes (git push, publish, deploy, messages).
-  - Allow routine development inside the project.
+# rules: plain-language intent the judge weighs (defaults in engine/gate/config.py)
 allow_without_asking:
   - '^(ls|pwd|cat|head|tail|wc|grep|rg|find)\\b'
   - '^git (status|diff|log|show|branch)\\b'

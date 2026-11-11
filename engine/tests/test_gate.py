@@ -127,7 +127,7 @@ def test_similar_prefers_same_tool_and_approvals(tmp_path: Path) -> None:
 def test_prompt_numbers_rules() -> None:
     p = build_prompt(MOCK, tool="Bash", subject="ls", cwd="/p", precedents=[],
                      history=read(Path("/nonexistent")))
-    assert "1. Deny anything that deletes" in p and "(none)" in p
+    assert "1. Never lose work" in p and "(none)" in p
 
 
 async def test_graph_projection_and_push(tmp_path: Path) -> None:
@@ -207,3 +207,45 @@ def test_user_config_and_shared_log(tmp_path: Path, monkeypatch: pytest.MonkeyPa
     (project / ".deliberator").mkdir()
     (project / ".deliberator" / "gate.yml").write_text("provider: claude-code\n")
     assert config_mod.load_config(project).provider == "claude-code"
+
+
+async def test_approved_grant_covers_calls_of_the_same_kind(tmp_path: Path) -> None:
+    from engine.gate.ledger import Revoke, append, now
+
+    calls: list[str] = []
+    j = _judge('{"verdict":"ask","reason":"writes memory","grant":"^echo .* >> ~/notes/"}',
+               calls)
+    asked = await _bash(tmp_path, "echo a >> ~/notes/x.md", judge=j)
+    assert asked.grant == "^echo .* >> ~/notes/"
+    assert "kept forever" in hook_output(asked, MOCK)["hookSpecificOutput"][
+        "permissionDecisionReason"]
+    record(tmp_path, MOCK, tool="Bash", tool_input={"command": "echo a >> ~/notes/x.md"},
+           session="s1", push_graph=False)
+    other = await _bash(tmp_path, "echo b >> ~/notes/y.md", judge=j)
+    assert (other.verdict, other.source, len(calls)) == ("allow", "approved", 1)
+    append(tmp_path, Revoke(decision=asked.id, at=now()))
+    again = await _bash(tmp_path, "echo c >> ~/notes/z.md", judge=j)
+    assert again.verdict == "ask" and len(calls) == 2
+
+
+def test_grant_patterns_must_be_narrow() -> None:
+    from engine.gate.judge import parse_grant
+
+    def reply(g: str) -> str:
+        return json.dumps({"verdict": "ask", "reason": "r", "grant": g})
+
+    assert parse_grant(reply("^npm publish\\b"), "npm publish --dry") == "^npm publish\\b"
+    assert parse_grant(reply(".*"), "anything") is None  # not anchored
+    assert parse_grant(reply("^.*"), "anything") is None  # matches everything
+    assert parse_grant(reply("^git push"), "rm -rf x") is None  # does not cover the call
+    assert parse_grant(reply("^(unclosed"), "x") is None
+
+
+async def test_allow_list_does_not_cover_redirects_or_chains(tmp_path: Path) -> None:
+    cfg = MOCK.model_copy(update={"allow_without_asking": [r"^(cat|echo|ls)\b"]})
+    j = _judge('{"verdict":"ask","reason":"x"}')
+    for cmd in ("cat a > b", "echo x >> ~/.bashrc", "ls; rm -rf src", "cat $(whoami)",
+                "ls && git push", "cat x | sh"):
+        d = await _bash(tmp_path, cmd, cfg, judge=j)
+        assert d.source == "model", cmd
+    assert (await _bash(tmp_path, "cat README.md", cfg, judge=j)).source == "skip"

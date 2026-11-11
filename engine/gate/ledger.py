@@ -30,6 +30,15 @@ Source = Literal["model", "reuse", "approved", "skip", "error"]
 LOG_PATH = Path(".deliberator") / "gate" / "log.jsonl"
 
 
+# Redirection, pipes, chaining, substitution: a command with any of these does more than its
+# first word says, so allow-lists and grants don't cover it unless the approved call had it.
+_COMPOUND = re.compile(r"[<>;&|`\n]|\$\(")
+
+
+def compound(subject: str) -> bool:
+    return bool(_COMPOUND.search(subject))
+
+
 def subject_of(tool: str, tool_input: dict[str, Any]) -> str:
     """The part of a tool call that decides whether it's safe, as one string."""
     if tool == "Bash":
@@ -68,6 +77,17 @@ class Decision(BaseModel):
     latency_ms: float = 0.0
     input_tokens: int = 0
     output_tokens: int = 0
+    # On an ask: the pattern of calls the person's yes covers. Approved, it stands forever
+    # (until revoked with `deliberator gate revoke`).
+    grant: str | None = None
+
+
+class Revoke(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    kind: Literal["revoke"] = "revoke"
+    decision: str
+    at: str
 
 
 class Outcome(BaseModel):
@@ -84,14 +104,31 @@ class History(BaseModel):
 
     decisions: list[Decision] = Field(default_factory=list)
     ran: set[str] = Field(default_factory=set)
+    revoked: set[str] = Field(default_factory=set)
 
     def approved(self, d: Decision) -> bool:
         """The gate asked and the person said yes (the tool ran)."""
-        return d.verdict == "ask" and d.id in self.ran
+        return d.verdict == "ask" and d.id in self.ran and d.id not in self.revoked
 
     def effective(self, d: Decision) -> Verdict:
         """What the decision came to: an approved ask counts as allow."""
         return "allow" if self.approved(d) else d.verdict
+
+    def grants(self) -> list[Decision]:
+        """Approved asks that carry a grant pattern and were not revoked, newest first."""
+        return [d for d in reversed(self.decisions)
+                if d.grant and self.approved(d) and d.id not in self.revoked]
+
+    def granted(self, tool: str, subject: str) -> Decision | None:
+        for d in self.grants():
+            if d.tool != tool or (compound(subject) and not compound(d.subject)):
+                continue
+            try:
+                if re.search(d.grant or "", subject):
+                    return d
+            except re.error:
+                continue
+        return None
 
 
 def now() -> str:
@@ -103,7 +140,7 @@ def new_id(key: str) -> str:
     return f"{stamp}-{key[:8]}"
 
 
-def append(root: Path, *items: Decision | Outcome) -> None:
+def append(root: Path, *items: Decision | Outcome | Revoke) -> None:
     path = root / LOG_PATH
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a", encoding="utf-8") as fh:
@@ -127,6 +164,8 @@ def read(root: Path) -> History:
             history.decisions.append(Decision.model_validate(data))
         elif data.get("kind") == "outcome" and data.get("ran", True):
             history.ran.add(str(data["decision"]))
+        elif data.get("kind") == "revoke":
+            history.revoked.add(str(data["decision"]))
     return history
 
 
