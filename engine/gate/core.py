@@ -8,10 +8,11 @@ import re
 from pathlib import Path
 from typing import Any
 
-from engine.gate import ledger
+from engine.gate import ledger, protect
 from engine.gate.config import GateConfig
-from engine.gate.judge import Judge, build_prompt, make_judge, rule_on
-from engine.gate.ledger import Decision, History, Outcome
+from engine.gate.judge import Judge, build_prompt, clip, make_judge, rule_on
+from engine.gate.ledger import Decision, History, Outcome, Prompted
+from engine.gate.redact import redact
 
 logger = logging.getLogger("deliberator.gate")
 GRAPH_JSON = Path(".deliberator") / "gate" / "graph.json"
@@ -31,26 +32,54 @@ def _push_quietly(root: Path, decisions: list[Decision], history: History,
         logger.warning("gate: graph write failed (%s); run `deliberator gate sync`", exc)
 
 
-EDIT_TOOLS = frozenset({"Write", "Edit", "MultiEdit", "NotebookEdit"})
+EDIT_TOOLS = protect.EDIT_TOOLS
+
+
+def _not_a_project(base: Path) -> bool:
+    home = Path.home().resolve()
+    return base in (home, Path("/"), home / "code")
 
 
 def _edit_inside(tool: str, tool_input: dict[str, Any], cwd: str) -> bool:
-    """An edit tool writing a file under `cwd`, not inside a .git folder."""
+    """An edit tool writing a file inside the git repository that holds `cwd`.
+
+    Refused when cwd is ~, / or ~/code, when cwd is in no git repo (or the repo is ~ or /),
+    and for files outside the repo root. Protected paths (.git, .claude, ...) are checked
+    separately and always go to the judge.
+    """
     if tool not in EDIT_TOOLS or not cwd:
         return False
     raw = tool_input.get("file_path") or tool_input.get("notebook_path")
-    if not raw:
+    if not raw or not isinstance(raw, str):
         return False
-    base = Path(cwd).resolve()
-    path = Path(raw) if Path(raw).is_absolute() else base / raw
-    path = path.resolve()
-    if base == Path.home().resolve() or base == Path("/"):
-        return False  # a session in ~ or / is not "a project"
+    base = Path(cwd).expanduser().resolve()
+    if _not_a_project(base):
+        return False  # a session in ~, / or ~/code is not "a project"
+    repo = ledger.git_root(str(base))
+    if repo is None or _not_a_project(repo.resolve()):
+        return False
+    path = Path(raw).expanduser()
+    path = (path if path.is_absolute() else base / path).resolve()
     try:
-        rel = path.relative_to(base)
+        path.relative_to(repo.resolve())
     except ValueError:
         return False
-    return ".git" not in rel.parts
+    return True
+
+
+def _risky_flags(subject: str) -> bool:
+    """Flags that make a read-only-looking command write, delete, run or force something."""
+    if _RISKY.search(subject):
+        return True
+    return subject.split()[:1] == ["git"] and bool(_GIT_F.search(subject))
+
+
+_RISKY = re.compile(
+    r"(?:^|\s)(?:-delete|-exec|-execdir|-ok|-okdir|-fprint\S*|-fls|--pre(?:-glob)?|--output\S*"
+    r"|-o|-D|--force\S*|--delete\S*|--in-place\S*)(?=\s|=|$)"
+    r"|(?:^|\s)-o\S"  # -ofile
+)
+_GIT_F = re.compile(r"(?:^|\s)-[A-Za-z]*f[A-Za-z]*(?=\s|$)")
 
 
 async def decide(
@@ -67,43 +96,56 @@ async def decide(
 ) -> Decision:
     """Rule on one tool call and log the decision.
 
-    Order: allow-list (no model call) → identical earlier call (reuse, or allowed because the
-    person approved it) → the judge, shown the closest precedents.
+    Order: allow-list or edit inside the repo (no model call) → a standing grant → identical
+    earlier call (same command or path AND same content: reuse, or allowed because the
+    person approved it) → the judge, shown the call's content and the closest precedents.
+    Calls touching protected paths, and calls too long to show whole, skip the shortcuts and
+    always go to the judge.
     """
-    subject = ledger.subject_of(tool, tool_input)
+    view = ledger.view_of(tool, tool_input)
+    raw_subject = view.subject
+    subject = redact(raw_subject)
     rules_hash = config.rules_hash()
-    key = ledger.call_key(tool, subject, cwd, rules_hash)
+    key = ledger.call_key(tool, raw_subject, cwd, rules_hash, view.digest)
+    shown, cut = clip(redact(view.text))
+    truncated = cut > 0
+    extra = [config.store_root(root) / ledger.LOG_PATH.parent] if config.log_dir else []
+    protected = protect.touches_protected(tool, tool_input, cwd, extra)
+    project = ledger.project_of(cwd)
     history = ledger.read(root)
     base: dict[str, Any] = {
         "id": ledger.new_id(key), "at": ledger.now(), "session": session,
         "tool_use_id": tool_use_id, "tool": tool, "subject": subject, "cwd": cwd, "key": key,
-        "rules_hash": rules_hash,
+        "rules_hash": rules_hash, "project": project, "truncated": truncated,
+        "protected": protected,
     }
+    shortcuts = not protected and not truncated
 
     decision: Decision | None = None
-    if config.allow_edits_in_project and _edit_inside(tool, tool_input, cwd):
+    if not protected and config.allow_edits_in_project and _edit_inside(tool, tool_input, cwd):
         decision = Decision(**base, verdict="allow", source="skip",
-                            reason="an edit to a file inside the working folder")
-    simple = tool != "Bash" or not ledger.compound(subject)
-    for pattern in config.allow_without_asking if decision is None and simple else ():
+                            reason="an edit to a file inside the working repository")
+    simple = tool != "Bash" or not (ledger.compound(raw_subject) or _risky_flags(raw_subject))
+    for pattern in config.allow_without_asking if decision is None and simple and shortcuts \
+            else ():
         try:
-            if re.search(pattern, subject):
+            if re.search(pattern, raw_subject):
                 decision = Decision(**base, verdict="allow", source="skip",
                                     reason=f"allowed without asking: matches {pattern!r}")
                 break
         except re.error:
             continue
 
-    if decision is None and config.learn_from_approvals:
-        grant = history.granted(tool, subject)
+    if decision is None and shortcuts and config.learn_from_approvals:
+        grant = history.granted(tool, subject, project)
         if grant is not None:
             decision = Decision(**base, verdict="allow", source="approved",
                                 reason=f"you said yes to calls like this ({grant.grant})",
                                 precedents=(grant.id,))
 
-    if decision is None and (config.reuse_identical or config.learn_from_approvals):
+    if decision is None and shortcuts and (config.reuse_identical or config.learn_from_approvals):
         for earlier in ledger.latest_for_key(history, key):
-            if earlier.source in ("error", "skip"):
+            if earlier.source in ("error", "skip") or earlier.truncated or earlier.protected:
                 continue
             if config.learn_from_approvals and history.approved(earlier):
                 decision = Decision(**base, verdict="allow", source="approved",
@@ -121,15 +163,17 @@ async def decide(
         precedents = ledger.similar(history, tool=tool, subject=subject, cwd=cwd,
                                     k=config.precedents)
         prompt = build_prompt(config, tool=tool, subject=subject, cwd=cwd,
-                              precedents=precedents, history=history)
-        ruling = await rule_on(prompt, judge or make_judge(config), subject)
+                              precedents=precedents, history=history, text=shown,
+                              truncated=cut)
+        ruling = await rule_on(prompt, judge or make_judge(config), subject,
+                               timeout_s=config.timeout_s)
         failed = ruling.reason.startswith("gate could not rule")
         decision = Decision(
-            **base, verdict=ruling.verdict, reason=ruling.reason, rule=ruling.rule,
+            **base, verdict=ruling.verdict, reason=redact(ruling.reason), rule=ruling.rule,
             source="error" if failed else "model", model=config.resolved_model(),
             precedents=tuple(p.id for p in precedents), latency_ms=ruling.latency_ms,
             input_tokens=ruling.input_tokens, output_tokens=ruling.output_tokens,
-            grant=ruling.grant,
+            grant=ruling.grant if shortcuts else None,
         )
 
     decision = ledger.redacted(decision)  # secrets never reach the log, graph or reply
@@ -140,14 +184,31 @@ async def decide(
     return decision
 
 
+def _pending(root: Path, tool: str, tool_input: dict[str, Any], session: str | None,
+             tool_use_id: str | None) -> tuple[History, Decision | None]:
+    history = ledger.read(root)
+    subject = redact(ledger.subject_of(tool, tool_input))
+    return history, ledger.find_pending(history, tool_use_id=tool_use_id, session=session,
+                                        tool=tool, subject=subject)
+
+
+def prompted(root: Path, config: GateConfig, *, tool: str, tool_input: dict[str, Any],
+             session: str | None = None, tool_use_id: str | None = None) -> Decision | None:
+    """Claude Code is showing the person a permission prompt for this call (PermissionRequest).
+
+    Together with the tool running afterwards, this is what makes an ask an approval."""
+    history, decision = _pending(root, tool, tool_input, session, tool_use_id)
+    if decision is None or decision.id in history.prompted:
+        return None
+    ledger.append(root, Prompted(decision=decision.id, at=ledger.now()))
+    return decision
+
+
 def record(root: Path, config: GateConfig, *, tool: str, tool_input: dict[str, Any],
            session: str | None = None, tool_use_id: str | None = None,
            push_graph: bool = True) -> Decision | None:
     """The tool ran: log it against its decision. An ask that ran was approved."""
-    history = ledger.read(root)
-    subject = ledger.subject_of(tool, tool_input)
-    decision = ledger.find_pending(history, tool_use_id=tool_use_id, session=session,
-                                   tool=tool, subject=subject)
+    history, decision = _pending(root, tool, tool_input, session, tool_use_id)
     if decision is None or decision.id in history.ran:
         return None
     ledger.append(root, Outcome(decision=decision.id, at=ledger.now()))

@@ -1,10 +1,12 @@
 """``deliberator gate``: graph-backed yes/no hooks for Claude Code.
 
     deliberator gate hook      # PreToolUse: reads hook JSON on stdin, prints the decision
-    deliberator gate record    # PostToolUse: the tool ran; an approved ask becomes precedent
+    deliberator gate record    # PostToolUse: the tool ran
+    deliberator gate prompted  # PermissionRequest: you were asked; prompted + ran = approved
     deliberator gate check -c "git push --force origin main"
     deliberator gate log       # recent decisions
     deliberator gate sync      # write graph.json and every decision to the graph database
+    deliberator gate scrub     # redact secrets in the existing log (never runs by itself)
     deliberator gate init      # write .deliberator/gate.yml and print the hook settings
 """
 
@@ -27,6 +29,11 @@ HOOK_SETTINGS = {
         "PostToolUse": [{
             "matcher": "Bash|Write|Edit|MultiEdit|NotebookEdit",
             "hooks": [{"type": "command", "command": "deliberator gate record", "timeout": 15}],
+        }],
+        "PermissionRequest": [{
+            "matcher": "Bash|Write|Edit|MultiEdit|NotebookEdit",
+            "hooks": [{"type": "command", "command": "deliberator gate prompted",
+                       "timeout": 15}],
         }],
     }
 }
@@ -90,6 +97,38 @@ def record_cmd() -> None:
         click.echo(f"deliberator gate record: {exc}", err=True)
 
 
+@gate.command(name="prompted")
+def prompted_cmd() -> None:
+    """PermissionRequest hook: record that you were shown a permission prompt for the call.
+
+    Prints nothing (Claude Code then shows its normal prompt) and always exits 0. An ask
+    counts as your approval only if you were prompted and the tool then ran.
+    """
+    try:
+        event = json.loads(sys.stdin.read() or "{}")
+        from engine.gate import load_config, prompted
+
+        root = _root(event.get("cwd"))
+        config = load_config(root)
+        prompted(config.store_root(root), config, tool=str(event.get("tool_name", "")),
+                 tool_input=event.get("tool_input") or {}, session=event.get("session_id"),
+                 tool_use_id=event.get("tool_use_id"))
+    except Exception:  # noqa: BLE001, S110 - never block or alter the prompt.
+        pass
+
+
+@gate.command(name="scrub")
+def scrub_cmd() -> None:
+    """Rewrite the log with secrets redacted in every stored text field (atomic)."""
+    from engine.gate import load_config
+    from engine.gate.ledger import LOG_PATH, scrub
+
+    root = _root(None)
+    store = load_config(root).store_root(root)
+    changed, total = scrub(store)
+    click.echo(f"{store / LOG_PATH}: {changed} of {total} lines changed.")
+
+
 @gate.command(name="check")
 @click.option("--command", "-c", "command", required=True, help="A shell command to rule on.")
 @click.option("--tool", default="Bash", show_default=True)
@@ -134,6 +173,8 @@ def log_cmd(limit: int) -> None:
         mark = " (approved)" if history.approved(d) else ""
         click.echo(f"{d.at[:19]}  {d.verdict:5}{mark:11} {d.source:8} {d.tool}: "
                    f"{d.subject[:70]!s}  — {d.reason[:80]}")
+    if history.invalid:
+        click.echo(f"({history.invalid} unreadable log lines skipped)")
 
 
 @gate.command(name="grants")
@@ -164,17 +205,6 @@ def revoke_cmd(decision_id: str) -> None:
         raise click.ClickException(f"no decision {decision_id}; see `deliberator gate grants`")
     append(store, Revoke(decision=decision_id, at=now()))
     click.echo(f"Revoked {decision_id}.")
-
-
-@gate.command(name="scrub")
-def scrub_cmd() -> None:
-    """Mask secret values in the existing decision log (rewrites it in place)."""
-    from engine.gate import load_config
-    from engine.gate.ledger import scrub
-
-    root = _root(None)
-    changed, total = scrub(load_config(root).store_root(root))
-    click.echo(f"{changed} of {total} lines had secrets masked.")
 
 
 @gate.command(name="sync")
@@ -212,6 +242,7 @@ def init_cmd(force: bool) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(EXAMPLE_CONFIG, encoding="utf-8")
         click.echo(f"Wrote {path}")
-    click.echo("\nFor every project, put the config in ~/.config/deliberator/gate.yml instead.")
+    click.echo("\nThe gate reads ~/.config/deliberator/gate.yml; this project file is used only if "
+               "that file sets allow_project_config: true.")
     click.echo("\nAdd to .claude/settings.json (project) or ~/.claude/settings.json:\n")
     click.echo(json.dumps(HOOK_SETTINGS, indent=2))
