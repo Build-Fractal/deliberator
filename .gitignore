@@ -44,4 +44,5 @@ validator-performance-report.json
 .tmp-*
 
 # Local wheels for unpublished dependencies (scripts/lattice-wheel.sh)
-.wheels/
+.wheels/*
+!.wheels/README.md
