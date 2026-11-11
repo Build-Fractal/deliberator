@@ -175,3 +175,35 @@ def test_hook_command_always_answers(tmp_path: Path) -> None:
     (tmp_path / ".deliberator" / "gate.yml").write_text("provider: nonsense\n")
     cfg_err = json.loads(runner.invoke(gate, ["hook"], input=json.dumps(event)).output)
     assert cfg_err["hookSpecificOutput"]["permissionDecision"] == "ask"
+
+
+async def test_edits_inside_the_folder_skip_the_model(tmp_path: Path) -> None:
+    calls: list[str] = []
+    j = _judge('{"verdict":"ask","reason":"x"}', calls)
+
+    async def edit(path: str):
+        return await decide(tmp_path, MOCK, tool="Edit", tool_input={"file_path": path},
+                            cwd=str(tmp_path), session="s1", push_graph=False, judge=j)
+
+    assert (await edit(str(tmp_path / "src" / "a.py"))).source == "skip"
+    assert (await edit("src/b.py")).source == "skip"
+    assert (await edit(str(tmp_path / ".git" / "config"))).source == "model"
+    assert (await edit("/etc/hosts")).source == "model"
+    assert (await edit(str(tmp_path / ".." / "other" / "x"))).source == "model"
+    assert len(calls) == 3
+
+
+def test_user_config_and_shared_log(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from engine.gate import config as config_mod
+
+    user = tmp_path / "user" / "gate.yml"
+    user.parent.mkdir()
+    user.write_text(f"provider: mock\nlog_dir: {tmp_path / 'shared'}\n")
+    monkeypatch.setattr(config_mod, "USER_CONFIG_PATH", user)
+    project = tmp_path / "proj"
+    project.mkdir()
+    cfg = config_mod.load_config(project)
+    assert cfg.provider == "mock" and cfg.store_root(project) == tmp_path / "shared"
+    (project / ".deliberator").mkdir()
+    (project / ".deliberator" / "gate.yml").write_text("provider: claude-code\n")
+    assert config_mod.load_config(project).provider == "claude-code"

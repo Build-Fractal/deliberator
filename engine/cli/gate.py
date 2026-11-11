@@ -64,7 +64,7 @@ def hook_cmd() -> None:
         root = _root(cwd)
         config = load_config(root)
         decision = asyncio.run(decide(
-            root, config, tool=str(event.get("tool_name", "")),
+            config.store_root(root), config, tool=str(event.get("tool_name", "")),
             tool_input=event.get("tool_input") or {}, cwd=cwd,
             session=event.get("session_id"), tool_use_id=event.get("tool_use_id"),
         ))
@@ -82,7 +82,8 @@ def record_cmd() -> None:
         from engine.gate import load_config, record
 
         root = _root(event.get("cwd"))
-        record(root, load_config(root), tool=str(event.get("tool_name", "")),
+        config = load_config(root)
+        record(config.store_root(root), config, tool=str(event.get("tool_name", "")),
                tool_input=event.get("tool_input") or {}, session=event.get("session_id"),
                tool_use_id=event.get("tool_use_id"))
     except Exception as exc:  # noqa: BLE001
@@ -104,11 +105,12 @@ def check_cmd(command: str, tool: str, provider: str | None, dry_run: bool) -> N
     config = load_config(root)
     if provider:
         config = config.model_copy(update={"provider": provider})
-    target = root
+    target = config.store_root(root)
+    store = target
     if dry_run:
         # Read precedent from the real log, write to a throwaway copy.
         target = Path(tempfile.mkdtemp(prefix="gate-dry-"))
-        src = root / ".deliberator" / "gate" / "log.jsonl"
+        src = store / ".deliberator" / "gate" / "log.jsonl"
         if src.is_file():
             (target / ".deliberator" / "gate").mkdir(parents=True)
             (target / ".deliberator" / "gate" / "log.jsonl").write_bytes(src.read_bytes())
@@ -123,9 +125,11 @@ def check_cmd(command: str, tool: str, provider: str | None, dry_run: bool) -> N
 @click.option("-n", "limit", default=20, show_default=True)
 def log_cmd(limit: int) -> None:
     """Recent decisions, newest last."""
+    from engine.gate import load_config
     from engine.gate.ledger import read
 
-    history = read(_root(None))
+    root = _root(None)
+    history = read(load_config(root).store_root(root))
     for d in history.decisions[-limit:]:
         mark = " (approved)" if history.approved(d) else ""
         click.echo(f"{d.at[:19]}  {d.verdict:5}{mark:11} {d.source:8} {d.tool}: "
@@ -142,10 +146,11 @@ def sync_cmd() -> None:
 
     root = _root(None)
     config = load_config(root)
-    path = write_graph_json(root, config)
+    store = config.store_root(root)
+    path = write_graph_json(store, config)
     click.echo(f"graph.json: {path}")
     if config.graph_uri:
-        history = read(root)
+        history = read(store)
         n = push(history.decisions, history, config)
         click.echo(f"{config.graph_uri}: {len(history.decisions)} decisions, {n} statements")
     else:
@@ -166,5 +171,6 @@ def init_cmd(force: bool) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(EXAMPLE_CONFIG, encoding="utf-8")
         click.echo(f"Wrote {path}")
+    click.echo("\nFor every project, put the config in ~/.config/deliberator/gate.yml instead.")
     click.echo("\nAdd to .claude/settings.json (project) or ~/.claude/settings.json:\n")
     click.echo(json.dumps(HOOK_SETTINGS, indent=2))

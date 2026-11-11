@@ -13,6 +13,8 @@ Provider = Literal["bedrock", "anthropic", "claude-code", "mock"]
 Effort = Literal["low", "medium", "high", "xhigh", "max"]
 
 CONFIG_PATH = Path(".deliberator") / "gate.yml"
+# Used when the project has no gate.yml: one config for every project.
+USER_CONFIG_PATH = Path.home() / ".config" / "deliberator" / "gate.yml"
 
 DEFAULT_RULES: tuple[str, ...] = (
     "Deny anything that deletes or overwrites uncommitted or unpushed work.",
@@ -56,6 +58,17 @@ class GateConfig(BaseModel):
     graph_uri: str | None = None
     graph_user: str | None = None
     graph_password_env: str | None = None  # name of the env var that holds the password
+    # Edits (Write, Edit, MultiEdit, NotebookEdit) to files inside the working folder are
+    # allowed without a model call. Paths in .git, and paths outside the folder, still go
+    # to the judge.
+    allow_edits_in_project: bool = True
+    # Keep the log in this folder instead of the project's .deliberator/gate/. Set it in the
+    # user config so every project shares one log, and precedent carries across projects.
+    log_dir: str | None = None
+
+    def store_root(self, project_root: Path) -> Path:
+        """The folder whose .deliberator/gate/ holds the log."""
+        return Path(self.log_dir).expanduser() if self.log_dir else project_root
 
     def resolved_model(self) -> str:
         if self.model:
@@ -71,9 +84,17 @@ class GateConfig(BaseModel):
         return hashlib.sha256("\n".join(self.rules).encode()).hexdigest()[:12]
 
 
+def config_path(project_root: Path) -> Path | None:
+    """The project's gate.yml, else the user's, else None (defaults)."""
+    for path in (project_root / CONFIG_PATH, USER_CONFIG_PATH):
+        if path.is_file():
+            return path
+    return None
+
+
 def load_config(project_root: Path) -> GateConfig:
-    path = project_root / CONFIG_PATH
-    if not path.is_file():
+    path = config_path(project_root)
+    if path is None:
         return GateConfig()
     data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
     return GateConfig.model_validate(data)
@@ -100,4 +121,6 @@ precedents: 6
 reuse_identical: true
 learn_from_approvals: true
 graph_uri: null              # e.g. bolt://localhost:7687 (Memgraph)
+allow_edits_in_project: true # edits inside the working folder skip the model
+log_dir: null                # e.g. ~/.local/share/deliberator: one log for every project
 """

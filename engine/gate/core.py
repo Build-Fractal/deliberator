@@ -31,6 +31,28 @@ def _push_quietly(root: Path, decisions: list[Decision], history: History,
         logger.warning("gate: graph write failed (%s); run `deliberator gate sync`", exc)
 
 
+EDIT_TOOLS = frozenset({"Write", "Edit", "MultiEdit", "NotebookEdit"})
+
+
+def _edit_inside(tool: str, tool_input: dict[str, Any], cwd: str) -> bool:
+    """An edit tool writing a file under `cwd`, not inside a .git folder."""
+    if tool not in EDIT_TOOLS or not cwd:
+        return False
+    raw = tool_input.get("file_path") or tool_input.get("notebook_path")
+    if not raw:
+        return False
+    base = Path(cwd).resolve()
+    path = Path(raw) if Path(raw).is_absolute() else base / raw
+    path = path.resolve()
+    if base == Path.home().resolve() or base == Path("/"):
+        return False  # a session in ~ or / is not "a project"
+    try:
+        rel = path.relative_to(base)
+    except ValueError:
+        return False
+    return ".git" not in rel.parts
+
+
 async def decide(
     root: Path,
     config: GateConfig,
@@ -59,7 +81,10 @@ async def decide(
     }
 
     decision: Decision | None = None
-    for pattern in config.allow_without_asking:
+    if config.allow_edits_in_project and _edit_inside(tool, tool_input, cwd):
+        decision = Decision(**base, verdict="allow", source="skip",
+                            reason="an edit to a file inside the working folder")
+    for pattern in config.allow_without_asking if decision is None else ():
         try:
             if re.search(pattern, subject):
                 decision = Decision(**base, verdict="allow", source="skip",
