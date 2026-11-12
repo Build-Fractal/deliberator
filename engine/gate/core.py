@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import re
 from pathlib import Path
 from typing import Any
@@ -212,8 +213,13 @@ async def decide(
         ruling = await rule_on(prompt, judge or make_judge(config), subject,
                                timeout_s=config.timeout_s)
         failed = ruling.reason.startswith("gate could not rule")
+        verdict, reason = ruling.verdict, ruling.reason
+        if truncated and verdict == "allow":
+            # The judge saw head and tail only: what it allowed may not be what runs.
+            verdict = "ask"
+            reason = f"truncated call (the judge saw only its head and tail): {reason}"
         decision = Decision(
-            **base, verdict=ruling.verdict, reason=redact(ruling.reason), rule=ruling.rule,
+            **base, verdict=verdict, reason=redact(reason), rule=ruling.rule,
             source="error" if failed else "model", model=config.resolved_model(),
             precedents=tuple(p.id for p in precedents), latency_ms=ruling.latency_ms,
             input_tokens=ruling.input_tokens, output_tokens=ruling.output_tokens,
@@ -284,5 +290,9 @@ def write_graph_json(root: Path, config: GateConfig) -> Path:
 
     path = root / GRAPH_JSON
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(node_link(ledger.read(root), config), indent=1), encoding="utf-8")
+    data = json.dumps(node_link(ledger.read(root), config), indent=1)
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    os.fchmod(fd, 0o600)  # an existing file keeps its old mode otherwise
+    with os.fdopen(fd, "w", encoding="utf-8") as fh:
+        fh.write(data)
     return path

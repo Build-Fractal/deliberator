@@ -79,7 +79,7 @@ async def test_long_call_is_truncated_with_marker_and_never_reused(tmp_path: Pat
     calls: list[str] = []
     cmd = "echo " + "a" * 5000 + " MIDDLE " + "b" * 5000
     d = await _call(tmp_path, "Bash", {"command": cmd}, judge=_judge(ALLOW, calls))
-    assert d.truncated and d.verdict == "allow"
+    assert d.truncated and d.verdict == "ask"  # a truncated call is never allowed outright
     assert "[TRUNCATED" in calls[0] and "MIDDLE" not in calls[0]
     assert "answer ask" in calls[0]
     assert len(calls[0].split("<<<CALL-")[1]) < JUDGE_LIMIT + 500

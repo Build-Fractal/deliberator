@@ -136,6 +136,7 @@ def scrub_cmd() -> None:
 @click.option("--dry-run", is_flag=True, help="Do not write the decision to the log.")
 def check_cmd(command: str, tool: str, provider: str | None, dry_run: bool) -> None:
     """Rule on one command from the terminal and print the decision."""
+    import shutil
     import tempfile
 
     from engine.gate import decide, hook_output, load_config
@@ -154,8 +155,12 @@ def check_cmd(command: str, tool: str, provider: str | None, dry_run: bool) -> N
             (target / ".deliberator" / "gate").mkdir(parents=True)
             (target / ".deliberator" / "gate" / "log.jsonl").write_bytes(src.read_bytes())
     tool_input = {"command": command} if tool == "Bash" else {"file_path": command}
-    decision = asyncio.run(decide(target, config, tool=tool, tool_input=tool_input,
-                                  cwd=str(Path.cwd()), push_graph=not dry_run))
+    try:
+        decision = asyncio.run(decide(target, config, tool=tool, tool_input=tool_input,
+                                      cwd=str(Path.cwd()), push_graph=not dry_run))
+    finally:
+        if dry_run:
+            shutil.rmtree(target, ignore_errors=True)  # the copy holds the whole log
     click.echo(json.dumps({"decision": decision.model_dump(),
                            "hook": hook_output(decision, config)}, indent=1))
 

@@ -17,7 +17,6 @@ from click.testing import CliRunner
 
 from engine.gate import GateConfig, decide, protect
 
-
 MOCK = GateConfig(provider="mock")
 ASK = '{"verdict":"ask","reason":"x"}'
 ALLOW = '{"verdict":"allow","reason":"ok"}'
