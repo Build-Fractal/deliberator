@@ -144,7 +144,7 @@ effort: low                  # thinking effort; low keeps hooks fast
 aws_profile: null            # the AWS profile with Bedrock access
 aws_region: us-east-1
 # rules: plain-language intent the judge weighs (defaults in engine/gate/config.py)
-allow_without_asking:        # simple commands only: no chains, redirects or risky flags
+allow_without_asking:        # one plain command, every flag on its safe list (engine/gate/simple.py)
   - '^(ls|pwd|wc|which|date|du|df)\\b'
   - '^git (status|diff|log|show)\\b'
 precedents: 6
