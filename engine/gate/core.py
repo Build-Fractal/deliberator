@@ -13,6 +13,7 @@ from engine.gate.config import GateConfig
 from engine.gate.judge import Judge, build_prompt, clip, make_judge, rule_on
 from engine.gate.ledger import Decision, History, Outcome, Prompted
 from engine.gate.redact import redact
+from engine.gate.simple import is_simple
 
 logger = logging.getLogger("deliberator.gate")
 GRAPH_JSON = Path(".deliberator") / "gate" / "graph.json"
@@ -123,21 +124,6 @@ def _risky_content(text: str) -> bool:
     return bool(_RISKY_CONTENT.search(text))
 
 
-def _risky_flags(subject: str) -> bool:
-    """Flags that make a read-only-looking command write, delete, run or force something."""
-    if _RISKY.search(subject):
-        return True
-    return subject.split()[:1] == ["git"] and bool(_GIT_F.search(subject))
-
-
-_RISKY = re.compile(
-    r"(?:^|\s)(?:-delete|-exec|-execdir|-ok|-okdir|-fprint\S*|-fls|--pre(?:-glob)?|--output\S*"
-    r"|-o|-D|--force\S*|--delete\S*|--in-place\S*)(?=\s|=|$)"
-    r"|(?:^|\s)-o\S"  # -ofile
-)
-_GIT_F = re.compile(r"(?:^|\s)-[A-Za-z]*f[A-Za-z]*(?=\s|$)")
-
-
 async def decide(
     root: Path,
     config: GateConfig,
@@ -181,7 +167,9 @@ async def decide(
     if not protected and config.allow_edits_in_project and _edit_inside(tool, tool_input, cwd):
         decision = Decision(**base, verdict="allow", source="skip",
                             reason="an edit to a file inside the working repository")
-    simple = tool != "Bash" or not (ledger.compound(raw_subject) or _risky_flags(raw_subject))
+    # Bash: the allow-list skips the judge only for one plain command whose every flag is on
+    # that command's safe list (engine.gate.simple); anything else is judged, not asked.
+    simple = tool != "Bash" or (not ledger.compound(raw_subject) and is_simple(raw_subject))
     for pattern in config.allow_without_asking if decision is None and simple and shortcuts \
             else ():
         try:
