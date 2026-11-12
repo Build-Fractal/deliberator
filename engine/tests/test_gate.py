@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 from click.testing import CliRunner
 
-from engine.gate import GateConfig, decide, hook_output, record
+from engine.gate import GateConfig, decide, hook_output, prompted, record
 from engine.gate.judge import build_prompt, parse_ruling
 from engine.gate.ledger import read, similar
 
@@ -67,6 +67,8 @@ async def test_approved_ask_becomes_allow(tmp_path: Path) -> None:
     j = _judge('{"verdict":"ask","reason":"publishes"}', calls)
     asked = await _bash(tmp_path, "git push origin feat/x", judge=j)
     assert asked.verdict == "ask"
+    prompted(tmp_path, MOCK, tool="Bash", tool_input={"command": "git push origin feat/x"},
+             session="s1")
     record(tmp_path, MOCK, tool="Bash", tool_input={"command": "git push origin feat/x"},
            session="s1", push_graph=False)
     assert read(tmp_path).approved(asked)
@@ -160,11 +162,14 @@ async def test_graph_projection_and_push(tmp_path: Path) -> None:
     assert all("MERGE" in c for c, _ in ran)
 
 
-def test_hook_command_always_answers(tmp_path: Path) -> None:
+def test_hook_command_always_answers(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     from engine.cli.gate import gate
+    from engine.gate import config as config_mod
 
+    user = tmp_path / "user.yml"
+    user.write_text("provider: mock\n")
+    monkeypatch.setattr(config_mod, "USER_CONFIG_PATH", user)
     (tmp_path / ".deliberator").mkdir()
-    (tmp_path / ".deliberator" / "gate.yml").write_text("provider: mock\n")
     runner = CliRunner()
     event = {"cwd": str(tmp_path), "tool_name": "Bash", "session_id": "s",
              "tool_input": {"command": "git push --force origin main"}}
@@ -172,7 +177,7 @@ def test_hook_command_always_answers(tmp_path: Path) -> None:
     assert out["hookSpecificOutput"]["permissionDecision"] == "deny"
     bad = json.loads(runner.invoke(gate, ["hook"], input="not json").output)
     assert bad["hookSpecificOutput"]["permissionDecision"] == "ask"
-    (tmp_path / ".deliberator" / "gate.yml").write_text("provider: nonsense\n")
+    user.write_text("provider: nonsense\n")
     cfg_err = json.loads(runner.invoke(gate, ["hook"], input=json.dumps(event)).output)
     assert cfg_err["hookSpecificOutput"]["permissionDecision"] == "ask"
 
@@ -180,6 +185,8 @@ def test_hook_command_always_answers(tmp_path: Path) -> None:
 async def test_edits_inside_the_folder_skip_the_model(tmp_path: Path) -> None:
     calls: list[str] = []
     j = _judge('{"verdict":"ask","reason":"x"}', calls)
+
+    (tmp_path / ".git").mkdir()  # edits skip the judge only inside a git repository
 
     async def edit(path: str):
         return await decide(tmp_path, MOCK, tool="Edit", tool_input={"file_path": path},
@@ -205,20 +212,29 @@ def test_user_config_and_shared_log(tmp_path: Path, monkeypatch: pytest.MonkeyPa
     cfg = config_mod.load_config(project)
     assert cfg.provider == "mock" and cfg.store_root(project) == tmp_path / "shared"
     (project / ".deliberator").mkdir()
-    (project / ".deliberator" / "gate.yml").write_text("provider: claude-code\n")
-    assert config_mod.load_config(project).provider == "claude-code"
+    (project / ".deliberator" / "gate.yml").write_text(
+        "provider: claude-code\nlog_dir: /elsewhere\n")
+    assert config_mod.load_config(project).provider == "mock"  # not opted in: ignored
+    user.write_text(f"provider: mock\nlog_dir: {tmp_path / 'shared'}\n"
+                    "allow_project_config: true\n")
+    cfg = config_mod.load_config(project)
+    assert cfg.provider == "claude-code"
+    assert cfg.store_root(project) == tmp_path / "shared"  # a project can't move the log
 
 
 async def test_approved_grant_covers_calls_of_the_same_kind(tmp_path: Path) -> None:
     from engine.gate.ledger import Revoke, append, now
 
     calls: list[str] = []
-    j = _judge('{"verdict":"ask","reason":"writes memory","grant":"^echo .* >> ~/notes/"}',
+    grant = r"^echo \w+ >> ~/notes/[\w.-]+$"
+    j = _judge(json.dumps({"verdict": "ask", "reason": "writes memory", "grant": grant}),
                calls)
     asked = await _bash(tmp_path, "echo a >> ~/notes/x.md", judge=j)
-    assert asked.grant == "^echo .* >> ~/notes/"
+    assert asked.grant == grant
     assert "kept forever" in hook_output(asked, MOCK)["hookSpecificOutput"][
         "permissionDecisionReason"]
+    prompted(tmp_path, MOCK, tool="Bash", tool_input={"command": "echo a >> ~/notes/x.md"},
+             session="s1")
     record(tmp_path, MOCK, tool="Bash", tool_input={"command": "echo a >> ~/notes/x.md"},
            session="s1", push_graph=False)
     other = await _bash(tmp_path, "echo b >> ~/notes/y.md", judge=j)
@@ -234,7 +250,9 @@ def test_grant_patterns_must_be_narrow() -> None:
     def reply(g: str) -> str:
         return json.dumps({"verdict": "ask", "reason": "r", "grant": g})
 
-    assert parse_grant(reply("^npm publish\\b"), "npm publish --dry") == "^npm publish\\b"
+    narrow = "^npm publish( --dry)?$"
+    assert parse_grant(reply(narrow), "npm publish --dry") == narrow
+    assert parse_grant(reply("^npm publish\\b"), "npm publish --dry") is None  # riders
     assert parse_grant(reply(".*"), "anything") is None  # not anchored
     assert parse_grant(reply("^.*"), "anything") is None  # matches everything
     assert parse_grant(reply("^git push"), "rm -rf x") is None  # does not cover the call
