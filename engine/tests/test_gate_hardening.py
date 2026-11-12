@@ -194,8 +194,8 @@ async def test_credential_files_via_read_are_judged(tmp_path: Path, path: str) -
 
 FINE = [
     "ls", "ls -la", "ls -la src", "pwd", "cat README.md", "head -20 a.py", "head -n 5 a.py",
-    "tail -n 50 log.txt", "tail -f log.txt", "wc -l a.py", "grep -rn 'def main' engine",
-    "rg -n 'foo.*bar' engine", "rg -l --hidden -g '*.py' gate",
+    "tail -n 50 log.txt", "tail -f log.txt", "wc -l a.py", "grep -n 'def main' a.py",
+    "rg -n 'foo.*bar' engine", "rg -l -g '*.py' gate engine",
     "rg -t py -C 3 TODO", "find . -name '*.py' -type f", "find engine -maxdepth 2 -type d",
     "which python3", "echo hello", "tree -L 2", "du -sh .", "df -h", "date", "date +%Y-%m-%d",
     "git status", "git status -s", "git status --porcelain", "git diff", "git diff --stat",
@@ -225,7 +225,7 @@ def test_is_simple_is_conservative_on_odd_input() -> None:
 # 9. A truncated call is never allowed outright ----------------------------------------------
 
 async def test_model_allow_on_truncated_call_becomes_ask(tmp_path: Path) -> None:
-    cmd = "echo " + "a" * 5000 + " MIDDLE " + "b" * 5000
+    cmd = "echo " + "a" * 15000 + " MIDDLE " + "b" * 15000
     d = await _call(tmp_path, "Bash", {"command": cmd}, judge=_judge(ALLOW))
     assert d.truncated and d.verdict == "ask" and "truncated" in d.reason.lower()
     deny = await _call(tmp_path, "Bash", {"command": cmd + "z"},
@@ -267,3 +267,64 @@ async def test_graph_json_is_0600(tmp_path: Path) -> None:
     await _call(tmp_path, "Bash", {"command": "make"}, judge=_judge(ALLOW))
     path = write_graph_json(tmp_path, MOCK)
     assert stat.S_IMODE(os.stat(path).st_mode) == 0o600
+
+
+# Round 2: second-pass review bypasses. Each must reach the judge under the live allow-list.
+
+ROUND2 = [
+    # F1: assignment prefix, unknown command, `--`
+    "ls=x env -- python3 -c 'import os'",
+    "date=1 git push -- origin +HEAD:main",
+    "ls=x GIT_SSH_COMMAND='touch /tmp/p' git fetch origin",
+    "env ls", "ls-x foo",
+    # F2: find predicates anywhere, after `--` too
+    "find -- . -delete", "find -- . -exec sh -c id {} +", "find . -name x -- -delete",
+    # F3: zsh process substitution and glob qualifiers
+    "echo =(id)", "ls README.md(e:'touch /tmp/x':)", "ls =ls", "ls ^x", "ls x#",
+    # F4: a valued short flag must not swallow the next one
+    "git diff -U --output=~/.gitconfig",
+    "git log -1 -U --output=~/.gitconfig --format='[core]%n%x09fsmonitor = touch /tmp/p'",
+    "git log -n --output=x", "git show -O x HEAD", "git diff --open-files-in-pager=x",
+    "git log --exec-path=/tmp", "rg -e x --pre ./y foo",
+    # F5: recursive reads of a folder above a protected one
+    "rg --hidden --no-ignore -i secret ~", "grep -r oauth_token ~/.config", "rg secret ~",
+    "rg token ~/.config", "rg -uu token .", "ls -R ~", "tree ~/.config", "du -a ~",
+    "find ~ -name hosts.yml", "find / -name x", "grep -R x ~",
+    # F6: unnormalised paths, ANSI-C quoting
+    "cat ~/.config//gh/hosts.yml", "cat ~/.config/./deliberator/gate.yml",
+    "tail ~/.local//share/deliberator/log.jsonl", "cat ~/.config/../.netrc",
+    "cat $'\\x7e'/.netrc",
+    # git branch: never a write
+    "git branch --format --list newbranch", "git branch --list -d x", "git branch --move a b",
+    "git branch --contains x newbranch",
+]
+
+
+@pytest.mark.parametrize("cmd", ROUND2)
+async def test_round2_bypasses_reach_the_judge(tmp_path: Path, cmd: str) -> None:
+    calls: list[str] = []
+    d = await _call(tmp_path, "Bash", {"command": cmd}, LIVE, judge=_judge(ALLOW, calls))
+    assert d.source == "model" and len(calls) == 1, cmd
+
+
+@pytest.mark.parametrize("cmd", [
+    "cat ~/.config//gh/hosts.yml", "cat ~/.config/./deliberator/gate.yml",
+    "tail ~/.local//share/deliberator/log.jsonl", "cat ~/.config/../.netrc",
+    "cat $'\\x7e'/.netrc", "cat ~/*/settings.json", "cp x */settings.json",
+])
+def test_round2_paths_are_marked_protected(cmd: str) -> None:
+    assert protect.touches_protected("Bash", {"command": cmd}, str(HOME)), cmd
+
+
+async def test_recursive_read_with_no_path_uses_cwd(tmp_path: Path) -> None:
+    for cmd in ("rg secret", "find . -name x", "tree", "du -sh ."):
+        d = await _call(tmp_path, "Bash", {"command": cmd}, LIVE, cwd=HOME, judge=_judge(ALLOW))
+        assert d.source == "model", cmd
+    d = await _call(tmp_path, "Bash", {"command": "rg secret"}, LIVE, judge=_judge(ALLOW))
+    assert d.source == "skip"
+
+
+def test_judge_limit_is_20k() -> None:
+    from engine.gate.judge import JUDGE_LIMIT
+
+    assert JUDGE_LIMIT == 20000

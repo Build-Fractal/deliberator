@@ -77,7 +77,7 @@ async def test_edit_content_reaches_the_prompt(tmp_path: Path) -> None:
 
 async def test_long_call_is_truncated_with_marker_and_never_reused(tmp_path: Path) -> None:
     calls: list[str] = []
-    cmd = "echo " + "a" * 5000 + " MIDDLE " + "b" * 5000
+    cmd = "echo " + "a" * 15000 + " MIDDLE " + "b" * 15000
     d = await _call(tmp_path, "Bash", {"command": cmd}, judge=_judge(ALLOW, calls))
     assert d.truncated and d.verdict == "ask"  # a truncated call is never allowed outright
     assert "[TRUNCATED" in calls[0] and "MIDDLE" not in calls[0]
@@ -88,7 +88,7 @@ async def test_long_call_is_truncated_with_marker_and_never_reused(tmp_path: Pat
 
 
 async def test_truncated_ask_is_never_granted(tmp_path: Path) -> None:
-    cmd = "deploy " + "x" * 7000
+    cmd = "deploy " + "x" * 25000
     reply = json.dumps({"verdict": "ask", "reason": "r", "grant": "^deploy x+$"})
     d = await _call(tmp_path, "Bash", {"command": cmd}, judge=_judge(reply))
     assert d.truncated and d.grant is None
