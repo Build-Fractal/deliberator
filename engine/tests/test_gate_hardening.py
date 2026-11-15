@@ -219,7 +219,7 @@ def test_is_simple_is_conservative_on_odd_input() -> None:
     assert not is_simple("")
     assert not is_simple("cat 'x")
     assert not is_simple("unknowncmd --flag")
-    assert is_simple("unknowncmd arg")  # positional words only: the regex decides
+    assert not is_simple("unknowncmd arg")  # unknown commands are never simple
 
 
 # 9. A truncated call is never allowed outright ----------------------------------------------

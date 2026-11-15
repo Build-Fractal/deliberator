@@ -14,7 +14,7 @@ from engine.gate.config import GateConfig
 from engine.gate.judge import Judge, build_prompt, clip, make_judge, rule_on
 from engine.gate.ledger import Decision, History, Outcome, Prompted
 from engine.gate.redact import redact
-from engine.gate.simple import is_simple
+from engine.gate.simple import simple_words
 
 logger = logging.getLogger("deliberator.gate")
 GRAPH_JSON = Path(".deliberator") / "gate" / "graph.json"
@@ -170,11 +170,16 @@ async def decide(
                             reason="an edit to a file inside the working repository")
     # Bash: the allow-list skips the judge only for one plain command whose every flag is on
     # that command's safe list (engine.gate.simple); anything else is judged, not asked.
-    simple = tool != "Bash" or (not ledger.compound(raw_subject) and is_simple(raw_subject))
-    for pattern in config.allow_without_asking if decision is None and simple and shortcuts \
-            else ():
+    # The regex sees the words joined, so it matches the real argv[0] (not `ls=x env ...`).
+    if tool == "Bash":
+        words = None if ledger.compound(raw_subject) else simple_words(raw_subject, cwd)
+        matched = " ".join(words) if words is not None else None
+    else:
+        matched = raw_subject
+    for pattern in config.allow_without_asking if decision is None and matched is not None \
+            and shortcuts else ():
         try:
-            if re.search(pattern, raw_subject):
+            if re.search(pattern, matched):
                 decision = Decision(**base, verdict="allow", source="skip",
                                     reason=f"allowed without asking: matches {pattern!r}")
                 break

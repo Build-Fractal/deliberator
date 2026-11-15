@@ -1,61 +1,76 @@
 """Whether a shell command is simple enough for the allow-list to skip the judge.
 
-The allow-list (``allow_without_asking``) is a regex over the raw command, so on its own it
-can be fooled by shell syntax: quotes (``find . '-delete'``, ``-de''lete``), globs and brace
-expansion, ``$VAR`` (``echo $ANTHROPIC_API_KEY``) and flags that make a read-only command
-write or run something (``git fetch --upload-pack=cmd``, ``rg --pre``, ``git diff --output``).
+The allow-list (``allow_without_asking``) is a regex, and a regex over shell text can be
+fooled: quoting (``find . '-delete'``), assignment prefixes (``ls=x env python3``), zsh
+expansions (``echo =(id)``, ``ls x(e:'cmd':)``), valued flags that swallow the next flag
+(``git diff -U --output=f``), unnormalised paths (``~/.config//gh``) and recursive reads of
+a folder above a protected one (``rg secret ~``).
 
-A command is simple only when:
+So the fast path is deliberately small, and anything it is unsure about goes to the judge
+(a model call, ~2.5 s), never straight to ask:
 
-- the shell would expand nothing: no unquoted glob or brace (``* ? [ {``), no ``$`` or
-  backtick outside single quotes, and it parses (``shlex``) to words;
-- every flag, after unquoting, is on the safe list for that command (git: per subcommand);
-  an unknown flag is not simple, so a new or rare flag goes to the judge;
-- positional words pass the command's check where one exists (``git fetch`` refspecs,
-  ``git branch`` names, ``date`` arguments).
+- **Characters**: outside quotes only letters, digits, space and ``- _ . / : = + , @ %``; a
+  leading ``~`` (``~`` or ``~/``) and ``~`` before a digit (``HEAD~2``). Inside single quotes
+  anything but a newline; inside double quotes no ``$``, backtick, ``\\`` or ``!``. Every other
+  character (globs, braces, parens, ``$``, ``\\``, ``^``, ``#``, ``!``, ``;``, ``|``, ``<``...)
+  makes the command not simple, in bash or zsh. With that alphabet ``shlex`` splits the words
+  the way the shell does.
+- **Command**: the first word must be a known command (``COMMANDS`` or ``git`` with a known
+  subcommand). No assignment, no path, no unknown command.
+- **Words**: no word starts with ``=`` (zsh ``=cmd``). Every flag is on that command's safe
+  list; a deny set is checked against every word wherever it sits (after ``--``, as a value).
+  git's valued short flags never take the next word (``-U`` only takes ``-U3``).
+- **Paths**: every word, and every flag value, is checked with ``protect.path_is_protected``
+  (normalised, case-folded, by inode). Recursive readers (``rg``, ``find``, ``tree``, ``du``,
+  ``ls -R``) are not simple when a path they walk (or the working folder, with none given)
+  holds a protected folder: ``~``, ``~/.config``, ``/``.
 
-Not simple never means ask: the judge rules, informed. This only decides whether the
-allow-list may skip the model.
+The allow-list regex is then matched against the words joined by spaces, so it sees the
+real argv[0] (``^ls\\b`` cannot match ``ls=x``).
 """
 
 from __future__ import annotations
 
+import os
 import re
 import shlex
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from pathlib import Path
 
-_UNQUOTED_EXPANDS = frozenset("*?[{$`")
-_DOUBLE_QUOTED_EXPANDS = frozenset("$`")
+from engine.gate import protect
+
+_PLAIN = frozenset("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+                   " -_./:=+,@%")
+_DOUBLE_QUOTE_BAD = frozenset("$`\\!\n")
 
 
-def expands(command: str) -> bool:
-    """The shell would expand something in this command: a glob, brace, ``$`` or backtick
-    outside quotes, or ``$``/backtick inside double quotes. Unbalanced quotes count."""
+def plain(command: str) -> bool:
+    """Only characters the shell (bash or zsh) takes literally; quotes balanced."""
     quote = ""
-    escaped = False
-    for ch in command:
-        if escaped:
-            escaped = False
-            continue
+    prev = " "
+    for i, ch in enumerate(command):
         if quote == "'":
+            if ch == "\n":
+                return False
             if ch == "'":
                 quote = ""
-            continue
-        if ch == "\\":
-            escaped = True
-            continue
-        if quote == '"':
+        elif quote == '"':
+            if ch in _DOUBLE_QUOTE_BAD:
+                return False
             if ch == '"':
                 quote = ""
-            elif ch in _DOUBLE_QUOTED_EXPANDS:
-                return True
-            continue
-        if ch in "'\"":
+        elif ch in "'\"":
             quote = ch
-        elif ch in _UNQUOTED_EXPANDS:
-            return True
-    return bool(quote) or escaped
+        elif ch == "~":
+            nxt = command[i + 1:i + 2]
+            word_start = prev in " \t"
+            if not ((word_start and nxt in ("", "/", " ")) or (not word_start and nxt.isdigit())):
+                return False
+        elif ch not in _PLAIN:
+            return False
+        prev = ch
+    return not quote
 
 
 @dataclass(frozen=True)
@@ -63,43 +78,52 @@ class Spec:
     """Safe flags for one command.
 
     ``short``: single-letter flags that may be bundled (``-la``). ``valued``: short flags that
-    take a value, attached (``-n5``) or as the next word. ``long``: ``--name`` flags (with or
-    without ``=value``) and single-dash long flags such as find's ``-name``. ``numeric``:
-    ``-20`` style counts are fine. ``positional``: a check on each non-flag word.
+    take a value (attached ``-n5``, or the next word unless ``attached_only``). ``long``:
+    ``--name`` flags (alone or ``--name=value``) and single-dash long flags (find ``-name``).
+    ``spaced``: long flags whose value is the next word. ``numeric``: ``-20`` counts.
+    ``deny``: prefixes refused in any word. ``positional``: a check on each non-flag word.
+    ``recursive``: walks the folders it is given (or the working folder).
     """
 
     short: str = ""
     valued: str = ""
     long: frozenset[str] = field(default_factory=frozenset)
+    spaced: frozenset[str] = field(default_factory=frozenset)
     numeric: bool = False
-    positional: Callable[[str, list[str]], bool] | None = None
+    attached_only: bool = False
+    deny: tuple[str, ...] = ()
+    positional: Callable[[str], bool] | None = None
+    recursive: bool = False
 
 
-def _s(short: str = "", valued: str = "", long: str = "", numeric: bool = False,
-       positional: Callable[[str, list[str]], bool] | None = None) -> Spec:
-    return Spec(short, valued, frozenset(long.split()), numeric, positional)
+def _s(short: str = "", valued: str = "", long: str = "", spaced: str = "", **kw) -> Spec:
+    return Spec(short, valued, frozenset(long.split()), frozenset(spaced.split()), **kw)
 
 
-def _date_arg(word: str, words: list[str]) -> bool:
-    return word.startswith("+")  # a format; any other word would set the clock
-
-
-def _no_positional(word: str, words: list[str]) -> bool:
+def _never(word: str) -> bool:
     return False
 
 
-def _fetch_arg(word: str, words: list[str]) -> bool:
-    return ":" not in word and not word.startswith("+")  # a refspec can move local branches
+def _date_arg(word: str) -> bool:
+    return word.startswith("+")  # a format; any other word would set the clock
 
 
-_BRANCH_LIST_MODE = frozenset({"--list", "-l", "--contains", "--no-contains", "--merged",
-                               "--no-merged", "--points-at"})
+_REF = re.compile(r"[\w][\w./-]*")
 
 
-def _branch_arg(word: str, words: list[str]) -> bool:
-    # A bare name creates a branch; in list mode words are patterns or commits.
-    return any(w.split("=", 1)[0] in _BRANCH_LIST_MODE for w in words)
+def _fetch_arg(word: str) -> bool:
+    # A remote or branch name. Refspecs (:), forced (+), URLs and paths are judged.
+    return bool(_REF.fullmatch(word)) and ".." not in word
 
+
+# Refused anywhere in a git command: they write files, run programs or read outside the repo.
+_GIT_DENY = ("--output", "-O", "--open-files-in-pager", "--exec-path", "--upload-pack",
+             "--receive-pack", "--ext-diff", "--textconv", "--config-env", "--git-dir",
+             "--work-tree", "--namespace", "--super-prefix", "--no-index", "--paginate",
+             "-c", "-C")
+_BRANCH_DENY = _GIT_DENY + ("-m", "-M", "-d", "-D", "-f", "-u", "--force", "--move",
+                            "--copy", "--delete", "--set-upstream", "--unset-upstream",
+                            "--edit-description", "--track", "--no-track", "--create-reflog")
 
 _LOG_LONG = (
     "--oneline --graph --decorate --no-decorate --all --branches --tags --remotes --stat "
@@ -107,171 +131,216 @@ _LOG_LONG = (
     "--since --until --after --before --author --committer --grep --reverse --first-parent "
     "--no-merges --merges --follow --abbrev-commit --abbrev --date --max-count --skip "
     "--left-right --cherry-pick --boundary --topo-order --date-order --color --no-color "
-    "--source --simplify-by-decoration --regexp-ignore-case --extended-regexp --fixed-strings "
-    "--all-match --invert-grep --walk-reflogs --no-ext-diff --no-textconv --summary "
-    "--relative --diff-filter --unified --word-diff --ignore-all-space --mailmap --show-signature "
-    "--decorate-refs --decorate-refs-exclude --exclude --no-walk --ancestry-path --cherry "
-    "--full-history --minimal --patience --histogram --find-renames --find-copies --dirstat "
-    "--compact-summary --full-index --binary --quiet"
+    "--source --simplify-by-decoration --regexp-ignore-case --all-match --invert-grep "
+    "--no-ext-diff --no-textconv --summary --relative --diff-filter --unified --word-diff "
+    "--ignore-all-space --mailmap --decorate-refs --decorate-refs-exclude --no-walk "
+    "--ancestry-path --cherry --full-history --minimal --patience --histogram "
+    "--find-renames --compact-summary --quiet"
 )
 _DIFF_LONG = (
     "--stat --shortstat --numstat --name-only --name-status --cached --staged --patch "
     "--no-patch --unified --ignore-all-space --ignore-space-change --ignore-blank-lines "
     "--color --no-color --color-words --word-diff --minimal --patience --histogram "
-    "--find-renames --find-copies --summary --check --no-ext-diff --no-textconv --merge-base "
-    "--diff-filter --relative --exit-code --quiet --dirstat --compact-summary --no-index "
-    "--full-index --binary --abbrev --src-prefix --dst-prefix --no-prefix --submodule "
-    "--ignore-submodules --raw --patch-with-stat --function-context --ita-visible-in-index"
+    "--find-renames --summary --check --no-ext-diff --no-textconv --merge-base "
+    "--diff-filter --relative --exit-code --quiet --dirstat --compact-summary --raw "
+    "--function-context"
 )
 
 GIT: dict[str, Spec] = {
     "status": _s("sbuvz", long="--short --branch --porcelain --untracked-files --ignored "
-                 "--verbose --show-stash --long --ahead-behind --no-ahead-behind --renames "
-                 "--no-renames --column --no-column --ignore-submodules"),
-    "diff": _s("pRwbzMCB", valued="U", long=_DIFF_LONG),
-    "log": _s("pgiEFPS", valued="nUSGL", long=_LOG_LONG, numeric=True),
-    "show": _s("psqwzMC", valued="U", long=_LOG_LONG + " " + _DIFF_LONG),
-    "branch": _s("arvl", long="--all --remotes --verbose --list --show-current --merged "
-                 "--no-merged --contains --no-contains --sort --format --color --no-color "
-                 "--points-at --column --no-column --ignore-case --abbrev --no-abbrev",
-                 positional=_branch_arg),
+                 "--verbose --show-stash --long --ahead-behind --no-ahead-behind",
+                 attached_only=True, deny=_GIT_DENY),
+    "diff": _s("pRwbz", valued="U", long=_DIFF_LONG, attached_only=True, deny=_GIT_DENY),
+    "log": _s("pi", valued="n", long=_LOG_LONG, numeric=True, attached_only=True,
+              deny=_GIT_DENY),
+    "show": _s("psq", valued="U", long=_LOG_LONG + " " + _DIFF_LONG, attached_only=True,
+               deny=_GIT_DENY),
+    # Listing only: a bare name creates a branch (and `--format --list x` hides one).
+    "branch": _s("arv", long="--all --remotes --verbose --show-current --no-color --color",
+                 attached_only=True, deny=_BRANCH_DENY, positional=_never),
     "rev-parse": _s("q", long="--show-toplevel --abbrev-ref --git-dir --short --verify "
                     "--is-inside-work-tree --git-common-dir --show-prefix --symbolic-full-name "
-                    "--quiet --absolute-git-dir --show-cdup --is-bare-repository "
-                    "--is-shallow-repository --symbolic --show-superproject-working-tree "
-                    "--path-format --default"),
-    "fetch": _s("pvqtn", long="--all --prune --tags --no-tags --dry-run --verbose --quiet "
-                "--depth --prune-tags --unshallow --progress --no-progress --jobs "
-                "--no-recurse-submodules --multiple --shallow-since --deepen --filter "
-                "--no-write-fetch-head --show-forced-updates",
-                positional=_fetch_arg),
-    "worktree list": _s("vz", long="--porcelain --verbose -z", positional=_no_positional),
-    "remote": _s("v", long="--verbose", positional=_no_positional),
+                    "--quiet --absolute-git-dir --show-cdup --is-bare-repository",
+                    attached_only=True, deny=_GIT_DENY),
+    "fetch": _s("pvq", long="--all --prune --tags --no-tags --dry-run --verbose --quiet "
+                "--prune-tags --progress --no-progress", attached_only=True,
+                deny=_GIT_DENY + ("-f", "--force", "--refmap"), positional=_fetch_arg),
+    "worktree list": _s("v", long="--porcelain --verbose", attached_only=True,
+                        deny=_GIT_DENY, positional=_never),
+    "remote": _s("v", long="--verbose", attached_only=True, deny=_GIT_DENY,
+                 positional=_never),
 }
 
+_FIND_DENY = ("-delete", "-exec", "-ok", "-fprint", "-fls", "-D", "--")
+_RG_DENY = ("--pre", "--hostname-bin", "--search-zip", "-z", "--hidden", "--no-ignore",
+            "--unrestricted", "-u", "--follow", "-L", "--ignore-file", "--no-config")
+
 COMMANDS: dict[str, Spec] = {
-    "ls": _s("1aAbBcCdeFfgGhHiklLmnopqrRsStTuUvwx@O%,", long="--color --all --almost-all "
-             "--human-readable --classify --sort --time --reverse --recursive --directory "
-             "--group-directories-first --long --size"),
+    "ls": _s("1aAbBcCdeFfgGhHiklLmnopqrRsStTuUvwx@", long="--color --all --almost-all "
+             "--human-readable --classify --reverse --recursive --directory "
+             "--group-directories-first --long"),
     "pwd": _s("LP"),
-    "cat": _s("nbsvetAETul"),
+    "cat": _s("nbsvetAETu"),
     "head": _s("qv", valued="nc", long="--lines --bytes --quiet --verbose", numeric=True),
     "tail": _s("qvfFr", valued="nc", long="--lines --bytes --quiet --verbose --follow",
                numeric=True),
     "wc": _s("lwcmL", long="--lines --words --bytes --chars --max-line-length"),
-    "grep": _s("ivnrRlLcwxEFGhHsqIozabUZP", valued="eABCmf",
-               long="--include --exclude --exclude-dir --color --colour --max-count "
-               "--ignore-case --invert-match --line-number --recursive --files-with-matches "
-               "--files-without-match --count --word-regexp --line-regexp --extended-regexp "
-               "--fixed-strings --no-filename --with-filename --only-matching --quiet "
-               "--silent --context --after-context --before-context --regexp --text "
-               "--binary-files --null --perl-regexp --no-messages --label"),
-    "rg": _s("iSswxvnNlcFuUHIqoaPpL", valued="eABCgtTmMdj",
-             long="--hidden --no-ignore --no-ignore-vcs --files --type --type-not --glob "
-             "--iglob --follow --max-count --max-depth --json --count --count-matches "
-             "--files-with-matches --files-without-match --line-number --no-line-number "
-             "--no-heading --heading --color --context --after-context --before-context "
-             "--sort --sortr --type-list --multiline --pcre2 --trim --stats --no-filename "
-             "--with-filename --ignore-case --smart-case --case-sensitive --word-regexp "
-             "--line-regexp --invert-match --fixed-strings --only-matching --regexp "
-             "--max-columns --max-columns-preview --vimgrep --column --byte-offset --text "
-             "--unrestricted --replace --passthru --null --quiet --debug --no-messages "
-             "--max-filesize --multiline-dotall --crlf --engine --one-file-system "
-             "--threads --path-separator --no-config"),
-    "find": _s("LHPEsx", long="-name -iname -type -maxdepth -mindepth -path -ipath -not "
-               "-print -print0 -newer -mtime -mmin -atime -amin -ctime -cmin -size -perm "
-               "-prune -and -or -a -o -regex -iregex -empty -follow -ls -depth -user -group "
-               "-links -wholename -iwholename -lname -ilname -readable -writable -executable "
-               "-true -false -nouser -nogroup -xdev -mount -samefile -inum -quit -d -E"),
+    # Not recursive here (-r/-R would read a whole tree, .env files included): judged.
+    "grep": _s("ivnlLcwxEFGhHsqIoaZ", valued="eABCm",
+               long="--color --colour --max-count --ignore-case --invert-match --line-number "
+               "--files-with-matches --files-without-match --count --word-regexp "
+               "--line-regexp --extended-regexp --fixed-strings --no-filename --with-filename "
+               "--only-matching --quiet --silent --context --after-context --before-context "
+               "--regexp --text --null --no-messages",
+               deny=("-r", "-R", "--recursive", "--dereference-recursive", "-d", "--directories",
+                     "-f", "--file")),
+    "rg": _s("iSswxvnNlcFHIqoaP", valued="eABCgtTmM",
+             long="--files --type --type-not --glob --iglob --max-count --max-depth --json "
+             "--count --count-matches --files-with-matches --files-without-match "
+             "--line-number --no-line-number --no-heading --heading --color --context "
+             "--after-context --before-context --sort --sortr --type-list --multiline "
+             "--trim --stats --no-filename --with-filename --ignore-case --smart-case "
+             "--case-sensitive --word-regexp --line-regexp --invert-match --fixed-strings "
+             "--only-matching --regexp --max-columns --vimgrep --column --text --passthru "
+             "--null --quiet --no-messages",
+             deny=_RG_DENY, recursive=True),
+    "find": _s("", long="-name -iname -type -maxdepth -mindepth -path -ipath -not -print "
+               "-print0 -mtime -mmin -size -prune -and -or -a -o -empty -depth",
+               spaced="-name -iname -type -maxdepth -mindepth -path -ipath -mtime -mmin "
+               "-size", deny=_FIND_DENY, recursive=True),
     "which": _s("as"),
-    "echo": _s("neE"),
-    "tree": _s("adfisughpDCnNQFlrtxJ", valued="LIP", long="--gitignore --noreport "
-               "--dirsfirst --prune --filelimit --sort --charset -L -I -P"),
-    "du": _s("shcakmgxLHAP", valued="dBI", long="--max-depth --summarize --human-readable "
-             "--total --apparent-size --si"),
-    "df": _s("hkmgHlPTiaY", long="--human-readable --si --local --portability --print-type "
-             "--inodes --all --total --output"),
-    "date": _s("uRjn", valued="Ivfr", long="--iso-8601 --rfc-3339 --utc --universal "
-               "--rfc-email --date --reference", positional=_date_arg),
+    "echo": _s("n"),
+    "tree": _s("adfisughpDCnNQFrtx", valued="L", long="--gitignore --noreport --dirsfirst",
+               deny=("-o", "-R", "-H", "--fromfile", "-l"), recursive=True),
+    "du": _s("shckmgx", valued="d", long="--max-depth --summarize --human-readable --total",
+             deny=("-L", "--dereference"), recursive=True),
+    "df": _s("hkmgHlPTi", long="--human-readable --si --local --portability --print-type "
+             "--inodes --total"),
+    "date": _s("u", long="--utc", positional=_date_arg),
 }
-# Not on the safe lists (never simple), for the record: find -delete -exec -execdir -ok
-# -okdir -fprint* -fls; rg --pre --pre-glob --hostname-bin -z/--search-zip; tree -o -R -H;
-# git fetch --upload-pack -f/--force --refmap; git branch -d/-D/-m/-M/-c/-C/-f/-u
-# --set-upstream-to --edit-description; git diff/log/show --output --ext-diff --textconv;
-# git -c / -C / --exec-path and every other global option before the subcommand; date -s.
 
 _NUMERIC = re.compile(r"-\d+")
 
 
-def _flag_ok(word: str, spec: Spec) -> tuple[bool, bool]:
-    """(the flag is safe, it consumes the next word as its value)."""
-    if word in spec.long:
-        return True, word in _SPACED_LONG
-    if word.startswith("--"):
-        return word.split("=", 1)[0] in spec.long, False
+def _denied(word: str, deny: tuple[str, ...]) -> bool:
+    for d in deny:
+        if d.startswith("--"):
+            if d in word:
+                return True
+        elif word.startswith(d):
+            return True
+    return False
+
+
+def _flag(word: str, spec: Spec) -> tuple[bool, bool, str | None]:
+    """(safe, takes the next word as its value, attached value to check as a path)."""
+    name, _, value = word.partition("=")
+    if word.startswith("--") or name in spec.long:
+        if name not in spec.long:
+            return False, False, None
+        return True, (not value and name in spec.spaced), value or None
     if spec.numeric and _NUMERIC.fullmatch(word):
-        return True, False
-    if word.split("=", 1)[0] in spec.long:  # find-style -name, or -L=2
-        return True, False
+        return True, False, None
     letters = word[1:]
     for i, ch in enumerate(letters):
         if ch in spec.valued:
-            return True, i == len(letters) - 1  # value attached (-n5) or the next word
+            rest = letters[i + 1:]
+            if rest:
+                return True, False, rest
+            return True, not spec.attached_only, None
         if ch not in spec.short:
-            return False, False
-    return True, False
-
-
-# Single-dash long flags that take the next word (find predicates, tree's -L/-I/-P).
-_SPACED_LONG = frozenset({
-    "-name", "-iname", "-type", "-maxdepth", "-mindepth", "-path", "-ipath", "-newer",
-    "-mtime", "-mmin", "-atime", "-amin", "-ctime", "-cmin", "-size", "-perm", "-regex",
-    "-iregex", "-user", "-group", "-links", "-wholename", "-iwholename", "-lname", "-ilname",
-    "-samefile", "-inum", "-L", "-I", "-P",
-})
+            return False, False, None
+    return True, False, None
 
 
 def _spec_for(words: list[str]) -> tuple[Spec | None, list[str]]:
-    """The spec for this command and the words after the command (and git subcommand)."""
     name = words[0]
     if name == "git":
-        if len(words) < 2 or words[1].startswith("-"):
-            return None, []  # git -c / -C / --exec-path ...: global options are never simple
+        if len(words) < 2:
+            return None, []
         if words[1] == "worktree":
-            if len(words) < 3 or words[2] != "list":
-                return None, []
-            return GIT["worktree list"], words[3:]
-        return GIT.get(words[1]), words[2:]
-    return COMMANDS.get(name, _s(positional=None)), words[1:]
+            return (GIT["worktree list"], words[3:]) if words[2:3] == ["list"] else (None, [])
+        return GIT.get(words[1]), words[2:]  # git -c/-C/...: no subcommand spec: judged
+    return COMMANDS.get(name), words[1:]
 
 
-def is_simple(command: str) -> bool:
-    """True when the allow-list may skip the judge for this (non-compound) command."""
-    if not command.strip() or expands(command):
-        return False
+def _norm(word: str, cwd: str) -> str:
+    p = os.path.expanduser(word)
+    if not os.path.isabs(p):
+        p = os.path.join(cwd or ".", p)
+    return os.path.normpath(p).casefold()
+
+
+def _holds_protected(folder: str, cwd: str) -> bool:
+    """`folder` (as written) is a protected folder or above one: walking it reads them."""
+    f = _norm(folder, cwd).rstrip("/") or "/"
+    targets = [Path.home(), *protect.protected_dirs()]
+    for t in targets:
+        for form in {os.path.normpath(str(t)).casefold(), str(_safe_resolve(t)).casefold()}:
+            if form == f or form.startswith(f.rstrip("/") + "/"):
+                return True
+    return False
+
+
+def _safe_resolve(p: Path) -> Path:
+    try:
+        return p.resolve()
+    except (OSError, RuntimeError):
+        return p
+
+
+def simple_words(command: str, cwd: str = "") -> list[str] | None:
+    """The command's words when the allow-list may skip the judge for it, else None."""
+    if not command.strip() or not plain(command):
+        return None
     try:
         words = shlex.split(command, posix=True)
     except ValueError:
-        return False
-    if not words:
-        return False
+        return None
+    if not words or any(w.startswith("=") for w in words):
+        return None
     spec, args = _spec_for(words)
     if spec is None:
-        return False
-    takes_value = False
-    end_of_flags = False
+        return None
+    paths: list[str] = []
+    positionals: list[str] = []
+    takes_value = end_of_flags = recursive = False
     for word in args:
+        if _denied(word, spec.deny):
+            return None
         if takes_value:
             takes_value = False
+            paths.append(word)
             continue
         if not end_of_flags and word == "--":
             end_of_flags = True
             continue
         if not end_of_flags and word.startswith("-") and word != "-":
-            ok, takes_value = _flag_ok(word, spec)
+            ok, takes_value, value = _flag(word, spec)
             if not ok:
-                return False
+                return None
+            if value:
+                paths.append(value)
+            if words[0] == "ls" and ("R" in word.lstrip("-") and not word.startswith("--")
+                                     or word == "--recursive"):
+                recursive = True
             continue
-        if spec.positional is not None and not spec.positional(word, args):
-            return False
-    return True
+        if spec.positional is not None and not spec.positional(word):
+            return None
+        positionals.append(word)
+        paths.append(word)
+    if any(protect.path_is_protected(p, cwd) for p in paths if p):
+        return None
+    if spec.recursive or recursive:
+        # rg's first word is usually the pattern: check it as a folder too (harmless), and
+        # add the working folder when no folder follows it.
+        walked = list(positionals)
+        if not positionals or (words[0] == "rg" and len(positionals) == 1):
+            walked.append(".")
+        if any(_holds_protected(w, cwd) for w in walked):
+            return None
+    return words
+
+
+def is_simple(command: str, cwd: str = "") -> bool:
+    return simple_words(command, cwd) is not None
