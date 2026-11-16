@@ -690,3 +690,127 @@ async def test_r4_ordinary_files_still_skip(tmp_path: Path, rel: str) -> None:
     d = await _call(tmp_path, "Write", {"file_path": str(repo / rel), "content": "x = 1\n"},
                     LIVE, cwd=repo, judge=_judge(ASK))
     assert d.source == "skip", rel
+
+
+# Round 5 ------------------------------------------------------------------------------------
+
+def _evil_gitdir_of_files(path: Path) -> Path:
+    """git's is_git_directory: HEAD valid, objects and refs pass access(X_OK): files do."""
+    path.mkdir(parents=True)
+    (path / "HEAD").write_text("ref: refs/heads/main\n")
+    for name in ("objects", "refs"):
+        (path / name).write_text("")
+        (path / name).chmod(0o755)
+    (path / "config").write_text('[core]\n\tbare = false\n\tworktree = .\n'
+                                 '\tfsmonitor = "touch PWNED; echo"\n')
+    return path
+
+
+async def test_r5_gitdir_made_of_executable_files_is_untrusted(tmp_path: Path) -> None:
+    repo = _real_repo(tmp_path / "repo")
+    evil = _evil_gitdir_of_files(repo / "evil")
+    (evil / "sub").mkdir()
+    for cwd in (evil, evil / "sub"):
+        for cmd in ("git status", "git diff", "git log"):
+            d = await _call(tmp_path, "Bash", {"command": cmd}, LIVE, cwd=cwd,
+                            judge=_judge(ALLOW))
+            assert (d.verdict, d.source) == ("ask", "protected"), (cwd, cmd)
+
+
+@pytest.mark.parametrize("cmd", [
+    "rg SECRET", "rg --files", "rg -n SECRET .", "rg SECRET src", "rg -e SECRET",
+    "rg . ~/.pulumi", "rg . ~/.local/share/fish",
+])
+async def test_r5_recursive_rg_reaches_the_judge(tmp_path: Path, cmd: str) -> None:
+    repo = _real_repo(tmp_path / "repo")
+    (repo / "src").mkdir()
+    (repo / ".rgignore").write_text("!.env\n!.git/\n!.deliberator/\n")
+    d = await _call(tmp_path, "Bash", {"command": cmd}, LIVE, cwd=repo, judge=_judge(ALLOW))
+    assert d.source in JUDGED, cmd
+
+
+async def test_r5_rg_on_named_files_still_skips(tmp_path: Path) -> None:
+    repo = _real_repo(tmp_path / "repo")
+    (repo / "a.py").write_text("x\n")
+    (repo / "b.py").write_text("y\n")
+    for cmd in ("rg -n x a.py", "rg x a.py b.py", "rg -e x a.py"):
+        d = await _call(tmp_path, "Bash", {"command": cmd}, LIVE, cwd=repo, judge=_judge(ASK))
+        assert d.source == "skip", cmd
+
+
+def test_r5_recursive_listing_honours_log_dir(tmp_path: Path) -> None:
+    from engine.gate.simple import simple_words
+
+    log_dir = tmp_path / "logs"
+    log_dir.mkdir()
+    assert simple_words(f"find {tmp_path} -name x", str(tmp_path)) is not None
+    assert simple_words(f"find {tmp_path} -name x", str(tmp_path), extra=[log_dir]) is None
+
+
+@pytest.mark.parametrize("cmd", [
+    "git -C evil status", "cd evil && git status", "cd evil; git log", "git --git-dir=evil status",
+    "git --work-tree=evil --git-dir=evil status", "pushd evil && git diff",
+])
+async def test_r5_git_targeting_an_untrusted_repo_is_a_hard_ask(tmp_path: Path, cmd: str) -> None:
+    repo = _real_repo(tmp_path / "repo")
+    _bare(repo / "evil")
+    d = await _call(tmp_path, "Bash", {"command": cmd}, LIVE, cwd=repo, judge=_judge(ALLOW))
+    assert (d.verdict, d.source) == ("ask", "protected"), cmd
+
+
+async def test_r5_non_git_into_untrusted_repo_gets_the_note(tmp_path: Path) -> None:
+    repo = _real_repo(tmp_path / "repo")
+    _bare(repo / "evil")
+    calls: list[str] = []
+    d = await _call(tmp_path, "Bash", {"command": "cd evil && make"}, LIVE, cwd=repo,
+                    judge=_judge(ALLOW, calls))
+    assert d.source == "model" and "untrusted" in calls[-1].lower()
+
+
+@pytest.mark.parametrize("cmd", ['"git" status', "'git' log", "=git status", "g''it status",
+                                 "\\git status", "command git status"])
+async def test_r5_disguised_git_in_an_untrusted_repo_is_a_hard_ask(tmp_path: Path,
+                                                                    cmd: str) -> None:
+    cwd = _bare(tmp_path / "evil")
+    d = await _call(tmp_path, "Bash", {"command": cmd}, LIVE, cwd=cwd, judge=_judge(ALLOW))
+    assert (d.verdict, d.source) == ("ask", "protected"), cmd
+
+
+@pytest.mark.parametrize(("cmd", "kind"), [
+    ("git config core.fsmonitor ./x.sh", "config"),
+    ("git config --add core.hooksPath x", "config"),
+    ("git config set core.pager x", "config"),
+    ("git -C sub config core.sshCommand x", "config"),
+    ("git remote add evil https://x.example/r", "config"),
+    ("git remote set-url origin https://x.example/r", "config"),
+    ("git submodule add https://x.example/r sub", "config"),
+    ("git worktree add ../wt -b wt", "config"),
+    ("git config --global credential.helper x", "credential"),
+    ("git config --system core.editor x", "credential"),
+    ("git config --global --get user.name", "credential"),
+    ("git credential fill", "credential"), ("gh auth token", "credential"),
+    ("op read op://vault/item/field", "credential"),
+    ("gcloud auth print-access-token", "credential"),
+    ("gcloud auth print-identity-token", "credential"),
+    ("aws configure export-credentials --profile p", "credential"),
+    ("aws configure get aws_secret_access_key", "credential"),
+    ("env", "credential"), ("printenv", "credential"), ("env | sort", "credential"),
+    ("printenv ANTHROPIC_API_KEY", "credential"), ("printenv GITHUB_TOKEN", "credential"),
+])
+def test_r5_config_writes_and_secret_printers(cmd: str, kind: str) -> None:
+    assert protect.access_kind("Bash", {"command": cmd}, "/r") == kind, cmd
+
+
+@pytest.mark.parametrize("cmd", ["git config --get user.name", "git config --list",
+                                 "git config -l", "git config get user.email",
+                                 "git remote -v", "printenv PATH", "env FOO=1 make",
+                                 "git worktree list"])
+def test_r5_harmless_git_config_and_env_reads(cmd: str) -> None:
+    assert protect.access_kind("Bash", {"command": cmd}, "/r") is None, cmd
+
+
+async def test_r5_config_writes_are_hard_asks(tmp_path: Path) -> None:
+    repo = _real_repo(tmp_path / "repo")
+    d = await _call(tmp_path, "Bash", {"command": "git config core.fsmonitor ./x.sh"}, LIVE,
+                    cwd=repo, judge=_judge(ALLOW))
+    assert (d.verdict, d.source) == ("ask", "protected")
