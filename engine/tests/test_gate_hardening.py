@@ -15,7 +15,7 @@ from pathlib import Path
 import pytest
 from click.testing import CliRunner
 
-from engine.gate import GateConfig, decide, protect
+from engine.gate import GateConfig, decide, prompted, protect, record
 
 MOCK = GateConfig(provider="mock")
 ASK = '{"verdict":"ask","reason":"x"}'
@@ -41,6 +41,11 @@ async def _call(root: Path, tool: str, tool_input: dict, config: GateConfig = MO
                 cwd: Path | str | None = None, **kw):
     return await decide(root, config, tool=tool, tool_input=tool_input,
                         cwd=str(cwd or root), session="s1", push_graph=False, **kw)
+
+
+def _approve(root: Path, tool: str, tool_input: dict) -> None:
+    prompted(root, MOCK, tool=tool, tool_input=tool_input, session="s1")
+    record(root, MOCK, tool=tool, tool_input=tool_input, session="s1", push_graph=False)
 
 
 def _repo(path: Path) -> Path:
@@ -338,3 +343,191 @@ def test_compound_sees_unquoted_parens_and_zsh_forms() -> None:
         assert compound(cmd), cmd
     for cmd in ("echo '(x)'", 'git log --format="%h (%s)"', "ls -la"):
         assert not compound(cmd), cmd
+
+
+# Round 3 -----------------------------------------------------------------------------------
+
+def _real_repo(path: Path) -> Path:
+    """A repo git would accept: .git with HEAD, objects and refs."""
+    g = path / ".git"
+    (g / "objects").mkdir(parents=True)
+    (g / "refs").mkdir()
+    (g / "HEAD").write_text("ref: refs/heads/main\n")
+    (g / "config").write_text("[core]\n\tbare = false\n")
+    return path
+
+
+def _bare(path: Path) -> Path:
+    (path / "objects").mkdir(parents=True)
+    (path / "refs").mkdir()
+    (path / "HEAD").write_text("ref: refs/heads/main\n")
+    (path / "config").write_text("[core]\n\tbare = true\n\tsshCommand = touch PWNED; false\n")
+    return path
+
+
+@pytest.mark.parametrize("cmd", [
+    "rg -g '*' TOKEN", "rg -g '*env' KEY", "rg --glob '*' TOKEN", "rg --glob='*' TOKEN",
+    "rg --iglob '*.ENV' KEY", "rg -n -g'*' TOKEN",
+])
+async def test_r3_rg_globs_reach_the_judge(tmp_path: Path, cmd: str) -> None:
+    repo = _real_repo(tmp_path / "repo")
+    d = await _call(tmp_path, "Bash", {"command": cmd}, LIVE, cwd=repo, judge=_judge(ALLOW))
+    assert d.source == "model", cmd
+
+
+@pytest.mark.parametrize("cmd", [
+    "git fetch origin", "git fetch", "git fetch --prune-tags --prune origin", "git fetch --all",
+])
+async def test_r3_git_fetch_is_never_skipped(tmp_path: Path, cmd: str) -> None:
+    repo = _real_repo(tmp_path / "repo")
+    d = await _call(tmp_path, "Bash", {"command": cmd}, LIVE, cwd=repo, judge=_judge(ALLOW))
+    assert d.source == "model", cmd
+
+
+async def test_r3_git_skips_only_in_a_plain_repo_or_its_worktree(tmp_path: Path) -> None:
+    repo = _real_repo(tmp_path / "repo")
+    (repo / "src").mkdir()
+    for cwd in (repo, repo / "src"):
+        d = await _call(tmp_path, "Bash", {"command": "git status"}, LIVE, cwd=cwd,
+                        judge=_judge(ALLOW))
+        assert d.source == "skip", cwd
+    # a worktree: .git is a file pointing into the main repo's .git/worktrees/
+    (repo / ".git" / "worktrees" / "wt").mkdir(parents=True)
+    wt = tmp_path / "wt"
+    wt.mkdir()
+    (wt / ".git").write_text(f"gitdir: {repo / '.git' / 'worktrees' / 'wt'}\n")
+    d = await _call(tmp_path, "Bash", {"command": "git log --oneline -5"}, LIVE, cwd=wt,
+                    judge=_judge(ALLOW))
+    assert d.source == "skip"
+
+
+@pytest.mark.parametrize("where", ["bare_inside", "bare_inside_sub", "gitfile_elsewhere",
+                                   "gitfile_garbage", "core_bare", "no_repo"])
+async def test_r3_git_is_judged_in_an_untrusted_repo(tmp_path: Path, where: str) -> None:
+    repo = _real_repo(tmp_path / "victim")
+    cwd = repo
+    if where.startswith("bare_inside"):
+        cwd = _bare(repo / "fx")
+        if where == "bare_inside_sub":
+            cwd = cwd / "objects"
+    elif where.startswith("gitfile"):
+        cwd = tmp_path / "x"
+        cwd.mkdir()
+        evil = _bare(tmp_path / "evil")
+        target = evil if where == "gitfile_elsewhere" else "not a gitdir line"
+        (cwd / ".git").write_text(f"gitdir: {target}\n" if where == "gitfile_elsewhere"
+                                  else f"{target}\n")
+    elif where == "core_bare":
+        (repo / ".git" / "config").write_text("[core]\n\tbare = true\n")
+    else:
+        cwd = tmp_path / "plain"
+        cwd.mkdir()
+    for cmd in ("git status", "git log --oneline -5", "git diff --stat"):
+        d = await _call(tmp_path, "Bash", {"command": cmd}, LIVE, cwd=cwd, judge=_judge(ALLOW))
+        assert d.source == "model", (where, cmd)
+
+
+@pytest.mark.parametrize("cmd", [
+    "git log -p -- '*env'", "git show HEAD -- '*.env'", "git log -- ':(glob)**/.env'",
+    "git diff -- 'a?'", "git show 'HEAD:[x]'", "git log ':(top)x'",
+])
+async def test_r3_git_pathspec_magic_reaches_the_judge(tmp_path: Path, cmd: str) -> None:
+    repo = _real_repo(tmp_path / "repo")
+    d = await _call(tmp_path, "Bash", {"command": cmd}, LIVE, cwd=repo, judge=_judge(ALLOW))
+    assert d.source == "model", cmd
+
+
+R3_CREDENTIALS = [
+    str(HOME / ".gitconfig"), str(HOME / ".config" / "git" / "credentials"),
+    str(HOME / ".config" / "git" / "config"), "{repo}/.envrc", str(HOME / ".zsh_history"),
+    str(HOME / ".bash_history"), str(HOME / ".local" / "share" / "fish" / "fish_history"),
+    str(HOME / ".cargo" / "credentials.toml"), str(HOME / ".vault-token"),
+    str(HOME / ".config" / "hub"), str(HOME / ".yarnrc.yml"),
+    str(HOME / ".terraform.d" / "credentials.tfrc.json"),
+    str(HOME / ".cache" / "huggingface" / "token"), str(HOME / ".codex" / "auth.json"),
+    str(HOME / ".m2" / "settings.xml"), str(HOME / ".gem" / "credentials"),
+    str(HOME / ".azure" / "accessTokens.json"), str(HOME / ".config" / "op" / "config"),
+    "{repo}/config/credentials.yml", "{repo}/sub/.gitconfig", "{repo}/.env",
+    str(HOME / ".netrc"), str(HOME / ".ssh" / "id_ed25519"), str(HOME / ".aws" / "credentials"),
+]
+
+
+@pytest.mark.parametrize("path", R3_CREDENTIALS)
+async def test_r3_credential_reads_are_a_hard_ask(tmp_path: Path, path: str) -> None:
+    repo = _real_repo(tmp_path / "repo")
+    path = path.format(repo=repo)
+    allow_all = MOCK.model_copy(update={"allow_without_asking": [".*"]})
+    calls: list[str] = []
+    for tool, ti in (("Read", {"file_path": path}), ("Bash", {"command": f"cat {path}"}),
+                     ("Bash", {"command": f"head -5 '{path}'"})):
+        d = await _call(tmp_path, tool, ti, allow_all, cwd=repo, judge=_judge(ALLOW, calls))
+        assert (d.verdict, d.source, d.grant) == ("ask", "protected", None), (tool, path)
+        _approve(tmp_path, tool, ti)
+        again = await _call(tmp_path, tool, ti, allow_all, cwd=repo, judge=_judge(ALLOW, calls))
+        assert (again.verdict, again.source) == ("ask", "protected"), (tool, path)
+    assert calls == []  # the judge never decides a credential read
+
+
+@pytest.mark.parametrize("target", [
+    ("Read", {"file_path": str(HOME / ".local" / "share" / "deliberator" / ".deliberator"
+                                / "gate" / "log.jsonl")}),
+    ("Read", {"file_path": "{repo}/.deliberator/gate/log.jsonl"}),
+    ("Read", {"file_path": "{repo}/.deliberator/gate/graph.json"}),
+    ("Grep", {"pattern": "x", "path": "{repo}/.deliberator/gate"}),
+    ("Bash", {"command": "tail ~/.local/share/deliberator/.deliberator/gate/log.jsonl"}),
+    ("Bash", {"command": "cat .deliberator/gate/graph.json"}),
+])
+async def test_r3_gate_log_reads_are_a_hard_ask(tmp_path: Path, target) -> None:
+    repo = _real_repo(tmp_path / "repo")
+    tool, ti = target
+    ti = {k: v.format(repo=repo) for k, v in ti.items()}
+    calls: list[str] = []
+    d = await _call(tmp_path, tool, ti, LIVE, cwd=repo, judge=_judge(ALLOW, calls))
+    assert (d.verdict, d.source) == ("ask", "protected") and calls == [], ti
+
+
+async def test_r3_gate_config_reads_stay_with_the_judge(tmp_path: Path) -> None:
+    for tool, ti in (("Read", {"file_path": str(HOME / ".config" / "deliberator" / "gate.yml")}),
+                     ("Bash", {"command": "cat ~/.config/deliberator/gate.yml"}),
+                     ("Bash", {"command": "cat ~/.claude/CLAUDE.md"}),
+                     ("Read", {"file_path": str(HOME / ".claude" / "settings.json")})):
+        d = await _call(tmp_path, tool, ti, LIVE, judge=_judge(ALLOW))
+        assert (d.verdict, d.source, d.protected) == ("allow", "model", True), ti
+
+
+@pytest.mark.parametrize("target", [
+    ("Write", {"file_path": str(HOME / ".claude" / "settings.json"), "content": "{}"}),
+    ("Edit", {"file_path": "{repo}/.git/config", "old_string": "a", "new_string": "b"}),
+    ("Write", {"file_path": "{repo}/.claude/settings.local.json", "content": "{}"}),
+    ("Write", {"file_path": str(HOME / ".config" / "deliberator" / "gate.yml"),
+               "content": "provider: mock\n"}),
+    ("Edit", {"file_path": str(HOME / ".zshrc"), "old_string": "a", "new_string": "b"}),
+    ("Bash", {"command": "cp x ~/.claude/settings.json"}),
+    ("Bash", {"command": "echo x >> ~/.bashrc"}),
+    ("Bash", {"command": "git config -f .git/config core.fsmonitor x"}),
+    ("Bash", {"command": "rm -rf .deliberator"}),
+])
+async def test_r3_protected_writes_are_a_hard_ask(tmp_path: Path, target) -> None:
+    repo = _real_repo(tmp_path / "repo")
+    tool, ti = target
+    ti = {k: v.format(repo=repo) for k, v in ti.items()}
+    calls: list[str] = []
+    allow_all = MOCK.model_copy(update={"allow_without_asking": [".*"]})
+    d = await _call(tmp_path, tool, ti, allow_all, cwd=repo, judge=_judge(ALLOW, calls))
+    assert (d.verdict, d.source) == ("ask", "protected") and calls == [], ti
+
+
+async def test_r3_agent_memory_writes_stay_with_the_judge(tmp_path: Path) -> None:
+    path = HOME / ".claude" / "projects" / "-p" / "memory" / "note.md"
+    d = await _call(tmp_path, "Write", {"file_path": str(path), "content": "x"},
+                    judge=_judge(ALLOW))
+    assert (d.verdict, d.source, d.protected) == ("allow", "model", True)
+
+
+def test_r3_kinds_are_explicit() -> None:
+    k = protect.path_kind
+    assert k(str(HOME / ".netrc")) == "credential"
+    assert k(str(HOME / ".local" / "share" / "deliberator" / "x")) == "gate_log"
+    assert k(str(HOME / ".config" / "deliberator" / "gate.yml")) == "config"
+    assert k(str(HOME / "code" / "x.py")) is None
+    assert k("/r/src/credentials_test.py") == "credential"  # credentials* anywhere
