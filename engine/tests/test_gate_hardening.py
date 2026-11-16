@@ -788,10 +788,12 @@ async def test_r5_disguised_git_in_an_untrusted_repo_is_a_hard_ask(tmp_path: Pat
     ("git remote add evil https://x.example/r", "config"),
     ("git remote set-url origin https://x.example/r", "config"),
     ("git submodule add https://x.example/r sub", "config"),
-    ("git worktree add ../wt -b wt", "config"),
     ("git config --global credential.helper x", "credential"),
     ("git config --system core.editor x", "credential"),
-    ("git config --global --get user.name", "credential"),
+    ("git config --global --get credential.helper", "credential"),
+    ("git config --global --get-regexp token", "credential"),
+    ("git config --system get url.https://x/.insteadOf", "credential"),
+    ("git config --global --get http.extraheader-password", "credential"),
     ("git credential fill", "credential"), ("gh auth token", "credential"),
     ("op read op://vault/item/field", "credential"),
     ("gcloud auth print-access-token", "credential"),
@@ -808,7 +810,10 @@ def test_r5_config_writes_and_secret_printers(cmd: str, kind: str) -> None:
 @pytest.mark.parametrize("cmd", ["git config --get user.name", "git config --list",
                                  "git config -l", "git config get user.email",
                                  "git remote -v", "printenv PATH", "env FOO=1 make",
-                                 "git worktree list"])
+                                 "git worktree list", "git worktree add ../wt -b wt",
+                                 "git config --global --get user.name",
+                                 "git config --global --list", "git config --system -l",
+                                 "git config --global get user.email"])
 def test_r5_harmless_git_config_and_env_reads(cmd: str) -> None:
     assert protect.access_kind("Bash", {"command": cmd}, "/r") is None, cmd
 
@@ -869,3 +874,13 @@ async def test_r5_only_fast_path_git_is_rewritten(tmp_path: Path) -> None:
     for cmd, cfg in (("git push origin x", LIVE), ("ls -la", LIVE)):
         d = await _call(tmp_path, "Bash", {"command": cmd}, cfg, cwd=repo, judge=_judge(ALLOW))
         assert "updatedInput" not in hook_output(d, cfg, {"command": cmd})["hookSpecificOutput"]
+
+
+async def test_r5_worktree_add_is_judged_in_a_trusted_repo_only(tmp_path: Path) -> None:
+    repo = _real_repo(tmp_path / "repo")
+    cmd = "git worktree add .worktrees/x -b x"
+    d = await _call(tmp_path, "Bash", {"command": cmd}, LIVE, cwd=repo, judge=_judge(ALLOW))
+    assert (d.verdict, d.source) == ("allow", "model")
+    evil = _bare(tmp_path / "evil")
+    d = await _call(tmp_path, "Bash", {"command": cmd}, LIVE, cwd=evil, judge=_judge(ALLOW))
+    assert (d.verdict, d.source) == ("ask", "protected")
