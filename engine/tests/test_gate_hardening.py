@@ -794,7 +794,11 @@ async def test_r5_disguised_git_in_an_untrusted_repo_is_a_hard_ask(tmp_path: Pat
     ("git config --global --get-regexp token", "credential"),
     ("git config --system get url.https://x/.insteadOf", "credential"),
     ("git config --global --get http.extraheader-password", "credential"),
-    ("git config --global --list", "credential"), ("git config --system -l", "credential"),
+    ("git config --global --list", "credential"), ("git config --list", "credential"),
+    ("git config -l", "credential"), ("git config --show-origin --list", "credential"),
+    ("git config --get-regexp .", "credential"), ("git config list", "credential"),
+    ("git submodule update --init", "config"), ("git submodule init", "config"),
+    ("git submodule sync", "config"), ("git config --system -l", "credential"),
     ("git config --global list", "credential"),
     ("git config --global --get-regexp url", "credential"),
     ("git config --global --get-urlmatch http https://x.example", "credential"),
@@ -811,8 +815,8 @@ def test_r5_config_writes_and_secret_printers(cmd: str, kind: str) -> None:
     assert protect.access_kind("Bash", {"command": cmd}, "/r") == kind, cmd
 
 
-@pytest.mark.parametrize("cmd", ["git config --get user.name", "git config --list",
-                                 "git config -l", "git config get user.email",
+@pytest.mark.parametrize("cmd", ["git config --get user.name", "git config --local --list",
+                                 "git config -f x.cfg -l", "git config get user.email",
                                  "git remote -v", "printenv PATH", "env FOO=1 make",
                                  "git worktree list", "git worktree add ../wt -b wt",
                                  "git config --global --get user.name",
