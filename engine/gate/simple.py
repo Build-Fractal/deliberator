@@ -108,14 +108,6 @@ def _date_arg(word: str) -> bool:
     return word.startswith("+")  # a format; any other word would set the clock
 
 
-_REF = re.compile(r"[\w][\w./-]*")
-
-
-def _fetch_arg(word: str) -> bool:
-    # A remote or branch name. Refspecs (:), forced (+), URLs and paths are judged.
-    return bool(_REF.fullmatch(word)) and ".." not in word
-
-
 # Refused anywhere in a git command: they write files, run programs or read outside the repo.
 _GIT_DENY = ("--output", "-O", "--open-files-in-pager", "--exec-path", "--upload-pack",
              "--receive-pack", "--ext-diff", "--textconv", "--config-env", "--git-dir",
@@ -162,9 +154,7 @@ GIT: dict[str, Spec] = {
                     "--is-inside-work-tree --git-common-dir --show-prefix --symbolic-full-name "
                     "--quiet --absolute-git-dir --show-cdup --is-bare-repository",
                     attached_only=True, deny=_GIT_DENY),
-    "fetch": _s("pvq", long="--all --prune --tags --no-tags --dry-run --verbose --quiet "
-                "--prune-tags --progress --no-progress", attached_only=True,
-                deny=_GIT_DENY + ("-f", "--force", "--refmap"), positional=_fetch_arg),
+    # No "fetch": network, remote helpers and core.sshCommand from the repo's config.
     "worktree list": _s("v", long="--porcelain --verbose", attached_only=True,
                         deny=_GIT_DENY, positional=_never),
     "remote": _s("v", long="--verbose", attached_only=True, deny=_GIT_DENY,
@@ -172,7 +162,7 @@ GIT: dict[str, Spec] = {
 }
 
 _FIND_DENY = ("-delete", "-exec", "-ok", "-fprint", "-fls", "-D", "--")
-_RG_DENY = ("--pre", "--hostname-bin", "--search-zip", "-z", "--hidden", "--no-ignore",
+_RG_DENY = ("-g", "--glob", "--iglob", "--pre", "--hostname-bin", "--search-zip", "-z", "--hidden", "--no-ignore",
             "--unrestricted", "-u", "--follow", "-L", "--ignore-file", "--no-config")
 
 COMMANDS: dict[str, Spec] = {
@@ -194,8 +184,9 @@ COMMANDS: dict[str, Spec] = {
                "--regexp --text --null --no-messages",
                deny=("-r", "-R", "--recursive", "--dereference-recursive", "-d", "--directories",
                      "-f", "--file")),
-    "rg": _s("iSswxvnNlcFHIqoaP", valued="eABCgtTmM",
-             long="--files --type --type-not --glob --iglob --max-count --max-depth --json "
+    # -g/--glob/--iglob switch off rg's hidden and ignore filtering (.git/config, .env): judged.
+    "rg": _s("iSswxvnNlcFHIqoaP", valued="eABCtTmM",
+             long="--files --type --type-not --max-count --max-depth --json "
              "--count --count-matches --files-with-matches --files-without-match "
              "--line-number --no-line-number --no-heading --heading --color --context "
              "--after-context --before-context --sort --sortr --type-list --multiline "
@@ -289,8 +280,80 @@ def _safe_resolve(p: Path) -> Path:
         return p
 
 
-def simple_words(command: str, cwd: str = "") -> list[str] | None:
-    """The command's words when the allow-list may skip the judge for it, else None."""
+def _is_gitdir(p: Path) -> bool:
+    """What git accepts as a repository folder: HEAD, objects and refs (objects may come
+    through `commondir` in a worktree's or submodule's gitdir)."""
+    if not (p / "HEAD").is_file():
+        return False
+    return (p / "commondir").is_file() or ((p / "objects").is_dir() and (p / "refs").is_dir())
+
+
+_BARE = re.compile(r"^\s*bare\s*=\s*(?:true|yes|on|1)\s*$", re.IGNORECASE | re.MULTILINE)
+
+
+def _says_bare(gitdir: Path) -> bool:
+    try:
+        return bool(_BARE.search((gitdir / "config").read_text(errors="replace")[:65536]))
+    except OSError:
+        return False
+
+
+def _linked_gitdir(dotgit_file: Path) -> bool:
+    """A `.git` file (worktree or submodule) that points into a real repository's `.git`:
+    `<repo>/.git/worktrees/<name>` or `<repo>/.git/modules/...`. A clone cannot contain a
+    `.git` path, so such a target was made by git, not shipped by the repo."""
+    try:
+        line = dotgit_file.read_text(errors="replace")[:4096].splitlines()[0]
+    except (OSError, IndexError):
+        return False
+    if not line.startswith("gitdir: "):
+        return False
+    target = Path(line[len("gitdir: "):].strip())
+    if not target.is_absolute():
+        target = dotgit_file.parent / target
+    target = _safe_resolve(target)
+    parts = target.parts
+    for i in range(len(parts) - 1, 0, -1):
+        if parts[i] != ".git" or i + 2 >= len(parts) or parts[i + 1] not in ("worktrees", "modules"):
+            continue
+        root = Path(*parts[:i + 1])
+        return root.is_dir() and _is_gitdir(root) and not _says_bare(root) and _is_gitdir(target)
+    return False
+
+
+def trusted_repo(cwd: str) -> bool:
+    """The repository git would find from `cwd` is an ordinary checkout: `<top>/.git` is a
+    non-bare repository folder, or a worktree/submodule `.git` file pointing into one.
+
+    Reads the filesystem only (never runs git there): a repo can ship a bare-repository
+    folder whose config sets core.sshCommand or core.fsmonitor, and git run inside it
+    would use it. Walks up the way git's discovery does: `<d>/.git` first, then `<d>`
+    itself as a bare repository (refused).
+    """
+    if not cwd:
+        return False
+    d = _safe_resolve(Path(cwd))
+    for folder in (d, *d.parents):
+        dotgit = folder / ".git"
+        if dotgit.is_dir():
+            return _is_gitdir(dotgit) and not _says_bare(dotgit)
+        if dotgit.is_file():
+            return _linked_gitdir(dotgit)
+        if dotgit.exists() or _is_gitdir(folder):
+            return False  # something odd, or a bare repository: git would use its config
+    return False
+
+
+def _pathspec_magic(word: str) -> bool:
+    # A glob or :(magic) pathspec reaches files the words don't name (git log -p -- '*env').
+    return any(c in word for c in "*?[") or word.startswith(":")
+
+
+def simple_words(command: str, cwd: str = "", *, checks: bool = True) -> list[str] | None:
+    """The command's words when the allow-list may skip the judge for it, else None.
+
+    With ``checks=False`` only the shape is checked (characters, command, flags): used to
+    tell a plain read from anything else, never to skip the judge."""
     if not command.strip() or not plain(command):
         return None
     try:
@@ -327,8 +390,14 @@ def simple_words(command: str, cwd: str = "") -> list[str] | None:
             continue
         if spec.positional is not None and not spec.positional(word):
             return None
+        if words[0] == "git" and _pathspec_magic(word):
+            return None
         positionals.append(word)
         paths.append(word)
+    if not checks:
+        return words
+    if words[0] == "git" and not trusted_repo(cwd):
+        return None
     if any(protect.path_is_protected(p, cwd) for p in paths if p):
         return None
     if spec.recursive or recursive:

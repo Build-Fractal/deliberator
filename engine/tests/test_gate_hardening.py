@@ -200,21 +200,21 @@ async def test_credential_files_via_read_are_judged(tmp_path: Path, path: str) -
 FINE = [
     "ls", "ls -la", "ls -la src", "pwd", "cat README.md", "head -20 a.py", "head -n 5 a.py",
     "tail -n 50 log.txt", "tail -f log.txt", "wc -l a.py", "grep -n 'def main' a.py",
-    "rg -n 'foo.*bar' engine", "rg -l -g '*.py' gate engine",
+    "rg -n 'foo.*bar' engine", "rg -l -t py gate engine",
     "rg -t py -C 3 TODO", "find . -name '*.py' -type f", "find engine -maxdepth 2 -type d",
     "which python3", "echo hello", "tree -L 2", "du -sh .", "df -h", "date", "date +%Y-%m-%d",
     "git status", "git status -s", "git status --porcelain", "git diff", "git diff --stat",
     "git diff --cached -- a.py", "git log --oneline -5", "git log -n 3 --format='%h %s'",
     "git show HEAD --stat", "git branch", "git branch -a", "git branch --show-current",
     "git branch -vv", "git rev-parse --show-toplevel", "git rev-parse --abbrev-ref HEAD",
-    "git fetch", "git fetch origin", "git fetch --prune origin", "git fetch origin main",
     "git worktree list", "git remote -v", "git log --oneline origin/main..HEAD",
 ]
 
 
 @pytest.mark.parametrize("cmd", FINE)
 async def test_ordinary_reads_still_skip(tmp_path: Path, cmd: str) -> None:
-    d = await _call(tmp_path, "Bash", {"command": cmd}, LIVE, judge=_judge(ASK))
+    repo = _real_repo(tmp_path / "repo")
+    d = await _call(tmp_path, "Bash", {"command": cmd}, LIVE, cwd=repo, judge=_judge(ASK))
     assert d.source == "skip", cmd
 
 
@@ -392,7 +392,10 @@ async def test_r3_git_skips_only_in_a_plain_repo_or_its_worktree(tmp_path: Path)
                         judge=_judge(ALLOW))
         assert d.source == "skip", cwd
     # a worktree: .git is a file pointing into the main repo's .git/worktrees/
-    (repo / ".git" / "worktrees" / "wt").mkdir(parents=True)
+    wtgit = repo / ".git" / "worktrees" / "wt"
+    wtgit.mkdir(parents=True)
+    (wtgit / "HEAD").write_text("ref: refs/heads/wt\n")
+    (wtgit / "commondir").write_text("../..\n")
     wt = tmp_path / "wt"
     wt.mkdir()
     (wt / ".git").write_text(f"gitdir: {repo / '.git' / 'worktrees' / 'wt'}\n")

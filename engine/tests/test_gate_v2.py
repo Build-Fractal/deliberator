@@ -372,6 +372,9 @@ async def test_example_allow_list_still_skips_simple_calls(tmp_path: Path) -> No
     from engine.gate.config import EXAMPLE_CONFIG
 
     data = yaml.safe_load(EXAMPLE_CONFIG)
+    for _d in ("objects", "refs"):
+        (tmp_path / ".git" / _d).mkdir(parents=True, exist_ok=True)
+    (tmp_path / ".git" / "HEAD").write_text("ref: refs/heads/main\n")  # git only skips in a real repo
     cfg = MOCK.model_copy(update={"allow_without_asking": data["allow_without_asking"]})
     for cmd in ("ls -la", "git status -s", "git log --oneline -5", "du -sh ."):
         d = await _call(tmp_path, "Bash", {"command": cmd}, cfg, judge=_judge(ASK))

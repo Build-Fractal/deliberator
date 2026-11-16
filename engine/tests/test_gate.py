@@ -38,6 +38,9 @@ async def test_deny_carries_reason_and_rule(tmp_path: Path) -> None:
 
 async def test_allow_list_skips_the_model(tmp_path: Path) -> None:
     calls: list[str] = []
+    for _d in ("objects", "refs"):
+        (tmp_path / ".git" / _d).mkdir(parents=True, exist_ok=True)
+    (tmp_path / ".git" / "HEAD").write_text("ref: refs/heads/main\n")  # git only skips in a real repo
     cfg = MOCK.model_copy(update={"allow_without_asking": [r"^git status\b"]})
     d = await _bash(tmp_path, "git status -s", cfg, judge=_judge("{}", calls))
     assert (d.verdict, d.source, calls) == ("allow", "skip", [])
