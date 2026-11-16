@@ -447,7 +447,9 @@ _GIT_CONFIG_SCOPE = re.compile(r"(?:^|\s)--(?:global|system)\b")
 _GIT_CONFIG_DUMP = re.compile(r"(?:^|\s)(?:--list|-l|list|--get-regexp|--get-urlmatch)(?=\s|=|$)")
 # Other git calls that change what runs: remotes, submodules. (`worktree add` is ordinary
 # work and goes to the judge; in an untrusted repo any git is a hard ask anyway.)
-_GIT_SETUP = re.compile(_GIT + r"(?:remote\s+(?:add|set-url|set-head|rename)|submodule\s+add)\b")
+_GIT_SETUP = re.compile(_GIT + r"(?:remote\s+(?:add|set-url|set-head|rename)|submodule\s+(?:add|update|init|sync))\b")
+# Scoped to one file: a dump of these can't reach user or system config.
+_GIT_CONFIG_LOCAL = re.compile(r"(?:^|\s)(?:--local|--worktree|--file|-f|--blob)(?=\s|=|$)")
 # Keys whose values are secrets or redirect where credentials go.
 _SECRET_KEY = re.compile(r"credential|token|password|helper|insteadof", re.IGNORECASE)
 
@@ -466,6 +468,8 @@ def _git_setup_kind(text: str) -> Kind | None:
             if not read or _SECRET_KEY.search(rest) or _GIT_CONFIG_DUMP.search(rest):
                 return "credential"  # user/system config holds credential helpers
             continue
+        if _GIT_CONFIG_DUMP.search(rest) and not _GIT_CONFIG_LOCAL.search(rest):
+            return "credential"  # an unscoped dump includes ~/.gitconfig and system config
         if rest.strip() and not read:
             best = "config"
     if best is None and _GIT_SETUP.search(text):
