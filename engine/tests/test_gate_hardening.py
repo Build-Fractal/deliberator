@@ -638,3 +638,55 @@ async def test_r3_credential_source_files_are_not_hard_asks(tmp_path: Path, cmd:
     repo = _real_repo(tmp_path / "repo")
     d = await _call(tmp_path, "Bash", {"command": cmd}, LIVE, cwd=repo, judge=_judge(ALLOW))
     assert d.source != "protected", cmd
+
+
+# Round 4: Claude's control files ----------------------------------------------------------
+
+@pytest.mark.parametrize("path", [
+    str(HOME / ".claude.json"), str(HOME / ".CLAUDE.json"),
+    str(HOME / ".claude" / "projects" / "x" / ".claude" / "settings.json"),
+    str(HOME / ".claude" / "projects" / "x" / "hooks" / "h.sh"),
+    str(HOME / ".claude" / "projects" / "x" / "settings.local.json"),
+    str(HOME / ".claude" / "projects" / "x" / "memory" / ".claude" / "x.md"),
+    "/r/repo/.mcp.json", "/r/repo/sub/.MCP.json",
+])
+def test_r4_control_files_are_config(path: str) -> None:
+    assert protect.path_kind(path) == "config", path
+
+
+def test_r4_notes_stay_notes() -> None:
+    for p in ("projects/x/memory/MEMORY.md", "projects/x/abc.jsonl", "sessions/s.json",
+              "plans/p.md", "todos/t.json"):
+        assert protect.path_kind(str(HOME / ".claude" / p)) == "notes", p
+
+
+R4_NO_SKIP = [
+    "CLAUDE.md", "docs/AGENTS.md", "sub/claude.md", "GEMINI.md", ".cursorrules",
+    ".vscode/settings.json", ".idea/workspace.xml", ".devcontainer/devcontainer.json",
+    ".githooks/pre-push", ".husky/pre-commit", "lefthook.yml", ".pre-commit-config.yaml",
+    "mise.toml", ".mise.toml", ".tool-versions", ".yarnrc.yml", ".npmrc", "package.json",
+    "Makefile", "Justfile", "Taskfile.yml", "Rakefile", "gradlew", ".cargo/config.toml",
+    "pytest.ini", "setup.cfg", "pyproject.toml", "tox.ini", "conftest.py", "tests/conftest.py",
+    "sitecustomize.py", "lib/x.pth", ".github/workflows/ci.yml", ".gitlab-ci.yml",
+    "Jenkinsfile", "requirements.txt", "requirements-dev.txt", "reqs/requirements_test.txt",
+    "venv/lib/x.py", ".venv/bin/activate", "node_modules/a/index.js",
+    "lib/python3.12/site-packages/a.py",
+]
+
+
+@pytest.mark.parametrize("rel", R4_NO_SKIP)
+async def test_r4_control_files_in_the_repo_never_skip(tmp_path: Path, rel: str) -> None:
+    repo = _real_repo(tmp_path / "repo")
+    calls: list[str] = []
+    d = await _call(tmp_path, "Write", {"file_path": str(repo / rel), "content": "x = 1\n"},
+                    LIVE, cwd=repo, judge=_judge(ALLOW, calls))
+    assert d.source in JUDGED and d.source != "skip", rel
+
+
+@pytest.mark.parametrize("rel", ["src/app.py", "README.md", "docs/guide.md", "tests/test_a.py",
+                                 "src/credentials_test.py", "src/requirements.py"])
+async def test_r4_ordinary_files_still_skip(tmp_path: Path, rel: str) -> None:
+    repo = _real_repo(tmp_path / "repo")
+    d = await _call(tmp_path, "Write", {"file_path": str(repo / rel), "content": "x = 1\n"},
+                    LIVE, cwd=repo, judge=_judge(ASK))
+    assert d.source == "skip", rel
