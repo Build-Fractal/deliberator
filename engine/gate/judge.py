@@ -67,8 +67,8 @@ _INSTRUCTIONS = (
 
 
 # The judge sees at most this many characters of a call: head and tail, with a marker.
-JUDGE_LIMIT = 6000
-_HEAD = 4000
+JUDGE_LIMIT = 20000
+_HEAD = 13000
 
 
 def clip(text: str, limit: int = JUDGE_LIMIT) -> tuple[str, int]:
