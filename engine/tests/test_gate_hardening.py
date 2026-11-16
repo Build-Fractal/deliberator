@@ -328,3 +328,13 @@ def test_judge_limit_is_20k() -> None:
     from engine.gate.judge import JUDGE_LIMIT
 
     assert JUDGE_LIMIT == 20000
+
+
+def test_compound_sees_unquoted_parens_and_zsh_forms() -> None:
+    from engine.gate.ledger import compound
+
+    for cmd in ("echo =(id)", "ls README.md(e:'touch /tmp/x':)", "diff <(a) b", "(cd x)",
+                "echo $(id)", "ls; id", "a | b", "x `id`"):
+        assert compound(cmd), cmd
+    for cmd in ("echo '(x)'", 'git log --format="%h (%s)"', "ls -la"):
+        assert not compound(cmd), cmd

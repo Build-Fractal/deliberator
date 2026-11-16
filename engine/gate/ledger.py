@@ -51,8 +51,32 @@ LOCK_NAME = "log.lock"
 _COMPOUND = re.compile(r"[<>;&|`\n]|\$\(")
 
 
+def _unquoted_paren(subject: str) -> bool:
+    """A ( or ) outside quotes: a subshell, bash <(..), zsh =(..) or a zsh glob qualifier
+    (x(e:'cmd':)), each of which can run a command."""
+    quote = ""
+    escaped = False
+    for ch in subject:
+        if escaped:
+            escaped = False
+        elif quote:
+            if ch == quote:
+                quote = ""
+            elif ch == "\\" and quote == '"':
+                escaped = True
+        elif ch == "\\":
+            escaped = True
+        elif ch in "'\"":
+            quote = ch
+        elif ch in "()":
+            return True
+    return False
+
+
 def compound(subject: str) -> bool:
-    return bool(_COMPOUND.search(subject))
+    """Does more than its first word says. The raw-text check stays (stricter for grants: a
+    quoted ; still counts); unquoted parens are found with a quote-aware scan."""
+    return bool(_COMPOUND.search(subject)) or _unquoted_paren(subject)
 
 
 # ---------------------------------------------------------------------------
