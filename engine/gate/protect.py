@@ -442,6 +442,9 @@ _SECRET_PRINTERS = re.compile(
 _GIT_CONFIG = re.compile(_GIT + r"config\b(?P<rest>[^;&|)\n]*)")
 _GIT_CONFIG_READ = re.compile(r"(?:^|\s)(?:--get[\w-]*|--list|-l|get|list)(?=\s|=|$)")
 _GIT_CONFIG_SCOPE = re.compile(r"(?:^|\s)--(?:global|system)\b")
+# Reads that dump many keys at once (and so can print a token in url.*.insteadOf or a
+# credential-store path) are treated like a secret key.
+_GIT_CONFIG_DUMP = re.compile(r"(?:^|\s)(?:--list|-l|list|--get-regexp|--get-urlmatch)(?=\s|=|$)")
 # Other git calls that change what runs: remotes, submodules. (`worktree add` is ordinary
 # work and goes to the judge; in an untrusted repo any git is a hard ask anyway.)
 _GIT_SETUP = re.compile(_GIT + r"(?:remote\s+(?:add|set-url|set-head|rename)|submodule\s+add)\b")
@@ -452,14 +455,15 @@ _SECRET_KEY = re.compile(r"credential|token|password|helper|insteadof", re.IGNOR
 def _git_setup_kind(text: str) -> Kind | None:
     """git config writes, remote add/set-url and submodule add change what git and its hooks
     run: config. --global/--system writes, and reads of secret-looking keys there
-    (credential, token, password, helper, url.*.insteadOf), are credential. Other
+    (credential, token, password, helper, url.*.insteadOf) or dumps of many keys (--list,
+    --get-regexp), are credential. Other
     --global/--system reads go to the judge."""
     best: Kind | None = None
     for m in _GIT_CONFIG.finditer(text):
         rest = m.group("rest")
         read = _GIT_CONFIG_READ.search(rest) is not None
         if _GIT_CONFIG_SCOPE.search(rest):
-            if not read or _SECRET_KEY.search(rest):
+            if not read or _SECRET_KEY.search(rest) or _GIT_CONFIG_DUMP.search(rest):
                 return "credential"  # user/system config holds credential helpers
             continue
         if rest.strip() and not read:

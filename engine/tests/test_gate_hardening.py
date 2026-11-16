@@ -794,6 +794,10 @@ async def test_r5_disguised_git_in_an_untrusted_repo_is_a_hard_ask(tmp_path: Pat
     ("git config --global --get-regexp token", "credential"),
     ("git config --system get url.https://x/.insteadOf", "credential"),
     ("git config --global --get http.extraheader-password", "credential"),
+    ("git config --global --list", "credential"), ("git config --system -l", "credential"),
+    ("git config --global list", "credential"),
+    ("git config --global --get-regexp url", "credential"),
+    ("git config --global --get-urlmatch http https://x.example", "credential"),
     ("git credential fill", "credential"), ("gh auth token", "credential"),
     ("op read op://vault/item/field", "credential"),
     ("gcloud auth print-access-token", "credential"),
@@ -812,7 +816,6 @@ def test_r5_config_writes_and_secret_printers(cmd: str, kind: str) -> None:
                                  "git remote -v", "printenv PATH", "env FOO=1 make",
                                  "git worktree list", "git worktree add ../wt -b wt",
                                  "git config --global --get user.name",
-                                 "git config --global --list", "git config --system -l",
                                  "git config --global get user.email"])
 def test_r5_harmless_git_config_and_env_reads(cmd: str) -> None:
     assert protect.access_kind("Bash", {"command": cmd}, "/r") is None, cmd
