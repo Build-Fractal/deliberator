@@ -131,7 +131,8 @@ def _hard_ask(kind: protect.Kind | None, tool: str, tool_input: dict[str, Any],
 
     Credential files and the gate's own log: any access. Protected config (~/.claude, .git,
     .claude/, .deliberator/, gate.yml, rc files): writes, and any Bash command that is not
-    a plain read; the agent's memory notes and plain reads go to the judge.
+    a plain read. Plain reads, and the agent's own notes ("notes": memory, transcripts),
+    go to the judge.
     """
     if kind == "credential":
         return "touches a credential file: you decide, every time (never judged or reused)"
@@ -140,8 +141,6 @@ def _hard_ask(kind: protect.Kind | None, tool: str, tool_input: dict[str, Any],
     if kind != "config":
         return None
     if tool in EDIT_TOOLS:
-        if protect.is_agent_memory(tool_input, cwd):
-            return None
         return "writes protected config (agent, git or gate settings): you decide"
     if tool == "Bash":
         command = str(tool_input.get("command", ""))

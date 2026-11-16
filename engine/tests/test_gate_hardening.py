@@ -532,7 +532,63 @@ async def test_r3_agent_memory_writes_stay_with_the_judge(tmp_path: Path) -> Non
 def test_r3_kinds_are_explicit() -> None:
     k = protect.path_kind
     assert k(str(HOME / ".netrc")) == "credential"
-    assert k(str(HOME / ".local" / "share" / "deliberator" / "x")) == "gate_log"
+    assert k(str(HOME / ".local" / "share" / "deliberator" / ".deliberator" / "gate"
+                 / "log.jsonl")) == "gate_log"
+    assert k("/r/.deliberator/gate/graph.json") == "gate_log"
+    assert k(str(HOME / ".local" / "share" / "deliberator" / "venv" / "x")) == "config"
+    assert k(str(HOME / ".claude" / "projects" / "p" / "memory" / "m.md")) == "notes"
+    assert k(str(HOME / ".claude" / "settings.json")) == "config"
     assert k(str(HOME / ".config" / "deliberator" / "gate.yml")) == "config"
     assert k(str(HOME / "code" / "x.py")) is None
     assert k("/r/src/credentials_test.py") == "credential"  # credentials* anywhere
+
+
+@pytest.mark.parametrize("cmd", [
+    "grep -E 'passed$' log.txt | tail -1", "rg 'x$' a.py && echo done",
+    "ls /private/tmp/out/*", "wc -l dir/*.py; cat x", "cat scratch/*/notes.md | head",
+    "ls ~/.local/share/deliberator/venv/bin | head",
+])
+def test_r3_no_false_credential_or_log_hits(cmd: str) -> None:
+    assert protect.access_kind("Bash", {"command": cmd}, str(HOME / "code" / "x")) in (
+        None, "config"), cmd
+
+
+@pytest.mark.parametrize("cmd", [
+    "echo $'x' > ~/.netrc", "cat ~/*/hosts.yml", "ls $HOME/*/", ("cat ~/.local/share/"
+    "deliberator/.deliberator/gate/log.jsonl | jq ."),
+])
+def test_r3_real_hits_stay(cmd: str) -> None:
+    assert protect.access_kind("Bash", {"command": cmd}, str(HOME)) in ("credential",
+                                                                        "gate_log"), cmd
+
+
+async def test_r3_agent_notes_in_bash_go_to_the_judge(tmp_path: Path) -> None:
+    for cmd in ("cd ~/.claude/projects/-p/memory && echo '- note' >> MEMORY.md",
+                f"tail -5 {HOME}/.claude/projects/-p/abc.jsonl | jq .type",
+                "ls ~/.claude/sessions | head"):
+        d = await _call(tmp_path, "Bash", {"command": cmd}, LIVE, judge=_judge(ALLOW))
+        assert (d.source, d.protected) == ("model", True), cmd
+    d = await _call(tmp_path, "Bash", {"command": "cd ~/.claude && echo x >> settings.json"},
+                    LIVE, judge=_judge(ALLOW))
+    assert d.source == "protected"
+
+
+@pytest.mark.parametrize("cmd", [
+    "P=$HOME/.claude/projects/-p/abc.jsonl; tail -3 $P | jq .",
+    "cd ~/.claude/sessions; ls | head",
+    "python3 - <<'EOF'\nopen('x').write(\"cat >> ~/.claude/projects/-p/memory/n.md\")\nEOF",
+    "python3 - <<'EOF'\nimport re\nre.match(r\"^a\\d+$\", x)\nEOF",
+    'until grep -qE "(passed|failed).* in [0-9.]+s" /tmp/out.txt; do sleep 5; done',
+])
+def test_r3_notes_and_quoted_text_are_not_config_or_credential(cmd: str) -> None:
+    assert protect.access_kind("Bash", {"command": cmd}, str(HOME / "code" / "x")) in (
+        None, "notes"), cmd
+
+
+@pytest.mark.parametrize("cmd", [
+    "cat ~/.cl$'a'ude/settings.json", "cat <<EOF\n$(cat ~/.netrc)\nEOF",
+    "x=~/.ssh/id_rsa; cat $x", "cd ~/.claude; cat settings.json",
+])
+def test_r3_protected_still_found_past_assignments_and_heredocs(cmd: str) -> None:
+    assert protect.access_kind("Bash", {"command": cmd}, str(HOME)) in (
+        "credential", "config"), cmd

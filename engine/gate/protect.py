@@ -11,14 +11,18 @@ ask: no model call, no allow-list, no reuse, no standing grant. The person decid
   ``.gitconfig``, ``.env``/``.env.*``, ``.envrc``, ``credentials*``, ``*_history``,
   ``*.keychain(-db)``; and ``security find-/dump-/export-`` commands.
 
-``gate_log``: the gate's own record (``~/.local/share/deliberator``, any
-``.deliberator/gate/``, and a configured ``log_dir``). Reads and writes are a hard ask too:
+``gate_log``: the gate's own record (any ``.deliberator/gate/`` folder: log.jsonl,
+graph.json; and a configured ``log_dir``). Reads and writes are a hard ask too:
 redaction can miss a secret.
 
 ``config``: what steers the agent or the gate: ``~/.claude``, any ``.claude/``,
 ``.deliberator/`` or ``.git`` folder, ``~/.config/deliberator`` (gate.yml), shell rc files.
-Reads go to the judge (never a shortcut); writes are a hard ask, except the agent's own
-memory notes (``~/.claude/projects/*/memory/``), which the judge rules on.
+Reads go to the judge (never a shortcut); writes are a hard ask. The installed gate
+(``~/.local/share/deliberator`` outside its log) counts as config.
+
+``notes``: the agent's own working files under ``~/.claude`` (``projects/`` with memory
+notes and transcripts, ``sessions/``, ``plans/``, ``todos/``). Reads and writes go to the
+judge, never a shortcut: writing its memory is ordinary work for the agent.
 
 Names are compared case-insensitively (APFS: ``~/.CLAUDE`` is ``~/.claude``), and where a path
 exists its folders are compared by inode with the protected ones. Glob and brace forms of a
@@ -41,8 +45,8 @@ from itertools import pairwise
 from pathlib import Path
 from typing import Any, Literal
 
-Kind = Literal["credential", "gate_log", "config"]
-_RANK: dict[str | None, int] = {None: 0, "config": 1, "gate_log": 2, "credential": 3}
+Kind = Literal["credential", "gate_log", "config", "notes"]
+_RANK: dict[str | None, int] = {None: 0, "notes": 1, "config": 2, "gate_log": 3, "credential": 4}
 
 PROTECTED_COMPONENTS = frozenset({".claude", ".deliberator", ".git"})
 RC_FILES = frozenset({".zshrc", ".zprofile", ".zshenv", ".zlogin", ".bashrc", ".bash_profile",
@@ -72,12 +76,22 @@ def credential_dirs() -> list[Path]:
 
 
 def gate_log_dirs(extra: Iterable[str | Path] = ()) -> list[Path]:
-    return [_home() / ".local" / "share" / "deliberator",
+    """The log itself (log.jsonl, graph.json): any `.deliberator/gate/` folder is matched by
+    name; these are the shared log under ~/.local/share/deliberator and a configured log_dir."""
+    return [_home() / ".local" / "share" / "deliberator" / ".deliberator" / "gate",
             *(Path(os.path.expanduser(str(p))) for p in extra)]
 
 
 def config_dirs() -> list[Path]:
-    return [_home() / ".claude", _home() / ".config" / "deliberator"]
+    """The agent's and the gate's settings, and the installed gate (venv, hook script)."""
+    return [_home() / ".claude", _home() / ".config" / "deliberator",
+            _home() / ".local" / "share" / "deliberator"]
+
+
+def notes_dirs() -> list[Path]:
+    """The agent's own working files under ~/.claude: memory notes, transcripts, plans."""
+    c = _home() / ".claude"
+    return [c / "projects", c / "sessions", c / "plans", c / "todos"]
 
 
 def protected_dirs(extra: Iterable[str | Path] = ()) -> list[Path]:
@@ -147,10 +161,13 @@ def path_kind(raw: str, cwd: str = "", extra: Iterable[str | Path] = ()) -> Kind
         if _under(fp, credential_dirs()) or _credential_name(parts[-1]):
             return "credential"
         inner = _after_worktree(parts)
+        notes = _under(fp, notes_dirs())
+        if notes:
+            bump("notes")
         if (_under(fp, gate_log_dirs(extra))
                 or any(a == ".deliberator" and b == "gate" for a, b in pairwise(parts))):
             bump("gate_log")
-        if (_under(fp, config_dirs()) or parts[-1] in RC_FILES
+        if not notes and (_under(fp, config_dirs()) or parts[-1] in RC_FILES
                 or parts[-1] in PROTECTED_COMPONENTS
                 or PROTECTED_COMPONENTS & set(inner[:-1])):
             bump("config")
@@ -168,8 +185,8 @@ def _inode_kinds(extra: tuple[str, ...]) -> dict[tuple[int, int], Kind]:
     """(device, inode) of each protected folder that exists -> its kind. One hook call is one
     process, so caching for its lifetime is safe."""
     out: dict[tuple[int, int], Kind] = {}
-    for kind, dirs in (("config", config_dirs()), ("gate_log", gate_log_dirs(extra)),
-                       ("credential", credential_dirs())):
+    for kind, dirs in (("config", config_dirs()), ("notes", notes_dirs()),
+                       ("gate_log", gate_log_dirs(extra)), ("credential", credential_dirs())):
         for d in dirs:
             try:
                 st = os.stat(d)
@@ -181,16 +198,15 @@ def _inode_kinds(extra: tuple[str, ...]) -> dict[tuple[int, int], Kind]:
 
 def _walk_kind(p: Path, inodes: dict[tuple[int, int], Kind]) -> Kind | None:
     """The kind of the protected folder `p` (or a folder above it that exists) is another
-    name for: different case, a firmlink such as /System/Volumes/Data, a bind mount."""
+    name for: different case, a firmlink such as /System/Volumes/Data, a bind mount.
+    The deepest match wins (~/.claude/projects is notes, not config)."""
     best: Kind | None = None
     for q in (*reversed(p.parents), p):  # from / down: stop where the path stops existing
         try:
             st = os.stat(q)
         except OSError:
             break
-        k = inodes.get((st.st_dev, st.st_ino))
-        if _RANK[k] > _RANK[best]:
-            best = k
+        best = inodes.get((st.st_dev, st.st_ino), best)
     return best
 
 
@@ -213,10 +229,10 @@ _BASH_CREDENTIAL = re.compile(
     + r"|(?:^|[\s;&|(`])security\s+(?:find|dump|export)-",
     re.IGNORECASE,
 )
-_BASH_GATE_LOG = re.compile(r"\.local/share/deliberator\b|\.deliberator/gate\b", re.IGNORECASE)
+_BASH_GATE_LOG = re.compile(r"\.deliberator/gate\b", re.IGNORECASE)
 _BASH_CONFIG = re.compile(
     _B + r"\.(?:claude|deliberator)(?![\w-])"
-    r"|\.config/deliberator\b"
+    r"|\.config/deliberator\b|\.local/share/deliberator\b"
     + r"|" + _B + r"\.(?:zshrc|zprofile|zshenv|zlogin|bashrc|bash_profile|bash_login|profile)\b"
     + r"|" + _B + r"\.git(?:/|\s*$|(?=[\s'\";|&),}]))",
     re.IGNORECASE,
@@ -269,7 +285,7 @@ _BRACE = re.compile(r"\{([^{}]*,[^{}]*)\}")
 _TOKEN = re.compile(r"[^\s'\";|&()<>]+")  # linear: no backtracking on long text
 
 
-def _glob_kind(text: str) -> Kind | None:
+def _glob_kind(text: str, cwd_is_home: bool = False) -> Kind | None:
     best: Kind | None = None
 
     def match(pattern: str) -> None:
@@ -283,14 +299,15 @@ def _glob_kind(text: str) -> Kind | None:
             for alt in _braces(seg):
                 if alt.startswith("."):  # a glob matches a leading dot only if it has one
                     match(alt.casefold())
-    # With dotglob (bash) or GLOB_DOTS (zsh) on, `*` matches dot names too: a glob that is a
-    # whole path component (~/*/settings.json, */config) may be a protected folder.
+    # With dotglob (bash) or GLOB_DOTS (zsh) on, `*` matches dot names too: a glob right
+    # under home (~/*/settings.json, $HOME/*) may be a protected folder.
+    homes = {"~", "$home", "${home}", _fold(_home())} | ({""} if cwd_is_home else set())
     for token in _TOKEN.findall(text):
-        if "/" in token:
-            for comp in token.split("/"):
-                if any(c in comp for c in "*?["):
-                    for alt in _braces(comp):
-                        match(alt.casefold())
+        comps = token.split("/")
+        for i in range(0 if cwd_is_home else 1, len(comps) if "/" in token else 0):
+            if any(c in comps[i] for c in "*?[") and _fold("/".join(comps[:i])) in homes:
+                for alt in _braces(comps[i]):
+                    match(alt.casefold())
     return best
 
 
@@ -305,19 +322,96 @@ def _squash(text: str) -> str:
     return text
 
 
-def command_kind(command: str, extra: Iterable[str | Path] = ()) -> Kind | None:
+_HEREDOC = re.compile(r"<<-?[ \t]*(['\"]?)([A-Za-z_][\w-]*)\1")
+
+
+def strip_heredocs(command: str) -> str:
+    """The command without heredoc bodies. A body is never parsed as shell words: no
+    globbing, no $'..'; with an unquoted delimiter only $var, $(..) and backticks expand, and
+    those are kept (the body is kept whole when the delimiter is unquoted and it has any)."""
+    out, pos = [], 0
+    for m in _HEREDOC.finditer(command):
+        if m.start() < pos:
+            continue
+        start = command.find("\n", m.end())
+        if start < 0:
+            break
+        end_m = re.compile(r"^[ \t]*" + re.escape(m.group(2)) + r"[ \t]*$", re.MULTILINE)
+        end = end_m.search(command, start + 1)
+        stop = end.end() if end else len(command)
+        body = command[start + 1:end.start() if end else len(command)]
+        out.append(command[pos:start + 1])
+        if not m.group(1) and ("$" in body or "`" in body):
+            out.append(body)  # unquoted delimiter: substitutions in the body still run
+        out.append("\n")
+        pos = stop
+    out.append(command[pos:])
+    return "".join(out)
+
+
+def _mask_quoted_globs(command: str) -> str:
+    """Glob characters inside quotes are literal: replace them so only live globs remain."""
+    out, quote, escaped = [], "", False
+    for ch in command:
+        if escaped:
+            escaped = False
+            out.append("x" if ch in "*?[{" else ch)
+            continue
+        if ch == "\\" and quote != "'":
+            escaped = True
+        elif quote:
+            if ch == quote:
+                quote = ""
+            elif ch in "*?[{":
+                ch = "x"
+        elif ch in "'\"":
+            quote = ch
+        out.append(ch)
+    return "".join(out)
+
+
+def _ansi_c(command: str) -> bool:
+    """An unquoted $'...' or $"..." (ANSI-C or locale quoting), not a `$'` inside quotes."""
+    quote = ""
+    escaped = False
+    for i, ch in enumerate(command):
+        if escaped:
+            escaped = False
+        elif quote:
+            if ch == quote:
+                quote = ""
+            elif ch == "\\" and quote == '"':
+                escaped = True
+        elif ch == "\\":
+            escaped = True
+        elif ch == "$" and command[i + 1:i + 2] in ("'", '"'):
+            return True
+        elif ch in "'\"":
+            quote = ch
+    return False
+
+
+_NOTES = re.compile(r"(?:~|\$HOME|\$\{HOME\}|" + re.escape(str(_home()))
+                    + r")/\.claude/(?:projects|sessions|plans|todos)(?=/|$|[\s'\";|&)])",
+                    re.IGNORECASE)
+
+
+def command_kind(command: str, extra: Iterable[str | Path] = (),
+                 cwd: str = "") -> Kind | None:
     """The most sensitive protected location the command text mentions."""
-    if "$'" in command or '$"' in command:
+    shell = strip_heredocs(command)
+    if _ansi_c(shell):
         return "credential"  # ANSI-C / locale quoting can spell any path, a credential too
     unquoted = re.sub(r"[\"'\\]", "", command)
     variants = {command, unquoted, _squash(command), _squash(unquoted)}
     home = str(_home())
-    best: Kind | None = None
+    at_home = bool(cwd) and _fold(os.path.normpath(cwd)) == _fold(_home())
+    best: Kind | None = _glob_kind(_strip_worktrees(_mask_quoted_globs(shell)), at_home)
     for text in variants:
         text = _strip_worktrees(text)
         if _BASH_CREDENTIAL.search(text):
             return "credential"
-        found: list[Kind | None] = [_glob_kind(text)]
+        found: list[Kind | None] = []
         if _BASH_GATE_LOG.search(text):
             found.append("gate_log")
         folded = text.casefold()
@@ -326,7 +420,9 @@ def command_kind(command: str, extra: Iterable[str | Path] = ()) -> Kind | None:
             short = ds.replace(home, "~", 1) if ds.startswith(home) else ds
             if ds.casefold() in folded or short.casefold() in folded:
                 found.append("gate_log")
-        if _BASH_CONFIG.search(text):
+        if _NOTES.search(text):
+            found.append("notes")
+        if _BASH_CONFIG.search(_NOTES.sub("AGENT_NOTES", text)):
             found.append("config")
         for k in found:
             if _RANK[k] > _RANK[best]:
@@ -346,13 +442,18 @@ def _words_kind(command: str, cwd: str, extra: list[str | Path]) -> Kind | None:
     """Each word that looks like a path (and each `--flag=path` value), classified the way
     a file_path is: normalised, case-folded, by inode."""
     try:
-        words = shlex.split(command, posix=True)
+        lexer = shlex.shlex(strip_heredocs(command), posix=True, punctuation_chars=True)
+        lexer.whitespace_split = True
+        words = list(lexer)
     except ValueError:
         return None  # the text checks still apply
     best: Kind | None = None
     for word in words[:_MAX_WORDS]:
-        for part in {word, word.partition("=")[2]}:
-            if part and len(part) <= _MAX_PATH and ("/" in part or part.startswith((".", "~"))):
+        name, eq, rhs = word.partition("=")
+        parts = {rhs} if eq and "/" not in name else {word, rhs}  # NAME=path: the path
+        for part in parts:
+            if (part and len(part) <= _MAX_PATH and not any(c.isspace() for c in part)
+                    and ("/" in part or part.startswith((".", "~")))):
                 k = path_kind(part, cwd, extra)
                 if _RANK[k] > _RANK[best]:
                     best = k
@@ -365,7 +466,7 @@ def access_kind(tool: str, tool_input: dict[str, Any], cwd: str = "",
     extra = list(extra)
     if tool == "Bash":
         command = str(tool_input.get("command", ""))
-        a, b = command_kind(command, extra), None
+        a, b = command_kind(command, extra, cwd), None
         if a != "credential":
             b = _words_kind(command, cwd, extra)
         return a if _RANK[a] >= _RANK[b] else b
@@ -383,16 +484,3 @@ def touches_protected(tool: str, tool_input: dict[str, Any], cwd: str = "",
                       extra: Iterable[str | Path] = ()) -> bool:
     """Whether a call reads or writes a protected location."""
     return access_kind(tool, tool_input, cwd, extra) is not None
-
-
-_MEMORY = re.compile(r"/\.claude/projects/[^/]+/memory/[^/]+\.md$", re.IGNORECASE)
-
-
-def is_agent_memory(tool_input: dict[str, Any], cwd: str = "") -> bool:
-    """An edit to the agent's own memory notes (~/.claude/projects/<p>/memory/*.md)."""
-    raw = tool_input.get("file_path")
-    if not isinstance(raw, str) or not raw:
-        return False
-    home = _fold(_home())
-    return all(_fold(p).startswith(home + "/") and _MEMORY.search(str(p))
-               for p in _norm(raw, cwd))
