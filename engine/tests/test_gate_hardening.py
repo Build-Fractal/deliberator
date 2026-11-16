@@ -202,8 +202,8 @@ async def test_credential_files_via_read_are_judged(tmp_path: Path, path: str) -
 FINE = [
     "ls", "ls -la", "ls -la src", "pwd", "cat README.md", "head -20 a.py", "head -n 5 a.py",
     "tail -n 50 log.txt", "tail -f log.txt", "wc -l a.py", "grep -n 'def main' a.py",
-    "rg -n 'foo.*bar' engine", "rg -l -t py gate engine",
-    "rg -t py -C 3 TODO", "find . -name '*.py' -type f", "find engine -maxdepth 2 -type d",
+    "rg -n 'foo.*bar' README.md", "rg -l -t py gate a.py README.md",
+    "rg -C 3 TODO a.py", "find . -name '*.py' -type f", "find engine -maxdepth 2 -type d",
     "which python3", "echo hello", "tree -L 2", "du -sh .", "df -h", "date", "date +%Y-%m-%d",
     "git status", "git status -s", "git status --porcelain", "git diff", "git diff --stat",
     "git diff --cached -- a.py", "git log --oneline -5", "git log -n 3 --format='%h %s'",
@@ -216,6 +216,8 @@ FINE = [
 @pytest.mark.parametrize("cmd", FINE)
 async def test_ordinary_reads_still_skip(tmp_path: Path, cmd: str) -> None:
     repo = _real_repo(tmp_path / "repo")
+    (repo / "README.md").write_text("x\n")
+    (repo / "a.py").write_text("x\n")
     d = await _call(tmp_path, "Bash", {"command": cmd}, LIVE, cwd=repo, judge=_judge(ASK))
     assert d.source == "skip", cmd
 
@@ -327,8 +329,10 @@ async def test_recursive_read_with_no_path_uses_cwd(tmp_path: Path) -> None:
     for cmd in ("rg secret", "find . -name x", "tree", "du -sh ."):
         d = await _call(tmp_path, "Bash", {"command": cmd}, LIVE, cwd=HOME, judge=_judge(ALLOW))
         assert d.source == "model", cmd
-    d = await _call(tmp_path, "Bash", {"command": "rg secret"}, LIVE, judge=_judge(ALLOW))
+    d = await _call(tmp_path, "Bash", {"command": "find . -name x"}, LIVE, judge=_judge(ALLOW))
     assert d.source == "skip"
+    d = await _call(tmp_path, "Bash", {"command": "rg secret"}, LIVE, judge=_judge(ALLOW))
+    assert d.source == "model"  # rg walking folders is never a skip (.rgignore can unhide)
 
 
 def test_judge_limit_is_20k() -> None:
@@ -814,3 +818,54 @@ async def test_r5_config_writes_are_hard_asks(tmp_path: Path) -> None:
     d = await _call(tmp_path, "Bash", {"command": "git config core.fsmonitor ./x.sh"}, LIVE,
                     cwd=repo, judge=_judge(ALLOW))
     assert (d.verdict, d.source) == ("ask", "protected")
+
+
+GIT_FAST_PATH = ["git status", "git status -s", "git diff", "git diff --stat",
+                 "git diff --cached -- a.txt", "git log --oneline -5", "git log -n 3 --stat",
+                 "git show HEAD --stat", "git show HEAD", "git branch", "git branch -a",
+                 "git branch --show-current", "git rev-parse --show-toplevel",
+                 "git rev-parse --abbrev-ref HEAD", "git worktree list", "git remote -v"]
+
+
+@pytest.mark.parametrize("cmd", GIT_FAST_PATH)
+def test_r5_fast_path_git_is_rewritten_and_still_runs(tmp_path: Path, cmd: str) -> None:
+    import asyncio
+    import shutil
+    import subprocess
+
+    from engine.gate import hook_output
+
+    git = shutil.which("git")
+    if git is None:
+        pytest.skip("git not installed")
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    env = {**os.environ, "GIT_CONFIG_GLOBAL": "/dev/null", "GIT_CONFIG_SYSTEM": "/dev/null",
+           "GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@x", "GIT_COMMITTER_NAME": "t",
+           "GIT_COMMITTER_EMAIL": "t@x"}
+    for args in (["init", "-q", "-b", "main"], ["add", "a.txt"], ["commit", "-qm", "one"]):
+        if args[0] == "add":
+            (repo / "a.txt").write_text("one\n")
+        subprocess.run([git, *args], cwd=repo, env=env, check=True)
+    (repo / "a.txt").write_text("two\n")
+    tool_input = {"command": cmd, "description": "d"}
+    d = asyncio.run(_call(tmp_path, "Bash", tool_input, LIVE, cwd=repo, judge=_judge(ASK)))
+    assert d.source == "skip", cmd
+    out = hook_output(d, LIVE, tool_input)["hookSpecificOutput"]
+    new = out["updatedInput"]
+    assert new["description"] == "d"  # updatedInput replaces the whole input
+    assert new["command"].startswith("git -c core.fsmonitor=false -c core.hooksPath=/dev/null ")
+    sub = cmd.split()[1]
+    assert ("--no-ext-diff --no-textconv" in new["command"]) == (sub in ("diff", "log", "show"))
+    res = subprocess.run(new["command"], shell=True, cwd=repo, env=env, capture_output=True,
+                         text=True, check=False)
+    assert res.returncode == 0, (new["command"], res.stderr)
+
+
+async def test_r5_only_fast_path_git_is_rewritten(tmp_path: Path) -> None:
+    from engine.gate import hook_output
+
+    repo = _real_repo(tmp_path / "repo")
+    for cmd, cfg in (("git push origin x", LIVE), ("ls -la", LIVE)):
+        d = await _call(tmp_path, "Bash", {"command": cmd}, cfg, cwd=repo, judge=_judge(ALLOW))
+        assert "updatedInput" not in hook_output(d, cfg, {"command": cmd})["hookSpecificOutput"]

@@ -425,6 +425,43 @@ _NOTES = re.compile(r"(?:~|\$HOME|\$\{HOME\}|" + re.escape(str(_home()))
                     re.IGNORECASE)
 
 
+_C = r"(?:^|(?<=[\s;&|(`{!/=]))"  # start of a command word
+_GIT = _C + r"git(?:\s+(?:-[Cc]\s*\S+|--[\w-]+(?:=\S+)?|-\w))*\s+"
+# Commands that print secrets: a hard ask like a credential file.
+_SECRET_PRINTERS = re.compile(
+    _GIT + r"credential\b"
+    + r"|" + _C + r"gh\s+auth\s+token\b"
+    + r"|" + _C + r"op\s+read\b"
+    + r"|" + _C + r"gcloud\s+auth\s+print-(?:access|identity)-token\b"
+    + r"|" + _C + r"aws\s+configure\s+(?:export-credentials|get)\b"
+    + r"|" + _C + r"(?:env|printenv)(?:\s+-\w+)*\s*(?=$|[;&|)\n])"
+    + r"|" + _C + r"printenv\s+(?:-\w+\s+)*\w*(?:token|secret|key|pass|credential|auth|private"
+    r"|session|cookie)\w*",
+    re.IGNORECASE,
+)
+_GIT_CONFIG = re.compile(_GIT + r"config\b(?P<rest>[^;&|)\n]*)")
+_GIT_CONFIG_READ = re.compile(r"(?:^|\s)(?:--get[\w-]*|--list|-l|get|list)(?=\s|=|$)")
+_GIT_CONFIG_SCOPE = re.compile(r"(?:^|\s)--(?:global|system)\b")
+# Other git calls that change what runs: remotes, submodules, worktrees.
+_GIT_SETUP = re.compile(_GIT + r"(?:remote\s+(?:add|set-url|set-head|rename)|submodule\s+add"
+                        r"|worktree\s+add)\b")
+
+
+def _git_setup_kind(text: str) -> Kind | None:
+    """git config writes (and --global/--system config at all), remote add/set-url,
+    submodule add, worktree add: they change what git and its hooks will run."""
+    best: Kind | None = None
+    for m in _GIT_CONFIG.finditer(text):
+        rest = m.group("rest")
+        if _GIT_CONFIG_SCOPE.search(rest):
+            return "credential"  # user/system config holds credential helpers
+        if rest.strip() and not _GIT_CONFIG_READ.search(rest):
+            best = "config"
+    if best is None and _GIT_SETUP.search(text):
+        best = "config"
+    return best
+
+
 def command_kind(command: str, extra: Iterable[str | Path] = (),
                  cwd: str = "") -> Kind | None:
     """The most sensitive protected location the command text mentions."""
@@ -438,9 +475,12 @@ def command_kind(command: str, extra: Iterable[str | Path] = (),
     best: Kind | None = _glob_kind(_strip_worktrees(_mask_quoted_globs(shell)), at_home)
     for text in variants:
         text = _strip_worktrees(text)
-        if _BASH_CREDENTIAL.search(text):
+        if _BASH_CREDENTIAL.search(text) or _SECRET_PRINTERS.search(text):
             return "credential"
-        found: list[Kind | None] = []
+        setup = _git_setup_kind(text)
+        if setup == "credential":
+            return "credential"
+        found: list[Kind | None] = [setup]
         if _BASH_GATE_LOG.search(text):
             found.append("gate_log")
         folded = text.casefold()

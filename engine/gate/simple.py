@@ -34,7 +34,7 @@ from __future__ import annotations
 import os
 import re
 import shlex
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Literal
@@ -263,10 +263,10 @@ def _norm(word: str, cwd: str) -> str:
     return os.path.normpath(p).casefold()
 
 
-def _holds_protected(folder: str, cwd: str) -> bool:
+def _holds_protected(folder: str, cwd: str, extra: Iterable[str | Path] = ()) -> bool:
     """`folder` (as written) is a protected folder or above one: walking it reads them."""
     f = _norm(folder, cwd).rstrip("/") or "/"
-    targets = [Path.home(), *protect.protected_dirs()]
+    targets = [Path.home(), *protect.protected_dirs(extra)]
     for t in targets:
         for form in {os.path.normpath(str(t)).casefold(), str(_safe_resolve(t)).casefold()}:
             if form == f or form.startswith(f.rstrip("/") + "/"):
@@ -289,6 +289,38 @@ def _is_gitdir(p: Path) -> bool:
     return (p / "commondir").is_file() or ((p / "objects").is_dir() and (p / "refs").is_dir())
 
 
+_HEX_ID = re.compile(r"[0-9a-f]{40}(?:[0-9a-f]{24})?")
+
+
+def _valid_head(p: Path) -> bool:
+    """git's validate_headref: a symlink into refs/, `ref: refs/...`, or an object id."""
+    head = p / "HEAD"
+    try:
+        if head.is_symlink():
+            return os.readlink(head).startswith("refs/")
+        text = head.read_text(errors="replace")[:256].strip()
+    except OSError:
+        return False
+    if text.startswith("ref:"):
+        return text[4:].lstrip().startswith("refs/")
+    return bool(_HEX_ID.fullmatch(text))
+
+
+def git_would_use(p: Path) -> bool:
+    """git's is_git_directory, copied: HEAD is valid and objects and refs pass
+    access(X_OK) (so executable FILES count), under `commondir` when there is one. Looser
+    than _is_gitdir: used to spot anything git would take for a repository."""
+    if not _valid_head(p):
+        return False
+    base = p
+    try:
+        common = (p / "commondir").read_text(errors="replace").strip()
+        base = Path(common) if os.path.isabs(common) else p / common
+    except OSError:
+        pass
+    return os.access(base / "objects", os.X_OK) and os.access(base / "refs", os.X_OK)
+
+
 _BARE = re.compile(r"^\s*bare\s*=\s*(?:true|yes|on|1)\s*$", re.IGNORECASE | re.MULTILINE)
 
 
@@ -301,8 +333,12 @@ def _says_bare(gitdir: Path) -> bool:
 
 def _linked_gitdir(dotgit_file: Path) -> bool:
     """A `.git` file (worktree or submodule) that points into a real repository's `.git`:
-    `<repo>/.git/worktrees/<name>` or `<repo>/.git/modules/...`. A clone cannot contain a
-    `.git` path, so such a target was made by git, not shipped by the repo."""
+    `<repo>/.git/worktrees/<name>` or `<repo>/.git/modules/...`. A `git clone` cannot
+    create a `.git` path inside the checkout, so such a target was made by git.
+
+    NOT covered: a `.git` folder unpacked from a tarball, zip or sdist (or copied in) is a
+    real repository to this check and is trusted, its config included. Shell aliases and
+    functions named `git` aren't seen either."""
     try:
         line = dotgit_file.read_text(errors="replace")[:4096].splitlines()[0]
     except (OSError, IndexError):
@@ -346,8 +382,8 @@ def repo_state(cwd: str) -> RepoState | None:
             return "trusted" if ok else "untrusted"
         if dotgit.is_file():
             return "trusted" if _linked_gitdir(dotgit) else "untrusted"
-        if dotgit.exists() or _is_gitdir(folder):
-            return "untrusted"  # something odd, or a bare repository: git would use its config
+        if dotgit.exists() or git_would_use(folder):
+            return "untrusted"  # something odd, or anything git would take for a repository
     return None
 
 
@@ -355,8 +391,55 @@ def trusted_repo(cwd: str) -> bool:
     return repo_state(cwd) == "trusted"
 
 
-# `git` run as a command anywhere in the text (after ; && | ( ` or a path such as /usr/bin/).
-GIT_COMMAND = re.compile(r"(?:^|[\s;&|(`{!/])git(?=$|[\s;&|)`])")
+# `git` run as a command anywhere in the text (after ; && | ( ` = or a path such as
+# /usr/bin/). Match on unquoted text: "git", 'git', g''it and \git all run git.
+GIT_COMMAND = re.compile(r"(?:^|[\s;&|(`{!/=])git(?=$|[\s;&|)`])")
+
+
+def _dequote(command: str) -> str:
+    return re.sub(r"[\"'\\]", "", command)
+
+
+def runs_git(command: str) -> bool:
+    return bool(GIT_COMMAND.search(_dequote(command)))
+
+
+_TARGET = re.compile(
+    r"(?:^|[\s;&|(])(?:cd|pushd)\s+(?P<cd>[^\s;&|)]+)"
+    r"|\s-C\s*(?P<c>[^\s;&|)]+)"
+    r"|--git-dir[=\s](?P<gitdir>[^\s;&|)]+)"
+    r"|--work-tree[=\s](?P<worktree>[^\s;&|)]+)")
+
+
+def untrusted_target(command: str, cwd: str) -> bool:
+    """The cwd, or a folder the command moves git to (cd/pushd, -C, --work-tree), is in an
+    untrusted repository, or --git-dir names anything but an ordinary `<top>/.git`."""
+    if repo_state(cwd) == "untrusted":
+        return True
+    for m in _TARGET.finditer(_dequote(command)):
+        raw = next(v for v in m.groupdict().values() if v)
+        target = os.path.expanduser(raw)
+        if not os.path.isabs(target):
+            target = os.path.join(cwd or ".", target)
+        if m.group("gitdir"):
+            g = _safe_resolve(Path(target))
+            if not (g.name == ".git" and _is_gitdir(g) and not _says_bare(g)):
+                return True
+        elif repo_state(target) == "untrusted":
+            return True
+    return False
+
+
+_NO_EXT = frozenset({"diff", "log", "show"})
+
+
+def safe_git(words: list[str]) -> str:
+    """A fast-path git command rewritten so repo config cannot run anything: no fsmonitor,
+    no hooks, and for diff/log/show no external diff or textconv drivers."""
+    out = ["git", "-c", "core.fsmonitor=false", "-c", "core.hooksPath=/dev/null", words[1]]
+    if words[1] in _NO_EXT:
+        out += ["--no-ext-diff", "--no-textconv"]
+    return shlex.join(out + words[2:])
 
 
 def _pathspec_magic(word: str) -> bool:
@@ -364,7 +447,8 @@ def _pathspec_magic(word: str) -> bool:
     return any(c in word for c in "*?[") or word.startswith(":")
 
 
-def simple_words(command: str, cwd: str = "", *, checks: bool = True) -> list[str] | None:
+def simple_words(command: str, cwd: str = "", *, checks: bool = True,
+                 extra: Iterable[str | Path] = ()) -> list[str] | None:
     """The command's words when the allow-list may skip the judge for it, else None.
 
     With ``checks=False`` only the shape is checked (characters, command, flags): used to
@@ -382,7 +466,7 @@ def simple_words(command: str, cwd: str = "", *, checks: bool = True) -> list[st
         return None
     paths: list[str] = []
     positionals: list[str] = []
-    takes_value = end_of_flags = recursive = False
+    takes_value = end_of_flags = recursive = pattern_flag = False
     for word in args:
         if _denied(word, spec.deny):
             return None
@@ -397,6 +481,9 @@ def simple_words(command: str, cwd: str = "", *, checks: bool = True) -> list[st
             ok, takes_value, value = _flag(word, spec)
             if not ok:
                 return None
+            if words[0] == "rg" and (word.startswith("--regexp")
+                                     or (not word.startswith("--") and "e" in word[1:])):
+                pattern_flag = True  # -e PATTERN: every positional is then a path
             if value:
                 paths.append(value)
             if words[0] == "ls" and ("R" in word.lstrip("-") and not word.startswith("--")
@@ -413,15 +500,25 @@ def simple_words(command: str, cwd: str = "", *, checks: bool = True) -> list[st
         return words
     if words[0] == "git" and not trusted_repo(cwd):
         return None
-    if any(protect.path_is_protected(p, cwd) for p in paths if p):
+    extra = list(extra)
+    if any(protect.path_is_protected(p, cwd, extra) for p in paths if p):
         return None
+    if words[0] == "rg":
+        # rg walks folders under .rgignore/.ignore rules a repo can ship (`!.env`): only rg
+        # over named, existing files skips the judge.
+        files = positionals if pattern_flag else positionals[1:]
+        base = cwd or "."
+        if not files or not all(
+                os.path.isfile(os.path.join(base, os.path.expanduser(f))) for f in files):
+            return None
+        return words
     if spec.recursive or recursive:
         # rg's first word is usually the pattern: check it as a folder too (harmless), and
         # add the working folder when no folder follows it.
         walked = list(positionals)
         if not positionals or (words[0] == "rg" and len(positionals) == 1):
             walked.append(".")
-        if any(_holds_protected(w, cwd) for w in walked):
+        if any(_holds_protected(w, cwd, extra) for w in walked):
             return None
     return words
 

@@ -6,6 +6,7 @@ import json
 import logging
 import os
 import re
+import shlex
 from pathlib import Path
 from typing import Any
 
@@ -14,7 +15,13 @@ from engine.gate.config import GateConfig
 from engine.gate.judge import Judge, build_prompt, clip, make_judge, rule_on
 from engine.gate.ledger import Decision, History, Outcome, Prompted
 from engine.gate.redact import redact
-from engine.gate.simple import GIT_COMMAND, repo_state, simple_words
+from engine.gate.simple import (
+    repo_state,
+    runs_git,
+    safe_git,
+    simple_words,
+    untrusted_target,
+)
 
 logger = logging.getLogger("deliberator.gate")
 GRAPH_JSON = Path(".deliberator") / "gate" / "graph.json"
@@ -204,9 +211,11 @@ async def decide(
     truncated = cut > 0
     extra = [config.store_root(root) / ledger.LOG_PATH.parent] if config.log_dir else []
     kind = protect.access_kind(tool, tool_input, cwd, extra)
-    untrusted = repo_state(cwd) == "untrusted"
-    untrusted_git = untrusted and tool == "Bash" and bool(
-        GIT_COMMAND.search(str(tool_input.get("command", ""))))
+    command = str(tool_input.get("command", "")) if tool == "Bash" else ""
+    # The cwd, or a folder the command sends git to (cd, -C, --git-dir, --work-tree).
+    untrusted = (untrusted_target(command, cwd) if tool == "Bash"
+                 else repo_state(cwd) == "untrusted")
+    untrusted_git = untrusted and tool == "Bash" and runs_git(command)
     protected = kind is not None or untrusted_git
     project = ledger.project_of(cwd)
     history = ledger.read(root)
@@ -234,7 +243,7 @@ async def decide(
     # that command's safe list (engine.gate.simple); anything else is judged, not asked.
     # The regex sees the words joined, so it matches the real argv[0] (not `ls=x env ...`).
     if tool == "Bash":
-        words = None if ledger.compound(raw_subject) else simple_words(raw_subject, cwd)
+        words = None if ledger.compound(raw_subject) else simple_words(raw_subject, cwd, extra=extra)
         matched = " ".join(words) if words is not None else None
     else:
         matched = raw_subject
@@ -336,21 +345,45 @@ def record(root: Path, config: GateConfig, *, tool: str, tool_input: dict[str, A
     return decision
 
 
-def hook_output(decision: Decision, config: GateConfig) -> dict[str, Any]:
-    """Claude Code PreToolUse output. The reason is shown to Claude on deny, to you on ask."""
+def hook_output(decision: Decision, config: GateConfig,
+                tool_input: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Claude Code PreToolUse output. The reason is shown to Claude on deny, to you on ask.
+
+    A git call the fast path allowed is rewritten (updatedInput, which replaces the whole
+    input) so repo config cannot run anything: `git -c core.fsmonitor=false -c
+    core.hooksPath=/dev/null <sub>`, plus --no-ext-diff --no-textconv for diff/log/show."""
     rule = ""
     if decision.rule and 1 <= decision.rule <= len(config.rules):
         rule = f" (rule {decision.rule}: {config.rules[decision.rule - 1]})"
     grant = ""
     if decision.verdict == "ask" and decision.grant:
         grant = f" Yes is kept forever for calls matching {decision.grant}"
-    return {
-        "hookSpecificOutput": {
-            "hookEventName": "PreToolUse",
-            "permissionDecision": decision.verdict,
-            "permissionDecisionReason": f"[deliberator gate] {decision.reason}{rule}{grant}",
-        }
+    out: dict[str, Any] = {
+        "hookEventName": "PreToolUse",
+        "permissionDecision": decision.verdict,
+        "permissionDecisionReason": f"[deliberator gate] {decision.reason}{rule}{grant}",
     }
+    rewritten = _safe_git_input(decision, tool_input)
+    if rewritten is not None:
+        out["updatedInput"] = rewritten
+    return {"hookSpecificOutput": out}
+
+
+def _safe_git_input(decision: Decision, tool_input: dict[str, Any] | None
+                    ) -> dict[str, Any] | None:
+    if (tool_input is None or decision.tool != "Bash" or decision.source != "skip"
+            or decision.verdict != "allow"):
+        return None
+    command = tool_input.get("command")
+    if not isinstance(command, str):
+        return None
+    try:
+        words = shlex.split(command)
+    except ValueError:
+        return None
+    if len(words) < 2 or words[0] != "git":
+        return None
+    return {**tool_input, "command": safe_git(words)}
 
 
 def write_graph_json(root: Path, config: GateConfig) -> Path:

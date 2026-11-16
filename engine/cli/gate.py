@@ -75,7 +75,7 @@ def hook_cmd() -> None:
             tool_input=event.get("tool_input") or {}, cwd=cwd,
             session=event.get("session_id"), tool_use_id=event.get("tool_use_id"),
         ))
-        payload = hook_output(decision, config)
+        payload = hook_output(decision, config, event.get("tool_input") or {})
     except Exception as exc:  # noqa: BLE001 - the hook must always answer.
         payload = _ask(f"gate failed ({type(exc).__name__}: {exc}); asking instead")
     click.echo(json.dumps(payload))
