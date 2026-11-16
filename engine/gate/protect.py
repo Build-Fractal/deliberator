@@ -36,6 +36,7 @@ import os
 import re
 import shlex
 from collections.abc import Iterable
+from functools import lru_cache
 from itertools import pairwise
 from pathlib import Path
 from typing import Any, Literal
@@ -116,32 +117,6 @@ def _after_worktree(parts: tuple[str, ...]) -> tuple[str, ...]:
     return parts
 
 
-def _inodes(dirs: Iterable[Path]) -> set[tuple[int, int]]:
-    out = set()
-    for d in dirs:
-        try:
-            st = os.stat(d)
-        except OSError:
-            continue
-        out.add((st.st_dev, st.st_ino))
-    return out
-
-
-def _same_file_as(p: Path, inodes: set[tuple[int, int]]) -> bool:
-    """`p`, or a folder above it that exists, is one of `inodes` (another name for a protected
-    folder: different case, a firmlink such as /System/Volumes/Data, a bind mount)."""
-    if not inodes:
-        return False
-    for q in (*reversed(p.parents), p):  # from / down: stop where the path stops existing
-        try:
-            st = os.stat(q)
-        except OSError:
-            return False
-        if (st.st_dev, st.st_ino) in inodes:
-            return True
-    return False
-
-
 def _under(fp: str, dirs: Iterable[Path]) -> bool:
     for d in dirs:
         fd = _fold(d).rstrip("/")
@@ -179,10 +154,43 @@ def path_kind(raw: str, cwd: str = "", extra: Iterable[str | Path] = ()) -> Kind
                 or parts[-1] in PROTECTED_COMPONENTS
                 or PROTECTED_COMPONENTS & set(inner[:-1])):
             bump("config")
-    for kind, dirs in (("credential", credential_dirs()), ("gate_log", gate_log_dirs(extra)),
-                       ("config", config_dirs())):
-        if _RANK[kind] > _RANK[best] and any(_same_file_as(p, _inodes(dirs)) for p in paths):
-            bump(kind)  # type: ignore[arg-type]
+    if _RANK[best] < _RANK["credential"]:
+        inodes = _inode_kinds(tuple(str(e) for e in extra))
+        for p in paths:
+            k = _walk_kind(p, inodes)
+            if k is not None:
+                bump(k)
+    return best
+
+
+@lru_cache(maxsize=8)
+def _inode_kinds(extra: tuple[str, ...]) -> dict[tuple[int, int], Kind]:
+    """(device, inode) of each protected folder that exists -> its kind. One hook call is one
+    process, so caching for its lifetime is safe."""
+    out: dict[tuple[int, int], Kind] = {}
+    for kind, dirs in (("config", config_dirs()), ("gate_log", gate_log_dirs(extra)),
+                       ("credential", credential_dirs())):
+        for d in dirs:
+            try:
+                st = os.stat(d)
+            except OSError:
+                continue
+            out[(st.st_dev, st.st_ino)] = kind  # type: ignore[assignment]
+    return out
+
+
+def _walk_kind(p: Path, inodes: dict[tuple[int, int], Kind]) -> Kind | None:
+    """The kind of the protected folder `p` (or a folder above it that exists) is another
+    name for: different case, a firmlink such as /System/Volumes/Data, a bind mount."""
+    best: Kind | None = None
+    for q in (*reversed(p.parents), p):  # from / down: stop where the path stops existing
+        try:
+            st = os.stat(q)
+        except OSError:
+            break
+        k = inodes.get((st.st_dev, st.st_ino))
+        if _RANK[k] > _RANK[best]:
+            best = k
     return best
 
 
