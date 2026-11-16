@@ -69,24 +69,43 @@ def _edit_inside(tool: str, tool_input: dict[str, Any], cwd: str) -> bool:
     return not _runs_code(path) and not _risky_content(_written_text(tool, tool_input))
 
 
-# Files that run, or configure what runs: always judged, whatever the edit says.
+# Files that run, configure what runs, or instruct the agent: an edit to one is always
+# judged, whatever it says (never the in-repo skip). Matched case-insensitively.
 _RUNNABLE_SUFFIXES = frozenset({
     ".sh", ".bash", ".zsh", ".fish", ".command", ".ps1", ".bat", ".cmd", ".service",
-    ".plist", ".desktop",
+    ".plist", ".desktop", ".pth",
 })
 _RUNNABLE_NAMES = frozenset({
-    "makefile", "gnumakefile", "justfile", "dockerfile", "containerfile", "procfile",
-    "package.json", "pyproject.toml", "setup.py", "setup.cfg", "conftest.py", ".envrc",
-    "build.rs", "cargo.toml", ".pre-commit-config.yaml", ".npmrc", ".pypirc", "noxfile.py",
-    "tox.ini", "vercel.json", "vercel.ts", "docker-compose.yml", "docker-compose.yaml",
-    "compose.yml", "compose.yaml", ".gitattributes", ".gitmodules",
+    # build, task and package scripts
+    "makefile", "gnumakefile", "justfile", "taskfile.yml", "taskfile.yaml", "rakefile",
+    "gradlew", "gradlew.bat", "build.gradle", "build.gradle.kts", "settings.gradle",
+    "dockerfile", "containerfile", "procfile", "package.json", "pyproject.toml", "setup.py",
+    "setup.cfg", "conftest.py", "sitecustomize.py", "usercustomize.py", "noxfile.py",
+    "tox.ini", "pytest.ini", "build.rs", "cargo.toml", "vercel.json", "vercel.ts",
+    "docker-compose.yml", "docker-compose.yaml", "compose.yml", "compose.yaml",
+    # tool and hook config
+    ".envrc", ".npmrc", ".pypirc", ".yarnrc", ".yarnrc.yml", "mise.toml", ".mise.toml",
+    ".tool-versions", ".pre-commit-config.yaml", "lefthook.yml", "lefthook.yaml",
+    ".lefthook.yml", ".gitattributes", ".gitmodules",
+    # CI
+    ".gitlab-ci.yml", "jenkinsfile", ".travis.yml", "azure-pipelines.yml",
+    "bitbucket-pipelines.yml",
+    # instructions to coding agents
+    "claude.md", "claude.local.md", "agents.md", "gemini.md", ".cursorrules",
+    ".windsurfrules", ".mcp.json",
 })
-_RUNNABLE_DIRS = frozenset({".github", ".circleci", ".husky", "hooks", "bin", "scripts"})
+_RUNNABLE_DIRS = frozenset({
+    ".github", ".gitlab", ".circleci", ".husky", ".githooks", "hooks", "bin", "scripts",
+    ".vscode", ".idea", ".devcontainer", ".cursor", ".cargo", "venv", ".venv",
+    "node_modules", "site-packages", "dist-packages",
+})
+_REQUIREMENTS = re.compile(r"requirements[\w.-]*\.(?:txt|in)")
 
 
 def _runs_code(path: Path) -> bool:
     name = path.name.lower()
     return (path.suffix.lower() in _RUNNABLE_SUFFIXES or name in _RUNNABLE_NAMES
+            or bool(_REQUIREMENTS.fullmatch(name))
             or bool(_RUNNABLE_DIRS & {p.lower() for p in path.parts[:-1]}))
 
 

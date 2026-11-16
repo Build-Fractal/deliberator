@@ -61,6 +61,8 @@ SOURCE_EXTS = ("py", "pyi", "ipynb", "ts", "tsx", "js", "jsx", "mjs", "cjs", "go
                "swift", "m", "dart", "lua", "ex", "exs", "erl", "clj", "sh", "bash", "zsh",
                "md", "mdx", "rst", "adoc", "html", "css", "scss", "vue", "svelte", "snap")
 _KEYCHAIN_SUFFIXES = (".keychain", ".keychain-db")
+# Files that steer the agent wherever they are (MCP servers run commands).
+CONFIG_NAMES = frozenset({".mcp.json", ".claude.json"})
 EDIT_TOOLS = frozenset({"Write", "Edit", "MultiEdit", "NotebookEdit"})
 READ_TOOLS = frozenset({"Read", "Grep", "Glob", "LS", "NotebookRead"})
 
@@ -89,7 +91,7 @@ def gate_log_dirs(extra: Iterable[str | Path] = ()) -> list[Path]:
 
 def config_dirs() -> list[Path]:
     """The agent's and the gate's settings, and the installed gate (venv, hook script)."""
-    return [_home() / ".claude", _home() / ".config" / "deliberator",
+    return [_home() / ".claude", _home() / ".claude.json", _home() / ".config" / "deliberator",
             _home() / ".local" / "share" / "deliberator"]
 
 
@@ -171,20 +173,39 @@ def path_kind(raw: str, cwd: str = "", extra: Iterable[str | Path] = ()) -> Kind
         notes = _under(fp, notes_dirs())
         if notes:
             bump("notes")
+            if _control_in_notes(parts):
+                bump("config")  # a .claude/, hooks/ or settings*.json under projects/: config
         if (_under(fp, gate_log_dirs(extra))
                 or any(a == ".deliberator" and b == "gate" for a, b in pairwise(parts))):
             bump("gate_log")
+        if parts[-1] in CONFIG_NAMES:
+            bump("config")
         if not notes and (_under(fp, config_dirs()) or parts[-1] in RC_FILES
                 or parts[-1] in PROTECTED_COMPONENTS
                 or PROTECTED_COMPONENTS & set(inner[:-1])):
             bump("config")
     if _RANK[best] < _RANK["credential"]:
         inodes = _inode_kinds(tuple(str(e) for e in extra))
+        notes_only = best == "notes"
         for p in paths:
             k = _walk_kind(p, inodes)
-            if k is not None:
-                bump(k)
+            if k is not None and not (notes_only and k == "config"):
+                bump(k)  # ~/.claude (config) above a notes folder that does not exist yet
     return best
+
+
+def _control_in_notes(parts: tuple[str, ...]) -> bool:
+    """Under ~/.claude/<notes dir>/: a nested .claude/ or hooks/ folder, or a settings*.json,
+    is agent control, not a note."""
+    starts = [i for i in range(len(parts) - 1) if parts[i] == ".claude"
+              and parts[i + 1] in ("projects", "sessions", "plans", "todos")]
+    if not starts:
+        return False
+    i = starts[0]
+    rel = parts[i + 2:]  # after ~/.claude/<projects|sessions|plans|todos>
+    return (".claude" in rel or "hooks" in rel[:-1] or fnmatch.fnmatchcase(rel[-1] if rel else "",
+                                                                         "settings*.json")
+            or (rel[-1] if rel else "") in CONFIG_NAMES)
 
 
 @lru_cache(maxsize=8)
