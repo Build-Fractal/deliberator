@@ -37,6 +37,7 @@ import shlex
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Literal
 
 from engine.gate import protect
 
@@ -321,27 +322,41 @@ def _linked_gitdir(dotgit_file: Path) -> bool:
     return False
 
 
-def trusted_repo(cwd: str) -> bool:
-    """The repository git would find from `cwd` is an ordinary checkout: `<top>/.git` is a
-    non-bare repository folder, or a worktree/submodule `.git` file pointing into one.
+RepoState = Literal["trusted", "untrusted"]
+
+
+def repo_state(cwd: str) -> RepoState | None:
+    """What git would find from `cwd`: an ordinary checkout ("trusted": `<top>/.git` is a
+    non-bare repository folder, or a worktree/submodule `.git` file pointing into one),
+    something else it would still use ("untrusted": a bare-repository folder, a `.git` file
+    pointing elsewhere, core.bare=true, a broken `.git`), or no repository (None).
 
     Reads the filesystem only (never runs git there): a repo can ship a bare-repository
     folder whose config sets core.sshCommand or core.fsmonitor, and git run inside it
     would use it. Walks up the way git's discovery does: `<d>/.git` first, then `<d>`
-    itself as a bare repository (refused).
+    itself as a bare repository.
     """
     if not cwd:
-        return False
+        return None
     d = _safe_resolve(Path(cwd))
     for folder in (d, *d.parents):
         dotgit = folder / ".git"
         if dotgit.is_dir():
-            return _is_gitdir(dotgit) and not _says_bare(dotgit)
+            ok = _is_gitdir(dotgit) and not _says_bare(dotgit)
+            return "trusted" if ok else "untrusted"
         if dotgit.is_file():
-            return _linked_gitdir(dotgit)
+            return "trusted" if _linked_gitdir(dotgit) else "untrusted"
         if dotgit.exists() or _is_gitdir(folder):
-            return False  # something odd, or a bare repository: git would use its config
-    return False
+            return "untrusted"  # something odd, or a bare repository: git would use its config
+    return None
+
+
+def trusted_repo(cwd: str) -> bool:
+    return repo_state(cwd) == "trusted"
+
+
+# `git` run as a command anywhere in the text (after ; && | ( ` or a path such as /usr/bin/).
+GIT_COMMAND = re.compile(r"(?:^|[\s;&|(`{!/])git(?=$|[\s;&|)`])")
 
 
 def _pathspec_magic(word: str) -> bool:

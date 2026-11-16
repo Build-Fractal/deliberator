@@ -55,6 +55,11 @@ RC_FILES = frozenset({".zshrc", ".zprofile", ".zshenv", ".zlogin", ".bashrc", ".
 CREDENTIAL_NAMES = frozenset({".netrc", ".npmrc", ".pypirc", ".git-credentials", ".pgpass",
                               ".gitconfig", ".envrc", ".vault-token"})
 _CREDENTIAL_NAME = re.compile(r"\.env(?:\.[\w.-]+)?|credentials.*|.*_history")
+# `credentials*` with these extensions is code or docs (credentials_test.py), not a secret.
+SOURCE_EXTS = ("py", "pyi", "ipynb", "ts", "tsx", "js", "jsx", "mjs", "cjs", "go", "rs",
+               "java", "kt", "kts", "scala", "rb", "php", "cs", "c", "h", "cc", "cpp", "hpp",
+               "swift", "m", "dart", "lua", "ex", "exs", "erl", "clj", "sh", "bash", "zsh",
+               "md", "mdx", "rst", "adoc", "html", "css", "scss", "vue", "svelte", "snap")
 _KEYCHAIN_SUFFIXES = (".keychain", ".keychain-db")
 EDIT_TOOLS = frozenset({"Write", "Edit", "MultiEdit", "NotebookEdit"})
 READ_TOOLS = frozenset({"Read", "Grep", "Glob", "LS", "NotebookRead"})
@@ -140,6 +145,8 @@ def _under(fp: str, dirs: Iterable[Path]) -> bool:
 
 
 def _credential_name(name: str) -> bool:
+    if name.startswith("credentials") and name.rpartition(".")[2] in SOURCE_EXTS:
+        return False  # credentials_test.py, credentials.ts: source, not a secret
     return (name in CREDENTIAL_NAMES or bool(_CREDENTIAL_NAME.fullmatch(name))
             or name.endswith(_KEYCHAIN_SUFFIXES))
 
@@ -224,7 +231,8 @@ _BASH_CREDENTIAL = re.compile(
     + r"|Library/Keychains\b|\.keychain(?:-db)?\b|\.cargo/credentials|\.yarnrc\.yml"
     + r"|\.terraform\.d/credentials|\.cache/huggingface/token|\.codex/auth\.json"
     + r"|\.m2/settings\.xml|\.gem/credentials"
-    + r"|(?:" + _B + r"|/)credentials(?:\.[\w.-]+)?(?=$|[\s'\";|&)/]|\.)"
+    + r"|(?:" + _B + r"|/)credentials(?![\w.-]*\.(?:" + "|".join(SOURCE_EXTS)
+    + r")(?=$|[\s'\";|&)]))(?:\.[\w.-]+)?(?=$|[\s'\";|&)/]|\.)"
     + r"|(?:" + _B + r"\.|/)[\w.-]*_history(?![\w-])"
     + r"|(?:^|[\s;&|(`])security\s+(?:find|dump|export)-",
     re.IGNORECASE,

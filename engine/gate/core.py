@@ -14,7 +14,7 @@ from engine.gate.config import GateConfig
 from engine.gate.judge import Judge, build_prompt, clip, make_judge, rule_on
 from engine.gate.ledger import Decision, History, Outcome, Prompted
 from engine.gate.redact import redact
-from engine.gate.simple import simple_words
+from engine.gate.simple import GIT_COMMAND, repo_state, simple_words
 
 logger = logging.getLogger("deliberator.gate")
 GRAPH_JSON = Path(".deliberator") / "gate" / "graph.json"
@@ -125,6 +125,12 @@ def _risky_content(text: str) -> bool:
     return bool(_RISKY_CONTENT.search(text))
 
 
+_UNTRUSTED_NOTE = ("the folder is inside an UNTRUSTED git repository (a bare-repository folder, "
+                   "a .git file pointing outside a real repo, or core.bare=true, possibly "
+                   "shipped by a cloned repo): its config can make git and git-aware tools "
+                   "run commands. Weigh that.")
+
+
 def _hard_ask(kind: protect.Kind | None, tool: str, tool_input: dict[str, Any],
               cwd: str) -> str | None:
     """Why this call is a hard ask (the person decides; no model, no shortcut), or None.
@@ -179,7 +185,10 @@ async def decide(
     truncated = cut > 0
     extra = [config.store_root(root) / ledger.LOG_PATH.parent] if config.log_dir else []
     kind = protect.access_kind(tool, tool_input, cwd, extra)
-    protected = kind is not None
+    untrusted = repo_state(cwd) == "untrusted"
+    untrusted_git = untrusted and tool == "Bash" and bool(
+        GIT_COMMAND.search(str(tool_input.get("command", ""))))
+    protected = kind is not None or untrusted_git
     project = ledger.project_of(cwd)
     history = ledger.read(root)
     base: dict[str, Any] = {
@@ -192,6 +201,10 @@ async def decide(
 
     decision: Decision | None = None
     hard = _hard_ask(kind, tool, tool_input, cwd)
+    if not hard and untrusted_git:
+        hard = ("git in a repository that is not an ordinary checkout (a bare-repository "
+                "folder, a foreign .git file or core.bare): its config can run commands. "
+                "You decide.")
     if hard:
         decision = Decision(**base, verdict="ask", source="protected", reason=hard)
     if decision is None and not protected and config.allow_edits_in_project \
@@ -242,9 +255,10 @@ async def decide(
     if decision is None:
         precedents = ledger.similar(history, tool=tool, subject=subject, cwd=cwd,
                                     k=config.precedents)
+        note = (_UNTRUSTED_NOTE if untrusted else None)
         prompt = build_prompt(config, tool=tool, subject=subject, cwd=cwd,
                               precedents=precedents, history=history, text=shown,
-                              truncated=cut)
+                              truncated=cut, note=note)
         ruling = await rule_on(prompt, judge or make_judge(config), subject,
                                timeout_s=config.timeout_s)
         failed = ruling.reason.startswith("gate could not rule")

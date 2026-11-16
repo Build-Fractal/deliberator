@@ -408,7 +408,7 @@ async def test_r3_git_skips_only_in_a_plain_repo_or_its_worktree(tmp_path: Path)
 
 @pytest.mark.parametrize("where", ["bare_inside", "bare_inside_sub", "gitfile_elsewhere",
                                    "gitfile_garbage", "core_bare", "no_repo"])
-async def test_r3_git_is_judged_in_an_untrusted_repo(tmp_path: Path, where: str) -> None:
+async def test_r3_git_in_an_untrusted_repo_is_a_hard_ask(tmp_path: Path, where: str) -> None:
     repo = _real_repo(tmp_path / "victim")
     cwd = repo
     if where.startswith("bare_inside"):
@@ -427,9 +427,22 @@ async def test_r3_git_is_judged_in_an_untrusted_repo(tmp_path: Path, where: str)
     else:
         cwd = tmp_path / "plain"
         cwd.mkdir()
-    for cmd in ("git status", "git log --oneline -5", "git diff --stat"):
-        d = await _call(tmp_path, "Bash", {"command": cmd}, LIVE, cwd=cwd, judge=_judge(ALLOW))
-        assert d.source == "model", (where, cmd)
+    calls: list[str] = []
+    cmds = ("git status", "git log --oneline -5", "git diff --stat", "git fetch origin",
+            "cd sub && git pull", "make test && git commit -am x")
+    for cmd in cmds:
+        d = await _call(tmp_path, "Bash", {"command": cmd}, LIVE, cwd=cwd,
+                        judge=_judge(ALLOW, calls))
+        if where == "no_repo":
+            assert d.source == "model", (where, cmd)  # no repo: the judge decides
+        else:
+            assert (d.verdict, d.source, d.protected) == ("ask", "protected", True), (where, cmd)
+    if where != "no_repo":
+        assert calls == []
+        # non-git commands are judged, told that the repo is untrusted
+        d = await _call(tmp_path, "Bash", {"command": "make test"}, LIVE, cwd=cwd,
+                        judge=_judge(ALLOW, calls))
+        assert d.source == "model" and "untrusted" in calls[-1].lower()
 
 
 @pytest.mark.parametrize("cmd", [
@@ -540,7 +553,14 @@ def test_r3_kinds_are_explicit() -> None:
     assert k(str(HOME / ".claude" / "settings.json")) == "config"
     assert k(str(HOME / ".config" / "deliberator" / "gate.yml")) == "config"
     assert k(str(HOME / "code" / "x.py")) is None
-    assert k("/r/src/credentials_test.py") == "credential"  # credentials* anywhere
+    for name in ("credentials", "credentials.json", "credentials.toml", "credentials.yml",
+                 "credentials.yaml", "credentials.xml", "credentials.ini", "credentials.txt",
+                 "credentials.conf", "credentials.tfrc.json", "credentials.json.bak"):
+        assert k(f"/r/x/{name}") == "credential", name
+    for name in ("credentials_test.py", "credentials.ts", "credentials.js", "credentials.go",
+                 "credentials.rs", "credentials.java", "credentials.rb", "credentials.md",
+                 "credentials.tsx", "credentials.kt", "credentials.swift", "credentials.c"):
+        assert k(f"/r/src/{name}") is None, name
 
 
 @pytest.mark.parametrize("cmd", [
@@ -592,3 +612,29 @@ def test_r3_notes_and_quoted_text_are_not_config_or_credential(cmd: str) -> None
 def test_r3_protected_still_found_past_assignments_and_heredocs(cmd: str) -> None:
     assert protect.access_kind("Bash", {"command": cmd}, str(HOME)) in (
         "credential", "config"), cmd
+
+
+async def test_r3_trusted_repos_still_skip_and_get_no_note(tmp_path: Path) -> None:
+    repo = _real_repo(tmp_path / "repo")
+    wtgit = repo / ".git" / "worktrees" / "wt"
+    wtgit.mkdir(parents=True)
+    (wtgit / "HEAD").write_text("ref: refs/heads/wt\n")
+    (wtgit / "commondir").write_text("../..\n")
+    wt = tmp_path / "wt"
+    wt.mkdir()
+    (wt / ".git").write_text(f"gitdir: {wtgit}\n")
+    calls: list[str] = []
+    for cwd in (repo, wt):
+        d = await _call(tmp_path, "Bash", {"command": "git status"}, LIVE, cwd=cwd,
+                        judge=_judge(ALLOW, calls))
+        assert d.source == "skip", cwd
+        await _call(tmp_path, "Bash", {"command": "make test"}, LIVE, cwd=cwd,
+                    judge=_judge(ALLOW, calls))
+    assert calls and not any("untrusted" in c.lower() for c in calls)
+
+
+@pytest.mark.parametrize("cmd", ["cat src/credentials_test.py", "rg x src/credentials.ts"])
+async def test_r3_credential_source_files_are_not_hard_asks(tmp_path: Path, cmd: str) -> None:
+    repo = _real_repo(tmp_path / "repo")
+    d = await _call(tmp_path, "Bash", {"command": cmd}, LIVE, cwd=repo, judge=_judge(ALLOW))
+    assert d.source != "protected", cmd
