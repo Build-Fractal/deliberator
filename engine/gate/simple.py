@@ -297,8 +297,8 @@ def simple_words(command: str, cwd: str = "") -> list[str] | None:
         words = shlex.split(command, posix=True)
     except ValueError:
         return None
-    if not words or any(w.startswith("=") for w in words):
-        return None
+    if not words or len(words) > 64 or any(w.startswith("=") or len(w) > 1024 for w in words):
+        return None  # long or many words: not the short reads the fast path is for
     spec, args = _spec_for(words)
     if spec is None:
         return None

@@ -23,6 +23,7 @@ from __future__ import annotations
 import fnmatch
 import os
 import re
+import shlex
 from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
@@ -101,11 +102,11 @@ def _same_file_as(p: Path, inodes: set[tuple[int, int]]) -> bool:
     folder: different case, a firmlink such as /System/Volumes/Data, a bind mount)."""
     if not inodes:
         return False
-    for q in (p, *p.parents):
+    for q in (*reversed(p.parents), p):  # from / down: stop where the path stops existing
         try:
             st = os.stat(q)
         except OSError:
-            continue
+            return False
         if (st.st_dev, st.st_ino) in inodes:
             return True
     return False
@@ -188,6 +189,9 @@ def _braces(seg: str, limit: int = 64) -> list[str]:
     return out + todo
 
 
+_TOKEN = re.compile(r"[^\s'\";|&()<>]+")  # linear: no backtracking on long text
+
+
 def _glob_hits(text: str) -> bool:
     for seg in _SEGMENT.findall(text):
         if not any(c in seg for c in "*?[{"):
@@ -197,11 +201,35 @@ def _glob_hits(text: str) -> bool:
             # a glob matches a leading dot only when the pattern starts with one
             if alt.startswith(".") and any(fnmatch.fnmatchcase(n, alt) for n in _GLOB_NAMES):
                 return True
+    # With dotglob (bash) or GLOB_DOTS (zsh) on, `*` matches dot names too: a glob that is a
+    # whole path component (~/*/settings.json, */config) may be a protected folder.
+    for token in _TOKEN.findall(text):
+        if "/" not in token:
+            continue
+        for comp in token.split("/"):
+            if any(c in comp for c in "*?[") and any(
+                    fnmatch.fnmatchcase(n, alt.casefold()) for alt in _braces(comp)
+                    for n in _GLOB_NAMES):
+                return True
     return False
 
 
+def _squash(text: str) -> str:
+    """Path text folded the way normpath folds it: //, /./ and name/../ removed."""
+    prev = None
+    while prev != text:
+        prev = text
+        text = re.sub(r"/{2,}", "/", text)
+        text = re.sub(r"/\.(?=/|\s|$|['\"])", "", text)
+        text = re.sub(r"/(?!\.\.(?:/|$))[^/\s'\"]+/\.\.(?=/|\s|$|['\"])", "", text)
+    return text
+
+
 def command_is_protected(command: str, extra: Iterable[str | Path] = ()) -> bool:
-    variants = {command, re.sub(r"[\"'\\]", "", command)}
+    if "$'" in command or '$"' in command:
+        return True  # ANSI-C / locale quoting can spell any path: treat as protected
+    unquoted = re.sub(r"[\"'\\]", "", command)
+    variants = {command, unquoted, _squash(command), _squash(unquoted)}
     home = str(_home())
     for text in variants:
         text = _strip_worktrees(text)
@@ -216,12 +244,32 @@ def command_is_protected(command: str, extra: Iterable[str | Path] = ()) -> bool
     return False
 
 
+_MAX_WORDS = 200
+_MAX_PATH = 1024  # PATH_MAX on macOS: a longer word is not a path the call can open
+
+
+def _words_protected(command: str, cwd: str, extra: list[str | Path]) -> bool:
+    """Each word that looks like a path (and each `--flag=path` value), checked the way
+    path_is_protected checks a file_path: normalised, case-folded, by inode."""
+    try:
+        words = shlex.split(command, posix=True)
+    except ValueError:
+        return False  # the text checks above still apply
+    for word in words[:_MAX_WORDS]:
+        for part in {word, word.partition("=")[2]}:
+            if (part and len(part) <= _MAX_PATH and ("/" in part or part.startswith((".", "~")))
+                    and path_is_protected(part, cwd, extra)):
+                return True
+    return False
+
+
 def touches_protected(tool: str, tool_input: dict[str, Any], cwd: str = "",
                       extra: Iterable[str | Path] = ()) -> bool:
     """Whether a call reads or writes a protected location."""
     extra = list(extra)
     if tool == "Bash":
-        return command_is_protected(str(tool_input.get("command", "")), extra)
+        command = str(tool_input.get("command", ""))
+        return command_is_protected(command, extra) or _words_protected(command, cwd, extra)
     for key in ("file_path", "notebook_path", "path"):
         raw = tool_input.get(key)
         if isinstance(raw, str) and raw and path_is_protected(raw, cwd, extra):
