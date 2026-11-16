@@ -1,4 +1,9 @@
-"""Gate configuration: `.deliberator/gate.yml` in the project, defaults otherwise."""
+"""Gate configuration: `~/.config/deliberator/gate.yml`, defaults otherwise.
+
+A project's `.deliberator/gate.yml` is read only when the user config opts in with
+`allow_project_config: true` (a cloned repo must not be able to switch the gate to the mock
+judge). Even then it cannot change where the log goes, the graph connection, or the opt-in.
+"""
 
 from __future__ import annotations
 
@@ -7,13 +12,13 @@ from pathlib import Path
 from typing import Literal
 
 import yaml
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 Provider = Literal["bedrock", "anthropic", "claude-code", "mock"]
 Effort = Literal["low", "medium", "high", "xhigh", "max"]
 
 CONFIG_PATH = Path(".deliberator") / "gate.yml"
-# Used when the project has no gate.yml: one config for every project.
+# The config for every project; a project gate.yml is read only if this file opts in.
 USER_CONFIG_PATH = Path.home() / ".config" / "deliberator" / "gate.yml"
 
 DEFAULT_RULES: tuple[str, ...] = (
@@ -40,6 +45,12 @@ DEFAULT_RULES: tuple[str, ...] = (
 )
 
 
+MAX_TIMEOUT_S = 50.0
+# Keys only the user config may set: a project file can't move the log or the graph.
+USER_ONLY_KEYS = frozenset({"allow_project_config", "log_dir", "graph_uri", "graph_user",
+                            "graph_password_env"})
+
+
 class GateConfig(BaseModel):
     """What the gate asks, of which model, and where decisions are kept."""
 
@@ -50,7 +61,9 @@ class GateConfig(BaseModel):
     effort: Effort = "low"
     aws_profile: str | None = None
     aws_region: str = "us-east-1"
-    timeout_s: float = 45.0
+    # Seconds the judge may take. Kept under the 60 s hook timeout (clamped to 50), so a slow
+    # judge becomes an ask instead of the hook being killed and the tool running unlogged.
+    timeout_s: float = 40.0
     # Plain-language rules the judge applies, numbered in the prompt and cited in reasons.
     rules: list[str] = Field(default_factory=lambda: list(DEFAULT_RULES))
     # Regexes (matched against the command or path) that are allowed without a model call.
@@ -66,13 +79,21 @@ class GateConfig(BaseModel):
     graph_uri: str | None = None
     graph_user: str | None = None
     graph_password_env: str | None = None  # name of the env var that holds the password
-    # Edits (Write, Edit, MultiEdit, NotebookEdit) to files inside the working folder are
-    # allowed without a model call. Paths in .git, and paths outside the folder, still go
-    # to the judge.
+    # Edits (Write, Edit, MultiEdit, NotebookEdit) to files inside the git repository that
+    # holds the working folder are allowed without a model call. Protected paths (.git,
+    # .claude, .deliberator, ...), files outside the repo, and sessions in ~, / or ~/code
+    # (or outside any repo) still go to the judge.
     allow_edits_in_project: bool = True
     # Keep the log in this folder instead of the project's .deliberator/gate/. Set it in the
     # user config so every project shares one log, and precedent carries across projects.
     log_dir: str | None = None
+    # Read a project's .deliberator/gate.yml on top of this one (user config only).
+    allow_project_config: bool = False
+
+    @field_validator("timeout_s")
+    @classmethod
+    def _clamp_timeout(cls, v: float) -> float:
+        return min(max(float(v), 0.01), MAX_TIMEOUT_S)
 
     def store_root(self, project_root: Path) -> Path:
         """The folder whose .deliberator/gate/ holds the log."""
@@ -92,20 +113,27 @@ class GateConfig(BaseModel):
         return hashlib.sha256("\n".join(self.rules).encode()).hexdigest()[:12]
 
 
+def _load_yaml(path: Path) -> dict:
+    data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    if not isinstance(data, dict):
+        raise TypeError(f"{path}: expected a mapping")
+    return data
+
+
 def config_path(project_root: Path) -> Path | None:
-    """The project's gate.yml, else the user's, else None (defaults)."""
-    for path in (project_root / CONFIG_PATH, USER_CONFIG_PATH):
-        if path.is_file():
-            return path
-    return None
+    """The user's gate.yml if it exists (the project's is only an overlay, see load_config)."""
+    return USER_CONFIG_PATH if USER_CONFIG_PATH.is_file() else None
 
 
 def load_config(project_root: Path) -> GateConfig:
-    path = config_path(project_root)
-    if path is None:
-        return GateConfig()
-    data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
-    return GateConfig.model_validate(data)
+    """User config (or defaults); the project's gate.yml on top only if the user opted in."""
+    data = _load_yaml(USER_CONFIG_PATH) if USER_CONFIG_PATH.is_file() else {}
+    user = GateConfig.model_validate(data)
+    project = project_root / CONFIG_PATH
+    if not user.allow_project_config or not project.is_file():
+        return user
+    overlay = {k: v for k, v in _load_yaml(project).items() if k not in USER_ONLY_KEYS}
+    return GateConfig.model_validate({**data, **overlay})
 
 
 EXAMPLE_CONFIG = """\
@@ -116,13 +144,15 @@ effort: low                  # thinking effort; low keeps hooks fast
 aws_profile: null            # the AWS profile with Bedrock access
 aws_region: us-east-1
 # rules: plain-language intent the judge weighs (defaults in engine/gate/config.py)
-allow_without_asking:
-  - '^(ls|pwd|cat|head|tail|wc|grep|rg|find)\\b'
-  - '^git (status|diff|log|show|branch)\\b'
+allow_without_asking:        # one plain command, every flag on its safe list (engine/gate/simple.py)
+  - '^(ls|pwd|wc|which|date|du|df)\\b'
+  - '^git (status|diff|log|show)\\b'
 precedents: 6
 reuse_identical: true
 learn_from_approvals: true
 graph_uri: null              # e.g. bolt://localhost:7687 (Memgraph)
 allow_edits_in_project: true # edits inside the working folder skip the model
 log_dir: null                # e.g. ~/.local/share/deliberator: one log for every project
+timeout_s: 40                # judge time limit (max 50; the hook's own limit is 60)
+allow_project_config: false  # user config only: also read a project's .deliberator/gate.yml
 """

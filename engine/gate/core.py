@@ -4,14 +4,24 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import re
+import shlex
 from pathlib import Path
 from typing import Any
 
-from engine.gate import ledger
+from engine.gate import ledger, protect
 from engine.gate.config import GateConfig
-from engine.gate.judge import Judge, build_prompt, make_judge, rule_on
-from engine.gate.ledger import Decision, History, Outcome
+from engine.gate.judge import Judge, build_prompt, clip, make_judge, rule_on
+from engine.gate.ledger import Decision, History, Outcome, Prompted
+from engine.gate.redact import redact
+from engine.gate.simple import (
+    repo_state,
+    runs_git,
+    safe_git,
+    simple_words,
+    untrusted_target,
+)
 
 logger = logging.getLogger("deliberator.gate")
 GRAPH_JSON = Path(".deliberator") / "gate" / "graph.json"
@@ -31,26 +41,145 @@ def _push_quietly(root: Path, decisions: list[Decision], history: History,
         logger.warning("gate: graph write failed (%s); run `deliberator gate sync`", exc)
 
 
-EDIT_TOOLS = frozenset({"Write", "Edit", "MultiEdit", "NotebookEdit"})
+EDIT_TOOLS = protect.EDIT_TOOLS
+
+
+def _not_a_project(base: Path) -> bool:
+    home = Path.home().resolve()
+    return base in (home, Path("/"), home / "code")
 
 
 def _edit_inside(tool: str, tool_input: dict[str, Any], cwd: str) -> bool:
-    """An edit tool writing a file under `cwd`, not inside a .git folder."""
+    """An edit tool writing a file inside the git repository that holds `cwd`.
+
+    Refused when cwd is ~, / or ~/code, when cwd is in no git repo (or the repo is ~ or /),
+    and for files outside the repo root. Protected paths (.git, .claude, ...) are checked
+    separately and always go to the judge.
+    """
     if tool not in EDIT_TOOLS or not cwd:
         return False
     raw = tool_input.get("file_path") or tool_input.get("notebook_path")
-    if not raw:
+    if not raw or not isinstance(raw, str):
         return False
-    base = Path(cwd).resolve()
-    path = Path(raw) if Path(raw).is_absolute() else base / raw
-    path = path.resolve()
-    if base == Path.home().resolve() or base == Path("/"):
-        return False  # a session in ~ or / is not "a project"
+    base = Path(cwd).expanduser().resolve()
+    if _not_a_project(base):
+        return False  # a session in ~, / or ~/code is not "a project"
+    repo = ledger.git_root(str(base))
+    if repo is None or _not_a_project(repo.resolve()):
+        return False
+    path = Path(raw).expanduser()
+    path = (path if path.is_absolute() else base / path).resolve()
     try:
-        rel = path.relative_to(base)
+        path.relative_to(repo.resolve())
     except ValueError:
         return False
-    return ".git" not in rel.parts
+    return not _runs_code(path) and not _risky_content(_written_text(tool, tool_input))
+
+
+# Files that run, configure what runs, or instruct the agent: an edit to one is always
+# judged, whatever it says (never the in-repo skip). Matched case-insensitively.
+_RUNNABLE_SUFFIXES = frozenset({
+    ".sh", ".bash", ".zsh", ".fish", ".command", ".ps1", ".bat", ".cmd", ".service",
+    ".plist", ".desktop", ".pth",
+})
+_RUNNABLE_NAMES = frozenset({
+    # build, task and package scripts
+    "makefile", "gnumakefile", "justfile", "taskfile.yml", "taskfile.yaml", "rakefile",
+    "gradlew", "gradlew.bat", "build.gradle", "build.gradle.kts", "settings.gradle",
+    "dockerfile", "containerfile", "procfile", "package.json", "pyproject.toml", "setup.py",
+    "setup.cfg", "conftest.py", "sitecustomize.py", "usercustomize.py", "noxfile.py",
+    "tox.ini", "pytest.ini", "build.rs", "cargo.toml", "vercel.json", "vercel.ts",
+    "docker-compose.yml", "docker-compose.yaml", "compose.yml", "compose.yaml",
+    # tool and hook config
+    ".envrc", ".npmrc", ".pypirc", ".yarnrc", ".yarnrc.yml", "mise.toml", ".mise.toml",
+    ".tool-versions", ".pre-commit-config.yaml", "lefthook.yml", "lefthook.yaml",
+    ".lefthook.yml", ".gitattributes", ".gitmodules",
+    # CI
+    ".gitlab-ci.yml", "jenkinsfile", ".travis.yml", "azure-pipelines.yml",
+    "bitbucket-pipelines.yml",
+    # instructions to coding agents
+    "claude.md", "claude.local.md", "agents.md", "gemini.md", ".cursorrules",
+    ".windsurfrules", ".mcp.json",
+})
+_RUNNABLE_DIRS = frozenset({
+    ".github", ".gitlab", ".circleci", ".husky", ".githooks", "hooks", "bin", "scripts",
+    ".vscode", ".idea", ".devcontainer", ".cursor", ".cargo", "venv", ".venv",
+    "node_modules", "site-packages", "dist-packages",
+})
+_REQUIREMENTS = re.compile(r"requirements[\w.-]*\.(?:txt|in)")
+
+
+def _runs_code(path: Path) -> bool:
+    name = path.name.lower()
+    return (path.suffix.lower() in _RUNNABLE_SUFFIXES or name in _RUNNABLE_NAMES
+            or bool(_REQUIREMENTS.fullmatch(name))
+            or bool(_RUNNABLE_DIRS & {p.lower() for p in path.parts[:-1]}))
+
+
+def _written_text(tool: str, tool_input: dict[str, Any]) -> str:
+    """What the edit puts in the file (new text only)."""
+    if tool == "Write":
+        return str(tool_input.get("content") or "")
+    if tool == "Edit":
+        return str(tool_input.get("new_string") or "")
+    if tool == "MultiEdit":
+        return "\n".join(str(e.get("new_string") or "") for e in tool_input.get("edits") or []
+                         if isinstance(e, dict))
+    if tool == "NotebookEdit":
+        return str(tool_input.get("new_source") or "")
+    return ""
+
+
+# Content that reaches the network, deletes, runs processes, touches credentials or talks to
+# the gate: the judge reads it before it is written. Ordinary code and prose skips the model.
+_RISKY_CONTENT = re.compile(
+    r"\b(?:curl|wget|nc|ncat|netcat|socat|ssh|scp|sftp|telnet|ftp)\b"
+    r"|rm\s+-[a-z]*[rf]|\brmtree\b|\bunlink\(|\bshred\b|\bmkfs\b|\bdd\s+if="
+    r"|\bsudo\b|\bchmod\s+[0-7]*[+]?[sx]|\bchown\b"
+    r"|\beval\s*\(|\bexec\s*\(|os\.system|os\.popen|\bsubprocess\b|child_process"
+    r"|\bspawn\(|Runtime\.getRuntime|\bpty\b|\bsocket\b"
+    r"|requests\.(?:post|put|patch)|\bfetch\s*\(|urllib|http\.client|httpx|aiohttp"
+    r"|base64\s+-d|b64decode|atob\(|\bfromCharCode\b"
+    r"|\.aws\b|\.ssh\b|id_rsa|id_ed25519|credentials|\.netrc|\.npmrc|keychain"
+    r"|\.claude\b|\.deliberator\b|permission gate|previous instructions|\bverdict\b"
+    r"|\bcrontab\b|launchctl|LaunchAgents|\.zshrc|\.bashrc|\.profile\b",
+    re.IGNORECASE,
+)
+
+
+def _risky_content(text: str) -> bool:
+    return bool(_RISKY_CONTENT.search(text))
+
+
+_UNTRUSTED_NOTE = ("the folder is inside an UNTRUSTED git repository (a bare-repository folder, "
+                   "a .git file pointing outside a real repo, or core.bare=true, possibly "
+                   "shipped by a cloned repo): its config can make git and git-aware tools "
+                   "run commands. Weigh that.")
+
+
+def _hard_ask(kind: protect.Kind | None, tool: str, tool_input: dict[str, Any],
+              cwd: str) -> str | None:
+    """Why this call is a hard ask (the person decides; no model, no shortcut), or None.
+
+    Credential files and the gate's own log: any access. Protected config (~/.claude, .git,
+    .claude/, .deliberator/, gate.yml, rc files): writes, and any Bash command that is not
+    a plain read. Plain reads, and the agent's own notes ("notes": memory, transcripts),
+    go to the judge.
+    """
+    if kind == "credential":
+        return "touches a credential file: you decide, every time (never judged or reused)"
+    if kind == "gate_log":
+        return "touches the gate's own log: you decide, every time (never judged or reused)"
+    if kind != "config":
+        return None
+    if tool in EDIT_TOOLS:
+        return "writes protected config (agent, git or gate settings): you decide"
+    if tool == "Bash":
+        command = str(tool_input.get("command", ""))
+        if ledger.compound(command) or simple_words(command, cwd, checks=False) is None:
+            return ("a command that is not a plain read touches protected config (agent, git "
+                    "or gate settings): you decide")
+    return None
 
 
 async def decide(
@@ -67,43 +196,77 @@ async def decide(
 ) -> Decision:
     """Rule on one tool call and log the decision.
 
-    Order: allow-list (no model call) → identical earlier call (reuse, or allowed because the
-    person approved it) → the judge, shown the closest precedents.
+    Order: allow-list or edit inside the repo (no model call) → a standing grant → identical
+    earlier call (same command or path AND same content: reuse, or allowed because the
+    person approved it) → the judge, shown the call's content and the closest precedents.
+    Calls touching protected paths, and calls too long to show whole, skip the shortcuts and
+    always go to the judge.
     """
-    subject = ledger.subject_of(tool, tool_input)
+    view = ledger.view_of(tool, tool_input)
+    raw_subject = view.subject
+    subject = redact(raw_subject)
     rules_hash = config.rules_hash()
-    key = ledger.call_key(tool, subject, cwd, rules_hash)
+    key = ledger.call_key(tool, raw_subject, cwd, rules_hash, view.digest)
+    shown, cut = clip(redact(view.text))
+    truncated = cut > 0
+    extra = [config.store_root(root) / ledger.LOG_PATH.parent] if config.log_dir else []
+    kind = protect.access_kind(tool, tool_input, cwd, extra)
+    command = str(tool_input.get("command", "")) if tool == "Bash" else ""
+    # The cwd, or a folder the command sends git to (cd, -C, --git-dir, --work-tree).
+    untrusted = (untrusted_target(command, cwd) if tool == "Bash"
+                 else repo_state(cwd) == "untrusted")
+    untrusted_git = untrusted and tool == "Bash" and runs_git(command)
+    protected = kind is not None or untrusted_git
+    project = ledger.project_of(cwd)
     history = ledger.read(root)
     base: dict[str, Any] = {
         "id": ledger.new_id(key), "at": ledger.now(), "session": session,
         "tool_use_id": tool_use_id, "tool": tool, "subject": subject, "cwd": cwd, "key": key,
-        "rules_hash": rules_hash,
+        "rules_hash": rules_hash, "project": project, "truncated": truncated,
+        "protected": protected,
     }
+    shortcuts = not protected and not truncated
 
     decision: Decision | None = None
-    if config.allow_edits_in_project and _edit_inside(tool, tool_input, cwd):
+    hard = _hard_ask(kind, tool, tool_input, cwd)
+    if not hard and untrusted_git:
+        hard = ("git in a repository that is not an ordinary checkout (a bare-repository "
+                "folder, a foreign .git file or core.bare): its config can run commands. "
+                "You decide.")
+    if hard:
+        decision = Decision(**base, verdict="ask", source="protected", reason=hard)
+    if decision is None and not protected and config.allow_edits_in_project \
+            and _edit_inside(tool, tool_input, cwd):
         decision = Decision(**base, verdict="allow", source="skip",
-                            reason="an edit to a file inside the working folder")
-    simple = tool != "Bash" or not ledger.compound(subject)
-    for pattern in config.allow_without_asking if decision is None and simple else ():
+                            reason="an edit to a file inside the working repository")
+    # Bash: the allow-list skips the judge only for one plain command whose every flag is on
+    # that command's safe list (engine.gate.simple); anything else is judged, not asked.
+    # The regex sees the words joined, so it matches the real argv[0] (not `ls=x env ...`).
+    if tool == "Bash":
+        words = None if ledger.compound(raw_subject) else simple_words(raw_subject, cwd, extra=extra)
+        matched = " ".join(words) if words is not None else None
+    else:
+        matched = raw_subject
+    for pattern in config.allow_without_asking if decision is None and matched is not None \
+            and shortcuts else ():
         try:
-            if re.search(pattern, subject):
+            if re.search(pattern, matched):
                 decision = Decision(**base, verdict="allow", source="skip",
                                     reason=f"allowed without asking: matches {pattern!r}")
                 break
         except re.error:
             continue
 
-    if decision is None and config.learn_from_approvals:
-        grant = history.granted(tool, subject)
+    if decision is None and shortcuts and config.learn_from_approvals:
+        grant = history.granted(tool, subject, project)
         if grant is not None:
             decision = Decision(**base, verdict="allow", source="approved",
                                 reason=f"you said yes to calls like this ({grant.grant})",
                                 precedents=(grant.id,))
 
-    if decision is None and (config.reuse_identical or config.learn_from_approvals):
+    if decision is None and shortcuts and (config.reuse_identical or config.learn_from_approvals):
         for earlier in ledger.latest_for_key(history, key):
-            if earlier.source in ("error", "skip"):
+            if earlier.source in ("error", "skip") or earlier.truncated or earlier.protected:
                 continue
             if config.learn_from_approvals and history.approved(earlier):
                 decision = Decision(**base, verdict="allow", source="approved",
@@ -120,16 +283,24 @@ async def decide(
     if decision is None:
         precedents = ledger.similar(history, tool=tool, subject=subject, cwd=cwd,
                                     k=config.precedents)
+        note = (_UNTRUSTED_NOTE if untrusted else None)
         prompt = build_prompt(config, tool=tool, subject=subject, cwd=cwd,
-                              precedents=precedents, history=history)
-        ruling = await rule_on(prompt, judge or make_judge(config), subject)
+                              precedents=precedents, history=history, text=shown,
+                              truncated=cut, note=note)
+        ruling = await rule_on(prompt, judge or make_judge(config), subject,
+                               timeout_s=config.timeout_s)
         failed = ruling.reason.startswith("gate could not rule")
+        verdict, reason = ruling.verdict, ruling.reason
+        if truncated and verdict == "allow":
+            # The judge saw head and tail only: what it allowed may not be what runs.
+            verdict = "ask"
+            reason = f"truncated call (the judge saw only its head and tail): {reason}"
         decision = Decision(
-            **base, verdict=ruling.verdict, reason=ruling.reason, rule=ruling.rule,
+            **base, verdict=verdict, reason=redact(reason), rule=ruling.rule,
             source="error" if failed else "model", model=config.resolved_model(),
             precedents=tuple(p.id for p in precedents), latency_ms=ruling.latency_ms,
             input_tokens=ruling.input_tokens, output_tokens=ruling.output_tokens,
-            grant=ruling.grant,
+            grant=ruling.grant if shortcuts else None,
         )
 
     decision = ledger.redacted(decision)  # secrets never reach the log, graph or reply
@@ -140,14 +311,31 @@ async def decide(
     return decision
 
 
+def _pending(root: Path, tool: str, tool_input: dict[str, Any], session: str | None,
+             tool_use_id: str | None) -> tuple[History, Decision | None]:
+    history = ledger.read(root)
+    subject = redact(ledger.subject_of(tool, tool_input))
+    return history, ledger.find_pending(history, tool_use_id=tool_use_id, session=session,
+                                        tool=tool, subject=subject)
+
+
+def prompted(root: Path, config: GateConfig, *, tool: str, tool_input: dict[str, Any],
+             session: str | None = None, tool_use_id: str | None = None) -> Decision | None:
+    """Claude Code is showing the person a permission prompt for this call (PermissionRequest).
+
+    Together with the tool running afterwards, this is what makes an ask an approval."""
+    history, decision = _pending(root, tool, tool_input, session, tool_use_id)
+    if decision is None or decision.id in history.prompted:
+        return None
+    ledger.append(root, Prompted(decision=decision.id, at=ledger.now()))
+    return decision
+
+
 def record(root: Path, config: GateConfig, *, tool: str, tool_input: dict[str, Any],
            session: str | None = None, tool_use_id: str | None = None,
            push_graph: bool = True) -> Decision | None:
     """The tool ran: log it against its decision. An ask that ran was approved."""
-    history = ledger.read(root)
-    subject = ledger.subject_of(tool, tool_input)
-    decision = ledger.find_pending(history, tool_use_id=tool_use_id, session=session,
-                                   tool=tool, subject=subject)
+    history, decision = _pending(root, tool, tool_input, session, tool_use_id)
     if decision is None or decision.id in history.ran:
         return None
     ledger.append(root, Outcome(decision=decision.id, at=ledger.now()))
@@ -157,21 +345,45 @@ def record(root: Path, config: GateConfig, *, tool: str, tool_input: dict[str, A
     return decision
 
 
-def hook_output(decision: Decision, config: GateConfig) -> dict[str, Any]:
-    """Claude Code PreToolUse output. The reason is shown to Claude on deny, to you on ask."""
+def hook_output(decision: Decision, config: GateConfig,
+                tool_input: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Claude Code PreToolUse output. The reason is shown to Claude on deny, to you on ask.
+
+    A git call the fast path allowed is rewritten (updatedInput, which replaces the whole
+    input) so repo config cannot run anything: `git -c core.fsmonitor=false -c
+    core.hooksPath=/dev/null <sub>`, plus --no-ext-diff --no-textconv for diff/log/show."""
     rule = ""
     if decision.rule and 1 <= decision.rule <= len(config.rules):
         rule = f" (rule {decision.rule}: {config.rules[decision.rule - 1]})"
     grant = ""
     if decision.verdict == "ask" and decision.grant:
         grant = f" Yes is kept forever for calls matching {decision.grant}"
-    return {
-        "hookSpecificOutput": {
-            "hookEventName": "PreToolUse",
-            "permissionDecision": decision.verdict,
-            "permissionDecisionReason": f"[deliberator gate] {decision.reason}{rule}{grant}",
-        }
+    out: dict[str, Any] = {
+        "hookEventName": "PreToolUse",
+        "permissionDecision": decision.verdict,
+        "permissionDecisionReason": f"[deliberator gate] {decision.reason}{rule}{grant}",
     }
+    rewritten = _safe_git_input(decision, tool_input)
+    if rewritten is not None:
+        out["updatedInput"] = rewritten
+    return {"hookSpecificOutput": out}
+
+
+def _safe_git_input(decision: Decision, tool_input: dict[str, Any] | None
+                    ) -> dict[str, Any] | None:
+    if (tool_input is None or decision.tool != "Bash" or decision.source != "skip"
+            or decision.verdict != "allow"):
+        return None
+    command = tool_input.get("command")
+    if not isinstance(command, str):
+        return None
+    try:
+        words = shlex.split(command)
+    except ValueError:
+        return None
+    if len(words) < 2 or words[0] != "git":
+        return None
+    return {**tool_input, "command": safe_git(words)}
 
 
 def write_graph_json(root: Path, config: GateConfig) -> Path:
@@ -179,5 +391,9 @@ def write_graph_json(root: Path, config: GateConfig) -> Path:
 
     path = root / GRAPH_JSON
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(node_link(ledger.read(root), config), indent=1), encoding="utf-8")
+    data = json.dumps(node_link(ledger.read(root), config), indent=1)
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    os.fchmod(fd, 0o600)  # an existing file keeps its old mode otherwise
+    with os.fdopen(fd, "w", encoding="utf-8") as fh:
+        fh.write(data)
     return path

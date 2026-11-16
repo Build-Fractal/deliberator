@@ -11,6 +11,7 @@
 #   $GATE_HOME/gate-hook.sh         the command for the hooks:
 #                                   `gate-hook.sh hook`   (PreToolUse)
 #                                   `gate-hook.sh record` (PostToolUse)
+#                                   `gate-hook.sh prompted` (PermissionRequest)
 #
 # If the environment is ever missing or broken, the PreToolUse launcher prints an "ask"
 # decision, so Claude Code prompts you instead of running the tool unchecked.
@@ -42,6 +43,9 @@ if [[ "\$mode" == "hook" ]]; then
     else
         printf '%s\n' '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"ask","permissionDecisionReason":"[deliberator gate] the gate is not installed or failed to start; asking instead. Reinstall: scripts/install-gate.sh in the deliberator repo."}}'
     fi
+elif [[ "\$mode" == "prompted" ]]; then
+    [[ -x "\$BIN" ]] && "\$BIN" gate prompted >/dev/null 2>&1
+    exit 0
 else
     [[ -x "\$BIN" ]] && "\$BIN" gate record 2>/dev/null
     exit 0
@@ -54,3 +58,4 @@ mv "$GATE_HOME/gate-hook.sh.new" "$GATE_HOME/gate-hook.sh"
 echo "Installed. Hook commands:"
 echo "  PreToolUse:  $GATE_HOME/gate-hook.sh hook"
 echo "  PostToolUse: $GATE_HOME/gate-hook.sh record"
+echo "  PermissionRequest: $GATE_HOME/gate-hook.sh prompted"

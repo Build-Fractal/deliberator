@@ -25,6 +25,7 @@ from typing import Any
 
 from engine.gate.config import GateConfig
 from engine.gate.ledger import Decision, History
+from engine.gate.redact import redact
 
 SCHEMA_NAME = "deliberator-gate"
 SCHEMA_VERSION = "1.0.0"
@@ -72,14 +73,15 @@ def projection(decisions: Sequence[Decision], history: History,
         dk = f"decision:{d.id}"
         add(Node(label="GateDecision", key=dk, props={
             "verdict": d.verdict, "effective": history.effective(d),
-            "approved": history.approved(d), "reason": d.reason, "source": d.source,
+            "approved": history.approved(d), "reason": redact(d.reason), "source": d.source,
             "model": d.model, "at": d.at, "tool": d.tool, "latency_ms": round(d.latency_ms),
             "input_tokens": d.input_tokens, "output_tokens": d.output_tokens,
-            "rules_hash": d.rules_hash,
+            "rules_hash": d.rules_hash, "truncated": d.truncated, "protected": d.protected,
+            "project": d.project,
         }))
         ck = f"call:{d.key}"
         add(Node(label="GateCall", key=ck, props={
-            "tool": d.tool, "subject": d.subject[:2000], "cwd": d.cwd}))
+            "tool": d.tool, "subject": redact(d.subject)[:2000], "cwd": d.cwd}))
         edges.append(Edge(type="RULES_ON", source=dk, target=ck))
         if d.rule is not None and 1 <= d.rule <= len(config.rules) \
                 and d.rules_hash == config.rules_hash():
