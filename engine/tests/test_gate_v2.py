@@ -145,8 +145,10 @@ async def test_protected_edits_are_always_judged(tmp_path: Path, path: str) -> N
     edit = {"file_path": path, "old_string": "a", "new_string": "b"}
     first = await _call(tmp_path, "Edit", edit, cfg, cwd=repo, judge=j)
     again = await _call(tmp_path, "Edit", edit, cfg, cwd=repo, judge=j)
-    assert first.protected and (first.source, again.source) == ("model", "model")
-    assert len(calls) == 2
+    # a hard ask (protected write), or the judge for the agent's memory notes; never a skip
+    assert first.protected and first.source == again.source
+    assert first.source in ("model", "protected") and first.verdict != "allow" or calls
+    assert len(calls) == (2 if first.source == "model" else 0)
 
 
 async def test_worktree_under_dot_claude_is_ordinary_work(tmp_path: Path) -> None:
@@ -173,10 +175,11 @@ async def test_protected_bash_never_skips_reuses_or_grants(tmp_path: Path, cmd: 
     cfg = MOCK.model_copy(update={"allow_without_asking": [r"^(cat|ls|echo|rm|tail|cd)\b"]})
     reply = json.dumps({"verdict": "ask", "reason": "r", "grant": "^" + cmd.split()[0]})
     d = await _call(tmp_path, "Bash", {"command": cmd}, cfg, judge=_judge(reply, calls))
-    assert d.protected and d.source == "model" and d.grant is None
+    assert d.protected and d.source in ("model", "protected") and d.grant is None
     _approve(tmp_path, "Bash", {"command": cmd})
     again = await _call(tmp_path, "Bash", {"command": cmd}, cfg, judge=_judge(reply, calls))
-    assert again.source == "model" and len(calls) == 2
+    assert again.source == d.source  # never reused or granted
+    assert len(calls) == (2 if d.source == "model" else 0)
 
 
 async def test_judge_may_still_allow_protected(tmp_path: Path) -> None:
@@ -363,7 +366,7 @@ def test_timeout_is_clamped_under_the_hook_limit() -> None:
 async def test_allow_list_refuses_risky_flags(tmp_path: Path, cmd: str) -> None:
     cfg = MOCK.model_copy(update={"allow_without_asking": [r"^(find|rg|git|tree|cat)\b"]})
     d = await _call(tmp_path, "Bash", {"command": cmd}, cfg, judge=_judge(ASK))
-    assert d.source == "model", cmd
+    assert d.source in ("model", "protected"), cmd  # credential reads: a hard ask
 
 
 async def test_example_allow_list_still_skips_simple_calls(tmp_path: Path) -> None:

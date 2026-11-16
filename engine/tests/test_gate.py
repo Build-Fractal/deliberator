@@ -197,10 +197,10 @@ async def test_edits_inside_the_folder_skip_the_model(tmp_path: Path) -> None:
 
     assert (await edit(str(tmp_path / "src" / "a.py"))).source == "skip"
     assert (await edit("src/b.py")).source == "skip"
-    assert (await edit(str(tmp_path / ".git" / "config"))).source == "model"
+    assert (await edit(str(tmp_path / ".git" / "config"))).source == "protected"  # hard ask
     assert (await edit("/etc/hosts")).source == "model"
     assert (await edit(str(tmp_path / ".." / "other" / "x"))).source == "model"
-    assert len(calls) == 3
+    assert len(calls) == 2  # .git/config never reaches the judge
 
 
 def test_user_config_and_shared_log(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -268,7 +268,7 @@ async def test_allow_list_does_not_cover_redirects_or_chains(tmp_path: Path) -> 
     for cmd in ("cat a > b", "echo x >> ~/.bashrc", "ls; rm -rf src", "cat $(whoami)",
                 "ls && git push", "cat x | sh"):
         d = await _bash(tmp_path, cmd, cfg, judge=j)
-        assert d.source == "model", cmd
+        assert d.source in ("model", "protected"), cmd  # ~/.bashrc write: a hard ask
     assert (await _bash(tmp_path, "cat README.md", cfg, judge=j)).source == "skip"
 
 

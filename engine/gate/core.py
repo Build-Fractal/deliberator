@@ -125,6 +125,32 @@ def _risky_content(text: str) -> bool:
     return bool(_RISKY_CONTENT.search(text))
 
 
+def _hard_ask(kind: protect.Kind | None, tool: str, tool_input: dict[str, Any],
+              cwd: str) -> str | None:
+    """Why this call is a hard ask (the person decides; no model, no shortcut), or None.
+
+    Credential files and the gate's own log: any access. Protected config (~/.claude, .git,
+    .claude/, .deliberator/, gate.yml, rc files): writes, and any Bash command that is not
+    a plain read; the agent's memory notes and plain reads go to the judge.
+    """
+    if kind == "credential":
+        return "touches a credential file: you decide, every time (never judged or reused)"
+    if kind == "gate_log":
+        return "touches the gate's own log: you decide, every time (never judged or reused)"
+    if kind != "config":
+        return None
+    if tool in EDIT_TOOLS:
+        if protect.is_agent_memory(tool_input, cwd):
+            return None
+        return "writes protected config (agent, git or gate settings): you decide"
+    if tool == "Bash":
+        command = str(tool_input.get("command", ""))
+        if ledger.compound(command) or simple_words(command, cwd, checks=False) is None:
+            return ("a command that is not a plain read touches protected config (agent, git "
+                    "or gate settings): you decide")
+    return None
+
+
 async def decide(
     root: Path,
     config: GateConfig,
@@ -153,7 +179,8 @@ async def decide(
     shown, cut = clip(redact(view.text))
     truncated = cut > 0
     extra = [config.store_root(root) / ledger.LOG_PATH.parent] if config.log_dir else []
-    protected = protect.touches_protected(tool, tool_input, cwd, extra)
+    kind = protect.access_kind(tool, tool_input, cwd, extra)
+    protected = kind is not None
     project = ledger.project_of(cwd)
     history = ledger.read(root)
     base: dict[str, Any] = {
@@ -165,7 +192,11 @@ async def decide(
     shortcuts = not protected and not truncated
 
     decision: Decision | None = None
-    if not protected and config.allow_edits_in_project and _edit_inside(tool, tool_input, cwd):
+    hard = _hard_ask(kind, tool, tool_input, cwd)
+    if hard:
+        decision = Decision(**base, verdict="ask", source="protected", reason=hard)
+    if decision is None and not protected and config.allow_edits_in_project \
+            and _edit_inside(tool, tool_input, cwd):
         decision = Decision(**base, verdict="allow", source="skip",
                             reason="an edit to a file inside the working repository")
     # Bash: the allow-list skips the judge only for one plain command whose every flag is on

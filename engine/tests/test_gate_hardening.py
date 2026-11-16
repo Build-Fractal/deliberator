@@ -27,6 +27,8 @@ LIVE_ALLOW = [
     r"^git (status|diff|log|show|branch|rev-parse|fetch|worktree list|remote -v)\b",
 ]
 LIVE = MOCK.model_copy(update={"allow_without_asking": LIVE_ALLOW})
+# Not skipped: the judge rules ("model"), or a hard ask on a protected path ("protected").
+JUDGED = ("model", "protected")
 
 
 def _judge(reply: str, calls: list[str] | None = None):
@@ -76,7 +78,7 @@ async def test_case_variants_of_protected_paths_are_judged(tmp_path: Path, path:
     calls: list[str] = []
     d = await _call(tmp_path, "Write", {"file_path": path, "content": "x"}, LIVE, cwd=repo,
                     judge=_judge(ALLOW, calls))
-    assert d.protected and d.source == "model" and len(calls) == 1, path
+    assert d.protected and d.source in JUDGED and len(calls) == (d.source == "model"), path
 
 
 def test_protected_dir_matched_by_inode(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -117,7 +119,7 @@ async def test_bash_case_and_glob_variants_are_protected(tmp_path: Path, cmd: st
     d = await _call(tmp_path, "Bash", {"command": cmd},
                     MOCK.model_copy(update={"allow_without_asking": [".*"]}),
                     judge=_judge(ALLOW, calls))
-    assert d.protected and d.source == "model", cmd
+    assert d.protected and d.source in JUDGED, cmd
 
 
 @pytest.mark.parametrize("cmd", [
@@ -143,7 +145,7 @@ QUOTED = [
 async def test_quoted_or_expanded_words_go_to_the_judge(tmp_path: Path, cmd: str) -> None:
     calls: list[str] = []
     d = await _call(tmp_path, "Bash", {"command": cmd}, LIVE, judge=_judge(ALLOW, calls))
-    assert d.source == "model" and d.verdict == "allow" and len(calls) == 1, cmd
+    assert d.source in JUDGED and len(calls) == (d.source == "model"), cmd
 
 
 # 3. Per-command safe flags; credential reads -----------------------------------------------
@@ -180,7 +182,7 @@ async def test_credential_reads_are_judged(tmp_path: Path, cmd: str) -> None:
     calls: list[str] = []
     d = await _call(tmp_path, "Bash", {"command": cmd}, allow_all, judge=_judge(ALLOW, calls))
     again = await _call(tmp_path, "Bash", {"command": cmd}, allow_all, judge=_judge(ALLOW, calls))
-    assert d.protected and (d.source, again.source) == ("model", "model"), cmd
+    assert d.protected and d.source == again.source == "protected", cmd
 
 
 @pytest.mark.parametrize("path", [
@@ -194,7 +196,7 @@ async def test_credential_files_via_read_are_judged(tmp_path: Path, path: str) -
     d = await _call(tmp_path, "Read", {"file_path": path.format(repo=repo)},
                     MOCK.model_copy(update={"allow_without_asking": [".*"]}), cwd=repo,
                     judge=_judge(ALLOW))
-    assert d.protected and d.source == "model", path
+    assert d.protected and d.source == "protected", path
 
 
 FINE = [
@@ -309,7 +311,7 @@ ROUND2 = [
 async def test_round2_bypasses_reach_the_judge(tmp_path: Path, cmd: str) -> None:
     calls: list[str] = []
     d = await _call(tmp_path, "Bash", {"command": cmd}, LIVE, judge=_judge(ALLOW, calls))
-    assert d.source == "model" and len(calls) == 1, cmd
+    assert d.source in JUDGED and len(calls) == (d.source == "model"), cmd
 
 
 @pytest.mark.parametrize("cmd", [
@@ -437,7 +439,7 @@ async def test_r3_git_is_judged_in_an_untrusted_repo(tmp_path: Path, where: str)
 async def test_r3_git_pathspec_magic_reaches_the_judge(tmp_path: Path, cmd: str) -> None:
     repo = _real_repo(tmp_path / "repo")
     d = await _call(tmp_path, "Bash", {"command": cmd}, LIVE, cwd=repo, judge=_judge(ALLOW))
-    assert d.source == "model", cmd
+    assert d.source in JUDGED, cmd
 
 
 R3_CREDENTIALS = [
@@ -499,9 +501,9 @@ async def test_r3_gate_config_reads_stay_with_the_judge(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize("target", [
-    ("Write", {"file_path": str(HOME / ".claude" / "settings.json"), "content": "{}"}),
+    ("Write", {"file_path": str(HOME / ".claude" / "settings.json"), "content": "[]"}),
     ("Edit", {"file_path": "{repo}/.git/config", "old_string": "a", "new_string": "b"}),
-    ("Write", {"file_path": "{repo}/.claude/settings.local.json", "content": "{}"}),
+    ("Write", {"file_path": "{repo}/.claude/settings.local.json", "content": "[]"}),
     ("Write", {"file_path": str(HOME / ".config" / "deliberator" / "gate.yml"),
                "content": "provider: mock\n"}),
     ("Edit", {"file_path": str(HOME / ".zshrc"), "old_string": "a", "new_string": "b"}),

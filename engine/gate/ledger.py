@@ -40,7 +40,8 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from engine.gate.redact import has_secret, redact
 
 Verdict = Literal["allow", "deny", "ask"]
-Source = Literal["model", "reuse", "approved", "skip", "error"]
+# "protected": a hard ask on a credential, the gate log or a protected-config write.
+Source = Literal["model", "reuse", "approved", "skip", "error", "protected"]
 
 LOG_PATH = Path(".deliberator") / "gate" / "log.jsonl"
 LOCK_NAME = "log.lock"
