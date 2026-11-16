@@ -442,20 +442,27 @@ _SECRET_PRINTERS = re.compile(
 _GIT_CONFIG = re.compile(_GIT + r"config\b(?P<rest>[^;&|)\n]*)")
 _GIT_CONFIG_READ = re.compile(r"(?:^|\s)(?:--get[\w-]*|--list|-l|get|list)(?=\s|=|$)")
 _GIT_CONFIG_SCOPE = re.compile(r"(?:^|\s)--(?:global|system)\b")
-# Other git calls that change what runs: remotes, submodules, worktrees.
-_GIT_SETUP = re.compile(_GIT + r"(?:remote\s+(?:add|set-url|set-head|rename)|submodule\s+add"
-                        r"|worktree\s+add)\b")
+# Other git calls that change what runs: remotes, submodules. (`worktree add` is ordinary
+# work and goes to the judge; in an untrusted repo any git is a hard ask anyway.)
+_GIT_SETUP = re.compile(_GIT + r"(?:remote\s+(?:add|set-url|set-head|rename)|submodule\s+add)\b")
+# Keys whose values are secrets or redirect where credentials go.
+_SECRET_KEY = re.compile(r"credential|token|password|helper|insteadof", re.IGNORECASE)
 
 
 def _git_setup_kind(text: str) -> Kind | None:
-    """git config writes (and --global/--system config at all), remote add/set-url,
-    submodule add, worktree add: they change what git and its hooks will run."""
+    """git config writes, remote add/set-url and submodule add change what git and its hooks
+    run: config. --global/--system writes, and reads of secret-looking keys there
+    (credential, token, password, helper, url.*.insteadOf), are credential. Other
+    --global/--system reads go to the judge."""
     best: Kind | None = None
     for m in _GIT_CONFIG.finditer(text):
         rest = m.group("rest")
+        read = _GIT_CONFIG_READ.search(rest) is not None
         if _GIT_CONFIG_SCOPE.search(rest):
-            return "credential"  # user/system config holds credential helpers
-        if rest.strip() and not _GIT_CONFIG_READ.search(rest):
+            if not read or _SECRET_KEY.search(rest):
+                return "credential"  # user/system config holds credential helpers
+            continue
+        if rest.strip() and not read:
             best = "config"
     if best is None and _GIT_SETUP.search(text):
         best = "config"
