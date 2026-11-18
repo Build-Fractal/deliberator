@@ -277,6 +277,8 @@ class Decision(BaseModel):
     truncated: bool = False
     # The call touched a protected path (always judged).
     protected: bool = False
+    # Claude Code's permission mode for the call (default, acceptEdits, bypassPermissions, ...).
+    mode: str | None = None
 
 
 class Revoke(BaseModel):

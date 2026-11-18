@@ -74,6 +74,7 @@ def hook_cmd() -> None:
             config.store_root(root), config, tool=str(event.get("tool_name", "")),
             tool_input=event.get("tool_input") or {}, cwd=cwd,
             session=event.get("session_id"), tool_use_id=event.get("tool_use_id"),
+            permission_mode=event.get("permission_mode"),
         ))
         payload = hook_output(decision, config, event.get("tool_input") or {})
     except Exception as exc:  # noqa: BLE001 - the hook must always answer.
@@ -134,7 +135,11 @@ def scrub_cmd() -> None:
 @click.option("--tool", default="Bash", show_default=True)
 @click.option("--provider", default=None, help="Override the configured provider.")
 @click.option("--dry-run", is_flag=True, help="Do not write the decision to the log.")
-def check_cmd(command: str, tool: str, provider: str | None, dry_run: bool) -> None:
+@click.option("--mode", "permission_mode", default=None,
+              help="Claude Code permission mode to rule as (default, acceptEdits, "
+                   "bypassPermissions).")
+def check_cmd(command: str, tool: str, provider: str | None, dry_run: bool,
+              permission_mode: str | None) -> None:
     """Rule on one command from the terminal and print the decision."""
     import shutil
     import tempfile
@@ -157,7 +162,8 @@ def check_cmd(command: str, tool: str, provider: str | None, dry_run: bool) -> N
     tool_input = {"command": command} if tool == "Bash" else {"file_path": command}
     try:
         decision = asyncio.run(decide(target, config, tool=tool, tool_input=tool_input,
-                                      cwd=str(Path.cwd()), push_graph=not dry_run))
+                                      cwd=str(Path.cwd()), push_graph=not dry_run,
+                                      permission_mode=permission_mode))
     finally:
         if dry_run:
             shutil.rmtree(target, ignore_errors=True)  # the copy holds the whole log
