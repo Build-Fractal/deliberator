@@ -302,7 +302,8 @@ async def test_invalid_stored_grants_are_dropped_on_read(tmp_path: Path) -> None
     assert history.approved(history.decisions[0]) and history.grants() == []
     d = await _call(tmp_path, "Bash", {"command": "make deploy-qa; rm -rf ~"}, cwd=repo,
                     judge=_judge(ASK))
-    assert d.source == "model" and asked.id
+    # not allowed by the dropped grant (the delete floor now denies `rm -rf ~` outright)
+    assert d.source in ("model", "protected") and d.verdict != "allow" and asked.id
 
 
 async def test_approval_needs_prompted_and_ran(tmp_path: Path) -> None:
@@ -384,7 +385,8 @@ async def test_example_allow_list_still_skips_simple_calls(tmp_path: Path) -> No
         assert d.source == "skip", cmd
     for cmd in ("cat README.md", "git branch -D x", "find . -delete"):
         d = await _call(tmp_path, "Bash", {"command": cmd}, cfg, judge=_judge(ASK))
-        assert d.source == "model", cmd
+        # find . -delete at the repo root: the delete floor's hard ask
+        assert d.source in ("model", "protected") and d.verdict != "allow", cmd
 
 
 # 10. Prompt-injection fencing --------------------------------------------------------------
