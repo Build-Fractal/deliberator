@@ -371,3 +371,71 @@ async def test_deletes_inside_the_agent_space_go_to_the_judge(tmp_path: Path, cm
     d = await _call(tmp_path / "c", "Bash", {"command": cmd}, cwd=repo, mode=BYPASS,
                     reply='{"verdict":"ask","reason":"uncommitted work","harm":"data"}')
     assert d.verdict == "ask", cmd
+
+
+# 6. Session signals, secret phrases in executable position, variable commands -------------
+
+@pytest.mark.parametrize(("env", "expect"), [
+    ({"CLAUDE_CODE_ENTRYPOINT": "cli", "CLAUDE_CODE_SESSION_ATTENDED": "1",
+      "CLAUDE_CODE_CHILD_SESSION": "1"}, ("cli", True)),
+    ({"CLAUDE_CODE_ENTRYPOINT": "sdk-py", "CLAUDE_CODE_SESSION_ATTENDED": "0"}, ("sdk-py", False)),
+    ({"CLAUDE_CODE_CHILD_SESSION": "1"}, (None, False)),
+    ({}, (None, None)),
+])
+def test_session_signals(env: dict, expect: tuple) -> None:
+    from engine.gate.core import session_signals
+
+    assert session_signals(env) == expect
+
+
+async def _unattended(root: Path, cmd: str, cwd: Path, reply: str = ALLOW):
+    return await decide(root, LIVE, tool="Bash", tool_input={"command": cmd}, cwd=str(cwd),
+                        session="s1", push_graph=False, judge=_judge(reply),
+                        entrypoint="sdk-py", attended=False)
+
+
+async def test_unattended_sessions_never_ask(tmp_path: Path) -> None:
+    repo = _repo(tmp_path / "repo")
+    d = await _unattended(tmp_path / "a", "gh pr merge 1 --squash", repo,
+                          '{"verdict":"ask","reason":"merges","harm":"people"}')
+    assert (d.verdict, d.attended, d.entrypoint) == ("allow", False, "sdk-py")
+    for cmd in ("rm -rf ~", "rm -rf ~/code/other", "cat ~/.aws/credentials", "gh auth token",
+                "echo '{}' > ~/.claude/settings.json"):
+        d = await _unattended(tmp_path / "b", cmd, repo)
+        assert (d.verdict, d.source) == ("deny", "protected"), cmd
+    d = await _unattended(tmp_path / "c", "git push origin main", repo,
+                          '{"verdict":"deny","reason":"no"}')
+    assert d.verdict == "deny"
+
+
+@pytest.mark.parametrize("cmd", ["x=git; $x credential fill", '"$x" auth token',
+                                 "${g} credential fill", "$t print-access-token",
+                                 "$a configure export-credentials"])
+async def test_secret_phrases_count_whatever_the_command_word(tmp_path: Path, cmd: str) -> None:
+    d = await _call(tmp_path, "Bash", {"command": cmd})
+    assert (d.verdict, d.source) == ("ask", "protected"), cmd
+
+
+@pytest.mark.parametrize("cmd", ['grep -rn "credential fill" docs',
+                                 "git commit -qm 'docs: gh auth token and git credential fill'",
+                                 "cat <<'EOF' > notes.md\ngit credential fill\nEOF"])
+async def test_secret_phrases_in_text_are_not_hard_asks(tmp_path: Path, cmd: str) -> None:
+    repo = _repo(tmp_path / "repo")
+    d = await _call(tmp_path, "Bash", {"command": cmd}, cwd=repo)
+    assert d.source != "protected", cmd
+
+
+@pytest.mark.parametrize("cmd", ["$x status", "${x} -la", '"$x" status'])
+async def test_variable_command_word_goes_to_the_judge(tmp_path: Path, cmd: str) -> None:
+    allow_all = LIVE.model_copy(update={"allow_without_asking": [".*"]})
+    repo = _repo(tmp_path / "repo")
+    d = await _call(tmp_path, "Bash", {"command": cmd}, allow_all, cwd=repo)
+    assert (d.source, d.protected) == ("model", True), cmd
+
+
+async def test_repo_scratch_is_agent_space(tmp_path: Path) -> None:
+    repo = _repo(tmp_path / "repo")
+    d = await _call(tmp_path, "Bash", {"command": "rm -rf /x/repo/.scratch/abc"}, cwd=repo)
+    assert d.source == "model"
+    d = await _call(tmp_path, "Bash", {"command": f"rm -rf {repo}/.scratch/s1"}, cwd=repo)
+    assert d.source == "model"
