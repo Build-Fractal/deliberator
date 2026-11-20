@@ -279,6 +279,10 @@ class Decision(BaseModel):
     protected: bool = False
     # Claude Code's permission mode for the call (default, acceptEdits, bypassPermissions, ...).
     mode: str | None = None
+    # How Claude was started (CLAUDE_CODE_ENTRYPOINT: cli, sdk-py, ...) and whether someone
+    # can answer a prompt (CLAUDE_CODE_SESSION_ATTENDED / CLAUDE_CODE_CHILD_SESSION).
+    entrypoint: str | None = None
+    attended: bool | None = None
 
 
 class Revoke(BaseModel):

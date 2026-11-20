@@ -18,6 +18,7 @@ import os
 import re
 import shlex
 from dataclasses import dataclass, field
+from itertools import pairwise
 from typing import Literal
 
 Role = Literal["read", "write", "copy", "send", "run", "source"]
@@ -60,6 +61,9 @@ class Parsed:
     deletes: list[Delete] = field(default_factory=list)
     # Commands that wipe a machine: sudo rm, diskutil erase*, mkfs, dd to a disk device.
     wipes: list[str] = field(default_factory=list)
+    # A command whose first word is a variable expansion ($x ..., "${x}" ...): never a
+    # shortcut, whatever it turns out to run.
+    var_command: bool = False
     opaque: bool = False
 
 
@@ -455,6 +459,24 @@ _GIT_CONFIG_READ = re.compile(r"(?:^|\s)(?:--get[\w-]*|--list|-l|get|list)(?=\s|
 # ---------------------------------------------------------------------------------------------
 
 
+_PHRASES = (
+    (re.compile(r"credential"), re.compile(r"fill|approve|reject|get|store|erase")),
+    (re.compile(r"auth"), re.compile(r"token")),
+)
+
+
+def _secret_phrase(words: list[str]) -> str | None:
+    """Secret-printing subcommands in executable position, whatever the command word is
+    (`x=git; $x credential fill`): consecutive argv words, never text inside one word."""
+    for a, b in pairwise(words[1:] + [""]):
+        for first, second in _PHRASES:
+            if first.fullmatch(a) and second.fullmatch(b):
+                return f"{a} {b}"
+        if re.fullmatch(r"print-(?:access|identity)-token|export-credentials", a):
+            return a
+    return None
+
+
 def _secret_command(prog: str, args: list[str]) -> str | None:
     """Commands whose output is a secret."""
     words = [a for a in args if not a.startswith("-")]
@@ -576,8 +598,13 @@ class _Walker:
                 break
         if not words:
             return []
+        if "$" in words[0]:
+            self.parsed.var_command = True
         prog = os.path.basename(words[0])
         args = words[1:]
+        phrase = _secret_phrase(words)
+        if phrase:
+            self.parsed.prints_secret.append(phrase)
         self.wipe(prog, args, sudo)
         return self.dispatch(prog, args, piped_to, upstream)
 

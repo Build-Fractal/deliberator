@@ -172,6 +172,25 @@ _ROLE_WORDS = {"read": "reads out", "copy": "copies", "send": "sends", "run": "h
                "write": "writes, moves or deletes", "source": "loads"}
 
 
+def session_signals(environ: dict[str, str]) -> tuple[str | None, bool | None]:
+    """(entrypoint, attended) from the environment Claude Code gives its hooks.
+
+    attended: CLAUDE_CODE_SESSION_ATTENDED when set ("1" yes, "0"/"false" no); without it, a
+    child session (CLAUDE_CODE_CHILD_SESSION) counts as unattended; else unknown (None).
+    An explicit ATTENDED=1 wins: subagents of an attended session carry CHILD_SESSION=1 too.
+    """
+    entry = environ.get("CLAUDE_CODE_ENTRYPOINT") or None
+    raw = (environ.get("CLAUDE_CODE_SESSION_ATTENDED") or "").strip().lower()
+    if raw in ("1", "true", "yes"):
+        return entry, True
+    if raw in ("0", "false", "no"):
+        return entry, False
+    child = (environ.get("CLAUDE_CODE_CHILD_SESSION") or "").strip().lower()
+    if child in ("1", "true", "yes"):
+        return entry, False
+    return entry, None
+
+
 def _hard_ask(kind: protect.Kind | None, tool: str, tool_input: dict[str, Any], cwd: str,
               extra: list[Path] | None = None, mode: str | None = None) -> str | None:
     """Why this call is a hard ask (the person decides; no model, no shortcut), or None.
@@ -262,7 +281,8 @@ def _catastrophic() -> list[str]:
 _BUILD_DIRS = frozenset({"node_modules", ".venv", "venv", "target", "dist", "build",
                          "__pycache__", ".pytest_cache", ".mypy_cache", ".ruff_cache", ".next",
                          ".turbo", ".parcel-cache", ".tox", ".nox", ".gradle", ".svelte-kit",
-                         "coverage", ".coverage", "htmlcov", ".eggs"})
+                         "coverage", ".coverage", "htmlcov", ".eggs", ".astro", ".vite",
+                         ".angular", ".nuxt", ".output"})
 _UNRESOLVED = re.compile(r"\$|[*?\[{]")
 
 
@@ -274,7 +294,7 @@ def _agent_space(path: str, session_cwd: str) -> bool:
     """The session's repo or worktree (not its root), ~/code/scratch/*, /tmp/*, the session
     scratchpad, and build or cache folders."""
     parts = Path(path).parts
-    if _BUILD_DIRS & set(parts) or ".cache" in parts[:-1]:
+    if _BUILD_DIRS & set(parts) or ".cache" in parts[:-1] or ".scratch" in parts[:-1]:
         return True
     home = str(Path.home())
     roots = [f"{home}/code/scratch", "/tmp", "/private/tmp"]
@@ -364,7 +384,7 @@ def _scratch(path: Path) -> bool:
     """Persistent scratch (~/code/scratch) or an agent session scratchpad."""
     s = str(path)
     home = Path.home().resolve()
-    return (path.is_relative_to(home / "code" / "scratch")
+    return (path.is_relative_to(home / "code" / "scratch") or ".scratch" in path.parts[:-1]
             or re.match(r"^/(?:private/)?tmp/claude-\d+/", s) is not None)
 
 
@@ -403,6 +423,8 @@ async def decide(
     judge: Judge | None = None,
     push_graph: bool = True,
     permission_mode: str | None = None,
+    entrypoint: str | None = None,
+    attended: bool | None = None,
 ) -> Decision:
     """Rule on one tool call and log the decision.
 
@@ -416,9 +438,15 @@ async def decide(
     (see _hard_ask), the judge is told to ask only for irreversible harm, an ask that names no
     such harm is allowed, and a truncated edit in a trusted repo or scratch stays allowed.
     In acceptEdits and bypassPermissions an edit inside the trusted repo is allowed outright.
+
+    `attended` False (an unattended or child session, see session_signals): nobody can answer
+    an ask, so the call is ruled as in bypassPermissions and then every ask becomes a ruling:
+    the floor and the remaining hard asks (secret exfil, control writes, mass deletes outside
+    the agent's space) are denied, the judge's asks are allowed.
     """
     mode = permission_mode or None
-    bypass = mode == BYPASS
+    unattended = attended is False
+    bypass = mode == BYPASS or unattended
     view = ledger.view_of(tool, tool_input)
     raw_subject = view.subject
     subject = redact(raw_subject)
@@ -433,34 +461,44 @@ async def decide(
     untrusted = (untrusted_target(command, cwd) if tool == "Bash"
                  else repo_state(cwd) == "untrusted")
     untrusted_git = untrusted and tool == "Bash" and runs_git(command)
-    protected = kind is not None or untrusted_git
+    var_command = tool == "Bash" and ops.parse(command, cwd).var_command
+    protected = kind is not None or untrusted_git or var_command
     project = ledger.project_of(cwd)
     history = ledger.read(root)
     base: dict[str, Any] = {
         "id": ledger.new_id(key), "at": ledger.now(), "session": session,
         "tool_use_id": tool_use_id, "tool": tool, "subject": subject, "cwd": cwd, "key": key,
         "rules_hash": rules_hash, "project": project, "truncated": truncated,
-        "protected": protected, "mode": mode,
+        "protected": protected, "mode": mode, "entrypoint": entrypoint, "attended": attended,
     }
     shortcuts = not protected and not truncated
 
     decision: Decision | None = None
     floor = _floor(tool, tool_input, cwd)
     if floor is not None:
-        decision = Decision(**{**base, "protected": True}, verdict=floor[0], source="protected",
-                            reason=floor[1])
-    hard = None if decision is not None else _hard_ask(kind, tool, tool_input, cwd, extra, mode)
+        verdict = "deny" if unattended else floor[0]
+        reason = floor[1] + (" (unattended session: nobody can answer, so denied)"
+                             if unattended and floor[0] == "ask" else "")
+        decision = Decision(**{**base, "protected": True}, verdict=verdict, source="protected",
+                            reason=reason)
+    hard = None if decision is not None else _hard_ask(kind, tool, tool_input, cwd, extra,
+                                                      BYPASS if bypass else mode)
     if not hard and untrusted_git and not bypass:
         hard = ("git in a repository that is not an ordinary checkout (a bare-repository "
                 "folder, a foreign .git file or core.bare): its config can run commands. "
                 "You decide.")
     if hard:
-        decision = Decision(**base, verdict="ask", source="protected", reason=hard)
+        if unattended:
+            decision = Decision(**base, verdict="deny", source="protected",
+                                reason=f"{hard} (unattended session: nobody can answer, so "
+                                       "denied)")
+        else:
+            decision = Decision(**base, verdict="ask", source="protected", reason=hard)
     if decision is None and not protected and config.allow_edits_in_project \
             and _edit_inside(tool, tool_input, cwd):
         decision = Decision(**base, verdict="allow", source="skip",
                             reason="an edit to a file inside the working repository")
-    if decision is None and not protected and mode in (ACCEPT_EDITS, BYPASS) \
+    if decision is None and not protected and (mode == ACCEPT_EDITS or bypass) \
             and _edit_in_trusted(tool, tool_input, cwd):
         decision = Decision(**base, verdict="allow", source="skip",
                             reason=f"an edit inside the trusted repository ({mode})")
@@ -525,10 +563,13 @@ async def decide(
                 and _edit_in_trusted(tool, tool_input, cwd, scratch=True) \
                 and not _risky_content(_written_text(tool, tool_input)):
             pass  # the whole file goes into a trusted repo or scratch, with nothing risky in it
-        elif truncated and verdict == "allow":
+        elif truncated and verdict == "allow" and not unattended:
             # The judge saw head and tail only: what it allowed may not be what runs.
             verdict = "ask"
             reason = f"truncated call (the judge saw only its head and tail): {reason}"
+        if unattended and verdict == "ask" and not failed:
+            verdict = "allow"
+            reason = f"unattended session (nobody can answer an ask): {reason}"
         decision = Decision(
             **base, verdict=verdict, reason=redact(reason), rule=ruling.rule,
             source="error" if failed else "model", model=config.resolved_model(),

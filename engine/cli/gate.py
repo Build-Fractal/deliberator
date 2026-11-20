@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import sys
 from pathlib import Path
 from typing import Any
@@ -66,6 +67,7 @@ def hook_cmd() -> None:
     try:
         event = json.loads(sys.stdin.read() or "{}")
         from engine.gate import decide, hook_output, load_config
+        from engine.gate.core import session_signals
 
         cwd = event.get("cwd") or str(Path.cwd())
         root = _root(cwd)
@@ -75,6 +77,8 @@ def hook_cmd() -> None:
             tool_input=event.get("tool_input") or {}, cwd=cwd,
             session=event.get("session_id"), tool_use_id=event.get("tool_use_id"),
             permission_mode=event.get("permission_mode"),
+            **dict(zip(("entrypoint", "attended"), session_signals(dict(os.environ)),
+                       strict=True)),
         ))
         payload = hook_output(decision, config, event.get("tool_input") or {})
     except Exception as exc:  # noqa: BLE001 - the hook must always answer.
