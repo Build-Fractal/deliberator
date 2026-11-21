@@ -49,8 +49,9 @@ async def test_allow_list_skips_the_model(tmp_path: Path) -> None:
 async def test_identical_call_reuses_the_ruling(tmp_path: Path) -> None:
     calls: list[str] = []
     j = _judge('{"verdict":"deny","reason":"no","rule":1}', calls)
-    first = await _bash(tmp_path, "rm -rf src", judge=j)
-    again = await _bash(tmp_path, "rm -rf src", judge=j)
+    # (not `rm -rf`: a recursive delete outside a repo is a hard ask before any reuse)
+    first = await _bash(tmp_path, "rm src/a.py", judge=j)
+    again = await _bash(tmp_path, "rm src/a.py", judge=j)
     assert len(calls) == 1
     assert again.source == "reuse" and again.verdict == "deny"
     assert again.precedents == (first.id,)

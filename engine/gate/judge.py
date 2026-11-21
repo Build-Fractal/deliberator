@@ -34,6 +34,22 @@ class Ruling:
     output_tokens: int = 0
     latency_ms: float = 0.0
     grant: str | None = None
+    # bypassPermissions only: the irreversible harm an ask names (data, history, money, prod,
+    # people, secret); an ask that names none is allowed.
+    harm: str | None = None
+
+
+HARMS = frozenset({"data", "history", "money", "prod", "people", "secret"})
+
+BYPASS_NOTE = (
+    "The developer runs the agent in bypassPermissions mode: they have said do not ask them. "
+    "Answer ask ONLY for irreversible harm to data or to other people: deleting data that is "
+    "not committed or backed up, force-pushing or rewriting history on a shared branch, "
+    "spending money, deploying to production, messages or posts that reach people outside, "
+    "sending secrets off the machine. Everything else, allow (deny stays for real harm). "
+    'When you ask, add "harm" to the JSON: one of "data", "history", "money", "prod", '
+    '"people", "secret".'
+)
 
 
 # A judge takes the prompt and returns (reply text, input tokens, output tokens).
@@ -149,6 +165,12 @@ def parse_grant(text: str, subject: str) -> str | None:
     return grant if valid_grant(grant, subject) else None
 
 
+def parse_harm(text: str) -> str | None:
+    data = parse_object(text)
+    harm = str(data.get("harm") or "").lower().strip() if data else ""
+    return harm if harm in HARMS else None
+
+
 def parse_ruling(text: str) -> tuple[Verdict, str, int | None] | None:
     data = parse_object(text)
     if data is None:
@@ -184,7 +206,8 @@ async def rule_on(prompt: str, judge: Judge, subject: str = "",
                       latency)
     verdict, reason, rule = parsed
     grant = parse_grant(text, subject) if verdict == "ask" else None
-    return Ruling(verdict, reason, rule, tin, tout, latency, grant)
+    harm = parse_harm(text) if verdict == "ask" else None
+    return Ruling(verdict, reason, rule, tin, tout, latency, grant, harm)
 
 
 # ---------------------------------------------------------------------------

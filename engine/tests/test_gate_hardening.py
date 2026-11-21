@@ -499,13 +499,15 @@ async def test_r3_credential_reads_are_a_hard_ask(tmp_path: Path, path: str) -> 
     ("Bash", {"command": "tail ~/.local/share/deliberator/.deliberator/gate/log.jsonl"}),
     ("Bash", {"command": "cat .deliberator/gate/graph.json"}),
 ])
-async def test_r3_gate_log_reads_are_a_hard_ask(tmp_path: Path, target) -> None:
+async def test_r3_gate_log_reads_are_judged(tmp_path: Path, target) -> None:
+    # Less asks (2026-11-17): reads of the log go to the judge (secrets are redacted before
+    # they are stored); writes stay a hard ask. Never a shortcut.
     repo = _real_repo(tmp_path / "repo")
     tool, ti = target
     ti = {k: v.format(repo=repo) for k, v in ti.items()}
     calls: list[str] = []
     d = await _call(tmp_path, tool, ti, LIVE, cwd=repo, judge=_judge(ALLOW, calls))
-    assert (d.verdict, d.source) == ("ask", "protected") and calls == [], ti
+    assert (d.source, d.protected) == ("model", True) and calls, ti
 
 
 async def test_r3_gate_config_reads_stay_with_the_judge(tmp_path: Path) -> None:

@@ -146,7 +146,17 @@ def _under(fp: str, dirs: Iterable[Path]) -> bool:
     return False
 
 
+# `.env.example` and friends are templates checked into repos, not secrets.
+ENV_TEMPLATES = ("example", "sample", "template", "dist", "defaults", "tmpl", "schema")
+
+
+def _env_template(name: str) -> bool:
+    return name.startswith(".env.") and name.rsplit(".", 1)[-1] in ENV_TEMPLATES
+
+
 def _credential_name(name: str) -> bool:
+    if _env_template(name):
+        return False
     if name.startswith("credentials") and name.rpartition(".")[2] in SOURCE_EXTS:
         return False  # credentials_test.py, credentials.ts: source, not a secret
     return (name in CREDENTIAL_NAMES or bool(_CREDENTIAL_NAME.fullmatch(name))
@@ -170,6 +180,8 @@ def path_kind(raw: str, cwd: str = "", extra: Iterable[str | Path] = ()) -> Kind
         if _under(fp, credential_dirs()) or _credential_name(parts[-1]):
             return "credential"
         inner = _after_worktree(parts)
+        if parts[-2:] == (".claude", "worktrees") and not _under(fp, config_dirs()):
+            inner = ()  # <repo>/.claude/worktrees: the folder that holds worktrees
         notes = _under(fp, notes_dirs())
         if notes:
             bump("notes")
@@ -181,7 +193,7 @@ def path_kind(raw: str, cwd: str = "", extra: Iterable[str | Path] = ()) -> Kind
         if parts[-1] in CONFIG_NAMES:
             bump("config")
         if not notes and (_under(fp, config_dirs()) or parts[-1] in RC_FILES
-                or parts[-1] in PROTECTED_COMPONENTS
+                or (parts[-1] in PROTECTED_COMPONENTS and inner)
                 or PROTECTED_COMPONENTS & set(inner[:-1])):
             bump("config")
     if _RANK[best] < _RANK["credential"]:
@@ -238,6 +250,39 @@ def _walk_kind(p: Path, inodes: dict[tuple[int, int], Kind]) -> Kind | None:
     return best
 
 
+def is_control(raw: str, cwd: str = "", extra: Iterable[str | Path] = ()) -> bool:
+    """What makes the agent or the gate run something, or stop asking: Claude's settings and
+    hooks (~/.claude/settings*.json, ~/.claude/hooks, ~/.claude.json, a project's
+    .claude/settings*.json and .claude/hooks), the gate's config and install
+    (~/.config/deliberator, ~/.local/share/deliberator) and its log. A write to one is a hard
+    ask in every permission mode."""
+    h = _home()
+    for p in _norm(raw, cwd):
+        fp = _fold(p)
+        parts = tuple(x.casefold() for x in p.parts)
+        if _under(fp, [h / ".config" / "deliberator", h / ".local" / "share" / "deliberator",
+                       h / ".claude.json", h / ".claude" / "hooks", *gate_log_dirs(extra)]):
+            return True
+        if any(a == ".deliberator" and b == "gate" for a, b in pairwise(parts)):
+            return True
+        for i in range(len(parts) - 1):
+            if parts[i] == ".claude" and (parts[i + 1] == "hooks" or (
+                    i + 2 == len(parts) and fnmatch.fnmatchcase(parts[i + 1], "settings*.json"))):
+                return True
+    return False
+
+
+def word_kind(word: str, cwd: str = "", extra: Iterable[str | Path] = ()) -> Kind | None:
+    """The kind of one shell word naming a path: as a path, and as a glob of protected names."""
+    k = path_kind(word, cwd, extra)
+    if any(c in word for c in "*?[{"):
+        at_home = bool(cwd) and _fold(os.path.normpath(cwd)) == _fold(_home())
+        g = _glob_kind(word, at_home)
+        if _RANK[g] > _RANK[k]:
+            k = g
+    return k
+
+
 def path_is_protected(raw: str, cwd: str = "", extra: Iterable[str | Path] = ()) -> bool:
     return path_kind(raw, cwd, extra) is not None
 
@@ -247,7 +292,7 @@ _B = r"(?:^|(?<=[\s/~'\"=:(<>{}$`,]))"
 _BASH_CREDENTIAL = re.compile(
     _B + r"\.(?:ssh|aws|gnupg|azure|netrc|npmrc|pypirc|git-credentials|pgpass|gitconfig"
     r"|vault-token|envrc)(?![\w-])"
-    + r"|" + _B + r"\.env(?:\.[\w.-]+)?(?![\w-])"
+    + r"|" + _B + r"\.env(?!\.(?:" + "|".join(ENV_TEMPLATES) + r")(?![\w-]))(?:\.[\w.-]+)?(?![\w-])"
     + r"|\.config/(?:gh|hub|git|op|gcloud)(?![\w-])|\.docker/config\.json|\.kube/config\b"
     + r"|Library/Keychains\b|\.keychain(?:-db)?\b|\.cargo/credentials|\.yarnrc\.yml"
     + r"|\.terraform\.d/credentials|\.cache/huggingface/token|\.codex/auth\.json"
@@ -267,7 +312,8 @@ _BASH_CONFIG = re.compile(
     re.IGNORECASE,
 )
 # `<repo>/.claude/worktrees/<name>` (but not under ~/.claude) is ordinary work.
-_WORKTREE = re.compile(r"\.claude/worktrees/([^/\s'\"]+)", re.IGNORECASE)
+_WORKTREE = re.compile(r"\.claude/worktrees(?:/([^/\s'\"]+)|(?=$|[\s'\";|&)]))",
+                       re.IGNORECASE)
 _HOME_PREFIXES = ("~/", "$HOME/", "${HOME}/")
 _DOTDOT = re.compile(r"(?:^|/)\.\.(?:/|$)")
 
@@ -280,6 +326,8 @@ def _strip_worktrees(text: str) -> str:
         if any(before.endswith(h.casefold()) for h in (*_HOME_PREFIXES, home)):
             return m.group(0)
         rest = re.match(r"[^\s'\"]*", text[m.end():])
+        if m.group(1) is None:
+            return "WORKTREE"  # the folder holding the worktrees
         if m.group(1) in (".", "..") or _DOTDOT.search(rest.group(0) if rest else ""):
             return m.group(0)  # `..` climbs out of the worktree: judge it as written
         return "WORKTREE"
